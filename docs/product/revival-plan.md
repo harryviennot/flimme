@@ -13,7 +13,7 @@ Project review, 28 October 2026. A review of [MovieMatch](https://github.com/har
 > - **Data model**: the table list in [A faster foundation](#data-model) is replaced by [architecture/data-model.md](../architecture/data-model.md).
 > - **Deck engine**: the taste weights, the slate, moods and the taste check in [A smarter deck](#a-smarter-deck) are replaced by [architecture/deck-engine.md](../architecture/deck-engine.md).
 > - **Game rules**: the modes, match rules and finale are worked through in [game-modes.md](game-modes.md).
-> - **Catalog and where to watch**: the refresh schedule, provider data and embeddings are in [integrations/tmdb.md](../integrations/tmdb.md); gte-small now runs on the recommendation server, not as Supabase's built-in model. [integrations/streaming-availability.md](../integrations/streaming-availability.md) compares where-to-watch sources and keeps Streaming Availability for the winner screen.
+> - **Catalog and where to watch**: the refresh schedule, provider data and embeddings are in [integrations/tmdb.md](../integrations/tmdb.md); gte-small now runs on the recommendation server, not as Supabase's built-in model. [integrations/streaming-availability.md](../integrations/streaming-availability.md) compares where-to-watch sources. Streaming Availability is dropped from v1: the winner screen says where the film is, with no "Open in Netflix" links.
 > - **App and onboarding**: how the Expo app is built is in [architecture/app-structure.md](../architecture/app-structure.md); the path from install to the first pick is in [onboarding.md](onboarding.md), which recommends web guests at launch.
 >
 > Every decision since the report is in [decisions.md](../decisions.md).

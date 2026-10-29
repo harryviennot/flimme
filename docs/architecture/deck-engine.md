@@ -445,7 +445,7 @@ Joined to the seat's vote, each card is a labelled example: likes and super like
 
 The stages around the one being replaced don't change.
 
-> Nothing from Streaming Availability goes into features, logs or training data: its terms forbid using it to train or evaluate models. TMDB's terms may require a commercial agreement for using its content in the engine at all, language model mood tags included: see [tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution).
+> TMDB's terms may require a commercial agreement for using its content in the engine at all, language model mood tags included: see [tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution).
 
 ## Measuring it
 

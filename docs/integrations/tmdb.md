@@ -139,7 +139,11 @@ The exact TMDB provider ids and offer kinds of each French service are to be con
 
 ### The watch link
 
-`title_watch_links` keeps TMDB's watch page for each film and country (the `link` field), refreshed by the weekly fetch. The winner screen shows it while deep links load, and for services that Streaming Availability doesn't cover.
+`title_watch_links` keeps TMDB's watch page for each film and country (the `link` field), refreshed by the weekly fetch.
+
+**The winner screen** says where to watch: the logos of the room's services that have the film (subscription, free or with ads), with the JustWatch credit and TMDB's watch page as "More details". No links into the services' apps: a group watches on the TV, not on a phone ([decisions.md](../decisions.md)).
+
+**"Not there anymore?"** Players can report that the film isn't on a service any more. A report re-fetches that film's services at once, and the share of winners reported is our measure of how stale TMDB's data is. It needs one small api function.
 
 ## Keeping it fresh
 
@@ -233,7 +237,6 @@ This answers the "Countries at launch" question in [decisions.md](../decisions.m
 - its listed services, variants, channels and free services,
 - its certification ages,
 - its default language,
-- mapping its services to Streaming Availability ids for deep links,
 - checking a sample of decks by hand.
 
 **Recommendation:** France for the closed beta. Belgium and Switzerland next: French-speaking, so no new copy. Then the UK, Ireland, the US and Canada once the English copy is done. A player in a country that isn't enabled can join rooms but not host one, and sees "Not available in your country yet".
@@ -265,6 +268,8 @@ None of these are in [data-model.md](../architecture/data-model.md) or [schema.s
 | `titles` | `refresh_tier` becomes 1 = available in an enabled country (weekly fetch), 2 = the rest (monthly fetch). Add `tmdb_missing_since` |
 | `title_certifications` | Add `inferred_from`: the country whose certification was used, null when it's the country's own |
 | `title_availability` | Rent and buy aren't stored at launch |
+| Streaming Availability | Dropped from v1: `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue and the `result` event go |
+| New `api.report_unavailable(room, title, provider)` | A player's "Not there anymore?" on the winner screen; queues a re-fetch of the film |
 | `ingest_runs.kind` | `backfill`, `availability_sweep`, `popularity_daily`, `changes_daily`, `details_weekly`, `details_monthly`, `reference_weekly`, `embeddings`, `moods` |
 
 ## Starting values

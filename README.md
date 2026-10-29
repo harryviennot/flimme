@@ -3,7 +3,7 @@
 Backend for the MovieMatch revival, in two parts:
 
 - **Supabase** runs the game: Postgres with pgvector, Auth for guests and accounts, Realtime for rooms, Queues and Cron. The app reaches it only through the `api` schema.
-- **The recommendation server** runs around it: it ranks every deck, learns from swipes, Letterboxd ratings and global ratings, and handles TMDB, Letterboxd and Streaming Availability.
+- **The recommendation server** runs around it: it ranks every deck, learns from swipes, Letterboxd ratings and global ratings, and handles TMDB and Letterboxd.
 
 ## Docs
 

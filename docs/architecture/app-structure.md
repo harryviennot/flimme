@@ -187,7 +187,7 @@ Each room uses two topics from the [data model](data-model.md#realtime), both op
 | `near_miss` | Shows "2 of 3 of you liked this" (Party mode) |
 | `match` | Shows the match overlay; if `decided`, the winner screen follows |
 | `finale_started`, `round_progress` | Refetches the round |
-| `result` | Refetches the matches, for the deep links |
+| `result` | Not used in v1: it announced the winner's deep links, which are dropped |
 
 **Missed messages are normal.** Realtime only tells; the database decides. So the phone re-reads the room, its seats, its matches, the current round and its next cards whenever:
 

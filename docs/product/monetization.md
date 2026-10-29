@@ -159,7 +159,7 @@ About 200 to 300 yearly subscribers cover the fixed costs, and the TMDB license 
 | Apple Developer Program | $99/year, about $8/month |
 | **Total** | **About $200 to $250/month** |
 
-> Streaming Availability: free while building, Starter at $49 a month from launch. See [integrations/streaming-availability.md](../integrations/streaming-availability.md#requests-and-cost).
+> Streaming Availability is dropped from v1: the winner screen only says where to watch, so that line costs nothing. See [decisions.md](../decisions.md).
 
 At €14.99/year you keep about €10.60 per subscriber in France (after 20% VAT and Apple's 15%) and about $12.70 in the US. That makes roughly 200 to 300 subscribers. If 2 to 5% of active hosts subscribe (an assumption, typical for freemium), you need about 4,000 to 15,000 active hosts.
 

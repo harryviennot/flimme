@@ -28,7 +28,7 @@ Everything written about the MovieMatch revival: what we're building, how it wor
 | **Integrations** | | |
 | [letterboxd.md](integrations/letterboxd.md) | What Letterboxd allows, the export file format, connecting, the RSS check, syncing, storage, rules for using the data | Draft for review |
 | [tmdb.md](integrations/tmdb.md) | The catalog from TMDB: terms and the machine-learning clause, which films, one request per film, the daily availability sweep, services and variants, the refresh schedule, the first load, images, certifications, translations, embeddings, failures, countries at launch | Draft for review. Its data model changes aren't applied yet |
-| [streaming-availability.md](integrations/streaming-availability.md) | Where-to-watch sources compared and the choice; Streaming Availability's data, terms and attribution; deep links and the last check on the winner screen; the staleness metric; service mapping; cost | Draft for review. Its data model changes aren't applied yet |
+| [streaming-availability.md](integrations/streaming-availability.md) | Where-to-watch sources compared and the choice; Streaming Availability's data, terms and attribution; deep links and the last check on the winner screen; the staleness metric; service mapping; cost | Not used in v1: kept as the comparison of sources and a plan B |
 | **Decisions** | | |
 | [decisions.md](decisions.md) | Decided, defaults, open, dropped | Kept up to date |
 | **Archive** | | |

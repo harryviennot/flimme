@@ -2,6 +2,8 @@
 
 The service around Supabase that chooses every card: it ranks decks, learns from swipes, Letterboxd ratings and global ratings, and makes every call to an outside service (TMDB, Letterboxd, Streaming Availability). Written in October 2026.
 
+> Streaming Availability is dropped from v1: the winner screen only says where to watch, from TMDB's data. Its mentions below (winner deep links, its key) no longer apply.
+
 The split with Supabase is one rule: **Postgres decides the game, the server decides the deck.** Why, and what each side owns, is in the data model's [Who does what](data-model.md#who-does-what). The tables the server reads and writes are in the [data model](data-model.md), its own data in [`rec`](data-model.md#6-recommendation-data). Decisions and open questions (including the server's language) are in [decisions.md](../decisions.md).
 
 ## Contents

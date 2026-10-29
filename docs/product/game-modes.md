@@ -236,7 +236,7 @@ A ballot locked in before its player left still counts. The result is broadcast 
 
 **The winner screen** (as in the current design):
 
-- **Where to watch.** "Open in Netflix" when the deep link has arrived (the server fetches it once per game), TMDB's JustWatch-powered watch page until then. The fetch starts at the pick, not after the Keep swiping window, so the link is ready in time.
+- **Where to watch.** The logos of the room's services that have the film, free services included, with the JustWatch credit and TMDB's watch page as "More details". No "Open in Netflix" link: the group watches on the TV. A "Not there anymore?" link reports a stale listing ([tmdb.md](../integrations/tmdb.md#the-watch-link)).
 - **Log on Letterboxd**, through `letterboxd.com/tmdb/{tmdb_id}`.
 - **Share recap**: a card with the film, the time from the start to the pick ("3 min 42 s"), the number of players and swipes, and the app link.
 - **Runners-up**: the other finalists (or, after an instant match, the most liked films), for when the stream turns out to be missing.
