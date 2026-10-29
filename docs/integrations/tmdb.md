@@ -104,7 +104,7 @@ Computed at ingest:
 
 ## Where to watch
 
-A deck only shows films available on tonight's services in the room's country (`title_availability`). That data comes from TMDB's watch providers, which TMDB gets from JustWatch. Why this source rather than Streaming Availability is in [the recommendation](streaming-availability.md#the-recommendation). In short, it's the only affordable source that covers the services French families use, Canal+ and the free French TV streamers included.
+A deck only shows films available on tonight's services in the room's country (`title_availability`). That data comes from TMDB's watch providers, which TMDB gets from JustWatch. Why this source rather than Streaming Availability is in [the recommendation](streaming-availability.md#the-recommendation). In short, it's the only affordable source that covers the services French families use: Canal+, TF1+, M6+ and Arte included. france.tv is the one gap, in every source checked (see [the france.tv gap](streaming-availability.md#the-francetv-gap)).
 
 ### The daily sweep
 
@@ -133,7 +133,7 @@ TMDB lists some services more than once. On a TMDB France watch page checked tod
 - **A variant** (Netflix Standard with Ads) points at its main service through a new `providers.parent_id`. A player who picks Netflix gets films on either.
 - **A channel** (a Prime Video or Apple TV channel) is a service of its own, because it needs its own subscription. It's only listed where it matters, such as Cine+ OCS in France.
 - **Which services a country's picker shows**, and in what order, is curated per country: a new `provider_regions.is_listed`, ordered by TMDB's display priority for that country.
-- **Free services** are those with only free or ad-supported offers in a country, such as Arte, france.tv or Pluto TV. Anyone can watch them. Default: they count as available to every room in that country without anyone picking them, and the host can switch them off. This is a product choice for Harry.
+- **Free services** are those with only free or ad-supported offers in a country, such as Arte or Pluto TV. Anyone can watch them. Default: they count as available to every room in that country without anyone picking them, and the host can switch them off. This is a product choice for Harry.
 
 The exact TMDB provider ids and offer kinds of each French service are to be confirmed on the first API calls. Curating them is part of enabling a country.
 
@@ -296,5 +296,5 @@ All on 29 October 2026:
 - [Movie details](https://developer.themoviedb.org/reference/movie-details) (20 appended parts at most), [watch providers](https://developer.themoviedb.org/reference/movie-watch-providers) (JustWatch attribution, no deep links), [the provider list](https://developer.themoviedb.org/reference/watch-providers-movie-list), [discover](https://developer.themoviedb.org/reference/discover-movie), [release dates](https://developer.themoviedb.org/reference/movie-release-dates) and [configuration](https://developer.themoviedb.org/reference/configuration-details)
 - [TMDB forum thread on the 500-page discover cap](https://themoviedb.org/talk/6489a3f0e375c000ff4ab1b2)
 - [A TMDB France watch page](https://www.themoviedb.org/movie/1064213-anora/watch?locale=FR): Netflix and "Netflix Standard with Ads" as separate providers; French rental and purchase stores
-- JustWatch France listings, through search: Canal+, TF1+, M6+, Arte and France TV are listed
+- [JustWatch France](https://www.justwatch.com/fr), checked directly: Canal+, TF1+, M6+ and Arte are listed; france.tv only as "France TV Amazon Channel"
 - [gte-small model card](https://huggingface.co/thenlper/gte-small): 384 dimensions, English only, 512 tokens, MIT licence

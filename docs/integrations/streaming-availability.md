@@ -40,12 +40,12 @@ Checked on 29 October 2026.
 | | TMDB watch providers (JustWatch data) | Streaming Availability | JustWatch, licensed directly | Watchmode |
 | --- | --- | --- | --- | --- |
 | Countries | JustWatch says over 140 | 65 | Over 140 (over 100 for partner integrations) | 54 |
-| France | Every service on the list above: JustWatch's France listings include Canal+, TF1+, M6+, Arte and France TV; a TMDB France watch page also listed Canal VOD, Pathé Home, Orange VOD and Rakuten TV | 11 services: Netflix, Prime Video, Disney+, HBO Max, Apple TV, Paramount+, Mubi, Curiosity Stream, Pluto TV, Crunchyroll, Zee5. **No Canal+, Arte, france.tv, TF1+ or M6+** | The same data as TMDB's | Covered; services not checked |
+| France | Every service on the list above except france.tv. JustWatch France lists Canal+ (and Canal+ Séries), TF1+, M6+, Arte (and ARTE VOD), but france.tv only as "France TV Amazon Channel", a paid add-on inside Prime Video, not the free app (checked on justwatch.com/fr). A TMDB France watch page also listed Canal VOD, Pathé Home, Orange VOD and Rakuten TV | 11 services: Netflix, Prime Video, Disney+, HBO Max, Apple TV, Paramount+, Mubi, Curiosity Stream, Pluto TV, Crunchyroll, Zee5. **No Canal+, Arte, france.tv, TF1+ or M6+** | The same data as TMDB's | Covered; services not checked |
 | Offer kinds | Subscription, free, ads, rent, buy | Subscription, free, rent, buy, add-on; also expiry dates, video quality, audio and subtitle languages, prices | Prices and offer types | Subscription, free, rent and buy, TV channel apps |
-| Deep links | **None.** TMDB: "This is *not* going to return full deep links". One TMDB watch page per film and country | **Yes:** universal links into each service's app, and direct links to start playing | Partners must show a JustWatch link; deep links not described | iOS and Android deep links on paid plans only |
+| Deep links | **None.** TMDB: "This is *not* going to return full deep links". One TMDB watch page per film and country | **Yes:** universal links into each service's app, and direct links to start playing | **Yes:** each offer carries "a direct link to a title page for a provider", which would cover Canal+, TF1+, M6+ and Arte. Partners must show a branded JustWatch link | iOS and Android deep links on paid plans only |
 | Freshness | Not published by TMDB. JustWatch says its own data refreshes at least every 24 hours | "Most of the data is updated daily" | Daily | Not checked |
 | Bulk and changes | Discover by service: 20 films a page, up to 500 pages a query. No change feed for availability | Search by service: 20 films a page with a cursor. A change feed (new, removed, updated, expiring, upcoming) covering 31 days either side of today | A data dump | Not checked |
-| Cost | Comes with the TMDB API: free while non-commercial, $149 a month on TMDB's commercial plan under $1 million revenue | Free: 1,000 requests a month. Starter: $49 for 25,000. Growth: $99 for 100,000. Scale: $299 for 1,000,000. A hard quota with no overage | Not published; data-partner@justwatch.com | Free: 2,500 credits, non-commercial. $349 a month for 40,000 credits; $599 for 100,000 |
+| Cost | Comes with the TMDB API: free while non-commercial, $149 a month on TMDB's commercial plan under $1 million revenue | Free: 1,000 requests a month. Starter: $49 for 25,000. Growth: $99 for 100,000. Scale: $299 for 1,000,000. A hard quota with no overage | Not published; B2B, by contact (data-partner@justwatch.com, partner-support@justwatch.com) | Free: 2,500 credits, non-commercial. $349 a month for 40,000 credits; $599 for 100,000 |
 | Commercial use | Under TMDB's commercial plan. The JustWatch licensing doesn't change: attribution stays required | Allowed on every plan, the free one included | By licence | Paid plans only |
 | Attribution | TMDB logo and notice; JustWatch credited wherever the data shows | Required, with a link to `movieofthenight.com/about/api` | A branded JustWatch link next to every "where to watch" | Free plan only |
 | Keeping the data | 6 months at most (TMDB's terms) | "As long as required", even after the subscription ends | Not checked | While subscribed; deleted on cancelling |
@@ -58,7 +58,7 @@ Checked on 29 October 2026.
 
 Why:
 
-1. **Coverage decides it.** In France, Streaming Availability has no Canal+ and none of the free TV streamers. A family whose host has Canal+ (as in the Figma lobby) would get decks missing everything they can watch there. TMDB's JustWatch data has all of them.
+1. **Coverage decides it.** In France, Streaming Availability has no Canal+ and none of the free TV streamers. A family whose host has Canal+ (as in the Figma lobby) would get decks missing everything they can watch there. TMDB's JustWatch data has Canal+, TF1+, M6+ and Arte. france.tv is missing from every source checked (see [The france.tv gap](#the-francetv-gap)).
 2. **Countries are nearly free with TMDB.** Its per-film data covers every country in one request. Streaming Availability charges requests per country swept.
 3. **Streaming Availability is strongest where we need it least often.** Deep links, expiry dates and audio languages matter on the winner screen, which is one request per game.
 4. **It's already modelled.** `title_availability` and `title_deep_links` fit this split as they are.
@@ -67,7 +67,7 @@ Rejected:
 
 - **Streaming Availability as the eligibility source**: the French coverage gap, and a request cost that grows with every country.
 - **Both as equal sources, merged**: two sources disagree daily, and every disagreement needs a rule about who wins. One source of truth plus one check is simpler.
-- **JustWatch licensed directly**: the best data, but an unpublished price and a partnership process. Worth revisiting at scale or if TMDB's access changes (see [When to revisit](#when-to-revisit)).
+- **JustWatch licensed directly, for now**: the best data, with links into every service including the French ones, but an unpublished price and a partnership process. Not rejected outright: ask for a price now, at the same time as TMDB. If it's reasonable, JustWatch alone could replace both TMDB's provider data and Streaming Availability's links (see [When to revisit](#when-to-revisit)).
 - **Watchmode**: costs more, and deep links need a paid plan.
 
 The risks of this choice, and what covers them:
@@ -75,8 +75,18 @@ The risks of this choice, and what covers them:
 | Risk | Cover |
 | --- | --- |
 | TMDB's copy of JustWatch data lags behind the services | The winner-time check measures it on every game (see [Watching for stale data](#watching-for-stale-data)) |
-| No deep link for services Streaming Availability lacks (Canal+, Arte, france.tv, TF1+, M6+) | The winner screen opens TMDB's watch page for those, which leads to the service |
+| No deep link for services Streaming Availability lacks (Canal+, Arte, TF1+, M6+) | The winner screen opens TMDB's watch page for those, which leads to the service |
 | TMDB loses or restricts JustWatch data | Plan B in [When to revisit](#when-to-revisit) |
+
+### The france.tv gap
+
+No source checked carries france.tv, France Télévisions' free app: JustWatch France lists only "France TV Amazon Channel", so TMDB can't have it either, and Streaming Availability doesn't cover it. TF1, M6, Canal+ and France Télévisions publish no catalogue API that we could find, and collecting data from their sites ourselves is ruled out.
+
+What we do about it:
+
+- **Accept the gap at launch.** Films on france.tv are mostly catch-up for a limited time after they air, a small share of what families pick.
+- **Ask JustWatch** whether its partner data includes france.tv, in the same email as the price.
+- **Later idea: "On TV tonight".** A card for the film airing tonight on a national channel. It needs TV listings, for which we found no official free source, only community files with unclear terms.
 
 ## What Streaming Availability gives
 
@@ -155,7 +165,7 @@ TMDB doesn't say how often its watch-provider data refreshes. The winner-time lo
 | Apple TV+ (subscription) and the Apple TV store (rent and buy) | `apple`, told apart by the option's type |
 | Paramount Plus | `paramount` |
 | Mubi, Pluto TV, Crunchyroll | `mubi`, `plutotv`, `crunchyroll` |
-| Canal+, Arte, france.tv, TF1+, M6+ | None: TMDB's watch page |
+| Canal+, Arte, TF1+, M6+ | None: TMDB's watch page. (france.tv isn't in the data at all) |
 
 TMDB's provider names and ids are to be confirmed on the first API calls. Channels sold through Prime Video or Apple TV map to Streaming Availability's add-ons later, when they're listed.
 
@@ -191,6 +201,7 @@ An alert goes out at 80% of the month's quota.
 | Streaming Availability adds Canal+ and the French free streamers | Reconsider it as the single source for France |
 | TMDB loses or restricts JustWatch data, or JustWatch asks for a licence | Plan B: Streaming Availability for the services it covers, plus a JustWatch licence (data-partner@justwatch.com) for the rest |
 | Revenue nears $1 million | TMDB moves to a custom quote; compare it with a direct JustWatch licence |
+| JustWatch's price comes back reasonable | Take availability and links from JustWatch alone: one source, links into the French apps, and Streaming Availability no longer needed |
 
 Later, as a game idea: Streaming Availability's expiring changes could drive a "Leaving Netflix in 4 days" label on cards. It's display only, so its terms allow it; it would cost a few requests a day per country.
 
@@ -228,6 +239,7 @@ All on 29 October 2026:
 - Streaming Availability docs: [countries and services](https://docs.movieofthenight.com/guide/countries-and-services) (France's 11 services), [shows](https://docs.movieofthenight.com/resource/shows), [changes](https://docs.movieofthenight.com/resource/changes), [pagination](https://docs.movieofthenight.com/guide/pagination)
 - [TMDB watch providers](https://developer.themoviedb.org/reference/movie-watch-providers): JustWatch attribution, no deep links
 - [TMDB forum, 30 September 2026](https://www.themoviedb.org/talk/6abd0df8de4482c46644287e) and [31 March 2026](https://www.themoviedb.org/talk/69cbf4f91b914f0e9542a772): JustWatch licensing under the commercial plan; the $149 plan
-- [A TMDB France watch page](https://www.themoviedb.org/movie/1064213-anora/watch?locale=FR) and JustWatch France listings, through search: French services covered
-- JustWatch: [content insights](https://www.media.justwatch.com/content-insights) (over 140 countries, refreshed at least every 24 hours), [streaming API](https://www.justwatch.com/al/JustWatch-Streaming-API) (contact), [content partner docs](https://apis.justwatch.com/docs/content_partner/) (daily updates, over 100 countries, branding rules)
+- [A TMDB France watch page](https://www.themoviedb.org/movie/1064213-anora/watch?locale=FR): French services covered
+- JustWatch France, checked directly: [home page](https://www.justwatch.com/fr) (provider list: Canal+, TF1+, M6+, Arte, but france.tv only as France TV Amazon Channel), [Canal+](https://www.justwatch.com/fr/plateforme/canal-plus) (998 titles), [TF1+](https://www.justwatch.com/fr/plateforme/tf1-plus) (2,161), [M6+](https://www.justwatch.com/fr/plateforme/m6-plus) (782), [Arte](https://www.justwatch.com/fr/plateforme/arte) (206); `/fr/plateforme/france-tv` redirects to the home page
+- JustWatch: [content insights](https://www.media.justwatch.com/content-insights) (over 140 countries, refreshed at least every 24 hours), [streaming API](https://www.justwatch.com/al/JustWatch-Streaming-API) (contact), [content partner docs](https://apis.justwatch.com/docs/content_partner/) (an API, a data dump or a widget; daily updates; over 100 countries and 500 services; offers with a direct link to the title on each service; branding rules)
 - [Watchmode](https://api.watchmode.com/): 54 countries, plans and credits, deep links on paid plans, caching rules
