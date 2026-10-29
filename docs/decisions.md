@@ -32,6 +32,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | The recommendation server is written in Python. FastAPI serves the small HTTP API; the workers and the trainer are plain async Python processes | 29 Oct 2026 | [The language](architecture/server-structure.md#the-language) |
 | Supabase runs in Paris (`eu-west-3`) and the server on Fly.io in Paris | 29 Oct 2026 | [Hosting](architecture/server-structure.md#hosting) |
 | The host can remove a player, who can't rejoin, and lock the room against new seats. Display names are normalised and filtered with an English and French blocklist; avatars are presets only; reactions come from a fixed emoji set; anyone can report a player | 29 Oct 2026 | [Room codes, joining and the host](architecture/security.md#room-codes-joining-and-the-host) |
+| The first release is the bare minimum for a group to pick a film: guest play, rooms, Quick Match with the Final Cut, and a deck built in SQL from quality and popularity. No Letterboxd, taste profiles, accounts, moods, other modes or payments; those come after launch, in the roadmap's order | 29 Oct 2026 | [The first release](product/roadmap.md#the-first-release-whats-in-what-waits) |
 
 ## Defaults, not yet confirmed
 

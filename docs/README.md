@@ -9,6 +9,7 @@ Everything written about the MovieMatch revival: what we're building, how it wor
 3. [Data model](architecture/data-model.md): how the backend actually works.
 4. [Deck engine](architecture/deck-engine.md): how every card is chosen.
 5. [Game modes](product/game-modes.md): the rules of play, from the start to the night's pick.
+6. [Roadmap](product/roadmap.md): every milestone and task, in the order to build them, with progress.
 
 ## All docs
 
@@ -17,6 +18,7 @@ Everything written about the MovieMatch revival: what we're building, how it wor
 | **Product** | | |
 | [revival-plan.md](product/revival-plan.md) | Audit of the old app and server, Letterboxd feasibility, the stack, the catalog, the deck engine, game design, the Expo upgrade, the publishing checklist, the roadmap | Snapshot of 28 Oct 2026. Superseded in parts, noted at the top |
 | [monetization.md](product/monetization.md) | The family bet, kids' safety, free vs Host Pro, the hosting cap, affiliate payouts, break-even | Proposal, snapshot of 29 Oct 2026 |
+| [roadmap.md](product/roadmap.md) | Every step from an empty repo to launch and beyond: the first release's scope, 25 milestones with their status, and 235 tasks with dependencies and the docs to read | Kept up to date: tick tasks as they're done |
 | [game-modes.md](product/game-modes.md) | The rules of play: modes, answers, match rules, presence, joining and leaving, Party and Blind, the finale, every way a game ends, the winner screen and "Did you watch it?", later modes, time to a pick, specs for the game functions still to write | Draft for review. Its data model changes aren't applied yet |
 | [privacy.md](product/privacy.md) | Privacy and the legal ground: a data map with bases and retention, consents, analytics without a prompt, training across players, players' rights, children by market, Letterboxd and TMDB terms, processors and data locations, store privacy forms, privacy policy and terms outlines, questions for a lawyer | Draft for review; needs a lawyer's read before launch |
 | [analytics.md](product/analytics.md) | How we know the app works: the questions, every metric defined once with its source and target, the PostHog event list, identity, consent and kids, funnels, first dashboards, reading A/B tests, PostHog's plan and EU hosting | Draft for review. Its data model changes aren't applied yet |
@@ -46,7 +48,7 @@ Outside the repo: the [design file in Figma](https://www.figma.com/design/v2ZGLb
 
 | Folder | For | Examples to come |
 | --- | --- | --- |
-| `product/` | What we build and why: game design, modes, onboarding, pricing, the store listing | `playtests.md`, `build-plan.md` |
+| `product/` | What we build and why: game design, modes, onboarding, pricing, the store listing | `playtests.md` |
 | `architecture/` | How the system works: backend, app structure, the recommendation algorithm, operations | `notifications.md` |
 | `integrations/` | One file per outside service: what it allows, how we call it, its rules | `revenuecat.md` |
 | `decisions.md` | One line per decision or open question, linking to the doc with the details | |

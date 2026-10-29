@@ -16,6 +16,7 @@ Project review, 28 October 2026. A review of [MovieMatch](https://github.com/har
 > - **Catalog and where to watch**: the refresh schedule, provider data and embeddings are in [integrations/tmdb.md](../integrations/tmdb.md); gte-small now runs on the recommendation server, not as Supabase's built-in model. [integrations/streaming-availability.md](../integrations/streaming-availability.md) compares where-to-watch sources. Streaming Availability is dropped from v1: the winner screen says where the film is, with no "Open in Netflix" links.
 > - **App and onboarding**: how the Expo app is built is in [architecture/app-structure.md](../architecture/app-structure.md); the path from install to the first pick is in [onboarding.md](onboarding.md), which recommends web guests at launch.
 > - **Running and launching**: [architecture/server-structure.md](../architecture/server-structure.md), [architecture/operations.md](../architecture/operations.md), [architecture/security.md](../architecture/security.md), [privacy.md](privacy.md), [analytics.md](analytics.md) and [store-listing.md](store-listing.md). Together they replace the publishing checklist below.
+> - **Roadmap**: replaced by [roadmap.md](roadmap.md).
 >
 > Every decision since the report is in [decisions.md](../decisions.md).
 
@@ -586,6 +587,8 @@ Tick items here as you go.
 - [ ] Closed testing with 5 to 10 real friend groups
 
 ## Roadmap
+
+> Superseded: the build order, milestones and tasks are in [roadmap.md](roadmap.md), which also cuts the first release down to rooms, the game and a simple deck.
 
 Sizes are relative (S, M, L) for one developer. Each phase ends with something you can play.
 
