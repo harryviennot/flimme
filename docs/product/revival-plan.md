@@ -416,7 +416,7 @@ Weights are starting points. Log every swipe with the score that produced the ca
 | --- | --- | --- |
 | 2 | Both like it | Final Cut after 40 cards |
 | 3 to 4 | Everyone likes it | Final Cut after 50 cards or 8 minutes |
-| 5 to 10 | At least 70% like it and nobody used a super nope | Ranked vote among the top 4 |
+| 5 to 10 | At least 70% like it and nobody used a super nope (super nope since dropped, see [decisions.md](../decisions.md)) | Ranked vote among the top 4 |
 
 Thresholds are starting values. Count only players currently present, so someone leaving doesn't block every match.
 

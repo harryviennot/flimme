@@ -99,7 +99,7 @@ Today the data model makes "Seen it" an abstention under these rules: the film c
 - A like that already moved the film up in other decks leaves it there. That's harmless.
 - Undoing a "Seen it" that dropped the film under `hide_seen` brings the film back for the room, unless another player also said "Seen it". Other players get it again at their next refill. Today the function refuses this undo; a mis-swipe would otherwise remove a film for good.
 
-**Super nope (open question).** The revival plan's 5-to-10-player rule says "and nobody used a super nope", but super nope isn't one of the four answers, and the design has none. **Recommended default: drop it at launch.** The deck's misery rule already keeps films anyone is predicted to hate out of the deck; every player has a veto in the Final Cut; and a fifth gesture costs every new player something to learn. Playtests should count majority matches that included a nope and how those players answered "Did you watch it?". If that shows a problem, the fix is a tighter majority rule (for example at most one nope), not a new answer.
+**Super nope: dropped (decided on 29 October 2026).** The revival plan's 5-to-10-player rule said "and nobody used a super nope", but super nope isn't one of the four answers, and the design has none. It's dropped because every player has a veto in the Final Cut. Also, the deck's misery rule already keeps films anyone is predicted to hate out of the deck; every player has a veto in the Final Cut; and a fifth gesture costs every new player something to learn. Playtests should count majority matches that included a nope and how those players answered "Did you watch it?". If that shows a problem, the fix is a tighter majority rule (for example at most one nope), not a new answer.
 
 ## When it's a match
 
@@ -414,7 +414,6 @@ Each needs a yes; they're listed in [decisions.md](../decisions.md) once reviewe
 
 | Default | Section |
 | --- | --- |
-| Drop super nope at launch | [The answers](#the-answers) |
 | "Seen it" in rooms that allow rewatches asks "Watch it again tonight?"; no more abstentions | [The answers](#the-answers) |
 | Undo: last swipe only, once; undoing "Seen it" brings a dropped film back | [The answers](#the-answers) |
 | Super-liked cards show a star to the others in Party mode | [The answers](#the-answers) |
