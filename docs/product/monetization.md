@@ -1,8 +1,8 @@
 # MovieMatch monetization options
 
-How MovieMatch can earn money, built on the [revival plan](../revival-plan/README.md). Written in October 2026.
+How MovieMatch can earn money, built on the [revival plan](revival-plan.md). Written in October 2026.
 
-> Copied from `harryviennot/MovieMatch`, branch `claude/artifact-monetization-options-igb96l` (commit bd62ba7). The data model built from it is in [../data-model](../data-model/README.md).
+> Copied from `harryviennot/MovieMatch`, branch `claude/artifact-monetization-options-igb96l` (commit bd62ba7). The data model built from it is in [architecture/data-model.md](../architecture/data-model.md).
 
 - **Live doc:** https://claude.ai/artifact/N54RivFVXNtisRTjJDtYX4 (private until shared from its Share menu). This file is a snapshot of it from 29 October 2026.
 - **Revival plan:** https://claude.ai/artifact/BtN7AF4dE9zfBTvZpxWckg, which left money as an open decision.

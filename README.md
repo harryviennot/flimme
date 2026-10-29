@@ -7,6 +7,11 @@ Backend for the MovieMatch revival, in two parts:
 
 ## Docs
 
-- [Data model](docs/data-model/README.md): every table for the first release, the app's API, the contract with the recommendation server, how they all interact, and where later features plug in. Reference DDL in [schema.sql](docs/data-model/schema.sql).
-- [Revival plan](docs/revival-plan/README.md): audit of the old app and server, stack choice, catalog, deck engine, game design, roadmap.
-- [Monetization options](docs/monetization/README.md): free vs Host Pro, family modes, packs, kids' safety.
+Everything is in [docs/](docs/README.md). The main ones:
+
+- [Revival plan](docs/product/revival-plan.md): the audit of the old app, the stack, the deck engine, game design and the roadmap.
+- [Decisions](docs/decisions.md): what's decided, what's waiting for a yes, what's open.
+- [Data model](docs/architecture/data-model.md) and its [schema.sql](docs/architecture/schema.sql).
+- [Recommendation server](docs/architecture/recommendation-server.md).
+- [Letterboxd integration](docs/integrations/letterboxd.md).
+- [Monetization options](docs/product/monetization.md).

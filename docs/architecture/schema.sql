@@ -1,6 +1,6 @@
 -- MovieMatch data model: reference DDL for the first release.
 --
--- A draft to review, not a migration yet. README.md in this folder explains
+-- A draft to review, not a migration yet. data-model.md in this folder explains
 -- every table and how they interact. Target: Supabase Postgres with pgvector,
 -- pg_trgm and Supabase Queues (pgmq) enabled.
 --
