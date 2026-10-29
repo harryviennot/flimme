@@ -26,7 +26,7 @@ Each task reads like this:
   Done when: a wrong code, a full room and a started room each show their message.
 ```
 
-The ID, a short title, the type of work, the tasks it needs first, the docs to read, and how to know it's finished.
+The ID, a short title, the type of work, the size once the planner has sized it (`S`, `M` or `L`, after the type), the tasks it needs first, the docs to read, and how to know it's finished. `node tools/next.mjs` lists the tasks that can start; how to run one is in [pipeline.md](../pipeline.md).
 
 **Rules for picking and doing a task** (for people and agents alike):
 
@@ -34,7 +34,7 @@ The ID, a short title, the type of work, the tasks it needs first, the docs to r
 2. One task, one branch, one pull request.
 3. Read the linked docs and [decisions.md](../decisions.md) first. Decisions win over a doc when they disagree.
 4. Where a doc states a rule (a match rule, a limit, an access rule), the pull request includes a test for it.
-5. Tick the task's box in the same pull request, and move the milestone's status in [Milestones at a glance](#milestones-at-a-glance) to In progress or Done.
+5. Don't tick the box in the pull request: after the merge, an Action ticks the task named in the title and updates the progress and the milestone's status in [Milestones at a glance](#milestones-at-a-glance) (`tools/roadmap-tick.mjs`). That keeps parallel pull requests from all editing this file.
 6. If the task forces a choice nobody made, stop and ask Harry, then record the answer in decisions.md. If a doc turns out wrong, fix it in the same pull request and say so.
 
 **Types of work**
@@ -42,11 +42,11 @@ The ID, a short title, the type of work, the tasks it needs first, the docs to r
 | Type | Means | Where |
 | --- | --- | --- |
 | decision | A choice Harry makes | decisions.md |
-| backend | SQL: migrations, functions, access rules, Supabase settings | `movie-swipe-backend`, `supabase/` |
-| server | The Python recommendation server | `movie-swipe-backend` (or its own repo) |
-| app | The Expo app | `movie-swipe-app` |
-| ops | Accounts, environments, CI, deploys, monitoring | Both repos, dashboards |
-| test | Tests, spikes, playtests, checks | Both repos, real phones |
+| backend | SQL: migrations, functions, access rules, Supabase settings | `supabase/` |
+| server | The Python recommendation server | `server/` |
+| app | The Expo app | `mobile/` |
+| ops | Accounts, environments, CI, deploys, monitoring | The repository, dashboards |
+| test | Tests, spikes, playtests, checks | The repository, real phones |
 | design | Figma, icons, screenshots | Figma |
 | content | Copy, curation of services, moods or films | Repos and the database |
 | legal | Policies, terms, licences, lawyer | The domain, email |
@@ -62,7 +62,7 @@ The ID, a short title, the type of work, the tasks it needs first, the docs to r
 | Getting in | Guest play with no account: a name and a colour. French and English |
 | Rooms | Create a room, join by code, link or QR code, a live lobby. The host picks the room's services, an age cap and a time budget |
 | Safety | The host can remove a player and lock the room. Names are filtered. Anyone can report a player |
-| The game | Quick Match for 2 to 10 players: like, nope, super like, seen it, undo. Instant matches, the Final Cut round when no match comes, a winner screen that says where to watch |
+| The game | Quick Match for 2 to 10 players: like, nope, super like, seen it, undo. Instant matches, the Final Cut round when no match comes, a winner screen that says where to watch, the recap card to share, Play again, sound for the match and the reveal |
 | The deck | Built in SQL: films on the room's services in France, ranked by quality and popularity, shuffled differently every game, one film per franchise, films a player marked as seen left out, likes moved into the others' next cards |
 | Catalog | France only, from TMDB, refreshed every night |
 | Settings | Language, the analytics opt-out, download and delete my data, credits |
@@ -73,7 +73,7 @@ The ID, a short title, the type of work, the tasks it needs first, the docs to r
 | Feature | Milestone | Why it can wait |
 | --- | --- | --- |
 | Accounts (Apple, Google), "Did you watch it?", notifications | [M15](#m15-accounts-and-follow-up) | Guests can play. No third-party sign-in also means Apple's Sign in with Apple rule (4.8) doesn't apply yet |
-| Recap card, Play again, web guests | [M16](#m16-growth-loop) | Growth comes once the core works |
+| Web guests | [M16](#m16-growth-loop) | Growth comes once the core works. The recap card and Play again moved into M6 (decided on 29 October 2026) |
 | Card memory, Rematch, moods, the deck worker | [M17](#m17-fresher-decks-and-moods) | The SQL shuffle already varies decks |
 | Final Cut and Date Night modes, Keep swiping, Vote now | [M18](#m18-more-modes-and-host-controls) | Quick Match covers every group size |
 | Taste profiles, the taste check, embeddings | [M19](#m19-smart-deck) | Needs data and TMDB's commercial agreement (its terms restrict machine learning) |
@@ -93,13 +93,13 @@ The ID, a short title, the type of work, the tasks it needs first, the docs to r
 | # | Milestone | Done when | Tasks | Status |
 | --- | --- | --- | --- | --- |
 | **First release** | | | | |
-| [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed | 9 | Not started |
-| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production in Paris | 15 | Not started |
+| [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | Not started |
+| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production in Paris | 17 | Not started |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 14 | Not started |
-| [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 12 | Not started |
-| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 15 | Not started |
+| [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | Not started |
+| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 16 | Not started |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | Not started |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 20 | Not started |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | Not started |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | Not started |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | Not started |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 7 | Not started |
@@ -110,7 +110,7 @@ The ID, a short title, the type of work, the tasks it needs first, the docs to r
 | **After launch** | | | | |
 | [M14](#m14-measure-and-learn) | Measure and learn | Dashboards and funnels drive a weekly review | 5 | Not started |
 | [M15](#m15-accounts-and-follow-up) | Accounts and follow-up | Players can save an account, and "Did you watch it?" is measured | 10 | Not started |
-| [M16](#m16-growth-loop) | Growth loop | Recap cards, Play again and the invite page bring new players | 7 | Not started |
+| [M16](#m16-growth-loop) | Growth loop | The invite page and web guests bring new players | 4 | Not started |
 | [M17](#m17-fresher-decks-and-moods) | Fresher decks and moods | Repeat rate under 10%, moods live, the deck worker dealing | 15 | Not started |
 | [M18](#m18-more-modes-and-host-controls) | More modes and host controls | Final Cut and Date Night modes and the host controls are live | 8 | Not started |
 | [M19](#m19-smart-deck) | Smart deck | Taste-based decks beat the crowd deck in an A/B test | 10 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the tasks it needs first, the docs to r
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 0 of 235 tasks done.
+Progress: 0 of 245 tasks done.
 
 ```mermaid
 flowchart LR
@@ -178,7 +178,7 @@ After launch, the order is a starting point: the weekly review in M14 can move a
 
 Everything that blocks building or publishing, started first. Several items take days of waiting (store enrolment, TMDB's answer), so they go out on day one.
 
-Done when: the name is chosen, every account is open, TMDB is emailed, the game rules are confirmed.
+Done when: the name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, and the repository and the agents are set up.
 
 - [ ] **M0.1** Choose the app's name · decision · [store-listing](store-listing.md#choosing-the-name)
   Done when: the name is checked on both stores, in trademark databases and for domains, and recorded in decisions.md.
@@ -198,6 +198,10 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
   Done when: recorded in decisions.md (this roadmap assumes yes).
 - [ ] **M0.9** Update the Figma to the first release: no taste check, no Letterboxd card, no account screens, winner screen with service logos, host menu with Remove player and Lock room, Report, `/join/` links · design · needs M0.7 · [onboarding](onboarding.md#changes-to-the-figma)
   Done when: the affected frames match this list.
+- [ ] **M0.10** One repository: rename `movie-swipe-backend` to `flimme`, archive `movie-swipe-app`, and the shared tools (mise, pnpm workspaces, lefthook) · ops · [groundwork](../architecture/groundwork.md#the-repository)
+  Done when: the repository is renamed, the old one archived, and `mise run check:all` passes on main.
+- [ ] **M0.11** The agent setup: CLAUDE.md files, agents, skills, hooks and settings · ops · needs M0.10 · [pipeline](../pipeline.md#one-time-setup), [agent-workflow](../agent-workflow.md#the-roster)
+  Done when: `.claude/settings.json` is in place and a first small task has gone through `/task` to a merged pull request.
 
 ## M1 Backend foundation
 
@@ -235,6 +239,10 @@ Done when: migrations and the test suite run from CI on staging and production.
   Done when: a local game can be played on the seed.
 - [ ] **M1.15** Backend CI: the test suite on every pull request, migrations to staging on merge, to production by a manual workflow, actions pinned to commit SHAs · ops · needs M1.2, M1.5 · [operations](../architecture/operations.md#continuous-integration)
   Done when: a merged migration reaches staging without hands.
+- [ ] **M1.16** The lite database for cloud sessions and the pgTAP helpers: stand-ins for Supabase's `auth`, `realtime` and `pgmq`, the `tests` helpers, a smoke test · test · needs M1.3 · [groundwork](../architecture/groundwork.md#cloud-sessions)
+  Done when: the smoke test passes on the lite database and with `supabase test db`.
+- [ ] **M1.17** `packages/contract` and `mise run typegen`: the generated `api` types, the answers, the Realtime events · backend · needs M1.5 · [groundwork](../architecture/groundwork.md#the-backends-foundations)
+  Done when: the generated types are committed and CI fails when they're stale.
 
 ## M2 Catalog for France
 
@@ -283,8 +291,8 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: each profile builds.
 - [ ] **M3.3** App CI: lint and tests on every pull request, preview builds on demand · ops · needs M3.1 · [operations](../architecture/operations.md#continuous-integration)
   Done when: a failing test blocks a pull request.
-- [ ] **M3.4** Design tokens, fonts and base components from Figma: buttons, inputs, chips, sheet, avatar, toast · design · needs M3.1 · [app-structure](../architecture/app-structure.md#folder-structure)
-  Done when: a component gallery screen shows them in both themes the design uses.
+- [ ] **M3.4** Design tokens from the Figma: `tokens.json`, the generated Uniwind theme and `tokens.ts`, the three fonts, the 38 icons · design · needs M3.1 · [groundwork](../architecture/groundwork.md#tokens)
+  Done when: `pnpm tokens --check` passes and every type style renders in the gallery.
 - [ ] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · needs M3.1, M1.2 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
   Done when: a fresh install gets a guest user that survives a restart.
 - [ ] **M3.6** Typed API layer: generated types for the `api` schema, one wrapper per function, status answers as values · app · needs M3.5, M1.5 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
@@ -299,8 +307,16 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: raising the minimum shows the update screen.
 - [ ] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
   Done when: the findings are written in app-structure.md.
-- [ ] **M3.12** Spike: the card stack at full frame rate on a low-end Android · test · needs M3.4 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
-  Done when: the findings are written in app-structure.md.
+- [ ] **M3.12** Spike: the card stack at full frame rate on a low-end Android, styled with Uniwind · test · needs M3.4 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
+  Done when: the findings are written in app-structure.md, and Uniwind is confirmed (or NativeWind 4.2.7 chosen) in decisions.md.
+- [ ] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
+  Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
+- [ ] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
+  Done when: the gallery's motion section plays each spring and haptic on a phone.
+- [ ] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
+  Done when: every route in app-structure.md opens, and the dev menu switches between local and staging.
+- [ ] **M3.16** The consistency checks: theme classes only, no arbitrary values or raw colors, primitives only from `ui/`, the component tiers, strings through `t()`, a gallery entry per component · app · needs M3.13 · [groundwork](../architecture/groundwork.md#keeping-every-screen-consistent)
+  Done when: each check fails on a purpose-built bad example and passes on the app.
 
 ## M4 First launch, rooms and lobby
 
@@ -338,6 +354,8 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a link opens the app when installed and the invite page when not.
 - [ ] **M4.15** The `/join/[code]` route: a link or a QR code from the phone's camera opens the room · app · needs M4.14, M4.8 · [onboarding](onboarding.md#app-installed)
   Done when: tested from a cold start on both platforms.
+- [ ] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · needs M4.1, M3.6 · [groundwork](../architecture/groundwork.md#the-local-environment)
+  Done when: `mise run bots` fills a local room with three present players.
 
 ## M5 Basic deck
 
@@ -414,8 +432,19 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 - [ ] **M6.19** The bot player script: signs in, joins by code, swipes · test · needs M6.5 · [app-structure](../architecture/app-structure.md#testing)
   Done when: bots can fill a room on staging.
-- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M4.13, M4.15 · [game-modes](game-modes.md#a-game-at-a-glance)
+- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15 · [game-modes](game-modes.md#a-game-at-a-glance)
   Done when: every run ends with a pick within the limits; bugs become tasks.
+
+**Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
+
+- [ ] **M6.21** The recap share card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes") with the app link · app · needs M6.8, M6.16 · [game-modes](game-modes.md#after-the-pick)
+  Done when: shareable from the winner screen.
+- [ ] **M6.22** `api.play_again` and the `next_room` event · backend · needs M6.6 · [game-modes](game-modes.md#functions-still-to-write)
+  Done when: tested.
+- [ ] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · needs M6.22, M6.16 · [game-modes](game-modes.md#after-the-pick)
+  Done when: a group starts a second room in two taps.
+- [ ] **M6.24** The match and reveal sounds: commissioned or licensed for use in an app, each under about 1.5 seconds, wired into `lib/sound` · content · needs M3.14 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
+  Done when: both play on the match and the reveal, mixed with other audio and quiet on silent.
 
 ## M7 Safety and moderation
 
@@ -612,14 +641,8 @@ Done when: players can save an account, and "Did you watch it?" feeds the time t
 
 Each movie night bringing the next players.
 
-Done when: recap cards, Play again and the invite page bring new players, visible in the funnels.
+Done when: the invite page and web guests bring new players, visible in the funnels. The recap card and Play again moved into the first release on 29 October 2026 (M6.21 to M6.23).
 
-- [ ] **M16.1** The recap share card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes") with the app link · app · needs M6.8 · [game-modes](game-modes.md#after-the-pick)
-  Done when: shareable from the winner screen.
-- [ ] **M16.2** `api.play_again` and the `next_room` event · backend · needs M6.6 · [game-modes](game-modes.md#functions-still-to-write)
-  Done when: tested.
-- [ ] **M16.3** Play again on the winner screen, and "Join" on the other phones · app · needs M16.2
-  Done when: a group starts a second room in two taps.
 - [ ] **M16.4** Invite page polish: Smart App Banner, store badges, credits, the install referrer on Android and the paste button on iOS · ops · needs M4.14 · [onboarding](onboarding.md#app-not-installed)
   Done when: an invited guest without the app reaches the room after installing.
 - [ ] **M16.5** Decide on web guests, with the funnel numbers · decision · needs M14.3 · [onboarding](onboarding.md#joining-from-an-invite-link)

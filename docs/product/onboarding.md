@@ -255,7 +255,7 @@ The save screen (the Figma's screen 21) offers **Continue with Apple** and **Con
 
 - **Apple and Google only** at launch. App Store guideline 4.8 says an app that offers a third-party login such as Google must also offer an equivalent one that limits data to name and email, lets users hide their email, and doesn't track for ads (checked today). Sign in with Apple meets that.
 - **Saving keeps everything.** It links the Apple or Google identity to the guest's user, so nothing in the database moves ([data model](../architecture/data-model.md#first-launch)). Supabase's docs say converting an anonymous user means linking an identity, that manual linking (in beta) must be enabled, and that native apps can link an Apple or Google ID token (checked today).
-- **To check in a spike before building it:** the docs don't say what happens when the Apple or Google account already belongs to another user. The app should expect an error and offer: "This Apple ID already has MovieMatch history. Switch to it? The 2 guest nights on this phone won't come along." There's no merging in v1.
+- **To check in a spike before building it:** the docs don't say what happens when the Apple or Google account already belongs to another user. The app should expect an error and offer: "This Apple ID already has Flimme history. Switch to it? The 2 guest nights on this phone won't come along." There's no merging in v1.
 - **Restoring on a new phone:** Welcome's **Sign in** link.
 - **Reinstalling as a guest starts fresh,** which the save pitch can say plainly.
 - **Deleting the account** is in Settings, as App Store guideline 5.1.1(v) requires for apps that create accounts ([data model](../architecture/data-model.md#deleting-an-account-exporting-data)).
@@ -294,7 +294,7 @@ Every state says what happened and offers a next step, never a raw error.
 
 | Situation | Where | What the player sees | Next step |
 | --- | --- | --- | --- |
-| Offline at first launch | Splash | "You're offline. MovieMatch needs a connection to start." | Retry |
+| Offline at first launch | Splash | "You're offline. Flimme needs a connection to start." | Retry |
 | Guest sign-in fails (rate limit or bot check) | Splash | "We couldn't get you started. Try again in a minute." | Retry |
 | Wrong code (`not_found`) | Under the code boxes | "No open room with this code. Check the digits with the host." | Boxes clear for another try |
 | Too many attempts (`rate_limited`, 10 in 10 minutes) | Under the code boxes | "Too many tries. Ask the host for the link, or try again in a few minutes." | Paste a link, or wait |
@@ -309,8 +309,8 @@ Every state says what happened and offers a next step, never a raw error.
 | Not a Letterboxd export | Letterboxd import | "This doesn't look like a Letterboxd export. Pick the ZIP Letterboxd sent you." | Pick again |
 | The export doesn't match the public profile (the RSS check) | Letterboxd import | "This export doesn't match the public diary of @harryv. Make sure it's your own export, made recently." | Open Letterboxd again |
 | Upload failed | Letterboxd import | "The import didn't go through." | Retry, keeping the picked file |
-| Apple or Google account already used | Save account | "This Apple ID already has MovieMatch history. Switch to it?" | Switch, or Cancel |
-| App too old | Launch | "Update MovieMatch to keep playing." | Store |
+| Apple or Google account already used | Save account | "This Apple ID already has Flimme history. Switch to it?" | Switch, or Cancel |
+| App too old | Launch | "Update Flimme to keep playing." | Store |
 
 A deck that runs out mid-game (the Figma's screen 26) is a game state, in `product/game-modes.md`.
 

@@ -1,6 +1,6 @@
 # Operations
 
-How one developer runs MovieMatch: the environments, how the schema becomes versioned migrations, the Supabase settings that must be set, where every secret lives, continuous integration, releasing and rolling back, monitoring and alerts, backups, the retention jobs, the load test, the monthly bill, and what to do when something breaks. Written on 29 October 2026.
+How one developer runs Flimme: the environments, how the schema becomes versioned migrations, the Supabase settings that must be set, where every secret lives, continuous integration, releasing and rolling back, monitoring and alerts, backups, the retention jobs, the load test, the monthly bill, and what to do when something breaks. Written on 29 October 2026.
 
 It builds on the [data model](data-model.md) (schemas, queues, scheduled jobs, retention), the [recommendation server](recommendation-server.md) (its four processes), [app-structure.md](app-structure.md#builds-updates-and-versions) (build profiles, over-the-air updates, `min_app_version`), [tmdb.md](../integrations/tmdb.md#keeping-it-fresh) (the catalog jobs and their alerts) and the [deck engine](deck-engine.md) (its logs). The server's own codebase, host and deploys are in [server-structure.md](server-structure.md); threats and abuse in [security.md](security.md); product analytics in [analytics.md](../product/analytics.md); personal data and its retention in [privacy.md](../product/privacy.md); store releases in [store-listing.md](../product/store-listing.md). Decisions are in [decisions.md](../decisions.md).
 

@@ -1,0 +1,7 @@
+-- Synthetic seed data: roadmap task M1.14 (countries, a French provider list with
+-- made-up names, genres, the six moods, taste check films, about 2,000 invented
+-- films with random embeddings, and a few test profiles).
+--
+-- Synthetic only. No TMDB data may ever be committed here: TMDB's terms allow
+-- keeping its data for 6 months at most, and a seed file in git is a copy kept
+-- forever (docs/architecture/operations.md, "Seed and test data").

@@ -1,6 +1,6 @@
-# MovieMatch data model
+# Flimme data model
 
-The database for the first public release of MovieMatch and how every part talks to it. It is built from the [revival plan](../product/revival-plan.md) (stack, catalog, deck engine, game design, Letterboxd) and the [monetization options](../product/monetization.md) (Host Pro, family modes, packs). Written in October 2026.
+The database for the first public release of Flimme and how every part talks to it. It is built from the [revival plan](../product/revival-plan.md) (stack, catalog, deck engine, game design, Letterboxd) and the [monetization options](../product/monetization.md) (Host Pro, family modes, packs). Written in October 2026.
 
 Companion docs: the [recommendation server](recommendation-server.md) (its processes, its contract with this database, the algorithm), the [deck engine](deck-engine.md) (how every card is chosen) and the [Letterboxd integration](../integrations/letterboxd.md) (the export, connecting, syncing). Decisions and open questions live in [decisions.md](../decisions.md).
 

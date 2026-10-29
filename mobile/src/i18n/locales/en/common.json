@@ -1,0 +1,55 @@
+{
+  "actions": {
+    "retry": "Try again",
+    "close": "Close",
+    "back": "Back",
+    "cancel": "Cancel"
+  },
+  "states": {
+    "loading": "Loading",
+    "offline": "Offline",
+    "reconnecting": "Reconnecting…",
+    "offlineVotes_one": "Offline: {{count}} swipe waiting",
+    "offlineVotes_other": "Offline: {{count}} swipes waiting"
+  },
+  "errors": {
+    "generic": {
+      "title": "The projector jammed",
+      "body": "Something went wrong. Shall we try that again?"
+    },
+    "notFound": {
+      "title": "This page doesn't exist",
+      "body": "The link may be too old."
+    }
+  },
+  "placeholder": {
+    "body": "This screen comes with task {{task}}."
+  },
+  "answers": {
+    "nope": "Nope",
+    "undo": "Undo",
+    "super": "Super",
+    "like": "Like",
+    "seen": "Seen it"
+  },
+  "card": {
+    "flipHint": "Tap to flip the card",
+    "tmdbRating": "TMDB rating",
+    "letterboxdRating": "{{name}}, Letterboxd",
+    "synopsis": "Synopsis",
+    "director": "Director  {{name}}",
+    "cast": "Cast  {{names}}",
+    "trailer": "Trailer",
+    "flipBack": "Tap the card to flip back",
+    "stampLike": "Like",
+    "stampNope": "Nope",
+    "stars": "★ {{rating}}"
+  },
+  "ticket": {
+    "roomCode": "Room code"
+  },
+  "services": {
+    "tapToAdd": "Tap to add",
+    "youHaveIt": "You have it"
+  }
+}

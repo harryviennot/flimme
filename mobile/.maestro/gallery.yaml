@@ -1,0 +1,16 @@
+# Opens the component gallery in a development build and screenshots it, for the
+# designer's review. Run with `maestro test mobile/.maestro/gallery.yaml` on a simulator
+# with the development build installed. Each slice adds its own flow next to this one.
+appId: com.harryviennot.flimme.dev
+---
+- launchApp
+- openLink: flimme-dev://dev/gallery
+- assertVisible:
+    id: gallery
+- takeScreenshot: gallery-1
+- scroll
+- takeScreenshot: gallery-2
+- scroll
+- takeScreenshot: gallery-3
+- scroll
+- takeScreenshot: gallery-4

@@ -1,0 +1,12 @@
+# gitleaks: its default rules, plus the few public values the docs need on purpose.
+# CI (gitleaks-action) and the pre-commit hook both read this file.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public identifiers, not secrets"
+regexes = [
+  # The Figma file key: it is in every Figma link in the docs, and opening the file needs an invite.
+  '''v2ZGLbGmzZ7032V9AI5vWM''',
+]

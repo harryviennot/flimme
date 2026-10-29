@@ -1,0 +1,4 @@
+# Generated files keep their generator's formatting.
+src/theme/generated/
+src/uniwind-types.d.ts
+assets/

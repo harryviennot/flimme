@@ -1,0 +1,22 @@
+{
+  "name": "flimme",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "check": "node tools/check.mjs",
+    "check:all": "node tools/check.mjs --all",
+    "next": "node tools/next.mjs",
+    "doc": "node tools/doc-section.mjs",
+    "typegen": "node tools/typegen.mjs",
+    "format": "prettier --write .",
+    "postinstall": "lefthook install"
+  },
+  "devDependencies": {
+    "lefthook": "^2.2.2",
+    "prettier": "^3.9.10",
+    "prettier-plugin-tailwindcss": "^0.8.1"
+  }
+}

@@ -1,6 +1,6 @@
 # Letterboxd integration
 
-How MovieMatch reads a player's Letterboxd history: what Letterboxd allows, what is in the export, how a player connects, how the data stays fresh, where it is stored, and what the algorithm may do with it. Written in October 2026.
+How Flimme reads a player's Letterboxd history: what Letterboxd allows, what is in the export, how a player connects, how the data stays fresh, where it is stored, and what the algorithm may do with it. Written in October 2026.
 
 This replaces the connect flow in the [revival plan](../product/revival-plan.md#letterboxd-whats-possible), where players typed a username and the export was optional. The tables are in the [data model](../architecture/data-model.md#4-film-history-and-taste); decisions and open questions are in [decisions.md](../decisions.md).
 

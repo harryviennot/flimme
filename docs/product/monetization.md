@@ -1,6 +1,6 @@
-# MovieMatch monetization options
+# Flimme monetization options
 
-How MovieMatch can earn money, built on the [revival plan](revival-plan.md). Written in October 2026.
+How Flimme can earn money, built on the [revival plan](revival-plan.md). Written in October 2026.
 
 > Copied from `harryviennot/MovieMatch`, branch `claude/artifact-monetization-options-igb96l` (commit bd62ba7). The data model built from it is in [architecture/data-model.md](../architecture/data-model.md).
 
