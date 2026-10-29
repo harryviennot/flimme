@@ -1,20 +1,35 @@
 -- MovieMatch data model: reference DDL for the first release.
 --
 -- A draft to review, not a migration yet. README.md in this folder explains
--- every table and how they interact. Target: Supabase Postgres with pgvector
--- and pg_trgm installed in the extensions schema. Tables the first release
--- does not need are described in the README under "Later" and are not here.
+-- every table and how they interact. Target: Supabase Postgres with pgvector,
+-- pg_trgm and Supabase Queues (pgmq) enabled.
+--
+-- Schemas
+--   public    Tables. Not exposed through the Data API.
+--   api       The only schema the app can reach: views and functions.
+--             In Supabase, set Data API > Exposed schemas to "api" only.
+--   internal  Game logic and helpers, called by api functions and the server.
+--   rec       The recommendation server's own data: requests, models, stats.
 --
 -- Conventions
---   * Every client write goes through a function below. Clients only read,
---     except their own profile fields and services.
+--   * The app never touches a table. It reads api views (row-level security
+--     still applies underneath) and calls api functions.
+--   * The recommendation server connects with a login that has the
+--     app_server role. It reads what it needs and writes decks only through
+--     internal.deal_cards.
+--   * An incompatible change to an api function or view ships as a _v2 next
+--     to it, so phones on older app versions keep working.
 --   * Functions are security definer with an empty search_path, so every
 --     name is schema-qualified.
 --   * Catalog ids are TMDB ids, except titles, which use their own id because
---     TMDB reuses the same number for a movie and a TV show.
+--     TMDB numbers movies and TV shows separately.
 
 create extension if not exists vector with schema extensions;
 create extension if not exists pg_trgm with schema extensions;
+
+create schema api;
+create schema internal;
+create schema rec;
 
 
 -- =========================================================================
@@ -34,7 +49,7 @@ create type public.import_row_status as enum ('pending', 'matched', 'unmatched',
 create type public.match_method as enum ('rss', 'search', 'manual');
 create type public.consent_kind as enum ('letterboxd_import', 'analytics');
 
-create type public.room_state as enum ('lobby', 'swiping', 'finale', 'done', 'abandoned');
+create type public.room_state as enum ('lobby', 'dealing', 'swiping', 'finale', 'done', 'abandoned');
 create type public.service_rule as enum ('any_member', 'every_member');
 create type public.seen_rule as enum ('hide_seen', 'allow_rewatch', 'show_all');
 create type public.quality_preset as enum ('standard', 'hidden_gems', 'guilty_pleasures');
@@ -119,7 +134,7 @@ create table public.moods (
 
 
 -- =========================================================================
--- 2. Catalog (written by ingest jobs only)
+-- 2. Catalog (written by the server's ingest jobs only)
 -- =========================================================================
 
 create table public.titles (
@@ -379,6 +394,7 @@ select
 from public.user_titles ut
 group by ut.profile_id, ut.title_id;
 
+-- Written by the server's taste worker.
 create table public.taste_profiles (
   profile_id uuid primary key references public.profiles on delete cascade,
   embedding extensions.vector(384),
@@ -442,17 +458,18 @@ create table public.rooms (
   stats jsonb,                                     -- written when the room ends: duration, swipes, players
   -- lifecycle
   created_at timestamptz not null default now(),
+  dealing_at timestamptz,                          -- start pressed; the server is dealing
   started_at timestamptz,
   finale_at timestamptz,
   decided_at timestamptz,
   ended_at timestamptz,
   expires_at timestamptz not null default now() + interval '3 hours'
 );
-create unique index rooms_open_code_idx on public.rooms (code) where state in ('lobby', 'swiping', 'finale');
+create unique index rooms_open_code_idx on public.rooms (code) where state in ('lobby', 'dealing', 'swiping', 'finale');
 create index rooms_host_started_idx on public.rooms (host_id, started_at);
-create index rooms_sweep_idx on public.rooms (expires_at) where state in ('lobby', 'swiping', 'finale');
+create index rooms_sweep_idx on public.rooms (expires_at) where state in ('lobby', 'dealing', 'swiping', 'finale');
 
--- The room's live taste, updated by the deck engine between refills.
+-- The room's live taste, updated by the server between refills.
 create table public.room_models (
   room_id uuid primary key references public.rooms on delete cascade,
   embedding extensions.vector(384),
@@ -484,6 +501,7 @@ create table public.room_members (
   swipe_count integer not null default 0,
   super_likes_left smallint not null default 2,
   vetoes_left smallint not null default 1,
+  refill_requested_at timestamptz,                 -- a refill is queued for this seat
   watched_answer public.watched_answer,            -- "Did you watch it?"
   post_reaction public.reaction,
   followup_at timestamptz,
@@ -512,6 +530,78 @@ create table public.room_cards (
   primary key (room_id, title_id)
 );
 
+
+-- =========================================================================
+-- 6. Recommendation data (rec schema, owned by the server)
+-- =========================================================================
+
+-- Model registry: which ranking models exist and how much traffic each gets.
+create table rec.models (
+  version text primary key,                        -- 'ranker-2026-11-03'
+  kind text not null check (kind in ('baseline', 'taste', 'ranker', 'group')),
+  status text not null default 'shadow' check (status in ('shadow', 'active', 'retired')),
+  traffic_share numeric(3,2) not null default 0 check (traffic_share between 0 and 1),
+  params jsonb not null default '{}',
+  metrics jsonb not null default '{}',             -- offline evaluation results
+  artifact_path text,                              -- model file in object storage
+  trained_from date,
+  trained_to date,
+  created_at timestamptz not null default now()
+);
+
+-- One row per deal: the start of a game, a seat's refill, a re-rank.
+create table rec.requests (
+  id bigint generated always as identity primary key,
+  room_id uuid not null references public.rooms on delete cascade,
+  room_member_id uuid references public.room_members on delete set null,  -- null when dealing the whole room
+  kind text not null check (kind in ('start', 'refill', 'rerank')),
+  model_version text not null,
+  experiment text,
+  variant text,
+  strategy jsonb not null default '{}',            -- exploration rate, misery line, weights used
+  candidates integer,
+  latency_ms integer,
+  is_fallback boolean not null default false,      -- dealt by the SQL baseline, not the server
+  created_at timestamptz not null default now()
+);
+create index requests_room_idx on rec.requests (room_id, created_at);
+
+-- Every card a request ranked for a seat, with what the model knew. Joined to
+-- votes on (room_member_id, title_id), this is the training data.
+create table rec.request_items (
+  request_id bigint not null references rec.requests on delete cascade,
+  room_member_id uuid not null,
+  title_id bigint not null,
+  position smallint not null,
+  score real,
+  explore boolean not null default false,
+  propensity real,                                 -- chance the policy picked this card, for off-policy evaluation
+  features jsonb not null default '{}',
+  primary key (request_id, room_member_id, title_id)
+);
+create index request_items_seat_idx on rec.request_items (room_member_id, title_id);
+
+-- How the app's players react to each film, rebuilt nightly from votes.
+-- In-app signals only: never aggregates of imported Letterboxd data.
+create table rec.title_stats (
+  title_id bigint not null references public.titles on delete cascade,
+  region text not null default 'all',              -- 'all' or a country code
+  impressions integer not null default 0,
+  likes integer not null default 0,
+  super_likes integer not null default 0,
+  nopes integer not null default 0,
+  seen integer not null default 0,
+  like_rate real,                                  -- smoothed toward the catalog mean
+  seen_rate real,
+  updated_at timestamptz not null default now(),
+  primary key (title_id, region)
+);
+
+
+-- =========================================================================
+-- 7. Decks, votes, matches, finale
+-- =========================================================================
+
 -- Each seat's own order through the pool.
 create table public.deck_entries (
   room_id uuid not null,
@@ -519,7 +609,8 @@ create table public.deck_entries (
   title_id bigint not null,
   sort_key double precision not null,
   source public.deck_source not null,
-  score real,                                      -- the score that put this card here, for tuning
+  score real,                                      -- the score that put this card here
+  request_id bigint references rec.requests on delete set null,
   queued_at timestamptz not null default now(),
   primary key (room_member_id, title_id),
   foreign key (room_id, title_id) references public.room_cards on delete cascade
@@ -608,7 +699,7 @@ create unique index round_ballots_rank_once on public.round_ballots (round_id, r
 
 
 -- =========================================================================
--- 6. Operations
+-- 8. Operations
 -- =========================================================================
 
 create table public.rate_limits (
@@ -618,19 +709,36 @@ create table public.rate_limits (
   primary key (key, window_start)
 );
 
+-- Read by the app at launch, e.g. the minimum app version before it must update.
+create table public.app_config (
+  key text primary key,
+  value jsonb not null
+);
+
+-- Supabase Queues. The database enqueues; the server consumes.
+select pgmq.create(q) from unnest(array[
+  'deck_requests',      -- start and refill: latency-sensitive
+  'taste_refresh',
+  'letterboxd_sync',
+  'catalog_refresh',
+  'embed_titles',
+  'winner_links',
+  'room_finished'
+]) q;
+
 
 -- =========================================================================
--- 7. Helpers
+-- 9. Internal helpers
 -- =========================================================================
 
-create function public.my_profile_id() returns uuid
+create function internal.my_profile_id() returns uuid
 language sql stable security definer set search_path = ''
 as $$
   select p.id from public.profiles p where p.auth_user_id = auth.uid()
 $$;
 
 -- The caller's own profile plus the profiles they manage (kid profiles, later).
-create function public.my_profile_ids() returns setof uuid
+create function internal.my_profile_ids() returns setof uuid
 language sql stable security definer set search_path = ''
 as $$
   select p.id from public.profiles p where p.auth_user_id = auth.uid()
@@ -640,19 +748,19 @@ as $$
   where p.auth_user_id = auth.uid()
 $$;
 
-create function public.is_room_member(p_room_id uuid) returns boolean
+create function internal.is_room_member(p_room_id uuid) returns boolean
 language sql stable security definer set search_path = ''
 as $$
   select exists (
     select 1 from public.room_members m
     where m.room_id = p_room_id
-      and m.controlled_by in (select public.my_profile_ids())
+      and m.controlled_by in (select internal.my_profile_ids())
   )
 $$;
 
 -- Realtime topics are 'room:<id>' (server events) and 'room:<id>:live'
 -- (presence and reactions sent by phones).
-create function public.can_use_room_topic(p_topic text, p_send boolean) returns boolean
+create function internal.can_use_room_topic(p_topic text, p_send boolean) returns boolean
 language sql stable security definer set search_path = ''
 as $$
   select case
@@ -660,18 +768,26 @@ as $$
     when p_topic ~ '^room:[0-9a-f-]{36}:live$' then true
     else false
   end
-  and public.is_room_member(substring(p_topic from 6 for 36)::uuid)
+  and internal.is_room_member(substring(p_topic from 6 for 36)::uuid)
 $$;
 
-create function public.broadcast_room(p_room_id uuid, p_event text, p_payload jsonb)
+create function internal.broadcast_room(p_room_id uuid, p_event text, p_payload jsonb)
 returns void
 language sql security definer set search_path = ''
 as $$
   select realtime.send(p_payload, p_event, 'room:' || p_room_id::text, true)
 $$;
 
+create function internal.enqueue(p_queue text, p_message jsonb) returns void
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  perform pgmq.send(p_queue, p_message);
+end
+$$;
+
 -- Which match_rules bracket applies to this many present players.
-create function public.pick_rule(p_rules jsonb, p_players integer) returns jsonb
+create function internal.pick_rule(p_rules jsonb, p_players integer) returns jsonb
 language sql immutable set search_path = ''
 as $$
   select r
@@ -685,7 +801,7 @@ $$;
 
 -- Seats that count for match rules: not left, and seen in the last 90 seconds
 -- (phones send a heartbeat every 30 seconds while in a room).
-create function public.present_member_ids(p_room_id uuid) returns uuid[]
+create function internal.present_member_ids(p_room_id uuid) returns uuid[]
 language sql stable security definer set search_path = ''
 as $$
   select coalesce(array_agg(m.id), '{}')
@@ -695,7 +811,7 @@ as $$
     and m.last_active_at > now() - interval '90 seconds'
 $$;
 
-create function public.refresh_room_providers(p_room_id uuid) returns void
+create function internal.refresh_room_providers(p_room_id uuid) returns void
 language sql security definer set search_path = ''
 as $$
   with active as (
@@ -714,12 +830,57 @@ as $$
   where r.id = p_room_id
 $$;
 
+-- Everything a card shows, in the player's language.
+create function internal.card_payloads(
+  p_title_ids bigint[],
+  p_language text,
+  p_country char(2),
+  p_provider_ids integer[] default null
+) returns table (title_id bigint, card jsonb)
+language sql stable security definer set search_path = ''
+as $$
+  select t.id, jsonb_build_object(
+    'title_id', t.id,
+    'tmdb_id', t.tmdb_id,
+    'title', coalesce(tr.title, en.title, t.original_title),
+    'overview', coalesce(tr.overview, en.overview),
+    'year', t.release_year,
+    'runtime_min', t.runtime_min,
+    'genre_ids', t.genre_ids,
+    'tmdb_score', round(t.vote_average::numeric, 1),
+    'tmdb_votes', t.vote_count,
+    'poster_path', coalesce(tr.poster_path, t.poster_path),
+    'poster_placeholder', t.poster_placeholder,
+    'trailer_key', t.trailer_key,
+    'directors', (
+      select coalesce(jsonb_agg(p.name order by c.ord), '[]')
+      from public.title_credits c join public.people p on p.id = c.person_id
+      where c.title_id = t.id and c.role = 'director'),
+    'cast', (
+      select coalesce(jsonb_agg(x.name order by x.ord), '[]')
+      from (select p.name, c.ord from public.title_credits c join public.people p on p.id = c.person_id
+            where c.title_id = t.id and c.role = 'cast' order by c.ord limit 5) x),
+    'providers', (
+      select coalesce(jsonb_agg(jsonb_build_object('provider_id', a.provider_id, 'kind', a.kind)
+                                order by a.provider_id, a.kind), '[]')
+      from public.title_availability a
+      where a.title_id = t.id and a.country = p_country
+        and (p_provider_ids is null or a.provider_id = any (p_provider_ids))),
+    'watch_link', (
+      select w.tmdb_link from public.title_watch_links w where w.title_id = t.id and w.country = p_country)
+  )
+  from public.titles t
+  left join public.title_translations tr on tr.title_id = t.id and tr.language = p_language
+  left join public.title_translations en on en.title_id = t.id and en.language = 'en'
+  where t.id = any (p_title_ids)
+$$;
+
 
 -- =========================================================================
--- 8. Sign-up and account deletion
+-- 10. Triggers: sign-up, account deletion, room finished
 -- =========================================================================
 
-create function public.handle_new_user() returns trigger
+create function internal.handle_new_user() returns trigger
 language plpgsql security definer set search_path = ''
 as $$
 begin
@@ -730,11 +891,11 @@ $$;
 
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute function public.handle_new_user();
+  for each row execute function internal.handle_new_user();
 
 -- Deleting an account cascades to everything personal. Seats in past rooms
 -- stay, with their votes, but lose the name: profile_id becomes null.
-create function public.scrub_deleted_profile() returns trigger
+create function internal.scrub_deleted_profile() returns trigger
 language plpgsql security definer set search_path = ''
 as $$
 begin
@@ -745,168 +906,33 @@ $$;
 
 create trigger on_profile_deleted
   before delete on public.profiles
-  for each row execute function public.scrub_deleted_profile();
+  for each row execute function internal.scrub_deleted_profile();
 
-
--- =========================================================================
--- 9. Rooms: create, join, heartbeat, leave
--- =========================================================================
-
-create function public.create_room(p_mode text default 'quick_match', p_country char(2) default null)
-returns jsonb
+-- Every way a room can end (Quick Match, finale, leave) passes through here.
+create function internal.on_room_state() returns trigger
 language plpgsql security definer set search_path = ''
 as $$
-declare
-  v_profile public.profiles;
-  v_mode public.game_modes;
-  v_room public.rooms;
-  v_country char(2);
-  i integer;
 begin
-  select * into v_profile from public.profiles where auth_user_id = auth.uid();
-  if v_profile.id is null then
-    raise exception 'no profile for this user' using errcode = '42501';
+  if new.state = 'done' then
+    perform internal.enqueue('room_finished', jsonb_build_object('room_id', new.id));
   end if;
-  if v_profile.display_name = '' then
-    return jsonb_build_object('status', 'name_required');
-  end if;
-
-  select * into v_mode from public.game_modes where slug = p_mode and is_active;
-  if not found then
-    return jsonb_build_object('status', 'unknown_mode');
-  end if;
-
-  v_country := coalesce(p_country, v_profile.country);
-  if v_country is null then
-    return jsonb_build_object('status', 'country_required');
-  end if;
-
-  -- Later: the monthly hosting cap and the room's tier are decided here.
-
-  for i in 1..10 loop
-    begin
-      insert into public.rooms (code, host_id, mode, country, max_players, seen_rule, quality)
-      values (
-        lpad(floor(random() * 1000000)::integer::text, 6, '0'),
-        v_profile.id, v_mode.slug, v_country, v_mode.max_players,
-        coalesce((v_mode.defaults->>'seen_rule')::public.seen_rule, 'hide_seen'),
-        coalesce((v_mode.defaults->>'quality')::public.quality_preset, 'standard')
-      )
-      returning * into v_room;
-      exit;
-    exception when unique_violation then
-      if i = 10 then raise; end if;
-    end;
-  end loop;
-
-  insert into public.room_members (room_id, profile_id, controlled_by, role, display_name, avatar_key, provider_ids)
-  values (
-    v_room.id, v_profile.id, v_profile.id, 'host', v_profile.display_name, v_profile.avatar_key,
-    coalesce((select array_agg(pp.provider_id) from public.profile_providers pp where pp.profile_id = v_profile.id), '{}')
-  );
-  insert into public.room_models (room_id) values (v_room.id);
-  perform public.refresh_room_providers(v_room.id);
-
-  return jsonb_build_object('status', 'ok', 'room_id', v_room.id, 'code', v_room.code);
+  return null;
 end
 $$;
 
--- Never raises on a wrong code: an exception would roll back the attempt
--- counter and make the 6-digit space guessable.
-create function public.join_room(p_code text) returns jsonb
-language plpgsql security definer set search_path = ''
-as $$
-declare
-  v_profile public.profiles;
-  v_room public.rooms;
-  v_member_id uuid;
-  v_hits integer;
-  v_seats integer;
-begin
-  select * into v_profile from public.profiles where auth_user_id = auth.uid();
-  if v_profile.id is null then
-    raise exception 'no profile for this user' using errcode = '42501';
-  end if;
-
-  insert into public.rate_limits as rl (key, window_start, hits)
-  values ('join:' || v_profile.id, to_timestamp(floor(extract(epoch from now()) / 600) * 600), 1)
-  on conflict (key, window_start) do update set hits = rl.hits + 1
-  returning hits into v_hits;
-  if v_hits > 10 then
-    return jsonb_build_object('status', 'rate_limited');
-  end if;
-
-  select * into v_room from public.rooms
-  where code = p_code and state in ('lobby', 'swiping', 'finale')
-  for no key update;
-  if not found then
-    return jsonb_build_object('status', 'not_found');
-  end if;
-
-  -- Rejoin after a dropped connection or an app restart: same seat.
-  select id into v_member_id from public.room_members
-  where room_id = v_room.id and profile_id = v_profile.id;
-  if found then
-    update public.room_members set left_at = null, last_active_at = now() where id = v_member_id;
-    return jsonb_build_object('status', 'ok', 'room_id', v_room.id, 'member_id', v_member_id,
-                              'state', v_room.state, 'rejoined', true);
-  end if;
-
-  if v_room.state = 'finale' then
-    return jsonb_build_object('status', 'in_finale');
-  end if;
-  if v_profile.display_name = '' then
-    return jsonb_build_object('status', 'name_required');
-  end if;
-
-  select count(*) into v_seats from public.room_members where room_id = v_room.id and left_at is null;
-  if v_seats >= v_room.max_players then
-    return jsonb_build_object('status', 'full');
-  end if;
-
-  insert into public.room_members (room_id, profile_id, controlled_by, display_name, avatar_key, provider_ids)
-  values (
-    v_room.id, v_profile.id, v_profile.id, v_profile.display_name, v_profile.avatar_key,
-    coalesce((select array_agg(pp.provider_id) from public.profile_providers pp where pp.profile_id = v_profile.id), '{}')
-  )
-  returning id into v_member_id;
-
-  -- Late joiner: deal them the shared opening; the deck engine adds the rest.
-  if v_room.state = 'swiping' then
-    insert into public.deck_entries (room_id, room_member_id, title_id, sort_key, source, score)
-    select distinct on (d.title_id) d.room_id, v_member_id, d.title_id, d.sort_key, 'opening', d.score
-    from public.deck_entries d
-    join public.room_cards c on c.room_id = d.room_id and c.title_id = d.title_id
-    where d.room_id = v_room.id and d.source = 'opening' and c.state = 'active';
-  end if;
-
-  perform public.refresh_room_providers(v_room.id);
-  perform public.broadcast_room(v_room.id, 'member_joined', jsonb_build_object(
-    'member_id', v_member_id, 'display_name', v_profile.display_name, 'avatar_key', v_profile.avatar_key));
-
-  return jsonb_build_object('status', 'ok', 'room_id', v_room.id, 'member_id', v_member_id,
-                            'state', v_room.state, 'rejoined', false);
-end
-$$;
-
-create function public.touch_room(p_room_id uuid) returns void
-language sql security definer set search_path = ''
-as $$
-  update public.room_members
-  set last_active_at = now()
-  where room_id = p_room_id
-    and controlled_by in (select public.my_profile_ids())
-    and left_at is null
-$$;
+create trigger on_room_state
+  after update of state on public.rooms
+  for each row when (new.state is distinct from old.state)
+  execute function internal.on_room_state();
 
 
 -- =========================================================================
--- 10. The vote: save, count, match, propagate, in one transaction
+-- 11. Game logic (internal, called by api functions)
 -- =========================================================================
 
 -- Moves a liked card into the next few cards of every seat that has not
 -- answered it. Returns the seats whose deck changed.
-create function public.propagate_like(p_room_id uuid, p_title_id bigint, p_from_member uuid)
+create function internal.propagate_like(p_room_id uuid, p_title_id bigint, p_from_member uuid)
 returns uuid[]
 language plpgsql security definer set search_path = ''
 as $$
@@ -953,7 +979,7 @@ end
 $$;
 
 -- Applies the room's rule to one card. The caller holds the room lock.
-create function public.check_card_match(p_room_id uuid, p_title_id bigint) returns jsonb
+create function internal.check_card_match(p_room_id uuid, p_title_id bigint) returns jsonb
 language plpgsql security definer set search_path = ''
 as $$
 declare
@@ -972,8 +998,8 @@ begin
     return null;
   end if;
 
-  v_present := public.present_member_ids(p_room_id);
-  v_rule := public.pick_rule(v_room.rule, cardinality(v_present));
+  v_present := internal.present_member_ids(p_room_id);
+  v_rule := internal.pick_rule(v_room.rule, cardinality(v_present));
 
   select count(*) filter (where v.answer in ('like', 'super_like')),
          count(*) filter (where v.answer = 'seen')
@@ -1004,14 +1030,14 @@ begin
     v_decided := true;
   end if;
 
-  perform public.broadcast_room(p_room_id, 'match', jsonb_build_object(
+  perform internal.broadcast_room(p_room_id, 'match', jsonb_build_object(
     'title_id', p_title_id, 'kind', v_kind, 'likes', v_likes, 'of', v_voters, 'decided', v_decided));
   return jsonb_build_object('match', true, 'kind', v_kind, 'decided', v_decided);
 end
 $$;
 
 -- Opens the finale: the top liked cards face off. The caller holds the room lock.
-create function public.start_finale(p_room_id uuid, p_rule jsonb) returns uuid
+create function internal.start_finale(p_room_id uuid, p_rule jsonb) returns uuid
 language plpgsql security definer set search_path = ''
 as $$
 declare
@@ -1040,7 +1066,7 @@ begin
   where room_id = p_room_id and title_id = any (v_titles) and state = 'active';
   update public.rooms set state = 'finale', finale_at = now() where id = p_room_id;
 
-  perform public.broadcast_room(p_room_id, 'finale_started', jsonb_build_object(
+  perform internal.broadcast_room(p_room_id, 'finale_started', jsonb_build_object(
     'round_id', v_round_id, 'title_ids', to_jsonb(v_titles), 'kind', v_kind, 'closes_at', v_closes));
   return v_round_id;
 end
@@ -1048,7 +1074,7 @@ $$;
 
 -- Starts the finale when every present seat has seen enough cards, or time is up.
 -- Called after each vote, and by the minute sweeper for the time limit.
-create function public.maybe_start_finale(p_room_id uuid) returns uuid
+create function internal.maybe_start_finale(p_room_id uuid) returns uuid
 language plpgsql security definer set search_path = ''
 as $$
 declare
@@ -1060,256 +1086,30 @@ begin
   if v_room.state <> 'swiping' then
     return null;
   end if;
-  v_present := public.present_member_ids(p_room_id);
-  v_rule := public.pick_rule(v_room.rule, cardinality(v_present));
+  v_present := internal.present_member_ids(p_room_id);
+  v_rule := internal.pick_rule(v_room.rule, cardinality(v_present));
 
   if ((v_rule->>'finale_after_cards') is not null and cardinality(v_present) > 0 and not exists (
         select 1 from public.room_members m
         where m.id = any (v_present) and m.swipe_count < (v_rule->>'finale_after_cards')::int))
      or ((v_rule->>'finale_after_seconds') is not null
         and now() >= v_room.started_at + make_interval(secs => (v_rule->>'finale_after_seconds')::int)) then
-    return public.start_finale(p_room_id, v_rule);
+    return internal.start_finale(p_room_id, v_rule);
   end if;
   return null;
 end
 $$;
 
-create function public.cast_vote(
-  p_room_id uuid,
-  p_title_id bigint,
-  p_answer public.vote_answer,
-  p_member_id uuid default null,
-  p_dwell_ms integer default null,
-  p_client_at timestamptz default null
-) returns jsonb
-language plpgsql security definer set search_path = ''
-as $$
-declare
-  v_room public.rooms;
-  v_member public.room_members;
-  v_entry public.deck_entries;
-  v_card public.room_cards;
-  v_check jsonb;
-  v_touched uuid[];
-  v_round uuid;
-begin
-  -- One lock per room: votes in a room run one after another (a few ms each),
-  -- so counting and deciding never race. Rooms do not block each other.
-  select * into v_room from public.rooms where id = p_room_id for no key update;
-  if not found then
-    raise exception 'room not found' using errcode = '42501';
-  end if;
-
-  select m.* into v_member from public.room_members m
-  where m.room_id = p_room_id
-    and m.controlled_by in (select public.my_profile_ids())
-    and (m.id = p_member_id or (p_member_id is null and m.profile_id = public.my_profile_id()))
-    and m.left_at is null;
-  if not found then
-    raise exception 'not a member of this room' using errcode = '42501';
-  end if;
-
-  if v_room.state <> 'swiping' then
-    return jsonb_build_object('status', 'closed', 'state', v_room.state);
-  end if;
-
-  select c.* into v_card from public.room_cards c where c.room_id = p_room_id and c.title_id = p_title_id;
-  if not found then
-    raise exception 'card not in this room' using errcode = '22023';
-  end if;
-  if v_card.state = 'dropped' then
-    return jsonb_build_object('status', 'dropped');
-  end if;
-
-  select d.* into v_entry from public.deck_entries d
-  where d.room_member_id = v_member.id and d.title_id = p_title_id;
-  if not found then
-    raise exception 'card was not dealt to this seat' using errcode = '22023';
-  end if;
-
-  if p_answer = 'super_like' and v_member.super_likes_left <= 0 then
-    return jsonb_build_object('status', 'no_super_likes');
-  end if;
-
-  insert into public.votes (room_id, room_member_id, title_id, answer, client_created_at)
-  values (p_room_id, v_member.id, p_title_id, p_answer, p_client_at)
-  on conflict (room_member_id, title_id) do nothing;
-  if not found then
-    return jsonb_build_object('status', 'duplicate');   -- an offline retry of a saved vote
-  end if;
-
-  update public.room_members
-  set swipe_count = swipe_count + 1,
-      last_active_at = now(),
-      super_likes_left = super_likes_left - (p_answer = 'super_like')::int
-  where id = v_member.id;
-
-  update public.room_cards
-  set like_count = like_count + (p_answer = 'like')::int,
-      super_like_count = super_like_count + (p_answer = 'super_like')::int,
-      nope_count = nope_count + (p_answer = 'nope')::int,
-      seen_count = seen_count + (p_answer = 'seen')::int
-  where room_id = p_room_id and title_id = p_title_id
-  returning * into v_card;
-
-  insert into public.swipe_log (room_id, room_member_id, title_id, action, answer, deck_source, score, dwell_ms)
-  values (p_room_id, v_member.id, p_title_id, 'vote', p_answer, v_entry.source, v_entry.score, p_dwell_ms);
-
-  -- "Seen it" under hide_seen takes the card out of every deck that has not reached it.
-  if p_answer = 'seen' and v_room.seen_rule = 'hide_seen' and v_card.state = 'active' then
-    update public.room_cards set state = 'dropped' where room_id = p_room_id and title_id = p_title_id;
-    with removed as (
-      delete from public.deck_entries d
-      where d.room_id = p_room_id and d.title_id = p_title_id
-        and not exists (select 1 from public.votes v where v.room_member_id = d.room_member_id and v.title_id = d.title_id)
-      returning d.room_member_id
-    )
-    select coalesce(array_agg(room_member_id), '{}') into v_touched from removed;
-    if cardinality(v_touched) > 0 then
-      perform public.broadcast_room(p_room_id, 'deck_updated', jsonb_build_object('member_ids', to_jsonb(v_touched)));
-    end if;
-  end if;
-
-  if p_answer in ('like', 'super_like') then
-    v_check := public.check_card_match(p_room_id, p_title_id);
-    if v_check->>'match' = 'false' then
-      if v_room.reveal = 'party' and (v_check->>'likes')::int >= 2 then
-        perform public.broadcast_room(p_room_id, 'near_miss', jsonb_build_object(
-          'title_id', p_title_id, 'likes', v_check->'likes', 'of', v_check->'of'));
-      end if;
-      if v_card.like_count + v_card.super_like_count = 1 then
-        v_touched := public.propagate_like(p_room_id, p_title_id, v_member.id);
-        if cardinality(v_touched) > 0 then
-          perform public.broadcast_room(p_room_id, 'deck_updated', jsonb_build_object('member_ids', to_jsonb(v_touched)));
-        end if;
-      end if;
-    end if;
-  end if;
-
-  if v_check is null or (v_check->>'decided') is distinct from 'true' then
-    v_round := public.maybe_start_finale(p_room_id);
-  end if;
-
-  return jsonb_build_object('status', 'ok')
-    || jsonb_build_object('match', coalesce(v_check->'match', 'false'::jsonb))
-    || case when v_check->>'match' = 'true' then jsonb_build_object('kind', v_check->'kind', 'decided', v_check->'decided')
-            else '{}'::jsonb end
-    || case when v_round is not null then jsonb_build_object('finale_round_id', v_round) else '{}'::jsonb end;
-end
-$$;
-
-create function public.undo_last_vote(p_room_id uuid, p_member_id uuid default null) returns jsonb
-language plpgsql security definer set search_path = ''
-as $$
-declare
-  v_room public.rooms;
-  v_member public.room_members;
-  v_vote public.votes;
-  v_card_state public.card_state;
-begin
-  select * into v_room from public.rooms where id = p_room_id for no key update;
-  select m.* into v_member from public.room_members m
-  where m.room_id = p_room_id
-    and m.controlled_by in (select public.my_profile_ids())
-    and (m.id = p_member_id or (p_member_id is null and m.profile_id = public.my_profile_id()));
-  if not found then
-    raise exception 'not a member of this room' using errcode = '42501';
-  end if;
-  if v_room.state <> 'swiping' then
-    return jsonb_build_object('status', 'closed');
-  end if;
-
-  select v.* into v_vote from public.votes v
-  where v.room_member_id = v_member.id order by v.created_at desc limit 1;
-  if not found then
-    return jsonb_build_object('status', 'nothing_to_undo');
-  end if;
-
-  select c.state into v_card_state from public.room_cards c
-  where c.room_id = p_room_id and c.title_id = v_vote.title_id;
-  if v_card_state <> 'active' then
-    return jsonb_build_object('status', 'locked');     -- matched, finalist or dropped
-  end if;
-
-  delete from public.votes where room_member_id = v_member.id and title_id = v_vote.title_id;
-  update public.room_cards
-  set like_count = like_count - (v_vote.answer = 'like')::int,
-      super_like_count = super_like_count - (v_vote.answer = 'super_like')::int,
-      nope_count = nope_count - (v_vote.answer = 'nope')::int,
-      seen_count = seen_count - (v_vote.answer = 'seen')::int
-  where room_id = p_room_id and title_id = v_vote.title_id;
-  update public.room_members
-  set swipe_count = swipe_count - 1,
-      super_likes_left = super_likes_left + (v_vote.answer = 'super_like')::int,
-      last_active_at = now()
-  where id = v_member.id;
-  insert into public.swipe_log (room_id, room_member_id, title_id, action, answer)
-  values (p_room_id, v_member.id, v_vote.title_id, 'undo', v_vote.answer);
-
-  return jsonb_build_object('status', 'ok', 'title_id', v_vote.title_id);
-end
-$$;
-
--- Leaving can complete a match: the players still here may all have liked a card.
-create function public.leave_room(p_room_id uuid) returns jsonb
-language plpgsql security definer set search_path = ''
-as $$
-declare
-  v_room public.rooms;
-  v_member public.room_members;
-  v_next uuid;
-  v_title bigint;
-  v_check jsonb;
-begin
-  select * into v_room from public.rooms where id = p_room_id for no key update;
-  select m.* into v_member from public.room_members m
-  where m.room_id = p_room_id and m.profile_id = public.my_profile_id() and m.left_at is null;
-  if not found then
-    return jsonb_build_object('status', 'not_in_room');
-  end if;
-
-  update public.room_members set left_at = now() where id = v_member.id;
-
-  if v_member.role = 'host' then
-    select m.id into v_next from public.room_members m
-    where m.room_id = p_room_id and m.left_at is null order by m.joined_at limit 1;
-    update public.room_members set role = 'guest' where id = v_member.id;
-    if v_next is not null then
-      update public.room_members set role = 'host' where id = v_next;
-      update public.rooms set host_id = (select profile_id from public.room_members where id = v_next)
-      where id = p_room_id;
-    end if;
-  end if;
-
-  perform public.refresh_room_providers(p_room_id);
-  perform public.broadcast_room(p_room_id, 'member_left', jsonb_build_object(
-    'member_id', v_member.id, 'new_host_member_id', v_next));
-
-  if v_room.state = 'swiping' then
-    for v_title in
-      select c.title_id from public.room_cards c
-      where c.room_id = p_room_id and c.state = 'active' and c.like_count + c.super_like_count > 0
-      order by c.like_count + c.super_like_count desc
-    loop
-      v_check := public.check_card_match(p_room_id, v_title);
-      exit when (v_check->>'decided') = 'true';
-    end loop;
-  end if;
-
-  return jsonb_build_object('status', 'ok');
-end
-$$;
-
--- Called by the deck engine (service role) once the first cards are dealt.
-create function public.begin_swiping(p_room_id uuid) returns void
+-- Dealing is done: freeze the rules and let everyone swipe.
+create function internal.begin_swiping(p_room_id uuid) returns void
 language plpgsql security definer set search_path = ''
 as $$
 declare
   v_mode text;
 begin
-  select mode into v_mode from public.rooms where id = p_room_id and state = 'lobby' for no key update;
+  select mode into v_mode from public.rooms where id = p_room_id and state = 'dealing' for no key update;
   if not found then
-    raise exception 'room is not in the lobby' using errcode = '22023';
+    raise exception 'room is not being dealt' using errcode = '22023';
   end if;
   update public.rooms
   set state = 'swiping',
@@ -1319,19 +1119,21 @@ begin
         from public.match_rules mr where mr.mode = v_mode
       )
   where id = p_room_id;
-  perform public.broadcast_room(p_room_id, 'state_changed', jsonb_build_object('state', 'swiping'));
+  perform internal.broadcast_room(p_room_id, 'state_changed', jsonb_build_object('state', 'swiping'));
 end
 $$;
 
 
 -- =========================================================================
--- 11. The deck query: eligible films, scored for each seat and the group
+-- 12. Decks: retrieval in SQL, ranking on the server, one way to write
 -- =========================================================================
 
+-- Stage 1 of the recommender: eligible films for the room, scored with a
+-- baseline. The server ranks these; the SQL fallback deals them as they are.
 -- Fit is a 0 to 5 percentile within each player's own ranking of tonight's
 -- eligible films, so models with different similarity ranges behave the same.
 -- Players without a taste profile get the popularity prior.
-create function public.deck_candidates(
+create function internal.deck_candidates(
   p_room_id uuid,
   p_limit integer default 300,
   p_misery_line real default 1.0
@@ -1453,162 +1255,1138 @@ as $$
   order by tp.group_score desc
 $$;
 
+-- The only way a deck is written, by the server or the SQL fallback. Under
+-- the room lock it adds cards to the pool, appends to each seat's deck (or
+-- replaces everything after the first `keep` upcoming cards: a re-rank),
+-- logs the request and every ranked card, and starts the game if the room
+-- was waiting for its first deal.
+--
+-- Payload:
+-- {
+--   "request": {"kind": "start" | "refill" | "rerank", "model_version": "...",
+--               "room_member_id": null, "experiment": null, "variant": null,
+--               "strategy": {}, "candidates": 300, "latency_ms": 120},
+--   "pool":  [{"title_id": 1, "group_score": 4.1, "min_fit": 2.2, "fits": {},
+--              "source": "ranked", "reason_code": "...", "reason_params": {},
+--              "member_ratings": []}],
+--   "decks": [{"room_member_id": "...", "keep": null,
+--              "cards": [{"title_id": 1, "source": "opening", "score": 4.1,
+--                         "explore": false, "propensity": 0.9, "features": {}}]}]
+-- }
+create function internal.deal_cards(p_room_id uuid, p_payload jsonb) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_state public.room_state;
+  v_request_id bigint;
+  v_deck jsonb;
+  v_seat uuid;
+  v_keep integer;
+  v_base double precision;
+  v_touched uuid[] := '{}';
+  v_started boolean := false;
+begin
+  select state into v_state from public.rooms where id = p_room_id for no key update;
+  if not found or v_state not in ('dealing', 'swiping') then
+    return jsonb_build_object('status', 'closed');   -- the room moved on; the server drops its result
+  end if;
+
+  insert into rec.requests (room_id, room_member_id, kind, model_version, experiment, variant,
+                            strategy, candidates, latency_ms, is_fallback)
+  select p_room_id, (r->>'room_member_id')::uuid, coalesce(r->>'kind', 'refill'),
+         coalesce(r->>'model_version', 'unknown'), r->>'experiment', r->>'variant',
+         coalesce(r->'strategy', '{}'), (r->>'candidates')::int, (r->>'latency_ms')::int,
+         coalesce((r->>'is_fallback')::boolean, false)
+  from (select coalesce(p_payload->'request', '{}') as r) x
+  returning id into v_request_id;
+
+  -- New films join the pool; films already in it take the new scores while still active.
+  insert into public.room_cards as c (room_id, title_id, source, group_score, min_fit, fits,
+                                      reason_code, reason_params, member_ratings)
+  select p_room_id, (p->>'title_id')::bigint, coalesce(p->>'source', 'ranked')::public.card_source,
+         (p->>'group_score')::real, (p->>'min_fit')::real, coalesce(p->'fits', '{}'),
+         p->>'reason_code', coalesce(p->'reason_params', '{}'), coalesce(p->'member_ratings', '[]')
+  from jsonb_array_elements(coalesce(p_payload->'pool', '[]')) p
+  on conflict (room_id, title_id) do update
+    set group_score = excluded.group_score, min_fit = excluded.min_fit, fits = excluded.fits,
+        reason_code = excluded.reason_code, reason_params = excluded.reason_params,
+        member_ratings = excluded.member_ratings
+    where c.state = 'active';
+
+  for v_deck in select d from jsonb_array_elements(coalesce(p_payload->'decks', '[]')) d loop
+    v_seat := (v_deck->>'room_member_id')::uuid;
+    perform 1 from public.room_members m where m.id = v_seat and m.room_id = p_room_id;
+    if not found then
+      continue;
+    end if;
+    v_keep := (v_deck->>'keep')::int;
+
+    -- Re-rank: keep the next `keep` cards (the phone has them mounted) and
+    -- cards moved up by a like; replace the rest of the upcoming deck.
+    if v_keep is not null then
+      delete from public.deck_entries d
+      where d.room_member_id = v_seat
+        and d.source <> 'propagated'
+        and not exists (select 1 from public.votes v where v.room_member_id = v_seat and v.title_id = d.title_id)
+        and d.title_id not in (
+          select u.title_id from public.deck_entries u
+          where u.room_member_id = v_seat
+            and not exists (select 1 from public.votes v where v.room_member_id = v_seat and v.title_id = u.title_id)
+          order by u.sort_key
+          limit v_keep);
+    end if;
+
+    select coalesce(max(d.sort_key), 0) into v_base from public.deck_entries d where d.room_member_id = v_seat;
+
+    insert into public.deck_entries (room_id, room_member_id, title_id, sort_key, source, score, request_id)
+    select p_room_id, v_seat, (x.c->>'title_id')::bigint, v_base + x.o,
+           coalesce(x.c->>'source', 'ranked')::public.deck_source, (x.c->>'score')::real, v_request_id
+    from jsonb_array_elements(v_deck->'cards') with ordinality as x(c, o)
+    join public.room_cards rc on rc.room_id = p_room_id and rc.title_id = (x.c->>'title_id')::bigint
+                              and rc.state = 'active'
+    where not exists (select 1 from public.votes v
+                      where v.room_member_id = v_seat and v.title_id = (x.c->>'title_id')::bigint)
+    on conflict (room_member_id, title_id) do nothing;
+
+    insert into rec.request_items (request_id, room_member_id, title_id, position, score, explore, propensity, features)
+    select v_request_id, v_seat, (x.c->>'title_id')::bigint, x.o::smallint, (x.c->>'score')::real,
+           coalesce((x.c->>'explore')::boolean, false), (x.c->>'propensity')::real, coalesce(x.c->'features', '{}')
+    from jsonb_array_elements(v_deck->'cards') with ordinality as x(c, o)
+    on conflict do nothing;
+
+    update public.room_members set refill_requested_at = null where id = v_seat;
+    v_touched := v_touched || v_seat;
+  end loop;
+
+  if v_state = 'dealing' then
+    perform internal.begin_swiping(p_room_id);
+    v_started := true;
+  elsif cardinality(v_touched) > 0 then
+    perform internal.broadcast_room(p_room_id, 'deck_updated', jsonb_build_object('member_ids', to_jsonb(v_touched)));
+  end if;
+
+  return jsonb_build_object('status', 'ok', 'request_id', v_request_id, 'started', v_started,
+                            'seats', cardinality(v_touched));
+end
+$$;
+
+-- SQL-only dealer, for when the server does not answer in time: the baseline
+-- scores, the same order for every seat, the first 10 as the shared opening.
+create function internal.deal_baseline(p_room_id uuid, p_seat uuid default null) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_state public.room_state;
+  v_cards jsonb;
+begin
+  select state into v_state from public.rooms where id = p_room_id;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'title_id', c.title_id, 'group_score', c.group_score, 'min_fit', c.min_fit,
+           'fits', c.fits, 'score', c.group_score) order by c.group_score desc), '[]')
+  into v_cards from internal.deck_candidates(p_room_id, 30, 1.0) c;
+  if jsonb_array_length(v_cards) < 10 then
+    select coalesce(jsonb_agg(jsonb_build_object(
+             'title_id', c.title_id, 'group_score', c.group_score, 'min_fit', c.min_fit,
+             'fits', c.fits, 'score', c.group_score) order by c.group_score desc), '[]')
+    into v_cards from internal.deck_candidates(p_room_id, 30, 0) c;
+  end if;
+
+  return internal.deal_cards(p_room_id, jsonb_build_object(
+    'request', jsonb_build_object(
+      'kind', case when v_state = 'dealing' then 'start' else 'refill' end,
+      'model_version', 'sql-baseline', 'is_fallback', true,
+      'room_member_id', p_seat, 'candidates', jsonb_array_length(v_cards)),
+    'pool', v_cards,
+    'decks', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'room_member_id', m.id,
+        'cards', (select jsonb_agg(jsonb_set(x.c, '{source}',
+                    to_jsonb(case when v_state = 'dealing' and x.o <= 10 then 'opening' else 'ranked' end))
+                    order by x.o)
+                  from jsonb_array_elements(v_cards) with ordinality as x(c, o)))), '[]')
+      from public.room_members m
+      where m.room_id = p_room_id and m.left_at is null and (p_seat is null or m.id = p_seat))));
+end
+$$;
+
 
 -- =========================================================================
--- 12. Row-level security and grants
+-- 13. api: profile and personal data
 -- =========================================================================
 
-alter table public.countries enable row level security;
-alter table public.genres enable row level security;
-alter table public.keywords enable row level security;
-alter table public.people enable row level security;
-alter table public.providers enable row level security;
-alter table public.provider_regions enable row level security;
-alter table public.certification_ages enable row level security;
-alter table public.moods enable row level security;
-alter table public.titles enable row level security;
-alter table public.title_translations enable row level security;
-alter table public.title_credits enable row level security;
-alter table public.title_certifications enable row level security;
-alter table public.title_availability enable row level security;
-alter table public.title_watch_links enable row level security;
-alter table public.title_deep_links enable row level security;
-alter table public.title_vectors enable row level security;
-alter table public.calibration_titles enable row level security;
-alter table public.ingest_runs enable row level security;
-alter table public.profiles enable row level security;
-alter table public.profile_providers enable row level security;
-alter table public.consents enable row level security;
-alter table public.linked_accounts enable row level security;
-alter table public.imports enable row level security;
-alter table public.import_rows enable row level security;
-alter table public.letterboxd_film_map enable row level security;
-alter table public.user_titles enable row level security;
-alter table public.taste_profiles enable row level security;
-alter table public.game_modes enable row level security;
-alter table public.match_rules enable row level security;
-alter table public.rooms enable row level security;
-alter table public.room_models enable row level security;
-alter table public.room_members enable row level security;
-alter table public.room_cards enable row level security;
-alter table public.deck_entries enable row level security;
-alter table public.votes enable row level security;
-alter table public.swipe_log enable row level security;
-alter table public.matches enable row level security;
-alter table public.rounds enable row level security;
-alter table public.round_candidates enable row level security;
-alter table public.round_ballots enable row level security;
-alter table public.rate_limits enable row level security;
+create function api.update_profile(
+  p_display_name text default null,
+  p_avatar_key text default null,
+  p_country char(2) default null,
+  p_language text default null
+) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  if p_display_name is not null and char_length(btrim(p_display_name)) not between 1 and 24 then
+    return jsonb_build_object('status', 'invalid_name');
+  end if;
+  update public.profiles
+  set display_name = coalesce(btrim(p_display_name), display_name),
+      avatar_key = coalesce(p_avatar_key, avatar_key),
+      country = coalesce(p_country, country),
+      language = coalesce(p_language, language),
+      updated_at = now()
+  where auth_user_id = auth.uid();
+  if not found then
+    raise exception 'no profile for this user' using errcode = '42501';
+  end if;
+  return jsonb_build_object('status', 'ok');
+end
+$$;
 
--- Clients never write directly, except the two grants at the end of this section.
-revoke all on all tables in schema public from anon;
-revoke insert, update, delete, truncate on all tables in schema public from authenticated;
+create function api.set_my_providers(p_provider_ids integer[]) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_me uuid := internal.my_profile_id();
+begin
+  if v_me is null then
+    raise exception 'no profile for this user' using errcode = '42501';
+  end if;
+  delete from public.profile_providers where profile_id = v_me and provider_id <> all (p_provider_ids);
+  insert into public.profile_providers (profile_id, provider_id)
+  select v_me, p from unnest(p_provider_ids) p
+  on conflict do nothing;
+  return jsonb_build_object('status', 'ok');
+end
+$$;
 
--- Catalog and configuration: readable by every signed-in player, guests included.
-create policy read_all on public.countries for select to authenticated using (true);
-create policy read_all on public.genres for select to authenticated using (true);
-create policy read_all on public.keywords for select to authenticated using (true);
-create policy read_all on public.people for select to authenticated using (true);
+-- GDPR export: everything stored about the caller.
+create function api.export_my_data() returns jsonb
+language sql stable security definer set search_path = ''
+as $$
+  with me as (select internal.my_profile_id() as id)
+  select jsonb_build_object(
+    'profile', (select to_jsonb(p) - 'auth_user_id' from public.profiles p, me where p.id = me.id),
+    'services', (select coalesce(jsonb_agg(pp.provider_id), '[]') from public.profile_providers pp, me where pp.profile_id = me.id),
+    'consents', (select coalesce(jsonb_agg(to_jsonb(c) - 'profile_id'), '[]') from public.consents c, me where c.profile_id = me.id),
+    'linked_accounts', (
+      select coalesce(jsonb_agg(jsonb_build_object('provider', la.provider, 'username', la.username,
+                                                   'created_at', la.created_at, 'last_synced_at', la.last_synced_at)), '[]')
+      from public.linked_accounts la, me where la.profile_id = me.id),
+    'film_history', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+               'tmdb_id', t.tmdb_id, 'title', t.original_title, 'source', ut.source, 'seen', ut.seen,
+               'rating', ut.rating, 'liked', ut.liked, 'on_watchlist', ut.on_watchlist,
+               'reaction', ut.reaction, 'last_watched_on', ut.last_watched_on)), '[]')
+      from public.user_titles ut join public.titles t on t.id = ut.title_id, me
+      where ut.profile_id = me.id),
+    'taste', (select tp.affinities from public.taste_profiles tp, me where tp.profile_id = me.id),
+    'games', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+               'room_id', m.room_id, 'joined_at', m.joined_at,
+               'votes', (select coalesce(jsonb_agg(jsonb_build_object('tmdb_id', t.tmdb_id, 'answer', v.answer,
+                                                                      'at', v.created_at)), '[]')
+                         from public.votes v join public.titles t on t.id = v.title_id
+                         where v.room_member_id = m.id))), '[]')
+      from public.room_members m, me where m.profile_id = me.id)
+  )
+$$;
+
+
+-- =========================================================================
+-- 14. api: rooms
+-- =========================================================================
+
+create function api.create_room(p_mode text default 'quick_match', p_country char(2) default null)
+returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_profile public.profiles;
+  v_mode public.game_modes;
+  v_room public.rooms;
+  v_country char(2);
+  i integer;
+begin
+  select * into v_profile from public.profiles where auth_user_id = auth.uid();
+  if v_profile.id is null then
+    raise exception 'no profile for this user' using errcode = '42501';
+  end if;
+  if v_profile.display_name = '' then
+    return jsonb_build_object('status', 'name_required');
+  end if;
+
+  select * into v_mode from public.game_modes where slug = p_mode and is_active;
+  if not found then
+    return jsonb_build_object('status', 'unknown_mode');
+  end if;
+
+  v_country := coalesce(p_country, v_profile.country);
+  if v_country is null then
+    return jsonb_build_object('status', 'country_required');
+  end if;
+
+  -- Later: the monthly hosting cap and the room's tier are decided here.
+
+  for i in 1..10 loop
+    begin
+      insert into public.rooms (code, host_id, mode, country, max_players, seen_rule, quality)
+      values (
+        lpad(floor(random() * 1000000)::integer::text, 6, '0'),
+        v_profile.id, v_mode.slug, v_country, v_mode.max_players,
+        coalesce((v_mode.defaults->>'seen_rule')::public.seen_rule, 'hide_seen'),
+        coalesce((v_mode.defaults->>'quality')::public.quality_preset, 'standard')
+      )
+      returning * into v_room;
+      exit;
+    exception when unique_violation then
+      if i = 10 then raise; end if;
+    end;
+  end loop;
+
+  insert into public.room_members (room_id, profile_id, controlled_by, role, display_name, avatar_key, provider_ids)
+  values (
+    v_room.id, v_profile.id, v_profile.id, 'host', v_profile.display_name, v_profile.avatar_key,
+    coalesce((select array_agg(pp.provider_id) from public.profile_providers pp where pp.profile_id = v_profile.id), '{}')
+  );
+  insert into public.room_models (room_id) values (v_room.id);
+  perform internal.refresh_room_providers(v_room.id);
+
+  return jsonb_build_object('status', 'ok', 'room_id', v_room.id, 'code', v_room.code);
+end
+$$;
+
+-- Never raises on a wrong code: an exception would roll back the attempt
+-- counter and make the 6-digit space guessable.
+create function api.join_room(p_code text) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_profile public.profiles;
+  v_room public.rooms;
+  v_member_id uuid;
+  v_hits integer;
+  v_seats integer;
+  v_account_id uuid;
+begin
+  select * into v_profile from public.profiles where auth_user_id = auth.uid();
+  if v_profile.id is null then
+    raise exception 'no profile for this user' using errcode = '42501';
+  end if;
+
+  insert into public.rate_limits as rl (key, window_start, hits)
+  values ('join:' || v_profile.id, to_timestamp(floor(extract(epoch from now()) / 600) * 600), 1)
+  on conflict (key, window_start) do update set hits = rl.hits + 1
+  returning hits into v_hits;
+  if v_hits > 10 then
+    return jsonb_build_object('status', 'rate_limited');
+  end if;
+
+  select * into v_room from public.rooms
+  where code = p_code and state in ('lobby', 'dealing', 'swiping', 'finale')
+  for no key update;
+  if not found then
+    return jsonb_build_object('status', 'not_found');
+  end if;
+
+  -- Fresh Letterboxd data for tonight: queue a sync if one is due.
+  update public.profiles set last_seen_at = now() where id = v_profile.id;
+  for v_account_id in
+    update public.linked_accounts la
+    set next_sync_after = now() + interval '10 minutes'   -- the worker sets the real next time
+    where la.profile_id = v_profile.id and la.next_sync_after <= now()
+    returning la.id
+  loop
+    perform internal.enqueue('letterboxd_sync', jsonb_build_object('linked_account_id', v_account_id));
+  end loop;
+
+  -- Rejoin after a dropped connection or an app restart: same seat.
+  select id into v_member_id from public.room_members
+  where room_id = v_room.id and profile_id = v_profile.id;
+  if found then
+    update public.room_members set left_at = null, last_active_at = now() where id = v_member_id;
+    return jsonb_build_object('status', 'ok', 'room_id', v_room.id, 'member_id', v_member_id,
+                              'state', v_room.state, 'rejoined', true);
+  end if;
+
+  if v_room.state = 'dealing' then
+    return jsonb_build_object('status', 'starting');    -- try again in a second
+  end if;
+  if v_room.state = 'finale' then
+    return jsonb_build_object('status', 'in_finale');
+  end if;
+  if v_profile.display_name = '' then
+    return jsonb_build_object('status', 'name_required');
+  end if;
+
+  select count(*) into v_seats from public.room_members where room_id = v_room.id and left_at is null;
+  if v_seats >= v_room.max_players then
+    return jsonb_build_object('status', 'full');
+  end if;
+
+  insert into public.room_members (room_id, profile_id, controlled_by, display_name, avatar_key, provider_ids)
+  values (
+    v_room.id, v_profile.id, v_profile.id, v_profile.display_name, v_profile.avatar_key,
+    coalesce((select array_agg(pp.provider_id) from public.profile_providers pp where pp.profile_id = v_profile.id), '{}')
+  )
+  returning id into v_member_id;
+
+  -- Late joiner: deal them the shared opening now, and ask the server for the rest.
+  if v_room.state = 'swiping' then
+    insert into public.deck_entries (room_id, room_member_id, title_id, sort_key, source, score)
+    select distinct on (d.title_id) d.room_id, v_member_id, d.title_id, d.sort_key, 'opening', d.score
+    from public.deck_entries d
+    join public.room_cards c on c.room_id = d.room_id and c.title_id = d.title_id
+    where d.room_id = v_room.id and d.source = 'opening' and c.state = 'active';
+    update public.room_members set refill_requested_at = now() where id = v_member_id;
+    perform internal.enqueue('deck_requests', jsonb_build_object(
+      'kind', 'refill', 'room_id', v_room.id, 'room_member_id', v_member_id));
+  end if;
+
+  perform internal.refresh_room_providers(v_room.id);
+  perform internal.broadcast_room(v_room.id, 'member_joined', jsonb_build_object(
+    'member_id', v_member_id, 'display_name', v_profile.display_name, 'avatar_key', v_profile.avatar_key));
+
+  return jsonb_build_object('status', 'ok', 'room_id', v_room.id, 'member_id', v_member_id,
+                            'state', v_room.state, 'rejoined', false);
+end
+$$;
+
+create function api.touch_room(p_room_id uuid) returns void
+language sql security definer set search_path = ''
+as $$
+  update public.room_members
+  set last_active_at = now()
+  where room_id = p_room_id
+    and controlled_by in (select internal.my_profile_ids())
+    and left_at is null
+$$;
+
+-- Leaving can complete a match: the players still here may all have liked a card.
+create function api.leave_room(p_room_id uuid) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_room public.rooms;
+  v_member public.room_members;
+  v_next uuid;
+  v_title bigint;
+  v_check jsonb;
+begin
+  select * into v_room from public.rooms where id = p_room_id for no key update;
+  select m.* into v_member from public.room_members m
+  where m.room_id = p_room_id and m.profile_id = internal.my_profile_id() and m.left_at is null;
+  if not found then
+    return jsonb_build_object('status', 'not_in_room');
+  end if;
+
+  update public.room_members set left_at = now() where id = v_member.id;
+
+  if v_member.role = 'host' then
+    select m.id into v_next from public.room_members m
+    where m.room_id = p_room_id and m.left_at is null order by m.joined_at limit 1;
+    update public.room_members set role = 'guest' where id = v_member.id;
+    if v_next is not null then
+      update public.room_members set role = 'host' where id = v_next;
+      update public.rooms set host_id = (select profile_id from public.room_members where id = v_next)
+      where id = p_room_id;
+    end if;
+  end if;
+
+  perform internal.refresh_room_providers(p_room_id);
+  perform internal.broadcast_room(p_room_id, 'member_left', jsonb_build_object(
+    'member_id', v_member.id, 'new_host_member_id', v_next));
+
+  if v_room.state = 'swiping' then
+    for v_title in
+      select c.title_id from public.room_cards c
+      where c.room_id = p_room_id and c.state = 'active' and c.like_count + c.super_like_count > 0
+      order by c.like_count + c.super_like_count desc
+    loop
+      v_check := internal.check_card_match(p_room_id, v_title);
+      exit when (v_check->>'decided') = 'true';
+    end loop;
+  end if;
+
+  return jsonb_build_object('status', 'ok');
+end
+$$;
+
+-- Host only, lobby only. Keys left out of p_settings stay as they are.
+create function api.update_room_settings(p_room_id uuid, p_settings jsonb) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_state public.room_state;
+begin
+  select state into v_state from public.rooms r
+  where r.id = p_room_id
+    and exists (select 1 from public.room_members m
+                where m.room_id = r.id and m.role = 'host' and m.profile_id = internal.my_profile_id()
+                  and m.left_at is null)
+  for no key update;
+  if not found then
+    raise exception 'only the host can change settings' using errcode = '42501';
+  end if;
+  if v_state <> 'lobby' then
+    return jsonb_build_object('status', 'closed');
+  end if;
+
+  update public.rooms
+  set service_rule = coalesce((p_settings->>'service_rule')::public.service_rule, service_rule),
+      runtime_max = case when p_settings ? 'runtime_max' then (p_settings->>'runtime_max')::smallint else runtime_max end,
+      seen_rule = coalesce((p_settings->>'seen_rule')::public.seen_rule, seen_rule),
+      quality = coalesce((p_settings->>'quality')::public.quality_preset, quality),
+      max_age = case when p_settings ? 'max_age' then (p_settings->>'max_age')::smallint else max_age end,
+      reveal = coalesce((p_settings->>'reveal')::public.reveal_mode, reveal)
+  where id = p_room_id;
+  perform internal.refresh_room_providers(p_room_id);
+  perform internal.broadcast_room(p_room_id, 'settings_changed', p_settings);
+  return jsonb_build_object('status', 'ok');
+end
+$$;
+
+-- A player's own settings for tonight. Null arguments stay as they are.
+create function api.set_seat_prefs(
+  p_room_id uuid,
+  p_provider_ids integer[] default null,
+  p_mood_slugs text[] default null,
+  p_genre_ids integer[] default null,
+  p_member_id uuid default null
+) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_seat uuid;
+begin
+  perform 1 from public.rooms where id = p_room_id and state in ('lobby', 'swiping') for no key update;
+  if not found then
+    return jsonb_build_object('status', 'closed');
+  end if;
+  update public.room_members m
+  set provider_ids = coalesce(p_provider_ids, m.provider_ids),
+      mood_slugs = coalesce(p_mood_slugs, m.mood_slugs),
+      genre_ids = coalesce(p_genre_ids, m.genre_ids),
+      last_active_at = now()
+  where m.room_id = p_room_id
+    and m.controlled_by in (select internal.my_profile_ids())
+    and (m.id = p_member_id or (p_member_id is null and m.profile_id = internal.my_profile_id()))
+  returning m.id into v_seat;
+  if v_seat is null then
+    raise exception 'not a member of this room' using errcode = '42501';
+  end if;
+  perform internal.refresh_room_providers(p_room_id);
+  perform internal.broadcast_room(p_room_id, 'seat_updated', jsonb_build_object('member_id', v_seat));
+  return jsonb_build_object('status', 'ok');
+end
+$$;
+
+-- Host taps start. The server deals; if it has not within 8 seconds, the
+-- host's phone calls this again and the SQL baseline deals instead.
+create function api.start_game(p_room_id uuid) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_room public.rooms;
+  v_min smallint;
+begin
+  select r.* into v_room from public.rooms r
+  where r.id = p_room_id
+    and exists (select 1 from public.room_members m
+                where m.room_id = r.id and m.role = 'host' and m.profile_id = internal.my_profile_id()
+                  and m.left_at is null)
+  for no key update;
+  if not found then
+    raise exception 'only the host can start' using errcode = '42501';
+  end if;
+
+  if v_room.state = 'dealing' then
+    if now() - v_room.dealing_at > interval '8 seconds' then
+      return internal.deal_baseline(p_room_id) || jsonb_build_object('fallback', true);
+    end if;
+    return jsonb_build_object('status', 'dealing');
+  end if;
+  if v_room.state <> 'lobby' then
+    return jsonb_build_object('status', 'closed', 'state', v_room.state);
+  end if;
+
+  select gm.min_players into v_min from public.game_modes gm where gm.slug = v_room.mode;
+  if cardinality(internal.present_member_ids(p_room_id)) < v_min then
+    return jsonb_build_object('status', 'not_enough_players', 'need', v_min);
+  end if;
+
+  update public.rooms set state = 'dealing', dealing_at = now() where id = p_room_id;
+  perform internal.enqueue('deck_requests', jsonb_build_object('kind', 'start', 'room_id', p_room_id));
+  perform internal.broadcast_room(p_room_id, 'state_changed', jsonb_build_object('state', 'dealing'));
+  return jsonb_build_object('status', 'dealing');
+end
+$$;
+
+-- The phone is running low and no refill has arrived: queue one, or after
+-- 8 seconds of silence from the server, deal the SQL baseline now.
+create function api.request_cards(p_room_id uuid, p_member_id uuid default null) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_state public.room_state;
+  v_member public.room_members;
+  v_remaining integer;
+begin
+  select state into v_state from public.rooms where id = p_room_id for no key update;
+  select m.* into v_member from public.room_members m
+  where m.room_id = p_room_id
+    and m.controlled_by in (select internal.my_profile_ids())
+    and (m.id = p_member_id or (p_member_id is null and m.profile_id = internal.my_profile_id()))
+    and m.left_at is null;
+  if not found then
+    raise exception 'not a member of this room' using errcode = '42501';
+  end if;
+  if v_state <> 'swiping' then
+    return jsonb_build_object('status', 'closed', 'state', v_state);
+  end if;
+
+  select count(*) into v_remaining
+  from public.deck_entries d
+  join public.room_cards c on c.room_id = d.room_id and c.title_id = d.title_id and c.state = 'active'
+  where d.room_member_id = v_member.id
+    and not exists (select 1 from public.votes v where v.room_member_id = d.room_member_id and v.title_id = d.title_id);
+  if v_remaining >= 5 then
+    return jsonb_build_object('status', 'enough', 'remaining', v_remaining);
+  end if;
+
+  if v_member.refill_requested_at is null then
+    update public.room_members set refill_requested_at = now() where id = v_member.id;
+    perform internal.enqueue('deck_requests', jsonb_build_object(
+      'kind', 'refill', 'room_id', p_room_id, 'room_member_id', v_member.id));
+    return jsonb_build_object('status', 'queued');
+  end if;
+  if now() - v_member.refill_requested_at > interval '8 seconds' then
+    return internal.deal_baseline(p_room_id, v_member.id) || jsonb_build_object('fallback', true);
+  end if;
+  return jsonb_build_object('status', 'queued');
+end
+$$;
+
+
+-- =========================================================================
+-- 15. api: the vote. Save, count, match, propagate, in one transaction
+-- =========================================================================
+
+create function api.cast_vote(
+  p_room_id uuid,
+  p_title_id bigint,
+  p_answer public.vote_answer,
+  p_member_id uuid default null,
+  p_dwell_ms integer default null,
+  p_client_at timestamptz default null
+) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_room public.rooms;
+  v_member public.room_members;
+  v_entry public.deck_entries;
+  v_card public.room_cards;
+  v_check jsonb;
+  v_touched uuid[];
+  v_round uuid;
+  v_remaining integer;
+begin
+  -- One lock per room: votes in a room run one after another (a few ms each),
+  -- so counting and deciding never race. Rooms do not block each other.
+  select * into v_room from public.rooms where id = p_room_id for no key update;
+  if not found then
+    raise exception 'room not found' using errcode = '42501';
+  end if;
+
+  select m.* into v_member from public.room_members m
+  where m.room_id = p_room_id
+    and m.controlled_by in (select internal.my_profile_ids())
+    and (m.id = p_member_id or (p_member_id is null and m.profile_id = internal.my_profile_id()))
+    and m.left_at is null;
+  if not found then
+    raise exception 'not a member of this room' using errcode = '42501';
+  end if;
+
+  if v_room.state <> 'swiping' then
+    return jsonb_build_object('status', 'closed', 'state', v_room.state);
+  end if;
+
+  select c.* into v_card from public.room_cards c where c.room_id = p_room_id and c.title_id = p_title_id;
+  if not found then
+    raise exception 'card not in this room' using errcode = '22023';
+  end if;
+  if v_card.state = 'dropped' then
+    return jsonb_build_object('status', 'dropped');
+  end if;
+
+  select d.* into v_entry from public.deck_entries d
+  where d.room_member_id = v_member.id and d.title_id = p_title_id;
+  if not found then
+    raise exception 'card was not dealt to this seat' using errcode = '22023';
+  end if;
+
+  if p_answer = 'super_like' and v_member.super_likes_left <= 0 then
+    return jsonb_build_object('status', 'no_super_likes');
+  end if;
+
+  insert into public.votes (room_id, room_member_id, title_id, answer, client_created_at)
+  values (p_room_id, v_member.id, p_title_id, p_answer, p_client_at)
+  on conflict (room_member_id, title_id) do nothing;
+  if not found then
+    return jsonb_build_object('status', 'duplicate');   -- an offline retry of a saved vote
+  end if;
+
+  update public.room_members
+  set swipe_count = swipe_count + 1,
+      last_active_at = now(),
+      super_likes_left = super_likes_left - (p_answer = 'super_like')::int
+  where id = v_member.id;
+
+  update public.room_cards
+  set like_count = like_count + (p_answer = 'like')::int,
+      super_like_count = super_like_count + (p_answer = 'super_like')::int,
+      nope_count = nope_count + (p_answer = 'nope')::int,
+      seen_count = seen_count + (p_answer = 'seen')::int
+  where room_id = p_room_id and title_id = p_title_id
+  returning * into v_card;
+
+  insert into public.swipe_log (room_id, room_member_id, title_id, action, answer, deck_source, score, dwell_ms)
+  values (p_room_id, v_member.id, p_title_id, 'vote', p_answer, v_entry.source, v_entry.score, p_dwell_ms);
+
+  -- "Seen it" under hide_seen takes the card out of every deck that has not reached it.
+  if p_answer = 'seen' and v_room.seen_rule = 'hide_seen' and v_card.state = 'active' then
+    update public.room_cards set state = 'dropped' where room_id = p_room_id and title_id = p_title_id;
+    with removed as (
+      delete from public.deck_entries d
+      where d.room_id = p_room_id and d.title_id = p_title_id
+        and not exists (select 1 from public.votes v where v.room_member_id = d.room_member_id and v.title_id = d.title_id)
+      returning d.room_member_id
+    )
+    select coalesce(array_agg(room_member_id), '{}') into v_touched from removed;
+    if cardinality(v_touched) > 0 then
+      perform internal.broadcast_room(p_room_id, 'deck_updated', jsonb_build_object('member_ids', to_jsonb(v_touched)));
+    end if;
+  end if;
+
+  if p_answer in ('like', 'super_like') then
+    v_check := internal.check_card_match(p_room_id, p_title_id);
+    if v_check->>'match' = 'false' then
+      if v_room.reveal = 'party' and (v_check->>'likes')::int >= 2 then
+        perform internal.broadcast_room(p_room_id, 'near_miss', jsonb_build_object(
+          'title_id', p_title_id, 'likes', v_check->'likes', 'of', v_check->'of'));
+      end if;
+      if v_card.like_count + v_card.super_like_count = 1 then
+        v_touched := internal.propagate_like(p_room_id, p_title_id, v_member.id);
+        if cardinality(v_touched) > 0 then
+          perform internal.broadcast_room(p_room_id, 'deck_updated', jsonb_build_object('member_ids', to_jsonb(v_touched)));
+        end if;
+      end if;
+    end if;
+  end if;
+
+  if v_check is null or (v_check->>'decided') is distinct from 'true' then
+    v_round := internal.maybe_start_finale(p_room_id);
+  end if;
+
+  -- Ask the server for more cards when this seat is down to 15. A request
+  -- older than 30 seconds is assumed lost and sent again.
+  if v_round is null and (v_check is null or (v_check->>'decided') is distinct from 'true') then
+    select count(*) into v_remaining
+    from public.deck_entries d
+    join public.room_cards c on c.room_id = d.room_id and c.title_id = d.title_id and c.state = 'active'
+    where d.room_member_id = v_member.id
+      and not exists (select 1 from public.votes v where v.room_member_id = d.room_member_id and v.title_id = d.title_id);
+    if v_remaining <= 15
+       and (v_member.refill_requested_at is null or v_member.refill_requested_at < now() - interval '30 seconds') then
+      update public.room_members set refill_requested_at = now() where id = v_member.id;
+      perform internal.enqueue('deck_requests', jsonb_build_object(
+        'kind', 'refill', 'room_id', p_room_id, 'room_member_id', v_member.id));
+    end if;
+  end if;
+
+  return jsonb_build_object('status', 'ok')
+    || jsonb_build_object('match', coalesce(v_check->'match', 'false'::jsonb))
+    || case when v_check->>'match' = 'true' then jsonb_build_object('kind', v_check->'kind', 'decided', v_check->'decided')
+            else '{}'::jsonb end
+    || case when v_round is not null then jsonb_build_object('finale_round_id', v_round) else '{}'::jsonb end;
+end
+$$;
+
+create function api.undo_last_vote(p_room_id uuid, p_member_id uuid default null) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_room public.rooms;
+  v_member public.room_members;
+  v_vote public.votes;
+  v_card_state public.card_state;
+begin
+  select * into v_room from public.rooms where id = p_room_id for no key update;
+  select m.* into v_member from public.room_members m
+  where m.room_id = p_room_id
+    and m.controlled_by in (select internal.my_profile_ids())
+    and (m.id = p_member_id or (p_member_id is null and m.profile_id = internal.my_profile_id()));
+  if not found then
+    raise exception 'not a member of this room' using errcode = '42501';
+  end if;
+  if v_room.state <> 'swiping' then
+    return jsonb_build_object('status', 'closed');
+  end if;
+
+  select v.* into v_vote from public.votes v
+  where v.room_member_id = v_member.id order by v.created_at desc limit 1;
+  if not found then
+    return jsonb_build_object('status', 'nothing_to_undo');
+  end if;
+
+  select c.state into v_card_state from public.room_cards c
+  where c.room_id = p_room_id and c.title_id = v_vote.title_id;
+  if v_card_state <> 'active' then
+    return jsonb_build_object('status', 'locked');     -- matched, finalist or dropped
+  end if;
+
+  delete from public.votes where room_member_id = v_member.id and title_id = v_vote.title_id;
+  update public.room_cards
+  set like_count = like_count - (v_vote.answer = 'like')::int,
+      super_like_count = super_like_count - (v_vote.answer = 'super_like')::int,
+      nope_count = nope_count - (v_vote.answer = 'nope')::int,
+      seen_count = seen_count - (v_vote.answer = 'seen')::int
+  where room_id = p_room_id and title_id = v_vote.title_id;
+  update public.room_members
+  set swipe_count = swipe_count - 1,
+      super_likes_left = super_likes_left + (v_vote.answer = 'super_like')::int,
+      last_active_at = now()
+  where id = v_member.id;
+  insert into public.swipe_log (room_id, room_member_id, title_id, action, answer)
+  values (p_room_id, v_member.id, v_vote.title_id, 'undo', v_vote.answer);
+
+  return jsonb_build_object('status', 'ok', 'title_id', v_vote.title_id);
+end
+$$;
+
+
+-- =========================================================================
+-- 16. api: calibration and after the game
+-- =========================================================================
+
+-- p_answers: [{"title_id": 1, "answer": "love" | "fine" | "nope" | "not_seen"}]
+create function api.submit_calibration(p_answers jsonb, p_room_id uuid default null) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_me uuid := internal.my_profile_id();
+  v_seat uuid;
+  v_saved integer;
+begin
+  if v_me is null then
+    raise exception 'no profile for this user' using errcode = '42501';
+  end if;
+
+  insert into public.user_titles as ut (profile_id, title_id, source, seen, reaction)
+  select v_me, (a->>'title_id')::bigint, 'calibration', a->>'answer' <> 'not_seen',
+         case when a->>'answer' in ('love', 'fine', 'nope') then (a->>'answer')::public.reaction end
+  from jsonb_array_elements(p_answers) a
+  where (a->>'title_id')::bigint in (select ct.title_id from public.calibration_titles ct where ct.is_active)
+    and a->>'answer' in ('love', 'fine', 'nope', 'not_seen')
+  on conflict (profile_id, title_id, source) do update
+    set seen = excluded.seen, reaction = excluded.reaction, updated_at = now();
+  get diagnostics v_saved = row_count;
+
+  if p_room_id is not null then
+    update public.room_members set calibrated_at = now(), last_active_at = now()
+    where room_id = p_room_id and profile_id = v_me
+    returning id into v_seat;
+    if v_seat is not null then
+      perform internal.broadcast_room(p_room_id, 'seat_updated', jsonb_build_object('member_id', v_seat));
+    end if;
+  end if;
+
+  perform internal.enqueue('taste_refresh', jsonb_build_object('profile_id', v_me, 'reason', 'calibration'));
+  return jsonb_build_object('status', 'ok', 'saved', v_saved);
+end
+$$;
+
+-- "Did you watch it?" on a later app open.
+create function api.answer_followup(
+  p_room_id uuid,
+  p_watched public.watched_answer,
+  p_reaction public.reaction default null
+) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_me uuid := internal.my_profile_id();
+  v_pick bigint;
+begin
+  update public.room_members
+  set watched_answer = p_watched, post_reaction = p_reaction, followup_at = now()
+  where room_id = p_room_id and profile_id = v_me
+    and exists (select 1 from public.rooms r where r.id = p_room_id and r.state = 'done');
+  if not found then
+    return jsonb_build_object('status', 'not_found');
+  end if;
+
+  select mt.title_id into v_pick from public.matches mt where mt.room_id = p_room_id and mt.pick_order = 1;
+  if p_watched = 'yes' and v_pick is not null then
+    insert into public.user_titles as ut (profile_id, title_id, source, seen, reaction, last_watched_on)
+    values (v_me, v_pick, 'app', true, p_reaction, current_date)
+    on conflict (profile_id, title_id, source) do update
+      set seen = true, reaction = coalesce(excluded.reaction, ut.reaction),
+          last_watched_on = excluded.last_watched_on, updated_at = now();
+  end if;
+
+  perform internal.enqueue('taste_refresh', jsonb_build_object('profile_id', v_me, 'reason', 'followup'));
+  return jsonb_build_object('status', 'ok');
+end
+$$;
+
+
+-- =========================================================================
+-- 17. api: what the app reads
+-- =========================================================================
+
+-- Views run as the caller (security_invoker), so row-level security on the
+-- tables underneath decides which rows come back.
+
+create view api.my_profile with (security_invoker = true) as
+  select p.id, p.display_name, p.avatar_key, p.country, p.language, p.created_at
+  from public.profiles p where p.auth_user_id = (select auth.uid());
+
+create view api.my_providers with (security_invoker = true) as
+  select pp.provider_id from public.profile_providers pp;
+
+create view api.country_providers with (security_invoker = true) as
+  select pr.country, p.id as provider_id, p.name, p.logo_path, pr.display_priority
+  from public.provider_regions pr join public.providers p on p.id = pr.provider_id;
+
+create view api.genres with (security_invoker = true) as
+  select g.id, g.slug, g.names from public.genres g where 'movie' = any (g.media_types);
+
+create view api.moods with (security_invoker = true) as
+  select m.slug, m.names, m.sort from public.moods m;
+
+create view api.game_modes with (security_invoker = true) as
+  select gm.slug, gm.min_players, gm.max_players, gm.ends_on_first_match, gm.sort from public.game_modes gm;
+
+create view api.calibration_titles with (security_invoker = true) as
+  select ct.title_id, ct.axis, ct.sort from public.calibration_titles ct;
+
+create view api.app_config with (security_invoker = true) as
+  select c.key, c.value from public.app_config c;
+
+create view api.rooms with (security_invoker = true) as
+  select r.id, r.code, r.mode, r.state, r.country, r.service_rule, r.offer_kinds, r.runtime_max,
+         r.seen_rule, r.quality, r.max_age, r.reveal, r.max_players, r.provider_ids, r.stats,
+         r.created_at, r.started_at, r.finale_at, r.decided_at, r.ended_at
+  from public.rooms r;
+
+create view api.room_seats with (security_invoker = true) as
+  select m.id as member_id, m.room_id, m.role, m.display_name, m.avatar_key, m.provider_ids,
+         m.joined_at, m.left_at, m.calibrated_at, m.done_at, m.swipe_count,
+         m.super_likes_left, m.vetoes_left,
+         m.profile_id is not distinct from internal.my_profile_id() as is_me,
+         m.controlled_by in (select internal.my_profile_ids()) as is_mine
+  from public.room_members m;
+
+create view api.room_matches with (security_invoker = true) as
+  select mt.room_id, mt.title_id, mt.kind, mt.like_count, mt.present_count, mt.pick_order, mt.created_at
+  from public.matches mt;
+
+create view api.rounds with (security_invoker = true) as
+  select r.id, r.room_id, r.seq, r.kind, r.stage, r.stage_closes_at, r.opened_at, r.closed_at, r.winner_title_id
+  from public.rounds r;
+
+create view api.round_candidates with (security_invoker = true) as
+  select rc.round_id, rc.title_id, rc.seed, rc.vetoed_at is not null as vetoed, rc.points
+  from public.round_candidates rc;
+
+create view api.my_votes with (security_invoker = true) as
+  select v.room_id, v.room_member_id, v.title_id, v.answer, v.created_at from public.votes v;
+
+create view api.my_linked_accounts with (security_invoker = true) as
+  select la.id, la.provider, la.username, la.last_synced_at, la.last_error, la.created_at
+  from public.linked_accounts la;
+
+create view api.my_imports with (security_invoker = true) as
+  select i.id, i.linked_account_id, i.kind, i.status, i.films_total, i.films_matched,
+         i.films_unmatched, i.started_at, i.finished_at, i.error
+  from public.imports i;
+
+create view api.my_unmatched_films with (security_invoker = true) as
+  select ir.id, ir.import_id, ir.film_name, ir.film_year, ir.letterboxd_uri
+  from public.import_rows ir where ir.status = 'unmatched';
+
+-- Cards for any titles: winner screen, finale, calibration. Up to 50 at a time.
+create function api.title_cards(p_title_ids bigint[], p_language text default null, p_country char(2) default null)
+returns jsonb
+language sql stable security definer set search_path = ''
+as $$
+  select coalesce(jsonb_agg(cp.card order by array_position(p_title_ids, cp.title_id)), '[]')
+  from internal.card_payloads(
+    p_title_ids[1:50],
+    coalesce(p_language, (select p.language from public.profiles p where p.id = internal.my_profile_id()), 'en'),
+    coalesce(p_country, (select p.country from public.profiles p where p.id = internal.my_profile_id()))
+  ) cp
+$$;
+
+-- The seat's next cards, ready to render, with tonight's services and the reason label.
+create function api.my_next_cards(
+  p_room_id uuid,
+  p_limit integer default 10,
+  p_member_id uuid default null,
+  p_language text default null
+) returns jsonb
+language sql stable security definer set search_path = ''
+as $$
+  with seat as (
+    select m.id, r.country, r.provider_ids
+    from public.room_members m join public.rooms r on r.id = m.room_id
+    where m.room_id = p_room_id
+      and m.controlled_by in (select internal.my_profile_ids())
+      and (m.id = p_member_id or (p_member_id is null and m.profile_id = internal.my_profile_id()))
+  ),
+  upcoming as (
+    select d.title_id, d.sort_key, d.source, c.reason_code, c.reason_params, c.member_ratings
+    from seat s
+    join public.deck_entries d on d.room_member_id = s.id
+    join public.room_cards c on c.room_id = d.room_id and c.title_id = d.title_id and c.state = 'active'
+    where not exists (select 1 from public.votes v where v.room_member_id = d.room_member_id and v.title_id = d.title_id)
+    order by d.sort_key
+    limit least(greatest(p_limit, 1), 30)
+  ),
+  cards as (
+    select cp.title_id, cp.card
+    from seat s,
+      internal.card_payloads(
+        (select array_agg(u.title_id) from upcoming u),
+        coalesce(p_language, (select p.language from public.profiles p where p.id = internal.my_profile_id()), 'en'),
+        s.country, s.provider_ids) cp
+  )
+  select coalesce(jsonb_agg(c.card || jsonb_build_object(
+           'deck_source', u.source, 'reason_code', u.reason_code,
+           'reason_params', u.reason_params, 'member_ratings', u.member_ratings)
+         order by u.sort_key), '[]')
+  from upcoming u join cards c on c.title_id = u.title_id
+$$;
+
+
+-- =========================================================================
+-- 18. Security: row-level security, roles and grants
+-- =========================================================================
+
+-- The recommendation server's role. Create a login for the server and grant
+-- it this role; the server never uses the service role key for the database.
+create role app_server nologin;
+
+-- Row-level security on every table. The server sees every row; phones only
+-- what the policies below allow, and only through api views.
+do $$
+declare
+  t record;
+begin
+  for t in select schemaname, tablename from pg_tables where schemaname in ('public', 'rec') loop
+    execute format('alter table %I.%I enable row level security', t.schemaname, t.tablename);
+    execute format('create policy server_all on %I.%I for all to app_server using (true) with check (true)',
+                   t.schemaname, t.tablename);
+  end loop;
+end
+$$;
+
+-- Phones: no direct table access beyond what the api views read.
+revoke all on all tables in schema public from anon, authenticated;
+revoke all on all tables in schema rec from public, anon, authenticated;
+grant usage on schema api, internal to authenticated;
+grant select on
+  public.profiles, public.profile_providers, public.providers, public.provider_regions,
+  public.genres, public.moods, public.game_modes, public.calibration_titles, public.app_config,
+  public.rooms, public.room_members, public.matches, public.rounds, public.round_candidates,
+  public.votes, public.linked_accounts, public.imports, public.import_rows
+to authenticated;
+grant select on all tables in schema api to authenticated;
+
 create policy read_all on public.providers for select to authenticated using (true);
 create policy read_all on public.provider_regions for select to authenticated using (true);
-create policy read_all on public.certification_ages for select to authenticated using (true);
+create policy read_all on public.genres for select to authenticated using (true);
 create policy read_all on public.moods for select to authenticated using (is_active);
-create policy read_all on public.titles for select to authenticated using (true);
-create policy read_all on public.title_translations for select to authenticated using (true);
-create policy read_all on public.title_credits for select to authenticated using (true);
-create policy read_all on public.title_certifications for select to authenticated using (true);
-create policy read_all on public.title_availability for select to authenticated using (true);
-create policy read_all on public.title_watch_links for select to authenticated using (true);
-create policy read_all on public.title_deep_links for select to authenticated using (true);
-create policy read_all on public.calibration_titles for select to authenticated using (is_active);
 create policy read_all on public.game_modes for select to authenticated using (is_active);
-create policy read_all on public.match_rules for select to authenticated using (true);
--- No client policies: title_vectors, ingest_runs, letterboxd_film_map,
--- room_models, swipe_log, rate_limits. Only the service role reads them.
+create policy read_all on public.calibration_titles for select to authenticated using (is_active);
+create policy read_all on public.app_config for select to authenticated using (true);
 
--- Players: your own data only.
 create policy own_read on public.profiles for select to authenticated
-  using (id in (select public.my_profile_ids()));
-create policy own_update on public.profiles for update to authenticated
-  using (auth_user_id = (select auth.uid())) with check (auth_user_id = (select auth.uid()));
-create policy own_all on public.profile_providers for all to authenticated
-  using (profile_id in (select public.my_profile_ids()))
-  with check (profile_id in (select public.my_profile_ids()));
-create policy own_read on public.consents for select to authenticated
-  using (profile_id in (select public.my_profile_ids()));
+  using (id in (select internal.my_profile_ids()));
+create policy own_read on public.profile_providers for select to authenticated
+  using (profile_id = (select internal.my_profile_id()));
 create policy own_read on public.linked_accounts for select to authenticated
-  using (profile_id in (select public.my_profile_ids()));
+  using (profile_id in (select internal.my_profile_ids()));
 create policy own_read on public.imports for select to authenticated
   using (linked_account_id in (
-    select la.id from public.linked_accounts la where la.profile_id in (select public.my_profile_ids())));
+    select la.id from public.linked_accounts la where la.profile_id in (select internal.my_profile_ids())));
 create policy own_read on public.import_rows for select to authenticated
   using (import_id in (
     select i.id from public.imports i join public.linked_accounts la on la.id = i.linked_account_id
-    where la.profile_id in (select public.my_profile_ids())));
-create policy own_read on public.user_titles for select to authenticated
-  using (profile_id in (select public.my_profile_ids()));
-create policy own_read on public.taste_profiles for select to authenticated
-  using (profile_id in (select public.my_profile_ids()));
+    where la.profile_id in (select internal.my_profile_ids())));
 
 -- Rooms: members see the room; nobody can list rooms.
 create policy member_read on public.rooms for select to authenticated
-  using (public.is_room_member(id));
+  using (internal.is_room_member(id));
 create policy member_read on public.room_members for select to authenticated
-  using (public.is_room_member(room_id));
-create policy member_read on public.room_cards for select to authenticated
-  using (public.is_room_member(room_id));
+  using (internal.is_room_member(room_id));
 create policy member_read on public.matches for select to authenticated
-  using (public.is_room_member(room_id));
+  using (internal.is_room_member(room_id));
 create policy member_read on public.rounds for select to authenticated
-  using (public.is_room_member(room_id));
+  using (internal.is_room_member(room_id));
 create policy member_read on public.round_candidates for select to authenticated
-  using (round_id in (select r.id from public.rounds r where public.is_room_member(r.room_id)));
+  using (round_id in (select r.id from public.rounds r where internal.is_room_member(r.room_id)));
 
--- Your own seat's deck, votes and ballots only. Other players' answers
--- reach you only as the counts the room's reveal mode allows.
-create policy own_seat on public.deck_entries for select to authenticated
-  using (room_member_id in (
-    select m.id from public.room_members m where m.controlled_by in (select public.my_profile_ids())));
+-- Your own seat's votes only. Other players' answers reach you only as the
+-- counts the room's reveal mode allows.
 create policy own_seat on public.votes for select to authenticated
   using (room_member_id in (
-    select m.id from public.room_members m where m.controlled_by in (select public.my_profile_ids())));
-create policy own_seat on public.round_ballots for select to authenticated
-  using (room_member_id in (
-    select m.id from public.room_members m where m.controlled_by in (select public.my_profile_ids())));
-
--- Counters and scores on room cards would reveal votes in Blind mode.
-revoke select on public.room_cards from authenticated;
-grant select (room_id, title_id, source, state, reason_code, reason_params, member_ratings, added_at)
-  on public.room_cards to authenticated;
-
--- The two direct client writes.
-grant update (display_name, avatar_key, country, language) on public.profiles to authenticated;
-grant insert, delete on public.profile_providers to authenticated;
+    select m.id from public.room_members m where m.controlled_by in (select internal.my_profile_ids())));
 
 -- Realtime: phones read both room topics and send only on the :live topic.
 create policy room_topics_read on realtime.messages for select to authenticated
-  using (public.can_use_room_topic((select realtime.topic()), false));
+  using (internal.can_use_room_topic((select realtime.topic()), false));
 create policy room_topics_send on realtime.messages for insert to authenticated
-  with check (public.can_use_room_topic((select realtime.topic()), true));
+  with check (internal.can_use_room_topic((select realtime.topic()), true));
 
--- Functions: only the game actions are callable from the app.
-revoke execute on all functions in schema public from public, anon, authenticated;
+-- The server: reads everything, writes the catalog, history, taste and its
+-- own rec schema, and writes decks through internal.deal_cards.
+grant usage on schema public, internal, rec to app_server;
+grant select on all tables in schema public to app_server;
+grant insert, update, delete on
+  public.genres, public.keywords, public.people, public.providers, public.provider_regions,
+  public.certification_ages, public.titles, public.title_translations, public.title_credits,
+  public.title_certifications, public.title_availability, public.title_watch_links,
+  public.title_deep_links, public.title_vectors, public.calibration_titles, public.ingest_runs,
+  public.consents, public.linked_accounts, public.imports, public.import_rows,
+  public.letterboxd_film_map, public.user_titles, public.taste_profiles, public.room_models
+to app_server;
+grant update (stats) on public.rooms to app_server;
+grant select, insert, update, delete on all tables in schema rec to app_server;
+grant usage on all sequences in schema public, rec to app_server;
+-- Supabase Queues: also give app_server read and delete on the queues it consumes.
+
+-- Functions: phones call api functions; the server calls the deck functions.
+revoke execute on all functions in schema api, internal from public, anon, authenticated;
+grant execute on all functions in schema api to authenticated;
 grant execute on function
-  public.my_profile_id(),
-  public.my_profile_ids(),
-  public.is_room_member(uuid),
-  public.can_use_room_topic(text, boolean),
-  public.create_room(text, char),
-  public.join_room(text),
-  public.touch_room(uuid),
-  public.leave_room(uuid),
-  public.cast_vote(uuid, bigint, public.vote_answer, uuid, integer, timestamptz),
-  public.undo_last_vote(uuid, uuid)
+  internal.my_profile_id(),
+  internal.my_profile_ids(),
+  internal.is_room_member(uuid),
+  internal.can_use_room_topic(text, boolean)
 to authenticated;
+grant execute on function
+  internal.deck_candidates(uuid, integer, real),
+  internal.deal_cards(uuid, jsonb),
+  internal.deal_baseline(uuid, uuid),
+  internal.card_payloads(bigint[], text, char, integer[]),
+  internal.broadcast_room(uuid, text, jsonb),
+  internal.enqueue(text, jsonb)
+to app_server;
 
 
 -- =========================================================================
--- 13. Configuration rows (starting values from the revival plan, to tune)
+-- 19. Configuration rows (starting values from the revival plan, to tune)
 -- =========================================================================
 
 insert into public.game_modes (slug, min_players, max_players, ends_on_first_match, defaults, sort) values
@@ -1625,3 +2403,6 @@ values
   ('date_night',  2, 2,  'all_like',   null, 'final_cut',   40, null, 3),
   ('final_cut',   2, 4,  'all_like',   null, 'final_cut',   30, 600,  4),
   ('final_cut',   5, 10, 'share_like', 0.70, 'final_cut',   30, 600,  4);
+
+insert into public.app_config (key, value) values
+  ('min_app_version', '{"ios": "1.0.0", "android": "1.0.0"}');

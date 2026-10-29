@@ -1,84 +1,125 @@
 # MovieMatch data model
 
-The database for the first public release of MovieMatch, and how every part of it talks to the others. It is built from the [revival plan](../revival-plan/README.md) (stack, catalog, deck engine, game design, Letterboxd) and the [monetization options](../monetization/README.md) (Host Pro, family modes, packs). Written in October 2026.
+The database for the first public release of MovieMatch, the recommendation server around it, and how every part talks to the others. It is built from the [revival plan](../revival-plan/README.md) (stack, catalog, deck engine, game design, Letterboxd) and the [monetization options](../monetization/README.md) (Host Pro, family modes, packs). Written in October 2026.
 
-- **[schema.sql](schema.sql)** is the reference DDL for everything marked v1 below: tables, indexes, row-level security, the realtime policies and the game functions (create, join, vote, match, like propagation, finale start, undo, leave, and the deck query). It loads cleanly on Postgres 16 with pgvector, and the game functions were run through the scenarios listed in [What was tested](#what-was-tested).
+- **[schema.sql](schema.sql)** is the reference DDL for everything marked v1 below: tables, indexes, row-level security, roles, realtime policies, the queues, the app's API and the game functions. It loads cleanly on Postgres 16 with pgvector, and an 86-check test suite passed against it (see [What was tested](#what-was-tested)).
 - **v1** means the first release: the revival plan's Launch items and roadmap phases 1 to 5.
 - **Later** means after launch: the revival plan's Later items and every paid feature in the monetization doc. The [Later](#later-how-each-future-feature-lands) section shows where each one plugs in.
 
 ## Contents
 
 1. [At a glance](#at-a-glance)
-2. [Nine decisions that shape everything](#nine-decisions-that-shape-everything)
-3. [Reference data](#1-reference-data)
-4. [Catalog](#2-catalog)
-5. [Players](#3-players)
-6. [Film history and taste](#4-film-history-and-taste)
-7. [Rooms and the game](#5-rooms-and-the-game)
-8. [Operations](#6-operations)
-9. [How it fits together](#how-it-fits-together)
-10. [Who sees what](#who-sees-what)
-11. [Realtime](#realtime)
-12. [Functions, edge functions and jobs](#functions-edge-functions-and-jobs)
-13. [Sizes and speed](#sizes-and-speed)
-14. [Retention](#retention)
-15. [Later: how each future feature lands](#later-how-each-future-feature-lands)
-16. [Open questions](#open-questions)
-17. [What was tested](#what-was-tested)
+2. [Who does what](#who-does-what)
+3. [Ten decisions that shape everything](#ten-decisions-that-shape-everything)
+4. [Schemas](#schemas)
+5. [Reference data](#1-reference-data)
+6. [Catalog](#2-catalog)
+7. [Players](#3-players)
+8. [Film history and taste](#4-film-history-and-taste)
+9. [Rooms and the game](#5-rooms-and-the-game)
+10. [Recommendation data](#6-recommendation-data)
+11. [Operations](#7-operations)
+12. [The recommendation server](#the-recommendation-server)
+13. [How it fits together](#how-it-fits-together)
+14. [The app's API](#the-apps-api)
+15. [Who sees what](#who-sees-what)
+16. [Realtime](#realtime)
+17. [Queues and scheduled jobs](#queues-and-scheduled-jobs)
+18. [Sizes and speed](#sizes-and-speed)
+19. [Retention](#retention)
+20. [Later: how each future feature lands](#later-how-each-future-feature-lands)
+21. [Open questions](#open-questions)
+22. [What was tested](#what-was-tested)
 
 ## At a glance
 
 | | v1 |
 | --- | --- |
-| Tables | 41, in six areas: reference data, catalog, players, film history and taste, rooms and the game, operations |
-| Writes from the phone | 6 game functions (create, join, heartbeat, leave, vote, undo) plus a handful still to write (lobby settings, calibration, finale ballots, after-game answer). Direct writes only for your own profile fields and services |
+| Tables | 46: 42 in `public` (reference data, catalog, players, film history, rooms and the game, operations) and 4 in `rec` (the recommendation server's logs, models and stats) |
+| The app's API | 17 views and 17 functions in the `api` schema, the only schema the app can reach |
+| Recommendation server | 4 processes in one codebase: deck worker, pipeline worker, HTTP API, nightly trainer |
+| Queues | 7, from the database to the server |
 | Realtime topics | 2 per room: `room:<id>` for server events, `room:<id>:live` for presence and reactions |
-| Background work | 9 edge functions, 5 scheduled jobs and 5 queues, all off the game path |
-| External calls during a game | None. TMDB and Letterboxd are read on a schedule; Streaming Availability is called once per game, for the winner |
+| External calls during a game | None. TMDB and Letterboxd are read by the server in the background; Streaming Availability is called once per game, for the winner |
 
 ```mermaid
 flowchart LR
-  subgraph phones[Phones]
-    app[Expo app<br/>iOS and Android]
-  end
+  app[Expo app<br/>iOS and Android]
   subgraph supa[Supabase]
     auth[Auth<br/>guests, Apple, Google]
-    fn[Postgres functions<br/>create, join, vote]
-    db[(Postgres<br/>catalog, players, rooms)]
+    api[api schema<br/>views and functions]
+    db[(Postgres<br/>public, internal, rec)]
     rt[Realtime<br/>room topics]
-    edge[Edge Functions<br/>deck, Letterboxd, links, ingest]
-    jobs[Cron and Queues]
+    q[Queues and Cron]
+  end
+  subgraph server[Recommendation server]
+    deck[deck worker]
+    pipe[pipeline worker]
+    http[HTTP API]
+    train[trainer]
   end
   tmdb[TMDB]
   lb[Letterboxd RSS]
   sa[Streaming Availability]
+  store[(Object storage<br/>models, training data)]
   app --> auth
-  app -->|rpc| fn --> db
-  app -->|reads under RLS| db
+  app -->|reads and game actions| api --> db
   db -->|broadcast| rt --> app
   app <-->|presence, reactions| rt
-  app -->|start, refill, import| edge --> db
-  jobs --> edge
-  edge --> tmdb
-  edge --> lb
-  edge --> sa
+  app -->|Letterboxd, account| http
+  db --> q
+  q --> deck
+  q --> pipe
+  deck -->|deal_cards| db
+  pipe --> db
+  http --> db
+  train --> db
+  train --> store
+  pipe --> tmdb
+  pipe --> lb
+  pipe --> sa
 ```
 
-## Nine decisions that shape everything
+## Who does what
 
-1. **Postgres decides, Realtime only tells.** Every vote, join and match is decided inside one database transaction. Realtime fans the result out. A phone that misses a message can always re-read the truth. This removes the old app's two sources of truth (Firestore and MongoDB) and the 500 ms sleep.
-2. **Phones read, functions write.** Row-level security lets phones read what they may see. All game writes go through `security definer` functions that check the caller, so no client can overwrite a room document the way the old app did.
-3. **A player is a profile, not a login.** `profiles` has its own id and an optional `auth_user_id`. At launch they are always equal (one guest or account per profile). Later, kid profiles are profiles with no login, managed by a parent, without changing any other table.
-4. **Votes belong to seats.** A seat (`room_members`) is one player in one room. Votes, decks and ballots point at the seat. Deleting an account leaves an anonymous seat, so other people's game history stays correct, and pass-and-play later is simply one phone controlling several seats.
-5. **Titles have their own id.** TMDB numbers movies and TV shows separately, so the same id can be both a movie and a show. `titles.id` is ours, with `(media_type, tmdb_id)` unique, so series mode adds rows, not a migration.
-6. **Facts are stored per source.** What a player has seen, rated or saved is one row per film per source (Letterboxd, calibration, the app). Disconnecting Letterboxd deletes exactly what came from Letterboxd, by cascade.
-7. **Rules are data.** Game modes and match thresholds live in `game_modes` and `match_rules`, and each room freezes its rules when swiping starts. Tuning a threshold is an update, not a release, and analytics always know which rule a game used.
-8. **The pool and the deck are separate.** `room_cards` is the room's set of candidate films with shared scores and counters. `deck_entries` is each seat's own order through it. This is what makes the shared opening, like propagation, late joiners and (later) packs and sponsored cards all the same mechanism.
-9. **Later features add, never rewrite.** Everything in the Later section is new tables, new columns, new enum values or new rows in a config table.
+The split follows one rule: **Postgres decides the game, the server decides the deck.**
+
+| | Supabase | Recommendation server |
+| --- | --- | --- |
+| Owns | The truth: rooms, seats, votes, matches, the finale, sign-in, live messaging | Choosing cards: ranking, learning, every call to an outside service |
+| Runs | The game functions (join, vote, match, finale) in one transaction each; the retrieval query; queues; schedules | Workers that consume queues, a small HTTP API, the nightly trainer |
+| Talks to | Phones, directly | Postgres; TMDB, Letterboxd RSS, Streaming Availability; object storage. Phones only for Letterboxd and account requests |
+| If it is down | Nothing works | Games still start and carry on with the SQL baseline deck. Imports and catalog refreshes wait in their queues |
+
+Why the game stays in Postgres: a vote must save, count, check the match rule and broadcast in one transaction, in a few milliseconds, with no race between two last likes. Moving that into a server would add a network hop to every swipe and re-create the old app's two sources of truth. Why ranking goes to a server: the algorithm will grow (Letterboxd ratings, swipe history, global ratings, trained models, experiments), needs real ML libraries and long jobs, and doesn't need to be inside a transaction. Each seat keeps 15 cards of buffer, so a refill can take a second without anyone noticing.
+
+## Ten decisions that shape everything
+
+1. **Postgres decides, Realtime only tells.** Every vote, join and match is decided inside one database transaction; Realtime fans the result out. A phone that misses a message can always re-read the truth.
+2. **The app sees only the `api` schema.** Phones read views and call functions in `api`; they have no access to tables. The schema behind it can change, and the server can take over a function, without breaking installed apps. Incompatible changes ship as `_v2` next to the old version.
+3. **Postgres decides the game, the server decides the deck.** The server never writes votes, matches or room state. It writes decks through one function, `internal.deal_cards`, under the same room lock as votes.
+4. **The server is never on the critical path.** If it doesn't deal within 8 seconds, the SQL baseline does.
+5. **A player is a profile, not a login.** `profiles` has its own id and an optional `auth_user_id`. At launch they are always equal. Later, kid profiles are profiles with no login, managed by a parent, without changing any other table.
+6. **Votes belong to seats.** A seat (`room_members`) is one player in one room. Votes, decks and ballots point at the seat. Deleting an account leaves an anonymous seat, and pass-and-play later is one phone controlling several seats.
+7. **Titles have their own id.** TMDB numbers movies and TV shows separately, so the same id can be both a movie and a show. `titles.id` is ours, with `(media_type, tmdb_id)` unique.
+8. **Facts are stored per source.** What a player has seen, rated or saved is one row per film per source (Letterboxd, calibration, the app). Disconnecting Letterboxd deletes exactly what came from Letterboxd, by cascade.
+9. **Every card served is logged with what the model knew.** `rec.requests` and `rec.request_items` record the model version, experiment, score, features and exploration odds of every card dealt. Joined to votes, that is the training set, from the first game.
+10. **Later features add, never rewrite.** Everything in the Later section is new tables, columns, enum values, config rows or api functions.
+
+## Schemas
+
+| Schema | Holds | Reached by |
+| --- | --- | --- |
+| `public` | All tables | Nobody directly. The api views and functions, the server |
+| `api` | 17 views and 17 functions: the app's whole surface | Phones (it is the only schema exposed through Supabase's Data API) |
+| `internal` | Game logic and helpers: match check, propagation, finale, dealing, retrieval, card payloads, broadcasting, queueing | api functions, triggers, the server |
+| `rec` | Recommendation requests, ranked items, models, title stats | The server only |
+
+Two roles matter besides Supabase's own: `authenticated` (every phone, guests included) and `app_server` (the recommendation server's database login).
 
 ## 1. Reference data
 
-Small tables, filled by the ingest job, readable by every signed-in player.
+Small tables, filled by the server's ingest jobs.
 
 ```mermaid
 erDiagram
@@ -117,7 +158,7 @@ erDiagram
 
 **provider_regions**: which services exist in which country, with TMDB's display order. Replaces the old 64,000-line `countries.json`. Key: (provider_id, country).
 
-**certification_ages**: maps each country's ratings to a minimum age (`US PG-13` is 13, `FR 12` is 12, `FR U` is 0). Used to fill `title_certifications.min_age` and for the age cap. Key: (country, certification).
+**certification_ages**: maps each country's ratings to a minimum age (`US PG-13` is 13, `FR 12` is 12, `FR U` is 0). Key: (country, certification).
 
 **moods**: the mood chips.
 
@@ -131,7 +172,7 @@ erDiagram
 
 ## 2. Catalog
 
-About 40,000 popular movies at launch, written only by ingest jobs. Nothing here is personal.
+About 40,000 popular movies at launch, written only by the server's ingest jobs. Nothing here is personal. Phones never read these tables; they get ready-made cards from `api.my_next_cards` and `api.title_cards`.
 
 ```mermaid
 erDiagram
@@ -159,11 +200,11 @@ erDiagram
 | imdb_id | text | Kept for lookups, never shown |
 | original_title, original_language | text | |
 | release_date | date | |
-| release_year | smallint | Generated from release_date, for decade filters and affinities |
+| release_year | smallint | Generated from release_date |
 | runtime_min | smallint | Time budget filter |
 | genre_ids, keyword_ids | integer[] | GIN index on genre_ids for the deck filter |
 | collection_id | integer | TMDB collection, so the opening never shows five sequels of one franchise |
-| popularity, vote_average, vote_count | | From TMDB |
+| popularity, vote_average, vote_count | | From TMDB. vote_average is the "global rating" shown on the card |
 | quality_score | real | Vote average weighted by vote count, 0 to 10, computed at ingest |
 | poster_path, backdrop_path | text | The app requests w500 or w780, never /original |
 | poster_placeholder | text | Blurhash or thumbhash shown while the poster loads |
@@ -173,9 +214,9 @@ erDiagram
 | refresh_tier | smallint | 1 refreshed daily (popular), 2 weekly (long tail) |
 | tmdb_changed_at, refreshed_at | timestamptz | For the changes feed and refresh scheduling |
 
-**title_translations**: title, overview, tagline and an optional localized poster per language. Key: (title_id, language). A trigram index on `title` serves search (manual Letterboxd fixes, custom decks later). More languages later are more rows.
+**title_translations**: title, overview, tagline and an optional localized poster per language. Key: (title_id, language). A trigram index on `title` serves search.
 
-**title_credits**: directors, writers and the top 8 cast. Key: (title_id, person_id, role). Feeds the card back, the embedding text and "Jo gave the director's last film 4.5★".
+**title_credits**: directors, writers and the top 8 cast. Key: (title_id, person_id, role).
 
 **title_certifications**: the rating in each country and its `min_age`. Key: (title_id, country).
 
@@ -190,11 +231,11 @@ Index `(country, provider_id, kind, title_id)` answers "is this film on any of t
 
 **title_watch_links**: TMDB's JustWatch-powered watch page per title and country. JustWatch must be credited wherever availability shows.
 
-**title_deep_links**: "Open in Netflix" links from Streaming Availability, fetched only for winners and cached until `expires_at`. Key: (title_id, country, provider_id, kind).
+**title_deep_links**: "Open in Netflix" links from Streaming Availability, fetched only for winners and cached until `expires_at`.
 
-**title_vectors**: one 384-dimension gte-small embedding per title, built from a short text (title, year, genres, top keywords, director, main cast, overview). `source_hash` says when the text changed and the film needs re-embedding. Kept out of `titles` so catalog reads never drag 1.5 KB vectors along. An HNSW index serves "films like this one"; the deck query itself filters first and then compares against the few thousand eligible films directly.
+**title_vectors**: one 384-dimension gte-small embedding per title, built from a short text (title, year, genres, top keywords, director, main cast, overview). `model` and `source_hash` say which model made it and when the text changed. Kept out of `titles` so catalog reads never drag 1.5 KB vectors along. An HNSW index serves "films like this one"; the deck query filters first and compares against the few thousand eligible films directly.
 
-**calibration_titles**: the 8 to 10 well-known films used in the lobby, each tagged with the taste axis it splits (`horror`, `romcom`, `arthouse`, `blockbuster`, `animated`).
+**calibration_titles**: the 8 to 10 well-known films used in the lobby, each tagged with the taste axis it splits.
 
 ## 3. Players
 
@@ -215,21 +256,21 @@ erDiagram
 | id | uuid PK | Equal to the auth user id at launch |
 | auth_user_id | uuid unique | Supabase auth user. Linking Apple or Google keeps the same id, so a guest keeps their history |
 | managed_by | uuid | Null at launch. Later, the parent of a kid profile. Exactly one of auth_user_id and managed_by is set |
-| display_name | text | Up to 24 characters. Asked on first launch; required to create or join a room |
+| display_name | text | Up to 24 characters, set with `api.update_profile`. Required to create or join a room |
 | avatar_key | text | A preset avatar, never a photo |
 | country | char(2) | Default room country when this player hosts |
-| language | text | Language for titles and overviews |
+| language | text | Language for titles and overviews on cards |
 | created_at, updated_at, last_seen_at | timestamptz | |
 
-Whether a profile is a guest is not stored: it is the `is_anonymous` claim in the Supabase token, which flips when the player signs in with Apple or Google.
+Whether a profile is a guest is not stored: it is the `is_anonymous` claim in the Supabase token.
 
-**profile_providers**: the services a player has. Key: (profile_id, provider_id). One of only two tables a phone writes directly.
+**profile_providers**: the services a player has, set with `api.set_my_providers`. Key: (profile_id, provider_id).
 
-**consents**: what a player agreed to and which wording version. Kinds at launch: `letterboxd_import`, `analytics`. One active consent per kind; revoking sets `revoked_at`. A Letterboxd link points at its consent row.
+**consents**: what a player agreed to and which wording version. Kinds at launch: `letterboxd_import`, `analytics`. One active consent per kind.
 
 ## 4. Film history and taste
 
-Everything the game knows about a player's taste. All of it is private to the player; rooms only ever see derived results.
+Everything the game knows about a player's taste. Private to the player; rooms only see derived results. Written by the server (Letterboxd, taste) and by api functions (calibration, after-game answers).
 
 ```mermaid
 erDiagram
@@ -257,11 +298,11 @@ erDiagram
 | last_synced_at, next_sync_after | timestamptz | RSS is re-read at most every 6 hours |
 | last_error | text | Shown on the settings screen |
 
-**imports**: one row per RSS sync or ZIP import, with counts (`films_total`, `films_matched`, `films_unmatched`) and status. Powers "Found 50 recent films, 41 rated".
+**imports**: one row per RSS sync or ZIP import, with counts and status. Powers "Found 50 recent films, 41 rated".
 
-**import_rows**: one row per film from a Letterboxd export. The phone unzips the export and merges the CSVs per film before sending, so only title, year, Letterboxd link, watched, rating, liked, watchlist, last watched date and rewatch count leave the device. Matched rows are applied and deleted; unmatched rows stay for the quick manual fix.
+**import_rows**: one row per film from a Letterboxd export, merged across the CSVs on the phone, so only title, year, Letterboxd link, watched, rating, liked, watchlist, last watched date and rewatch count leave the device. Matched rows are applied and deleted; unmatched rows stay for the manual fix.
 
-**letterboxd_film_map**: shared by everyone. Each Letterboxd film is resolved to a TMDB title once: from the RSS feed's `tmdb:movieId` (free and exact), else a TMDB search by title and year (plus or minus one), else a manual fix. Holds no personal data.
+**letterboxd_film_map**: shared by everyone, no personal data. Each Letterboxd film is resolved to a TMDB title once: from the RSS feed's `tmdb:movieId`, else a TMDB search by title and year (plus or minus one), else a manual fix.
 
 **user_titles**: the film history, one row per player, film and source.
 
@@ -276,25 +317,19 @@ erDiagram
 | reaction | reaction | `love`, `fine` or `nope`: calibration answers and the after-game question |
 | rewatch_count, last_watched_on | | Recency weighting |
 
-Sources at launch:
+The view **user_title_facts** merges the sources into one row per player and film.
 
-- `letterboxd`: RSS (last ~50 diary entries) and the ZIP export (full history), merged into one row per film.
-- `calibration`: lobby answers. Love, Fine and Nope mean seen; Haven't seen is stored with `seen = false` so the film isn't asked again.
-- `app`: "seen it" swipes (written when the room ends, so an undo never needs compensating) and "Did you watch it?" answers.
-
-The view **user_title_facts** merges the sources into one row per player and film (seen if any source says so, the Letterboxd rating, liked, on watchlist, latest reaction).
-
-**taste_profiles**: one per player.
+**taste_profiles**: one per player, written by the server's taste worker.
 
 | Column | Type | Notes |
 | --- | --- | --- |
 | profile_id | uuid PK | |
-| embedding | vector(384) | Recency-weighted average of the embeddings of films the player reacted to, using the plan's weights (5★ +1, 4★ +0.6, 3★ +0.1, 2★ -0.5, 1★ -1, heart +0.3, logged without rating +0.2; love +1, fine +0.2, nope -1) |
+| embedding | vector(384) | Weighted average of the embeddings of films the player reacted to. Starting weights from the plan: 5★ +1, 4★ +0.6, 3★ +0.1, 2★ -0.5, 1★ -1, heart +0.3, logged without rating +0.2; love +1, fine +0.2, nope -1; swipes in games add their own weights |
 | affinities | jsonb | Readable weights by genre, decade, director and language, for "why this card" labels |
 | signal_count | integer | How much the profile is based on |
-| model, computed_at | | Which embedding model, and when |
+| model, computed_at | | Which model built it, and when |
 
-Rebuilt by a queue worker after an import, after calibration (synchronously, it's 10 films), and after each game.
+The embedding is what SQL retrieval uses. The server is free to keep richer per-player features of its own in `rec`.
 
 ## 5. Rooms and the game
 
@@ -343,7 +378,7 @@ erDiagram
 | Final Cut | 2 to 4 | Everyone likes it (joins the shortlist) | Final Cut of 4 after 30 cards or 10 minutes |
 | Final Cut | 5 to 10 | 70% like it (joins the shortlist) | Final Cut of 4 after 30 cards or 10 minutes |
 
-Columns: mode, min_players, max_players, instant_rule (`all_like` or `share_like`), share_threshold, finale_kind (`final_cut` or `ranked_vote`), finale_after_cards (per present player), finale_after_seconds, finale_size. The 10-minute limits for 5 or more players and for Final Cut are my starting values; the plan only gives 8 minutes for 3 to 4 players.
+The 10-minute limits are my starting values; the plan only gives 8 minutes for 3 to 4 players.
 
 ### The room
 
@@ -352,27 +387,27 @@ Columns: mode, min_players, max_players, instant_rule (`all_like` or `share_like
 | Column | Type | Notes |
 | --- | --- | --- |
 | id | uuid PK | |
-| code | char(6) | Six digits. Unique among open rooms only (partial index), so codes are recycled |
+| code | char(6) | Six digits. Unique among open rooms only, so codes are recycled |
 | host_id | uuid | Moves to the longest-seated player if the host leaves |
 | mode | text | References game_modes |
-| state | room_state | `lobby`, `swiping`, `finale`, `done`, `abandoned` |
+| state | room_state | `lobby`, `dealing` (start pressed, the server is dealing), `swiping`, `finale`, `done`, `abandoned` |
 | country | char(2) | From the host's profile; drives availability and certifications |
-| service_rule | service_rule | `any_member` (default: you're watching on one screen) or `every_member` (long-distance) |
+| service_rule | service_rule | `any_member` (default: one screen) or `every_member` (long-distance) |
 | offer_kinds | offer_kind[] | Default subscription, free, ads. Rent and buy are there for a later "rent it" option |
 | runtime_max | smallint | "We have 2 hours" |
 | seen_rule | seen_rule | `hide_seen` (default), `allow_rewatch` (only films everyone who saw them rated 4★ or more), `show_all` |
 | quality | quality_preset | `standard` (150+ votes, 6.2+), `hidden_gems`, `guilty_pleasures` |
-| max_age | smallint | Age cap from certifications. Null means none |
+| max_age | smallint | Age cap from certifications |
 | reveal | reveal_mode | `party` (near-miss teasers) or `blind` |
 | max_players | smallint | 10 at launch |
-| provider_ids | integer[] | Tonight's services, recomputed from the seats on every join, leave and change |
+| provider_ids | integer[] | Tonight's services, recomputed from the seats on every change |
 | rule | jsonb | The mode's match_rules rows, frozen at start |
-| seed | integer | Random seed, so the shared opening and wildcards are reproducible for debugging |
-| stats | jsonb | Written when the room ends: duration, swipes, players. Feeds the recap card |
-| created_at, started_at, finale_at, decided_at, ended_at | timestamptz | The funnel: created, first card, match |
+| seed | integer | Random seed for reproducible openings and wildcards |
+| stats | jsonb | Written by the server when the room ends: duration, swipes, players. Feeds the recap card |
+| created_at, dealing_at, started_at, finale_at, decided_at, ended_at | timestamptz | The funnel |
 | expires_at | timestamptz | Lobbies that never start are abandoned after 3 hours |
 
-**room_models**: the room's live taste. Starts as the average of the seated players' profiles; the deck engine nudges it toward liked films and away from noped ones at each refill, and records genres the room dropped ("everyone noped two horror films quickly"). Kept apart from `rooms` so the hot room row stays small.
+**room_models**: the room's live taste. Starts as the average of the seated players' profiles; the server updates it from the votes at each refill and records genres the room dropped.
 
 ### Seats
 
@@ -382,36 +417,35 @@ Columns: mode, min_players, max_players, instant_rule (`all_like` or `share_like
 | --- | --- | --- |
 | id | uuid PK | The seat id. Everything in the game points here |
 | room_id | uuid | |
-| profile_id | uuid | Who plays this seat. Set to null if the account is deleted |
+| profile_id | uuid | Who plays this seat. Null if the account was deleted |
 | controlled_by | uuid | Whose device may act for the seat. Equal to profile_id at launch; a parent's profile for pass-and-play later |
 | role | member_role | `host` or `guest` |
 | display_name, avatar_key | text | Snapshot at join, so other players never read your profile |
 | provider_ids | integer[] | This player's services tonight, prefilled from their profile |
-| mood_slugs, genre_ids | | "Tonight I want", a soft boost in their fit score |
+| mood_slugs, genre_ids | | "Tonight I want", a soft boost in their fit |
 | joined_at, left_at | timestamptz | Rejoining clears left_at and keeps the same seat |
 | last_active_at | timestamptz | Heartbeat. Only seats active in the last 90 seconds count for match rules |
-| calibrated_at, done_at | timestamptz | Lobby calibration finished; reached the finale card count |
+| calibrated_at, done_at | timestamptz | |
 | swipe_count | integer | Progress ring |
 | super_likes_left, vetoes_left | smallint | 2 super likes and 1 Final Cut veto per game |
+| refill_requested_at | timestamptz | A refill is queued for this seat. Cleared when the server deals; resent if older than 30 seconds |
 | watched_answer, post_reaction, followup_at | | "Did you watch it?" after the game |
-
-Unique (room_id, profile_id): one seat per player per room.
 
 ### Cards, decks and votes
 
-**room_cards**: the room's candidate pool, written by the deck engine.
+**room_cards**: the room's candidate pool, written through `internal.deal_cards`.
 
 | Column | Type | Notes |
 | --- | --- | --- |
 | room_id, title_id | PK | |
-| source | card_source | `ranked` or `wildcard` (about 1 card in 8) |
+| source | card_source | `ranked` or `wildcard` |
 | state | card_state | `active`, `dropped` (someone has seen it, under hide_seen), `matched`, `finalist` |
-| group_score | real | Average fit plus watchlist, live room and quality terms (see below) |
+| group_score | real | The server's group score (or the baseline's) |
 | min_fit | real | The least happy player's predicted fit |
-| fits | jsonb | Every seat's predicted fit, for logs and tuning |
-| reason_code, reason_params | | "Because you all liked Arrival", "On Sam and Jo's watchlists", "94 min", "Wildcard". Params hold seat and title ids; the phone renders names and text in its language |
-| member_ratings | jsonb | A seated player's Letterboxd rating of this film, shown on the card back |
-| like_count, super_like_count, nope_count, seen_count | smallint | Updated by the vote function. Hidden from phones by column grants |
+| fits | jsonb | Every seat's predicted fit |
+| reason_code, reason_params | | "Because you all liked Arrival", "On Sam and Jo's watchlists", "94 min", "Wildcard". Params hold seat and title ids; the phone renders the text in its language |
+| member_ratings | jsonb | A seated player's Letterboxd rating of this film, for the card back |
+| like_count, super_like_count, nope_count, seen_count | smallint | Updated by the vote. Never sent to phones |
 
 **deck_entries**: each seat's order through the pool.
 
@@ -419,11 +453,12 @@ Unique (room_id, profile_id): one seat per player per room.
 | --- | --- | --- |
 | room_member_id, title_id | PK | |
 | room_id | uuid | With title_id, a foreign key to room_cards |
-| sort_key | double precision | Order. Fractional, so a card can be slotted between two others without renumbering |
-| source | deck_source | `opening` (the first 10, same order for everyone), `ranked`, `propagated` (moved up because someone liked it), `wildcard` |
-| score | real | The score that put the card here, logged with the vote for tuning |
+| sort_key | double precision | Fractional, so a card can be slotted between two others |
+| source | deck_source | `opening` (first 10, same for everyone), `ranked`, `propagated` (moved up because someone liked it), `wildcard` |
+| score | real | The score that put the card here |
+| request_id | bigint | The `rec.requests` row that dealt it |
 
-**votes**: one answer per seat per film. Key: (room_member_id, title_id), which also makes offline retries harmless: a retried vote returns `duplicate`.
+**votes**: one answer per seat per film. Key: (room_member_id, title_id), which also makes offline retries harmless.
 
 | Column | Type | Notes |
 | --- | --- | --- |
@@ -431,34 +466,136 @@ Unique (room_id, profile_id): one seat per player per room.
 | created_at | timestamptz | Server time |
 | client_created_at | timestamptz | When the phone recorded it, if it was queued offline |
 
-An undo deletes the vote; the swipe log keeps both.
+**swipe_log**: append-only record of every vote and undo, with the deck source, score and how long the card was on screen. Points at the seat, so it stays anonymous once an account is gone.
 
-**swipe_log**: append-only record of every vote and undo, with the deck source and score that produced the card and how long the card was on screen. No profile id: it points at the seat, so it stays anonymous once an account is gone. This is the data to tune the scoring weights on.
-
-**matches**: every film that met the room's rule, plus the night's pick.
-
-| Column | Type | Notes |
-| --- | --- | --- |
-| room_id, title_id | PK | |
-| kind | match_kind | `unanimous`, `majority`, `finale` |
-| like_count, present_count | smallint | "3 of 3", for the match screen and the recap |
-| pick_order | smallint | 1 is the night's pick. Unique per room. Double feature later uses 2 and 3 |
+**matches**: every film that met the room's rule, plus the night's pick. `kind` is `unanimous`, `majority` or `finale`; `like_count` and `present_count` give "3 of 3"; `pick_order` 1 is the pick (2 and 3 for a double feature later).
 
 ### The finale
 
-**rounds**: one finale per room at launch (`seq` 1). `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank stage only). `stage_closes_at` is the deadline for the current stage; the stage also closes early when every present seat has voted.
+**rounds**: one finale per room at launch. `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank only). `stage_closes_at` is the current deadline.
 
-**round_candidates**: the 3 or 4 finalists, seeded by matches first, then likes (super likes count double), then group score. A veto sets `vetoed_at` and `vetoed_by`. `points` holds the ranked vote result (Borda count: first place gets the most points).
+**round_candidates**: the 3 or 4 finalists, seeded by matches, then likes (super likes count double), then group score. `vetoed_at`, `vetoed_by`, and `points` for the Borda count.
 
-**round_ballots**: `veto` (one title), `pass` (no veto), or `rank` (one row per title with its rank). One veto or pass per seat per round; one rank per seat per title.
+**round_ballots**: `veto`, `pass` or `rank` rows. One veto or pass per seat per round; one rank per seat per title.
 
-## 6. Operations
+## 6. Recommendation data
 
-**rate_limits**: counters per key and 10-minute window. `join:<profile id>` allows 10 join attempts per window, so the million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings), which stops an attacker from minting fresh guests to reset the counter.
+The `rec` schema belongs to the server. Phones can't see it.
 
-**ingest_runs**: one row per catalog job run (backfill, daily providers, weekly long tail, daily changes, embeddings), with counts, errors and a resume cursor.
+```mermaid
+erDiagram
+  rooms ||--o{ requests : "deals"
+  room_members ||--o{ requests : "refills for"
+  requests ||--o{ request_items : "ranked cards"
+  requests ||--o{ deck_entries : "dealt"
+  models ||--o{ requests : "model_version"
+  titles ||--o{ title_stats : "in-app reactions"
+```
 
-Queues (Supabase Queues, not tables in schema.sql): `catalog_refresh`, `embed_titles`, `letterboxd_sync`, `taste_refresh`, `winner_links`.
+**rec.requests**: one row per deal.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | bigint PK | |
+| room_id | uuid | |
+| room_member_id | uuid | The seat for a refill; null when dealing the whole room |
+| kind | text | `start`, `refill`, `rerank` |
+| model_version | text | Which model ranked it. `sql-baseline` for the fallback |
+| experiment, variant | text | A/B test assignment. Assigned per room, since the group is what gets the deck |
+| strategy | jsonb | Exploration rate, misery line, weights used |
+| candidates, latency_ms | integer | |
+| is_fallback | boolean | Dealt by the SQL baseline because the server didn't answer |
+
+**rec.request_items**: every card a request ranked for a seat: position, score, `explore` (picked to explore rather than exploit), `propensity` (the chance the policy picked it, which makes fair offline comparisons between models possible) and `features` (what the model knew). Joined to `votes` on (room_member_id, title_id), this is the training data.
+
+**rec.models**: the model registry: version, kind (`baseline`, `taste`, `ranker`, `group`), status (`shadow`, `active`, `retired`), traffic share, parameters, offline metrics, where the model file lives, the training date range.
+
+**rec.title_stats**: how the app's players react to each film, overall and per country: impressions, likes, super likes, nopes, seen, a smoothed like rate and seen rate. Rebuilt nightly from votes. In-app signals only, never aggregates of imported Letterboxd data (see [Letterboxd data in the algorithm](#letterboxd-data-in-the-algorithm)).
+
+## 7. Operations
+
+**rate_limits**: counters per key and 10-minute window. `join:<profile id>` allows 10 join attempts per window, so the million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
+
+**ingest_runs**: one row per catalog job run, with counts, errors and a resume cursor.
+
+**app_config**: key and value pairs the app reads at launch through `api.app_config`, starting with `min_app_version` per platform, so an old build can be asked to update before an incompatible change.
+
+## The recommendation server
+
+### Processes
+
+One codebase, four processes, deployed together:
+
+| Process | Triggered by | Does | Needs to be fast |
+| --- | --- | --- | --- |
+| deck worker | `deck_requests` queue | Start and refill: retrieval, ranking, `deal_cards` | Yes: well under a second, behind 15 cards of buffer |
+| pipeline worker | the other 6 queues | Catalog ingest, embeddings, Letterboxd sync and matching, taste profiles, winner deep links, end-of-room work | No |
+| HTTP API | Phones, with their Supabase access token | Letterboxd preview, connect and ZIP import upload; account deletion | Request and response |
+| trainer | Nightly | Rebuilds `rec.title_stats`, exports training data, trains and evaluates models, registers versions | No |
+
+The server never needs Supabase Edge Functions; everything outside the database runs here.
+
+### The contract with the database
+
+The server connects with its own login, granted the `app_server` role, through Supabase's connection pooler.
+
+- **Reads** anything in `public` and `rec`.
+- **Writes directly**: the catalog, film history (Letterboxd), taste profiles, room models, `rooms.stats`, and everything in `rec`.
+- **Writes decks only through `internal.deal_cards(room, payload)`.** Under the room lock it adds cards to the pool, appends to each seat's deck or re-ranks it (keeping the next `keep` cards and any card moved up by a like), logs the request and every ranked card, clears the refill flag, and starts the game if the room was dealing. It returns `closed` if the room moved on, so a late answer is harmless.
+- **Never writes** votes, matches, rounds or room state.
+- **Consumes queues** with a visibility timeout: a message that isn't deleted after processing comes back, so a crashed worker loses nothing.
+- **Broadcasts** through `internal.broadcast_room` when it has news for a room (deep links are ready, for example).
+
+The payload `deal_cards` takes:
+
+```json
+{
+  "request": {"kind": "refill", "model_version": "ranker-2026-11-03", "room_member_id": "…",
+              "experiment": "launch-ranker", "variant": "b", "strategy": {"explore": 0.15},
+              "candidates": 300, "latency_ms": 120},
+  "pool":  [{"title_id": 812, "group_score": 4.1, "min_fit": 2.6, "fits": {"<seat>": 4.4},
+             "source": "ranked", "reason_code": "watchlist_overlap",
+             "reason_params": {"member_ids": ["…", "…"]}, "member_ratings": []}],
+  "decks": [{"room_member_id": "…", "keep": 3,
+             "cards": [{"title_id": 812, "source": "ranked", "score": 0.83,
+                        "explore": false, "propensity": 0.85, "features": {"sim": 0.71, "tmdb": 7.8}}]}]
+}
+```
+
+### The algorithm, stage by stage
+
+**Signals**
+
+| Kind | What | Where it lives |
+| --- | --- | --- |
+| Swipes | Like, super like, nope, seen it, undo, time on card, in the room and across every past game | `votes`, `swipe_log`, linked to profiles through seats |
+| Player answers | Calibration (love, fine, nope), "Did you watch it?" | `user_titles` with source `calibration` or `app` |
+| Letterboxd | Half-star rating, heart, watchlist, rewatch, watched date | `user_titles` with source `letterboxd` |
+| Global | TMDB vote average and count (as `quality_score`), TMDB popularity, the app's own like rate per film and country | `titles`, `rec.title_stats` |
+| Content | Embedding, genres, keywords, director, cast, decade, runtime, language | Catalog tables, `title_vectors` |
+| Context | Tonight's moods and genres, time budget, group size, services, room mode | `room_members`, `rooms` |
+
+**Stages**
+
+1. **Retrieval (SQL, `internal.deck_candidates`)**: everything eligible tonight (services, country, time budget, quality floor, age cap, seen rule, dropped genres), each scored with the baseline: a per-seat fit from taste-profile similarity, then the plan's "average without misery" group score. Returns about 300 candidates with every seat's fit. It stays in SQL because it filters 40,000 films with indexes next to the data.
+2. **Per-seat prediction (server)**: the chance each seat likes each candidate. Version 1 is the plan's hand-tuned formula; later versions are a trained ranker using the signals above, for example this player's ratings of similar films or of the director's other films, their swipe history by genre and decade, the film's TMDB score and in-app like rate.
+3. **Group score (server)**: average without misery over the seat predictions, plus the watchlist overlap and live room terms.
+4. **The slate (server)**: the shared opening of 10 with the diversity rule (at most 2 per main genre, 1 per collection), about 1 card in 8 as exploration with its propensity recorded, the reason labels.
+5. **Learning during the game**: each refill recomputes `room_models` from the votes so far, drops genres the room rejected fast, and re-ranks everything after the 3 mounted cards. Like propagation stays in the database because it must happen inside the vote.
+6. **Learning between games (trainer)**: joins `rec.request_items` to votes for labels, trains, evaluates offline (ranking quality, and how fast it would have reached a match), registers the model as `shadow`, then gives it a traffic share. Rooms are assigned to a variant at start and the assignment is logged on every request, so time to match, matches per room and swipes per match can be compared per variant.
+
+### Letterboxd data in the algorithm
+
+- A player's imported Letterboxd data shapes their own taste profile and the decks of rooms they sit in. That is what they consented to.
+- It is not pooled across players into per-film scores ("average rating of our users on Letterboxd"). The monetization doc notes that Letterboxd's terms forbid building an index of its content, and a pooled score is close to that. `rec.title_stats` uses in-app swipes only.
+- There is no Letterboxd global rating to use: the RSS feed only carries the member's own rating, the API is closed, and scraping is forbidden. The global rating is TMDB's, plus the app's own like rate.
+- A trained model that takes each player's own Letterboxd ratings as input features is the grey area. It is the player's personal data used for their own recommendations, but the model itself is learned across players. Worth a short legal read before launch.
+
+### Hosting
+
+- Always-on processes (workers hold queue connections), so a container host with persistent machines rather than per-request serverless, in the same region as the Supabase project (the EU for French players).
+- Secrets: the database login, TMDB and Streaming Availability keys, the Supabase service key only for account deletion (it calls Supabase's auth admin API).
+- The HTTP API checks the phone's Supabase access token against the project's signing keys, so it needs no session of its own.
 
 ## How it fits together
 
@@ -468,10 +605,9 @@ Queues (Supabase Queues, not tables in schema.sql): `catalog_refresh`, `embed_ti
 sequenceDiagram
   participant C as Cron
   participant Q as Queues
-  participant W as catalog-worker
+  participant W as pipeline worker
   participant T as TMDB
   participant DB as Postgres
-  participant E as embed-worker
   C->>Q: 03:00 enqueue tier 1 titles and the TMDB changes feed
   C->>Q: Sunday enqueue tier 2 titles
   loop small batches, 15 to 20 requests per second
@@ -481,71 +617,66 @@ sequenceDiagram
     W->>DB: upsert titles, translations, credits, certifications, availability, watch links
     W->>Q: enqueue titles whose embedding text changed
   end
-  Q->>E: changed titles
-  E->>DB: upsert title_vectors
+  Q->>W: changed titles
+  W->>DB: upsert title_vectors
 ```
 
-- The first load of 40,000 titles runs once as a script from a laptop or CI (about 35 to 45 minutes at a polite rate); Edge Functions are built for short requests.
-- Availability rows a refresh no longer sees are deleted, so `checked_at` is never older than the refresh rhythm.
-- `quality_score` and `poster_placeholder` are computed in the worker. Titles that drop out of TMDB are marked `is_active = false`.
+- The first load of 40,000 titles is a one-off run of the same worker code from a laptop or CI, about 35 to 45 minutes at a polite rate.
+- Availability rows a refresh no longer sees are deleted. Titles that drop out of TMDB are marked `is_active = false`.
 
 ### First launch
 
 1. The app calls Supabase anonymous sign-in. The auth trigger creates the profile with the same id.
-2. The player types a name; the phone updates `profiles.display_name`, `country` (device region) and `language`, and inserts `profile_providers`.
+2. The player types a name: `api.update_profile` (name, country from the device region, language), then `api.set_my_providers`.
 3. Signing in with Apple or Google later links the identity to the same auth user. Nothing in the database moves.
 
 ### Create and join
 
-1. The host calls `create_room(mode)`. It picks a free 6-digit code (retrying on the rare collision), creates the host seat, the room model and the service list. Later, the hosting cap and the room's tier are decided here.
+1. The host calls `api.create_room(mode)`: a free 6-digit code, the host seat, the room model, the service list. Later, the hosting cap and the room's tier are decided here.
 2. The invite is `/join/482913` as a link and a QR code.
-3. A guest calls `join_room(code)`. It counts the attempt first, then answers `ok`, `not_found`, `full`, `in_finale`, `name_required` or `rate_limited`. It never raises an error on a wrong code: an error would roll back the attempt counter. A player who already has a seat gets the same seat back (`rejoined: true`), which fixes the old rejoin-lands-in-lobby bug.
-4. Each new seat recomputes `rooms.provider_ids` and broadcasts `member_joined`.
+3. A guest calls `api.join_room(code)`. It counts the attempt first, then answers `ok`, `not_found`, `full`, `starting`, `in_finale`, `name_required` or `rate_limited`. It never raises an error on a wrong code, since an error would roll back the attempt counter. A player who already has a seat gets the same seat back.
+4. Each new seat recomputes the room's services and broadcasts `member_joined`.
 
 ### Lobby
 
-- Each player adjusts their services, moods and genres for tonight on their seat. The host edits room settings (time budget, seen rule, quality, reveal mode, age cap). Both are function calls that broadcast `settings_changed`.
-- Players without Letterboxd answer the 8 to 10 calibration films. Answers become `user_titles` rows with source `calibration`, the taste profile is rebuilt on the spot, and `calibrated_at` is set so friends see the tick.
-- Presence on `room:<id>:live` shows who's here.
+- Each player sets tonight's services, moods and genres on their seat (`api.set_seat_prefs`). The host edits room settings (`api.update_room_settings`): time budget, seen rule, quality, reveal mode, age cap.
+- Players without Letterboxd answer the calibration films (`api.submit_calibration`). Answers become `user_titles` rows, `calibrated_at` is set so friends see the tick, and a taste refresh is queued; the server rebuilds the profile in well under a second, before the host taps start.
+- Phones send `api.touch_room` every 30 seconds and track presence on `room:<id>:live`.
 
 ### Start: dealing the deck
 
 ```mermaid
 sequenceDiagram
   participant H as Host phone
-  participant D as deck edge function
   participant DB as Postgres
+  participant Q as deck_requests
+  participant W as deck worker
   participant RT as Realtime
-  H->>D: start(room)
-  D->>DB: is the caller the host and the room in the lobby
-  D->>DB: deck_candidates(room, 300)
-  DB-->>D: eligible films with group score and every seat's fit
-  D->>D: pick the opening 10 with the diversity rule, wildcards, reasons
-  D->>DB: insert room_cards, deck_entries for every seat, seed room_models
-  D->>DB: begin_swiping(room)
-  DB->>DB: freeze the match rules, state swiping, started_at
+  H->>DB: api.start_game(room)
+  DB->>DB: host check, enough players, state dealing
+  DB->>Q: start request
+  DB-->>RT: state_changed dealing
+  Q->>W: start request
+  W->>DB: deck_candidates(room, 300)
+  DB-->>W: candidates with every seat's fit
+  W->>W: predict per seat, group score, opening, exploration, reasons
+  W->>DB: deal_cards(room, payload)
+  DB->>DB: pool, decks, logs, freeze rules, state swiping
   DB-->>RT: state_changed swiping
   RT-->>H: and every other phone
 ```
 
-`deck_candidates` is the single deck query from the plan. In one statement it:
-
-1. **Filters**: active movies on tonight's services in the room's country, with an allowed offer kind; within the time budget; above the quality floor; under the age cap; not seen by any seated player under the seen rule; not in a genre the room dropped; not already in the pool.
-2. **Scores each seat**: fit is 0 to 5, the player's own percentile for the film among tonight's eligible films, by embedding similarity to their taste profile, or by popularity if they have none yet. A film matching their moods or genres for tonight gets +0.5.
-3. **Scores the group** with "average without misery": films where any player's fit is under the misery line are dropped, then
-   `group_score = average fit + 0.3 × 5 × share of players with it on their watchlist + 0.2 × live room signal + 0.1 × quality score / 2`,
-   with every term on a 0 to 5 scale.
-
-The edge function then applies the rules that are easier to tune in TypeScript: the opening's diversity (at most 2 per main genre, 1 per collection), 1 wildcard in 8, and the reason label. The first 10 cards go to every seat in the same order, then each seat gets about 20 personalized cards.
+If nothing has arrived 8 seconds after the tap, the host's phone calls `api.start_game` again and the database deals the SQL baseline itself (`internal.deal_baseline`): the same candidates, the same order for every seat, logged as `sql-baseline` with `is_fallback`.
 
 ### A swipe
 
 ```mermaid
 sequenceDiagram
   participant P as Sam's phone
-  participant DB as cast_vote
+  participant DB as api.cast_vote
   participant RT as Realtime
   participant O as Other phones
+  participant Q as deck_requests
   P->>P: card flies off, next card is already mounted
   P->>DB: cast_vote(room, title, like)
   DB->>DB: lock the room row
@@ -560,33 +691,33 @@ sequenceDiagram
     DB-->>RT: near_miss in Party mode, deck_updated if the like was propagated
   end
   DB->>DB: finale due? every present seat past N cards, or time is up
+  DB->>Q: refill when this seat is down to 15 cards
   DB-->>P: status, match, finale round
 ```
 
-Details that matter:
-
-- **One lock per room.** The vote takes a row lock on its room, so votes in the same room run one after another (a few milliseconds each) and two last likes can never both see "not yet". Rooms never wait on each other. This was tested with two overlapping transactions: the second waited for the first, then matched.
-- **Present players only.** A seat counts if it hasn't left and its phone sent a heartbeat or vote in the last 90 seconds (phones call `touch_room` every 30 seconds). Someone whose phone died doesn't block every match.
-- **Seen it.** Under `hide_seen`, a "seen it" answer drops the card for the whole room and removes it from every deck that hasn't reached it. Under the other two seen rules it abstains: it neither counts as a like nor blocks one.
-- **Super likes** spend one of the seat's two, count as likes for the rule and count double when seeding the finale.
-- **Offline.** The phone queues votes and retries. The primary key makes retries return `duplicate`, and a vote that arrives after the room is decided returns `closed`.
+- **One lock per room.** Votes in the same room run one after another (a few milliseconds each), so two last likes can never both see "not yet". Rooms never wait on each other. Tested with two overlapping transactions.
+- **Present players only.** A seat counts if it hasn't left and has been active in the last 90 seconds.
+- **Seen it.** Under `hide_seen`, a "seen it" answer drops the card for the room and removes it from every deck that hasn't reached it. Under the other seen rules it abstains.
+- **Super likes** spend one of the seat's two, count as likes and count double when seeding the finale.
+- **Offline.** Votes are queued on the phone and retried. A retry returns `duplicate`; a vote after the room is decided returns `closed`.
 - **Undo** removes the seat's last vote while its card is still active, restores counters and the super like, and logs the undo.
 
 ### Like propagation and refills
 
-- The first like on a card moves it into every other seat's upcoming cards, between their 3rd and 4th (the phone keeps 3 mounted), unless it was already closer. Those seats get `deck_updated` and refetch what's behind their mounted cards.
-- When a seat has 15 cards left, its phone calls the deck edge function to refill. The function updates `room_models` from the votes so far, calls `deck_candidates` again (now with the live room signal), and appends about 20 cards: about 85% best-scored, 15% exploring a different direction.
-- Late joiners get the active opening cards at join time, then a refill.
+- The first like on a card moves it into every other seat's upcoming cards, between their 3rd and 4th, unless it was already closer. Those seats get `deck_updated` and refetch what's behind their mounted cards.
+- At 15 cards left the vote queues a refill for that seat. The deck worker updates `room_models` from the votes, retrieves again (now with the live room signal), and calls `deal_cards` with `keep: 3`: the 3 mounted cards and any propagated card stay, the rest is replaced by the new ranking, and new cards are appended.
+- If the phone gets down to 5 cards with nothing new, it calls `api.request_cards`. After 8 seconds without an answer from the server, that deals the SQL baseline for the seat.
+- Late joiners get the active opening cards at join time and a queued refill.
 
 ### Leaving and coming back
 
-- `leave_room` marks the seat, hands the host role to the longest-seated player, recomputes services and re-checks liked cards: if everyone still here liked a card, that's a match now. Tested: two players liked a card, the third left, and the room matched.
-- A phone that silently disappears stops counting after 90 seconds. The minute sweeper re-checks liked cards in rooms where a seat timed out, so the same rule applies without an explicit leave.
-- Reopening the app calls `join_room` with the room's code: same seat, same votes, and the phone reloads its remaining deck.
+- `api.leave_room` marks the seat, hands the host role to the longest-seated player, recomputes services and re-checks liked cards: if everyone still here liked a card, that's a match now.
+- A phone that silently disappears stops counting after 90 seconds; the minute sweeper re-checks liked cards in rooms where a seat timed out.
+- Reopening the app calls `api.join_room` with the room's code: same seat, and `api.my_next_cards` returns the rest of the deck.
 
 ### Finale
 
-1. When the rule's card count or time limit is reached (checked after every vote and by the minute sweeper), `start_finale` seeds 3 or 4 finalists: matches first, then the most liked, then group score. State becomes `finale`; `finale_started` carries the round, the films and the deadline.
+1. When the rule's card count or time limit is reached (after every vote, and by the minute sweeper), `internal.start_finale` seeds 3 or 4 finalists: matches first, then the most liked, then group score.
 2. **Final Cut**: each seat may veto one finalist or pass, within 45 seconds. A veto can't remove the last two films standing.
 3. **Rank**: each seat orders the remaining films within 60 seconds. Borda count picks the winner; ties go to more super likes, then group score.
 4. The winner becomes a `matches` row with kind `finale` and `pick_order` 1, and the room is done.
@@ -595,68 +726,114 @@ The veto, rank and stage-closing functions are described here but not yet in sch
 
 ### After the match
 
-When a room becomes done, `finalize_room` (to write, called from a trigger on `rooms.state`):
+Every path to `done` fires a trigger that queues `room_finished`. The pipeline worker then:
 
 1. Writes `rooms.stats` for the recap card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes").
 2. Turns "seen it" swipes into `user_titles` rows with source `app`.
-3. Enqueues `winner_links`, which calls Streaming Availability once for the winner in the room's country and fills `title_deep_links`. The phone shows TMDB's watch page until the deep links arrive, then `result` is broadcast.
-4. Enqueues a taste refresh for every seat.
+3. Calls Streaming Availability once for the winner and fills `title_deep_links`, then broadcasts `result`. The phone shows TMDB's watch page until then.
+4. Queues a taste refresh for every seat.
 
-"Log on Letterboxd" needs no data: `letterboxd.com/tmdb/{tmdb_id}` redirects to the film.
-
-On a later app open, "Did you watch it?" writes the seat's `watched_answer` and `post_reaction`, and a `user_titles` row with source `app`, which feeds the next game.
+On a later app open, "Did you watch it?" (`api.answer_followup`) saves the seat's answer and, if they watched the pick, a seen row with their reaction, and queues a taste refresh. The reminder itself can be a notification scheduled on the phone when the room ends.
 
 ### Letterboxd
 
 ```mermaid
 sequenceDiagram
   participant P as Phone
-  participant F as letterboxd edge functions
+  participant H as server HTTP API
   participant L as Letterboxd RSS
   participant DB as Postgres
-  P->>F: connect(username)
-  F->>L: GET letterboxd.com/username/rss/
-  L-->>F: about 50 diary entries with tmdb:movieId, rating, like, rewatch, date
-  F-->>P: preview, found 50 recent films, 41 rated
-  P->>F: confirm with consent
-  F->>DB: insert consent, linked_account, import, user_titles, letterboxd_film_map
-  F->>DB: enqueue taste refresh
-  Note over P,DB: Optional full history
+  participant W as pipeline worker
+  P->>H: preview(username) with access token
+  H->>L: GET letterboxd.com/username/rss/
+  L-->>H: about 50 diary entries with tmdb:movieId, rating, like, rewatch, date
+  H-->>P: found 50 recent films, 41 rated
+  P->>H: connect with consent
+  H->>DB: consent, linked account, import, user_titles, letterboxd_film_map
+  H->>DB: queue taste refresh
+  Note over P,W: Optional full history
   P->>P: pick the export ZIP, unzip, merge CSVs per film
-  P->>F: import(films)
-  F->>DB: insert import_rows, match by map then TMDB search
-  F->>DB: apply matched rows to user_titles, keep unmatched for the fix screen
+  P->>H: import(films)
+  H->>DB: import_rows
+  H->>DB: queue matching
+  W->>DB: match by map then TMDB search, apply to user_titles, keep unmatched
 ```
 
-- **Freshness**: on app open or when joining a room, if `next_sync_after` has passed, a sync is queued. Requests are conditional (`feed_etag`, `feed_last_modified`), cached, and name the app in the User-Agent. A few requests per player per day at most.
+- **Freshness**: when a player joins a room and `next_sync_after` has passed, a sync is queued, so tonight's deck sees last night's diary. An hourly job covers players who were active in the last week. Requests are conditional, cached, and name the app in the User-Agent.
 - **What's stored**: TMDB title, rating, liked, rewatch count, watched date, watchlist flag, source. No review text.
-- **Disconnect**: deleting the `linked_accounts` row cascades to its imports, import rows and every `user_titles` row from Letterboxd. The taste profile is then rebuilt without them.
+- **Disconnect**: deleting the `linked_accounts` row cascades to its imports and every Letterboxd row in `user_titles`; the taste profile is rebuilt without them.
 
 ### Deleting an account, exporting data
 
-- **Delete** (App Store guideline 5.1.1(v)): an edge function deletes the auth user. That cascades to the profile, services, consents, linked accounts, imports, film history and taste profile. Seats in past rooms keep their votes but lose `profile_id`, `controlled_by` and their display name (a trigger blanks the snapshot), so the swipe log and other players' history stay correct and anonymous. Rooms hosted by the player keep running with `host_id` null.
-- **Export** (GDPR): a function returns the profile, services, consents, linked accounts, film history and the player's own votes as JSON.
+- **Delete** (App Store guideline 5.1.1(v)): the phone calls the server's HTTP API, which deletes the auth user through Supabase's admin API. That cascades to the profile, services, consents, linked accounts, imports, film history and taste profile. Seats in past rooms keep their votes but lose `profile_id`, `controlled_by` and their name, so the swipe log, training data and other players' history stay correct and anonymous.
+- **Export** (GDPR): `api.export_my_data()` returns the profile, services, consents, linked accounts, film history, taste affinities and the player's own votes as JSON.
+
+## The app's API
+
+Everything the app does goes through the `api` schema with `supabase-js`: `.from('room_seats')` for views, `.rpc('cast_vote', …)` for functions.
+
+**Views** (row-level security on the tables underneath decides the rows)
+
+| View | Returns |
+| --- | --- |
+| `my_profile`, `my_providers` | Your profile and services |
+| `country_providers`, `genres`, `moods`, `game_modes`, `calibration_titles` | Reference data for the pickers |
+| `app_config` | Minimum app version and other launch settings |
+| `rooms`, `room_seats`, `room_matches`, `rounds`, `round_candidates` | Rooms you have a seat in. `room_seats` flags `is_me` and `is_mine` |
+| `my_votes` | Your own votes, for rejoining |
+| `my_linked_accounts`, `my_imports`, `my_unmatched_films` | Letterboxd status and the manual fix list |
+
+**Functions**
+
+| Function | What it does |
+| --- | --- |
+| `update_profile(name, avatar, country, language)` | Edits your profile |
+| `set_my_providers(ids)` | Replaces your services |
+| `create_room(mode, country)` | New room, host seat, code |
+| `join_room(code)` | Join or rejoin, rate limited |
+| `touch_room(room)` | Heartbeat every 30 seconds |
+| `leave_room(room)` | Leave, hand over host, re-check matches |
+| `update_room_settings(room, settings)` | Host, lobby only |
+| `set_seat_prefs(room, services, moods, genres)` | Your settings for tonight |
+| `start_game(room)` | Host: queue the deal; on a second tap after 8 seconds, deal the baseline |
+| `request_cards(room)` | Running low with no refill: queue one, or deal the baseline after 8 seconds |
+| `cast_vote(room, title, answer, seat, dwell_ms, client_at)` | The vote |
+| `undo_last_vote(room, seat)` | Undo |
+| `my_next_cards(room, limit, seat, language)` | Your next cards, ready to render: title and overview in your language, poster and placeholder, year, runtime, genres, TMDB score, director, cast, trailer, tonight's services for it, watch link, reason label, members' ratings |
+| `title_cards(ids, language, country)` | The same card payload for any films: winner, finale, calibration |
+| `submit_calibration(answers, room)` | Lobby calibration |
+| `answer_followup(room, watched, reaction)` | "Did you watch it?" |
+| `export_my_data()` | GDPR export |
+
+To write with the finale: `cast_ballot(round, kind, title, rank)`.
+
+**Rules for changing it**
+
+- In Supabase, set the Data API's exposed schemas to `api` only, and turn off GraphQL (`pg_graphql`), which the app doesn't use.
+- Adding a column to a view or an optional argument to a function is safe. Renaming, removing or changing a meaning is not: ship `cast_vote_v2` next to `cast_vote`, move new app builds to it, and drop the old one once `min_app_version` in `app_config` is past every build that used it.
+- The optional `seat` argument on the vote, undo, cards and seat functions is what pass-and-play uses later; at launch phones leave it out.
 
 ## Who sees what
 
-Every table has row-level security on. Phones use the `authenticated` role (guests included); `anon` gets nothing.
+Every table in `public` and `rec` has row-level security on. Phones use the `authenticated` role (guests included); `anon` gets nothing.
 
-| Data | Phones can read | Written by |
+| Data | Phones | Server (`app_server`) |
 | --- | --- | --- |
-| Catalog and reference tables, game modes, match rules, calibration films | Everything | Ingest jobs |
-| `profiles` | Their own (and, later, profiles they manage) | Their own name, avatar, country and language directly; the rest by functions |
-| `profile_providers` | Their own | Their own, directly |
-| `consents`, `linked_accounts`, `imports`, `import_rows`, `user_titles`, `taste_profiles` | Their own | Edge functions and functions |
-| `rooms`, `room_members`, `matches`, `rounds`, `round_candidates` | Rooms they have a seat in | Functions |
-| `room_cards` | Rooms they have a seat in, without counters, scores or fits | Functions and the deck engine |
-| `deck_entries`, `votes`, `round_ballots` | Their own seat | Functions |
-| `title_vectors`, `room_models`, `swipe_log`, `letterboxd_film_map`, `rate_limits`, `ingest_runs` | Nothing | Service role |
-| Realtime `room:<id>` | Seated players | The database only |
-| Realtime `room:<id>:live` | Seated players | Seated players |
+| Catalog tables | No direct access. Cards come from `api.my_next_cards` and `api.title_cards` | Read and write |
+| Reference data, game modes, calibration films, app config | Through api views | Read; writes reference data |
+| Your profile, services | Through api views and functions | Read |
+| Consents, linked accounts, imports, film history, taste profiles | Your own Letterboxd status through api views; the rest never | Read and write |
+| Rooms, seats, matches, rounds | Rooms you have a seat in, through api views | Read; writes `rooms.stats` only |
+| Room cards, decks | Only through `api.my_next_cards`, for your own seat. Counters, scores and fits never | Read; writes only through `deal_cards` |
+| Votes | Your own seat's, through `api.my_votes` | Read |
+| `swipe_log`, `room_models`, `rate_limits`, `ingest_runs`, `letterboxd_film_map`, title vectors | Never | Read; writes the ones it owns |
+| `rec` schema | Never | Read and write |
+| Realtime `room:<id>` | Seated players read | The database sends |
+| Realtime `room:<id>:live` | Seated players read and send | |
 
-- Nobody can list rooms. You find a room only by its code, through `join_room`.
-- Other players' answers never reach a phone as rows. In Party mode they arrive as counts ("2 of 3 of you liked this"); in Blind mode not at all. That's why the counters on `room_cards` are hidden with column grants: phones must name the columns they select.
-- Two topics per room stop a player from forging server events: phones can't send on `room:<id>`, so a fake `match` can't appear there.
+- Nobody can list rooms. A room is found only by its code, through `join_room`.
+- Other players' answers never reach a phone as rows. In Party mode they arrive as counts; in Blind mode not at all.
+- Phones can't send on `room:<id>`, so a fake `match` event can't appear there.
 
 ## Realtime
 
@@ -664,69 +841,45 @@ Every table has row-level security on. Phones use the `authenticated` role (gues
 | --- | --- | --- | --- | --- |
 | `member_joined` | room | join_room | seat, name, avatar | Adds the avatar |
 | `member_left` | room | leave_room | seat, new host seat | Removes it, moves the crown |
-| `settings_changed` | room | lobby functions | changed fields | Refetches the room |
-| `state_changed` | room | begin_swiping, finale, finalize | state | Moves to the next screen |
-| `deck_updated` | room | cast_vote, deck engine | seat ids | Those seats refetch behind their mounted cards |
+| `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
+| `settings_changed` | room | update_room_settings | changed fields | Refetches the room |
+| `state_changed` | room | start_game, deal_cards, finale, end | state | Moves to the next screen ("Shuffling" while dealing) |
+| `deck_updated` | room | cast_vote, deal_cards | seat ids | Those seats refetch behind their mounted cards |
 | `near_miss` | room | cast_vote, Party mode only | title, likes, of | "2 of 3 of you liked this" |
 | `match` | room | cast_vote, leave_room, sweeper | title, kind, likes, of, decided | Match screen |
 | `finale_started` | room | start_finale | round, titles, kind, deadline | Final Cut screen |
 | `round_progress` | room | ballot functions | stage, ballots in | Progress dots |
-| `result` | room | finalize_room | winner, deep links ready | Winner screen |
+| `result` | room | the server, after winner links | winner, deep links ready | Winner screen |
 | presence | live | phones | seat, swipe count, done | Progress rings, "Sam is done" |
 | `reaction` | live | phones | emoji | Pops it on screen |
 
 Message budget: progress travels in presence updates every 5 swipes rather than one message per swipe. Counting every delivery to every phone, a 4-player game with 60 swipes each comes to roughly 350 messages, so Supabase Pro's 5 million a month covers about 14,000 games.
 
-## Functions, edge functions and jobs
+## Queues and scheduled jobs
 
-### Postgres functions the phone calls
+**Queues** (Supabase Queues): the database or the server's HTTP API produces, the server consumes.
 
-| Function | What it does | In schema.sql |
-| --- | --- | --- |
-| `create_room(mode, country)` | New room, host seat, code | Yes |
-| `join_room(code)` | Join or rejoin, rate limited, never raises on a wrong code | Yes |
-| `touch_room(room)` | Heartbeat every 30 seconds | Yes |
-| `leave_room(room)` | Leave, hand over host, re-check matches | Yes |
-| `cast_vote(room, title, answer, seat, dwell_ms, client_at)` | The vote transaction | Yes |
-| `undo_last_vote(room, seat)` | Undo | Yes |
-| `update_room_settings(room, patch)` | Host, lobby only | To write |
-| `set_seat_prefs(room, services, moods, genres)` | A player's tonight settings | To write |
-| `submit_calibration(room, answers)` | Calibration answers and taste rebuild | To write |
-| `cast_ballot(round, kind, title, rank)` | Veto, pass, rank | To write |
-| `answer_followup(room, watched, reaction)` | "Did you watch it?" | To write |
-| `my_next_cards(room, language)` | Card payloads for the seat's next cards: title, poster, placeholder, runtime, genres, TMDB score, overview, director, cast, trailer, tonight's services for it, reason, member ratings | To write |
-| `export_my_data()` | GDPR export | To write |
+| Queue | Produced by | Message | Consumer |
+| --- | --- | --- | --- |
+| `deck_requests` | start_game, cast_vote at 15 cards, join_room for late joiners, request_cards | kind, room, seat | deck worker |
+| `taste_refresh` | calibration, after-game answer, Letterboxd import, end of room | profile, reason | pipeline worker |
+| `letterboxd_sync` | join_room when a sync is due; the hourly job | linked account | pipeline worker |
+| `catalog_refresh` | cron | TMDB ids or the changes feed | pipeline worker |
+| `embed_titles` | catalog refresh | titles whose text changed | pipeline worker |
+| `winner_links` | end of room | room, title, country | pipeline worker |
+| `room_finished` | trigger on rooms reaching `done` | room | pipeline worker |
 
-The optional `seat` argument on `cast_vote` and `undo_last_vote` is what pass-and-play uses later; at launch phones leave it out.
-
-### Internal functions
-
-`check_card_match`, `propagate_like`, `start_finale`, `maybe_start_finale`, `begin_swiping`, `deck_candidates`, `refresh_room_providers`, `present_member_ids`, `pick_rule` and `broadcast_room` are in schema.sql. Still to write: `close_round_stage`, `finalize_room`, `sweep_rooms`, `refresh_taste`.
-
-### Edge functions
-
-| Function | Trigger | Does |
-| --- | --- | --- |
-| `deck` | Host taps start; a phone has 15 cards left | Builds or refills the deck around `deck_candidates`, updates `room_models` |
-| `letterboxd-connect` | Settings screen | Feed preview, then link with consent |
-| `letterboxd-sync` | Queue | Conditional RSS fetch, upserts history and the film map |
-| `letterboxd-import` | Export upload | Matches and applies export rows |
-| `winner-links` | Queue, once per game | Streaming Availability deep links for the winner |
-| `catalog-worker` | Queue | TMDB fetch and catalog upsert |
-| `embed-worker` | Queue | gte-small embeddings |
-| `taste-worker` | Queue | Rebuilds taste profiles |
-| `delete-account` | Settings screen | Deletes the auth user |
-
-### Scheduled jobs
+**Scheduled jobs** (Supabase Cron, inside the database, so schedules live next to the data and the server only consumes):
 
 | When | Job |
 | --- | --- |
-| Every minute | `sweep_rooms`: finales by time, stage deadlines, re-check matches after a seat times out, abandon expired lobbies |
-| 03:00 daily | Enqueue tier 1 titles and the TMDB changes feed |
-| 04:00 Sunday | Enqueue tier 2 titles |
-| After each ingest batch | Enqueue changed embeddings |
+| Every minute | `sweep_rooms` (to write): finales by time, stage deadlines, re-check matches after a seat times out, abandon expired lobbies |
+| Hourly | Queue Letterboxd syncs that are due, for players seen in the last 7 days |
+| 03:00 daily | Queue tier 1 titles and the TMDB changes feed |
+| 04:00 Sunday | Queue tier 2 titles |
 | 04:30 daily | Retention cleanup |
-| On app open and join | Enqueue a Letterboxd sync when due (not a cron, but the same queue) |
+
+The trainer's nightly run (title stats, training data export, training) is scheduled on the server host, since it is a long batch job rather than a message.
 
 ## Sizes and speed
 
@@ -735,12 +888,13 @@ The optional `seat` argument on `cast_vote` and `undo_last_vote` is what pass-an
 | `titles` | 40,000 rows |
 | `title_translations` | 80,000 rows (English and French) |
 | `title_vectors` | 40,000 × 384 × 4 bytes, about 60 MB before the index |
-| `title_availability` | About 50,000 to 100,000 rows per enabled country, so the launch country list matters most for size |
-| One 4-player game | About 200 room cards, 320 deck entries, 240 votes, 250 swipe log rows |
+| `title_availability` | About 50,000 to 100,000 rows per enabled country |
+| One 4-player game | About 200 room cards, 320 deck entries, 240 votes, 250 swipe log rows, 320 ranked items |
+| `rec.request_items` | With a few hundred bytes of features per row, about 100 KB per game, so about 1 GB a month at 10,000 games |
 
-All of it fits comfortably in Supabase Pro's 8 GB; Free's 500 MB is too tight once vectors and a few countries are in.
+The ranked items are the one table that grows fast; they move to object storage after 90 days (see Retention). Everything else fits comfortably in Supabase Pro's 8 GB.
 
-**Deck query timing**, measured on this session's 4-core container with Postgres 16 and pgvector 0.6, on a synthetic catalog of 40,000 films with random vectors, 10,300 of them eligible for the room:
+**Retrieval query timing**, measured in this session on a 4-core container with Postgres 16 and pgvector 0.6, on a synthetic catalog of 40,000 films with random vectors, 10,300 of them eligible for the room:
 
 | Players in the room | `deck_candidates(room, 300)` |
 | --- | --- |
@@ -748,7 +902,7 @@ All of it fits comfortably in Supabase Pro's 8 GB; Free's 500 MB is too tight on
 | 4 | about 150 ms |
 | 10 | about 220 ms |
 
-The plan's budget is under 150 ms. Two to four players meet it on this machine; ten don't yet. The distance math and sorting are only about 30 ms of that; most of the rest is the eligibility filter and aggregation. If real data on Supabase hardware is still slow: precompute each room's eligible set once at start (it only changes when seats change services), or cap the candidates with an HNSW search around the room's average taste before scoring. The first version of the query, which carried embeddings through its sorts, took 240 to 430 ms and spilled 65 MB to disk; the version in schema.sql keeps rows narrow.
+The query body is unchanged since that measurement; only its schema moved. The plan's budget is under 150 ms. Two to four players meet it on this machine; ten don't yet. If real data on Supabase hardware is still slow: precompute each room's eligible set once at start, or cap candidates with an HNSW search around the room's average taste before scoring. The server's ranking adds its own time on top, inside the same "well under a second" behind the 15-card buffer.
 
 ## Retention
 
@@ -759,10 +913,14 @@ The plan's budget is under 150 ms. Two to four players meet it on this machine; 
 | `deck_entries` never voted on | Deleted 1 day after the room ends |
 | `room_cards` nobody voted on | Deleted 7 days after the room ends |
 | `swipe_log` | 13 months |
+| `rec.request_items` | 90 days in Postgres; the trainer exports each month to private object storage as training data (Parquet), then deletes |
+| `rec.requests` | 13 months |
 | `import_rows` | Matched rows at once; unmatched after 30 days |
 | `title_deep_links` | Until `expires_at` (7 days) |
 | `rate_limits` | 1 day |
-| Guest accounts with no activity for 90 days | Deleted with their data (Supabase doesn't clean them up on its own) |
+| Guest accounts with no activity for 90 days | Deleted with their data |
+
+Training exports carry seat ids, never profile ids, names or Letterboxd usernames.
 
 ## Later: how each future feature lands
 
@@ -770,60 +928,61 @@ None of these need a change to a v1 key or relationship.
 
 | Feature | From | What changes | Already in v1 |
 | --- | --- | --- | --- |
-| Host Pro, Night Pass | Monetization | New `entitlements` (profile, product, period, store, transaction ids) and `store_events` (raw RevenueCat webhooks). `rooms.tier` column, set at create from the host's entitlement, so the whole room gets Pro for that game | Room creation is one function, so the check has one home |
-| 3 free games a month | Monetization | `create_room` counts the host's rooms with `started_at` this month (empty lobbies never count). New `hosting_credits` ledger for rewarded ads and passes. Hosting a second game asks for Apple or Google sign-in | Index on `rooms (host_id, started_at)` |
-| Bigger rooms (free 6, Pro 20) | Monetization | `create_room` sets `max_players` from the tier; a full room asks the host, never a guest | `rooms.max_players` |
-| Deck packs, custom decks | Monetization | New `decks` (slug, kind pack or custom, owner, names, rules, kids_safe) and `deck_titles`. `rooms.deck_id`. `deck_candidates` restricts eligibility to the deck. Packs bought one by one are entitlements | The pool and deck split; deck sources |
-| Crews and history | Revival, Pro | New `crews` and `crew_members`; `rooms.crew_id`; a crew's default settings. History and "how often you agree" are queries over rooms, matches and votes, never imported Letterboxd data | Finished rooms and votes are kept |
-| Family profiles | Monetization, Pro | `profiles.birth_year`, consent kind `parental`. A kid profile has `managed_by` set and no login. Youngest seated age sets `rooms.max_age`. New `rooms.kids_present`, which turns off ads, affiliate links and sponsored cards | `profiles.managed_by`, `my_profile_ids()` already includes managed profiles, `rooms.max_age`, certifications |
-| Pass and play | Monetization, Pro | Several seats with `controlled_by` = the parent's profile on one phone; the phone passes the seat id | `controlled_by`, the seat argument on `cast_vote` |
-| Parent veto | Monetization, Pro | `vetoes_left` 1 for parents, 0 for kids | `vetoes_left`, rounds and ballots |
-| Kid's choice night | Monetization, Pro | `room_members.vote_weight`; `check_card_match` sums weights instead of counting | Seat-based counting in one function |
-| Tournament bracket | Monetization, Pro | `finale_kind` value `bracket`; each heat is a round with two candidates, `seq` 1, 2, 3 | `rounds.seq`, generic ballots |
-| Double feature | Monetization, Pro | Deck engine picks 2 or 3 films that fit `runtime_max` as a total | `matches.pick_order` |
-| Watchlist Showdown | Revival, free | New game mode row; eligibility limited to films on 2 or more seated watchlists | `user_titles.on_watchlist`, watchlist count in `deck_candidates` |
-| Pick for me (solo) | Revival, Pro | Game mode with 1 player; the vote check uses the mode's `min_players` instead of 2 | Rooms and seats work with one seat |
-| Era, language, hidden gems, guilty pleasures | Revival, Pro | `rooms.year_min`, `year_max`, `original_languages` | `release_year`, `original_language`, `quality_preset` already has all three presets |
-| Series mode | Revival | `titles` rows with `media_type = tv`, a `rooms.media_type` setting, episode runtime | `media_type` in the key, `genres.media_types` |
-| Web guests | Revival | None: anonymous sign-in works in the browser | Guests are ordinary auth users |
-| More languages | Revival | More `title_translations` rows and `names` keys | Translations are rows, not columns |
-| Learn from our own games | Revival | New `title_cooccurrence` (title a, title b, lift, count), built nightly from votes, as an extra term in the group score | `swipe_log` with scores, `votes` |
-| Better embedding model | Revival | New `title_vectors_v2` with the new dimension, switch the query, drop the old | `model` and `source_hash` columns |
+| Host Pro, Night Pass | Monetization | New `entitlements` and `store_events` (RevenueCat webhooks, received by the server's HTTP API). `rooms.tier`, set in `create_room` from the host's entitlement | Room creation is one function |
+| 3 free games a month | Monetization | `create_room` counts the host's rooms with `started_at` this month. New `hosting_credits` ledger for rewarded ads and passes. A second game asks for Apple or Google sign-in | Index on `rooms (host_id, started_at)` |
+| Bigger rooms (free 6, Pro 20) | Monetization | `create_room` sets `max_players` from the tier | `rooms.max_players` |
+| Deck packs, custom decks | Monetization | New `decks` and `deck_titles`; `rooms.deck_id`; retrieval restricted to the deck | The pool and deck split |
+| Crews and history | Revival, Pro | New `crews` and `crew_members`; `rooms.crew_id`; api views for history. Built from in-app votes only | Finished rooms and votes are kept |
+| Family profiles | Monetization, Pro | `profiles.birth_year`, consent kind `parental`, `rooms.kids_present` (no ads, affiliate links or sponsored cards) | `profiles.managed_by`, `my_profile_ids()` includes managed profiles, `rooms.max_age` |
+| Pass and play | Monetization, Pro | Several seats controlled by one profile; the phone passes the seat id | `controlled_by`, the seat argument on api functions |
+| Parent veto | Monetization, Pro | `vetoes_left` 1 for parents, 0 for kids | Rounds and ballots |
+| Kid's choice night | Monetization, Pro | `room_members.vote_weight`; the match check sums weights | Seat-based counting in one function |
+| Tournament bracket | Monetization, Pro | `finale_kind` value `bracket`; each heat is a round | `rounds.seq`, generic ballots |
+| Double feature | Monetization, Pro | The server picks 2 or 3 films that fit the time budget together | `matches.pick_order` |
+| Watchlist Showdown | Revival, free | New game mode; retrieval limited to films on 2 or more seated watchlists | Watchlist count in retrieval |
+| Pick for me (solo) | Revival, Pro | Game mode with 1 player; the match check uses the mode's `min_players` | Rooms work with one seat |
+| Era, language, hidden gems, guilty pleasures | Revival, Pro | `rooms.year_min`, `year_max`, `original_languages` | `release_year`, `original_language`, quality presets |
+| Series mode | Revival | `titles` rows with `media_type = tv`, a room setting | `media_type` in the key |
+| Web guests | Revival | None: anonymous sign-in works in the browser, and the api is the same | Guests are ordinary auth users |
+| More languages | Revival | More translation rows | Translations are rows |
+| Collaborative signals ("people who liked X in a room also liked Y") | Revival | New `rec.title_pairs` or learned title factors, built by the trainer | Every vote and every ranked card is logged from day one |
+| Better embedding model | Revival | New vectors table with the new dimension, switch retrieval | `model` and `source_hash` columns |
 | Other history sources (TMDB account, Trakt) | Revival | New `linked_provider` and `title_fact_source` values | Facts are stored per source |
-| "Rent it" and affiliate links | Monetization | `rooms.offer_kinds` includes rent and buy; new `affiliate_clicks` (room, host profile, title, program); shown on the host's phone only, never with kids present | `offer_kind` already has rent and buy |
-| Rewarded ads | Monetization | `hosting_credits` rows with source `rewarded_ad` | |
-| Venue mode | Monetization | `rooms.kind` (`group`, `solo`, `venue`) and `venues`; `max_players` up to 200; probably the room server below | Seats, votes and match rules are per room |
-| Sponsored cards | Monetization | New `sponsored_placements` (title, countries, dates, frequency cap 1 in 20, minimum group score); `card_source` value `sponsored`; never with kids present | Card sources and reasons |
-| Push reminders ("Did you watch it?") | Revival | New `devices` (profile, Expo push token, platform) | |
-| Room server (Durable Objects) | Revival | None in the schema: the object calls the same functions, or batches votes into them | All game rules live in functions |
+| Push notifications | | New `devices`, `notification_prefs` and `notifications` (outbox), sent by the pipeline worker through Expo | Queues, the server |
+| "Rent it" and affiliate links | Monetization | `offer_kinds` includes rent and buy; `affiliate_clicks`; host's phone only | `offer_kind` has rent and buy |
+| Rewarded ads | Monetization | `hosting_credits` rows | |
+| Venue mode | Monetization | `rooms.kind` and `venues`; likely the room server below | Seats and rules are per room |
+| Sponsored cards | Monetization | `sponsored_placements`; `card_source` value `sponsored`; the server places them | Card sources and reasons |
+| Room server (Durable Objects) | Revival | None in the schema: it calls the same api and internal functions | All game rules live in functions |
+| Partner API (engine licensing) | Monetization | A new route set on the server's HTTP API | The server exists |
 
 ## Open questions
 
-1. **Super nope.** The plan's 5-to-10-player rule says "nobody used a super nope", but the four launch answers are Nope, Like, Super like and Seen it. Either add a fifth answer (`super_nope`, one per game, blocks a majority match) or drop the clause. The schema takes either: it's one enum value and one line in `check_card_match`.
-2. **Member ratings on cards.** A Letterboxd rating means the player has seen the film, so under the default `hide_seen` a card never shows a seated player's rating of that same film. It can still show "Jo gave the director's last film 4.5★". If member ratings on the card matter, consider `allow_rewatch` as the default.
-3. **Fit scale and the misery line.** Fits here are each player's own percentile (0 to 5), so a 2.5 misery line would drop every film below anyone's median, which is most of them in a group of four. schema.sql uses 1.0 (each player's bottom 20%) as the starting value. Tune it on playtests with the swipe log.
-4. **Countries at launch.** Which countries get availability ingested (France, Belgium, Switzerland, Canada, the US, the UK?) decides most of the database size.
-5. **Hosting cap month.** "Resets on the 1st" in UTC or in the host's time zone. UTC is simpler; local is friendlier.
-6. **Joining mid-game.** The design lets people join while swiping (they get the opening, then a refill) but not during the finale. Confirm that's the wanted behavior.
-7. **Room size at launch.** 10, because the match rules go up to 10. The monetization doc's free 6 and Pro 20 apply once Pro exists.
+1. **Server language.** I'd write the server in Python: the ranking and training libraries are there, and the contract with the database is SQL and JSON, so the app staying in TypeScript costs nothing. The revival plan suggested TypeScript end to end with Python only for notebooks; that made sense when ranking was a formula, less so now that it's the core of the product. TypeScript for the server, with training in Python, is the alternative.
+2. **Letterboxd ratings as model features.** Using each player's own ratings for their own recommendations is fine; a model learned across players from those ratings is the grey area described above. Worth a legal read before launch.
+3. **Super nope.** The plan's 5-to-10-player rule mentions it, but the four launch answers don't include it. Add a fifth answer or drop the clause.
+4. **Member ratings on cards.** A Letterboxd rating means the player has seen the film, so under the default `hide_seen` a card never shows a seated player's rating of that film. Consider `allow_rewatch` as the default if that matters.
+5. **Fit scale and the misery line.** Baseline fits are each player's own percentile (0 to 5), so a 2.5 misery line would drop most films in a group of four. The baseline uses 1.0; the server's ranker will have its own scale.
+6. **Countries at launch.** Which countries get availability ingested decides most of the database size.
+7. **Hosting cap month.** "Resets on the 1st" in UTC or in the host's time zone.
+8. **Joining mid-game.** Allowed while swiping, not while dealing or in the finale. Confirm.
+9. **Room size at launch.** 10, because the match rules go to 10.
 
 ## What was tested
 
-In this session, on a throwaway Postgres 16 database with pgvector 0.6 and small stand-ins for Supabase's `auth` and `realtime` schemas (the stand-ins are not part of schema.sql):
+In this session, on a throwaway Postgres 16 database with pgvector 0.6 and small stand-ins for Supabase's `auth`, `realtime` and `pgmq` (the stand-ins are not part of schema.sql). The schema loads with no errors on a fresh database: 42 tables and 1 view in `public`, 4 tables in `rec`, 17 views and 17 functions in `api`, 21 functions in `internal`, 7 queues. Then 86 checks, all passing:
 
-- schema.sql loads with no errors on a fresh database: 41 tables, 1 view, 22 functions, policies and grants.
-- Sign-up trigger creates a profile per auth user. A player can update their own name but not another player's, and can't touch columns outside the grant.
-- Create and join by code, wrong code, rejoin to the same seat, join without a name, a non-member sees no rooms, the 11th join attempt in 10 minutes is refused.
-- Service union for `any_member`; `every_member` with Netflix and Disney+ players leaves no services and no candidates.
-- Votes: retry returns `duplicate`, undo restores the super like, "seen it" drops the card for the others and a later vote on it returns `dropped`, a third like matches unanimously and ends a Quick Match, votes after that return `closed`. Players see only their own votes and can't read card counters.
-- Like propagation moves a liked 10th card to 4th place in the other decks.
-- A player leaving completes a match the remaining players had both liked; the host role moves when the host leaves.
-- Final Cut mode records a match without ending the room, then opens the finale with the matched film seeded first once both seats reach the card count.
-- Five players: 4 likes and a nope out of 5 is a majority match under the 70% rule.
-- Two overlapping votes on the same card: the second waits for the first's lock and then matches.
-- Deck filters: hide_seen, allow_rewatch (4.5★ film back in, 3★ film still out), age cap, time budget, watchlist overlap boost, taste fit.
-- Disconnecting Letterboxd deletes only that player's Letterboxd rows. Deleting the auth user removes the profile, consents, linked account and services, while their 4 past seats and 5 votes stay with no profile, no controller and a blank name.
-- All 10 Mermaid diagrams in this file render with Mermaid 11.
-- Deck query timing at 40,000 films, in [Sizes and speed](#sizes-and-speed).
+- **Access**: phones can't update a profile directly, read a catalog table, read room cards, read `rec` or call `deal_cards`; they can read the catalog views. Non-members see no rooms or seats; players see only their own profile and votes.
+- **Profiles and lobby**: name validation, services, room creation and joining, a wrong code, settings by the host but not a guest, seat services making the room's union, start refused to a guest.
+- **The server contract**: start puts the room in `dealing` and queues one request; joining while dealing says `starting`, rejoining keeps the seat; the server reads seats directly and deals through `deal_cards`, which starts the game, logs the request with model and variant and all 60 ranked cards, links every deck entry to it, and deals a 10-card shared opening.
+- **Cards**: 5 ready-to-render cards in French for a French profile, with director, cast, providers, watch link and reason; the original title when there's no English text; the shared opening order; `title_cards` keeping the requested order.
+- **Refills**: none at 16 cards left, exactly one at 15 and none repeated at 14; a re-rank with `keep: 3` keeps the 3 mounted cards, leaves 13 upcoming, clears the flag and sends `deck_updated`.
+- **Fallbacks**: a start the server never answers is dealt by the SQL baseline on the host's second tap after 8 seconds; a refill it never answers is dealt the same way through `request_cards`; both are logged as fallbacks.
+- **Game rules**: a unanimous match ends Quick Match and queues `room_finished`; like propagation moves a 10th card to 4th; a player leaving completes a match; Final Cut records a match without ending and opens the finale with that film seeded first; "seen it" drops a card for others; undo refunds a super like; 4 likes out of 5 is a majority match.
+- **After the game**: calibration saves only calibration films and queues a taste refresh; the after-game answer turns the winner into a seen film; the export contains the profile and both games.
+- **Realtime**: members read room events, can't send on the server topic, can send on `:live`; outsiders read nothing.
+- **Limits and deletion**: joining a room queues a due Letterboxd sync once, not again on the next join; the 11th join attempt in 10 minutes is refused; deleting an account removes profile, consents, linked account and history, while seats and votes stay, anonymous.
 
-Not tested: anything that needs a real Supabase project (Realtime delivery, the auth token's `is_anonymous` claim, Queues, Edge Functions), and the functions marked "to write".
+Separately: two overlapping votes on the same card, through `api.cast_vote`, where the second waited for the first's lock and then matched; the retrieval timing above; all diagrams render with Mermaid 11.
+
+Not tested: anything that needs a real Supabase project (Realtime delivery, the token's `is_anonymous` claim, the real Queues and their grants, the Data API's exposed-schema setting), the server itself, and the functions marked "to write".
