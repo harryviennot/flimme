@@ -223,7 +223,7 @@ What the groundwork built, and what's left before its roadmap tasks are ticked (
 
 Then, in this order (each with `/task`):
 
-1. **Harry, day one:** M0.3, M0.4, M0.5, M0.6, then M0.1 (the name).
+1. **Harry, day one:** M0.3, M0.4, M0.5, M0.6, then finish M0.1 (the name is Flimme; the trademark search and the handles are left) and M0.2 (buy the domain).
 2. **The game designer:** the rules simulation for M0.7, then you confirm M0.7 and M0.8.
 3. **The planner:** size every first-release task in one run ("Use the planner to size M0 to M13 and write the sizes into the roadmap").
 4. **Lane A, backend:** M1.4 (the 120 checks as pgTAP, large), M1.5 (the baseline migration), then M1.6 to M1.14.
