@@ -2,7 +2,7 @@
 
 The database for the first public release of MovieMatch, the recommendation server around it, and how every part talks to the others. It is built from the [revival plan](../revival-plan/README.md) (stack, catalog, deck engine, game design, Letterboxd) and the [monetization options](../monetization/README.md) (Host Pro, family modes, packs). Written in October 2026.
 
-- **[schema.sql](schema.sql)** is the reference DDL for everything marked v1 below: tables, indexes, row-level security, roles, realtime policies, the queues, the app's API and the game functions. It loads cleanly on Postgres 16 with pgvector, and an 86-check test suite passed against it (see [What was tested](#what-was-tested)).
+- **[schema.sql](schema.sql)** is the reference DDL for everything marked v1 below: tables, indexes, row-level security, roles, realtime policies, the queues, the app's API and the game functions. It loads cleanly on Postgres 16 with pgvector, and a 115-check test suite passed against it (see [What was tested](#what-was-tested)).
 - **v1** means the first release: the revival plan's Launch items and roadmap phases 1 to 5.
 - **Later** means after launch: the revival plan's Later items and every paid feature in the monetization doc. The [Later](#later-how-each-future-feature-lands) section shows where each one plugs in.
 
@@ -35,8 +35,8 @@ The database for the first public release of MovieMatch, the recommendation serv
 
 | | v1 |
 | --- | --- |
-| Tables | 46: 42 in `public` (reference data, catalog, players, film history, rooms and the game, operations) and 4 in `rec` (the recommendation server's logs, models and stats) |
-| The app's API | 17 views and 17 functions in the `api` schema, the only schema the app can reach |
+| Tables | 47: 43 in `public` (reference data, catalog, players, film history, rooms and the game, operations) and 4 in `rec` (the recommendation server's logs, models and stats) |
+| The app's API | 17 views and 18 functions in the `api` schema, the only schema the app can reach |
 | Recommendation server | 4 processes in one codebase: deck worker, pipeline worker, HTTP API, nightly trainer |
 | Queues | 7, from the database to the server |
 | Realtime topics | 2 per room: `room:<id>` for server events, `room:<id>:live` for presence and reactions |
@@ -102,7 +102,7 @@ Why the game stays in Postgres: a vote must save, count, check the match rule an
 5. **A player is a profile, not a login.** `profiles` has its own id and an optional `auth_user_id`. At launch they are always equal. Later, kid profiles are profiles with no login, managed by a parent, without changing any other table.
 6. **Votes belong to seats.** A seat (`room_members`) is one player in one room. Votes, decks and ballots point at the seat. Deleting an account leaves an anonymous seat, and pass-and-play later is one phone controlling several seats.
 7. **Titles have their own id.** TMDB numbers movies and TV shows separately, so the same id can be both a movie and a show. `titles.id` is ours, with `(media_type, tmdb_id)` unique.
-8. **Facts are stored per source.** What a player has seen, rated or saved is one row per film per source (Letterboxd, calibration, the app). Disconnecting Letterboxd deletes exactly what came from Letterboxd, by cascade.
+8. **Facts are stored per source, and Letterboxd per account.** What a player has seen, rated or saved is one row per film per source (Letterboxd, calibration, the app). Letterboxd connects only through the player's own export, and each account keeps its own copy, so nobody can read or delete anyone else's. Disconnecting deletes exactly what came from Letterboxd, by cascade.
 9. **Every card served is logged with what the model knew.** `rec.requests` and `rec.request_items` record the model version, experiment, score, features and exploration odds of every card dealt. Joined to votes, that is the training set, from the first game.
 10. **Later features add, never rewrite.** Everything in the Later section is new tables, columns, enum values, config rows or api functions.
 
@@ -111,7 +111,7 @@ Why the game stays in Postgres: a vote must save, count, check the match rule an
 | Schema | Holds | Reached by |
 | --- | --- | --- |
 | `public` | All tables | Nobody directly. The api views and functions, the server |
-| `api` | 17 views and 17 functions: the app's whole surface | Phones (it is the only schema exposed through Supabase's Data API) |
+| `api` | 17 views and 18 functions: the app's whole surface | Phones (it is the only schema exposed through Supabase's Data API) |
 | `internal` | Game logic and helpers: match check, propagation, finale, dealing, retrieval, card payloads, broadcasting, queueing | api functions, triggers, the server |
 | `rec` | Recommendation requests, ranked items, models, title stats | The server only |
 
@@ -274,10 +274,12 @@ Everything the game knows about a player's taste. Private to the player; rooms o
 
 ```mermaid
 erDiagram
-  profiles ||--o{ linked_accounts : "Letterboxd handle"
+  profiles ||--o| linked_accounts : "Letterboxd account"
   consents ||--o{ linked_accounts : "covers"
-  linked_accounts ||--o{ imports : "RSS syncs, ZIP imports"
+  linked_accounts ||--o{ imports : "export uploads"
   imports ||--o{ import_rows : "films to match"
+  linked_accounts ||--o{ letterboxd_entries : "every diary entry"
+  titles ||--o{ letterboxd_entries : "of"
   profiles ||--o{ user_titles : "seen, rated, saved"
   linked_accounts ||--o{ user_titles : "deleted with it"
   titles ||--o{ user_titles : "about"
@@ -285,24 +287,46 @@ erDiagram
   profiles ||--o| taste_profiles : "taste vector"
 ```
 
-**linked_accounts**: a player's Letterboxd username, treated as a public handle, not a login.
+**linked_accounts**: a player's Letterboxd account. It can only be created by uploading the player's own export, and the username comes from the export's `profile.csv`, so nobody types a username. Several app accounts may link the same username; each keeps its own copy of the data.
 
 | Column | Type | Notes |
 | --- | --- | --- |
 | id | uuid PK | |
-| profile_id | uuid | One per provider per player |
+| profile_id | uuid | One per provider per player. Uploading an export for a different username replaces the old link and its data |
 | provider | linked_provider | `letterboxd` (later `trakt`, `tmdb`) |
-| username | text | |
-| consent_id | uuid | The consent the player gave before the first import |
+| username | text | From `profile.csv`, lower case |
+| consent_id | uuid | The consent the player gave before the first upload |
+| exported_at | timestamptz | When the latest export was made. Ratings logged after it beat the export's |
+| rss_match_share, rss_checked_at | | How much of the public feed was found in the export when it was uploaded (see [Letterboxd](#letterboxd)) |
 | feed_etag, feed_last_modified | text | For conditional RSS requests |
-| last_synced_at, next_sync_after | timestamptz | RSS is re-read at most every 6 hours |
+| last_synced_at | timestamptz | The export counts as a sync. Joining a room syncs again if this is over 6 hours old |
+| sync_requested_at | timestamptz | A sync is queued; stops duplicate requests |
+| next_sync_after | timestamptz | The scheduled sync, every 14 days |
+| gap_detected_at | timestamptz | The feed moved past what we had; the app asks for a new export |
 | last_error | text | Shown on the settings screen |
 
-**imports**: one row per RSS sync or ZIP import, with counts and status. Powers "Found 50 recent films, 41 rated".
+**imports**: one row per export upload, with counts and status. Powers "81 films imported, 1 to check".
 
-**import_rows**: one row per film from a Letterboxd export, merged across the CSVs on the phone, so only title, year, Letterboxd link, watched, rating, liked, watchlist, last watched date and rewatch count leave the device. Matched rows are applied and deleted; unmatched rows stay for the manual fix.
+**import_rows**: one row per film from the export (watched, ratings, likes and watchlist merged on the phone). Matched rows are applied and deleted; unmatched rows stay for the manual fix.
 
-**letterboxd_film_map**: shared by everyone, no personal data. Each Letterboxd film is resolved to a TMDB title once: from the RSS feed's `tmdb:movieId`, else a TMDB search by title and year (plus or minus one), else a manual fix.
+**letterboxd_entries**: every diary entry we have seen for a linked account: the whole diary from the export, then each new entry from the RSS feed. This is the player's timeline, and it keeps growing past the feed's 50 entries.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | bigint PK | |
+| linked_account_id | uuid | Deleted with the link |
+| title_id | bigint | Null until the film is matched. Export rows take it from the matched film (same name and year); feed items carry a TMDB id |
+| film_name, film_year | | As Letterboxd names it |
+| watched_on | date | "Watched Date" in the export, `letterboxd:watchedDate` in the feed. Not the export's "Date", which is when it was logged |
+| logged_on | date | "Date" in the export, the item's publish date in the feed |
+| rating | numeric(2,1) | The rating on that entry |
+| rewatch, liked | boolean | Liked only comes from the feed; the export records hearts per film |
+| source | text | `export` or `rss`, whichever brought it first |
+| export_uri, rss_guid | text | The export's `boxd.it` link for the entry, the feed's item id |
+
+An export row and a feed item for the same film and watched date are the same entry (unique on account, film name, year and watched date).
+
+**letterboxd_film_map**: shared by everyone, no personal data. Each Letterboxd film is resolved to a TMDB title once: from the feed's `tmdb:movieId`, else a TMDB search by title and year (plus or minus one), else a manual fix. Keyed by `boxd:<id>` for the export's film links and `slug:<slug>` for the feed's.
 
 **user_titles**: the film history, one row per player, film and source.
 
@@ -316,6 +340,8 @@ erDiagram
 | on_watchlist | boolean | Feeds watchlist overlap |
 | reaction | reaction | `love`, `fine` or `nope`: calibration answers and the after-game question |
 | rewatch_count, last_watched_on | | Recency weighting |
+
+The `letterboxd` rows are the per-film summary the deck query reads. An export replaces them with its own state; then the diary entries are folded in (seen, number of watches, last watch, any heart, and a rating logged after the export beats the export's). Each feed sync folds in only the films it touched.
 
 The view **user_title_facts** merges the sources into one row per player and film.
 
@@ -530,7 +556,7 @@ One codebase, four processes, deployed together:
 | --- | --- | --- | --- |
 | deck worker | `deck_requests` queue | Start and refill: retrieval, ranking, `deal_cards` | Yes: well under a second, behind 15 cards of buffer |
 | pipeline worker | the other 6 queues | Catalog ingest, embeddings, Letterboxd sync and matching, taste profiles, winner deep links, end-of-room work | No |
-| HTTP API | Phones, with their Supabase access token | Letterboxd preview, connect and ZIP import upload; account deletion | Request and response |
+| HTTP API | Phones, with their Supabase access token | Letterboxd export upload (with the RSS check); account deletion | Request and response |
 | trainer | Nightly | Rebuilds `rec.title_stats`, exports training data, trains and evaluates models, registers versions | No |
 
 The server never needs Supabase Edge Functions; everything outside the database runs here.
@@ -540,7 +566,8 @@ The server never needs Supabase Edge Functions; everything outside the database 
 The server connects with its own login, granted the `app_server` role, through Supabase's connection pooler.
 
 - **Reads** anything in `public` and `rec`.
-- **Writes directly**: the catalog, film history (Letterboxd), taste profiles, room models, `rooms.stats`, and everything in `rec`.
+- **Writes directly**: the catalog, taste profiles, room models, `rooms.stats`, film matches on `import_rows`, and everything in `rec`.
+- **Writes Letterboxd data through three functions**: `internal.start_letterboxd_import` (link, consent, staged films, diary), `internal.finish_letterboxd_import` (after matching: per-film rows, diary folded in, next sync in 14 days) and `internal.apply_letterboxd_feed` (new entries, rating changes, gap detection, sync times).
 - **Writes decks only through `internal.deal_cards(room, payload)`.** Under the room lock it adds cards to the pool, appends to each seat's deck or re-ranks it (keeping the next `keep` cards and any card moved up by a like), logs the request and every ranked card, clears the refill flag, and starts the game if the room was dealing. It returns `closed` if the room moved on, so a late answer is harmless.
 - **Never writes** votes, matches, rounds or room state.
 - **Consumes queues** with a visibility timeout: a message that isn't deleted after processing comes back, so a crashed worker loses nothing.
@@ -570,7 +597,7 @@ The payload `deal_cards` takes:
 | --- | --- | --- |
 | Swipes | Like, super like, nope, seen it, undo, time on card, in the room and across every past game | `votes`, `swipe_log`, linked to profiles through seats |
 | Player answers | Calibration (love, fine, nope), "Did you watch it?" | `user_titles` with source `calibration` or `app` |
-| Letterboxd | Half-star rating, heart, watchlist, rewatch, watched date | `user_titles` with source `letterboxd` |
+| Letterboxd | Per film: half-star rating, heart, watchlist. Per diary entry: watched date, rating at the time, rewatch, growing with every sync | `user_titles` with source `letterboxd`, `letterboxd_entries` |
 | Global | TMDB vote average and count (as `quality_score`), TMDB popularity, the app's own like rate per film and country | `titles`, `rec.title_stats` |
 | Content | Embedding, genres, keywords, director, cast, decade, runtime, language | Catalog tables, `title_vectors` |
 | Context | Tonight's moods and genres, time budget, group size, services, room mode | `room_members`, `rooms` |
@@ -586,7 +613,8 @@ The payload `deal_cards` takes:
 
 ### Letterboxd data in the algorithm
 
-- A player's imported Letterboxd data shapes their own taste profile and the decks of rooms they sit in. That is what they consented to.
+- A player's Letterboxd data shapes their own taste profile and the decks of rooms they sit in. That is what they consented to, and every row of it came from their own upload or their own feed.
+- The diary timeline in `letterboxd_entries` is what makes recency and taste drift usable: recent watches weigh more, rewatches are a strong signal, and a rating that changed over time is visible.
 - It is not pooled across players into per-film scores ("average rating of our users on Letterboxd"). The monetization doc notes that Letterboxd's terms forbid building an index of its content, and a pooled score is close to that. `rec.title_stats` uses in-app swipes only.
 - There is no Letterboxd global rating to use: the RSS feed only carries the member's own rating, the API is closed, and scraping is forbidden. The global rating is TMDB's, plus the app's own like rate.
 - A trained model that takes each player's own Letterboxd ratings as input features is the grey area. It is the player's personal data used for their own recommendations, but the model itself is learned across players. Worth a short legal read before launch.
@@ -744,29 +772,33 @@ sequenceDiagram
   participant L as Letterboxd RSS
   participant DB as Postgres
   participant W as pipeline worker
-  P->>H: preview(username) with access token
+  P->>P: pick the export ZIP, unzip, read the username, merge films, keep only game fields
+  P->>H: upload(username, films, diary) with access token and consent
   H->>L: GET letterboxd.com/username/rss/
-  L-->>H: about 50 diary entries with tmdb:movieId, rating, like, rewatch, date
-  H-->>P: found 50 recent films, 41 rated
-  P->>H: connect with consent
-  H->>DB: consent, linked account, import, user_titles, letterboxd_film_map
-  H->>DB: queue taste refresh
-  Note over P,W: Optional full history
-  P->>P: pick the export ZIP, unzip, merge CSVs per film
-  P->>H: import(films)
-  H->>DB: import_rows
+  L-->>H: about 50 recent diary entries
+  H->>H: are the feed entries older than the export in the uploaded diary
+  H->>DB: start_letterboxd_import: link, consent, films to match, diary
   H->>DB: queue matching
-  W->>DB: match by map then TMDB search, apply to user_titles, keep unmatched
+  W->>DB: match films by map then TMDB search
+  W->>DB: finish_letterboxd_import: per-film rows, diary folded in, next sync in 14 days
+  W->>DB: queue taste refresh
+  Note over P,W: Later, on join or every 14 days
+  W->>L: conditional GET of the feed
+  W->>DB: apply_letterboxd_feed: new entries, newer ratings, gap check
 ```
 
-- **Freshness**: when a player joins a room and `next_sync_after` has passed, a sync is queued, so tonight's deck sees last night's diary. An hourly job covers players who were active in the last week. Requests are conditional, cached, and name the app in the User-Agent.
-- **What's stored**: TMDB title, rating, liked, rewatch count, watched date, watchlist flag, source. No review text.
-- **Disconnect**: deleting the `linked_accounts` row cascades to its imports and every Letterboxd row in `user_titles`; the taste profile is rebuilt without them.
+- **Connect only by export.** The player exports on the Letterboxd website (Settings, then Data) and picks the ZIP in the app. Nobody can type someone else's username.
+- **What leaves the phone**: the username from `profile.csv`; per film (from `watched.csv`, `ratings.csv`, `likes/films.csv`, `watchlist.csv`): name, year, film link, watched, rating, liked, on watchlist; per diary entry (`diary.csv`): name, year, entry link, watched date, logged date, rating, rewatch. Names, email, location, bio, pronoun, favourite films, review text, tags and comments stay on the phone.
+- **The RSS check.** The export isn't signed, so a hand-made one could carry any username. The server compares the public feed's entries logged before the export with the uploaded diary and stores the share it found. Below about 80% it refuses the upload; with an empty public diary there is nothing to compare, so it accepts. Since every account has its own copy, even a fake export only puts public data in the faker's own account.
+- **Freshness**: a sync is queued when the player joins a room and their last sync is over 6 hours old, so tonight's deck sees last night's diary; and every 14 days for everyone who has played in the last 12 months. Requests are conditional, cached, and name the app in the User-Agent.
+- **Gaps**: the feed holds about 50 entries. If a sync finds a full feed with none of the entries we already have, entries were missed in between; the app asks for a new export, which fills them in.
+- **What only a new export refreshes**: watchlist changes and ratings given without a diary entry never appear in the feed. The app can suggest a fresh export now and then (every 6 months, say, or before Watchlist Showdown).
+- **Disconnect** (`api.disconnect_letterboxd`): deletes this account's link, which cascades to its imports, diary entries and Letterboxd rows in `user_titles`; the consent is revoked and the taste profile rebuilt. Other accounts that linked the same username keep their own copies.
 
 ### Deleting an account, exporting data
 
-- **Delete** (App Store guideline 5.1.1(v)): the phone calls the server's HTTP API, which deletes the auth user through Supabase's admin API. That cascades to the profile, services, consents, linked accounts, imports, film history and taste profile. Seats in past rooms keep their votes but lose `profile_id`, `controlled_by` and their name, so the swipe log, training data and other players' history stay correct and anonymous.
-- **Export** (GDPR): `api.export_my_data()` returns the profile, services, consents, linked accounts, film history, taste affinities and the player's own votes as JSON.
+- **Delete** (App Store guideline 5.1.1(v)): the phone calls the server's HTTP API, which deletes the auth user through Supabase's admin API. That cascades to the profile, services, consents, linked accounts, imports, diary entries, film history and taste profile. Seats in past rooms keep their votes but lose `profile_id`, `controlled_by` and their name, so the swipe log, training data and other players' history stay correct and anonymous.
+- **Export** (GDPR): `api.export_my_data()` returns the profile, services, consents, linked accounts, the Letterboxd diary, film history, taste affinities and the player's own votes as JSON.
 
 ## The app's API
 
@@ -781,7 +813,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `app_config` | Minimum app version and other launch settings |
 | `rooms`, `room_seats`, `room_matches`, `rounds`, `round_candidates` | Rooms you have a seat in. `room_seats` flags `is_me` and `is_mine` |
 | `my_votes` | Your own votes, for rejoining |
-| `my_linked_accounts`, `my_imports`, `my_unmatched_films` | Letterboxd status and the manual fix list |
+| `my_linked_accounts`, `my_imports`, `my_unmatched_films` | Letterboxd status (username, export date, last sync, `needs_new_export`) and the manual fix list |
 
 **Functions**
 
@@ -803,6 +835,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `title_cards(ids, language, country)` | The same card payload for any films: winner, finale, calibration |
 | `submit_calibration(answers, room)` | Lobby calibration |
 | `answer_followup(room, watched, reaction)` | "Did you watch it?" |
+| `disconnect_letterboxd()` | Removes your Letterboxd link and everything that came with it |
 | `export_my_data()` | GDPR export |
 
 To write with the finale: `cast_ballot(round, kind, title, rank)`.
@@ -822,7 +855,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | Catalog tables | No direct access. Cards come from `api.my_next_cards` and `api.title_cards` | Read and write |
 | Reference data, game modes, calibration films, app config | Through api views | Read; writes reference data |
 | Your profile, services | Through api views and functions | Read |
-| Consents, linked accounts, imports, film history, taste profiles | Your own Letterboxd status through api views; the rest never | Read and write |
+| Consents, linked accounts, imports, diary entries, film history, taste profiles | Your own Letterboxd status through api views; the rest never | Read and write |
 | Rooms, seats, matches, rounds | Rooms you have a seat in, through api views | Read; writes `rooms.stats` only |
 | Room cards, decks | Only through `api.my_next_cards`, for your own seat. Counters, scores and fits never | Read; writes only through `deal_cards` |
 | Votes | Your own seat's, through `api.my_votes` | Read |
@@ -862,8 +895,8 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 | Queue | Produced by | Message | Consumer |
 | --- | --- | --- | --- |
 | `deck_requests` | start_game, cast_vote at 15 cards, join_room for late joiners, request_cards | kind, room, seat | deck worker |
-| `taste_refresh` | calibration, after-game answer, Letterboxd import, end of room | profile, reason | pipeline worker |
-| `letterboxd_sync` | join_room when a sync is due; the hourly job | linked account | pipeline worker |
+| `taste_refresh` | calibration, after-game answer, Letterboxd export, feed sync with new entries, disconnect, end of room | profile, reason | pipeline worker |
+| `letterboxd_sync` | join_room when the last sync is over 6 hours old; the hourly job for 14-day syncs | linked account, reason | pipeline worker |
 | `catalog_refresh` | cron | TMDB ids or the changes feed | pipeline worker |
 | `embed_titles` | catalog refresh | titles whose text changed | pipeline worker |
 | `winner_links` | end of room | room, title, country | pipeline worker |
@@ -874,7 +907,7 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 | When | Job |
 | --- | --- |
 | Every minute | `sweep_rooms` (to write): finales by time, stage deadlines, re-check matches after a seat times out, abandon expired lobbies |
-| Hourly | Queue Letterboxd syncs that are due, for players seen in the last 7 days |
+| Hourly | `internal.enqueue_due_letterboxd_syncs()`: queue the 14-day syncs that are due, for players who have played in the last 12 months |
 | 03:00 daily | Queue tier 1 titles and the TMDB changes feed |
 | 04:00 Sunday | Queue tier 2 titles |
 | 04:30 daily | Retention cleanup |
@@ -889,6 +922,7 @@ The trainer's nightly run (title stats, training data export, training) is sched
 | `title_translations` | 80,000 rows (English and French) |
 | `title_vectors` | 40,000 × 384 × 4 bytes, about 60 MB before the index |
 | `title_availability` | About 50,000 to 100,000 rows per enabled country |
+| `letterboxd_entries` | An active logger adds about 300 a year; a few hundred bytes each |
 | One 4-player game | About 200 room cards, 320 deck entries, 240 votes, 250 swipe log rows, 320 ranked items |
 | `rec.request_items` | With a few hundred bytes of features per row, about 100 KB per game, so about 1 GB a month at 10,000 games |
 
@@ -915,6 +949,8 @@ The query body is unchanged since that measurement; only its schema moved. The p
 | `swipe_log` | 13 months |
 | `rec.request_items` | 90 days in Postgres; the trainer exports each month to private object storage as training data (Parquet), then deletes |
 | `rec.requests` | 13 months |
+| `letterboxd_entries` | While the link exists. Deleted on disconnect, account deletion, a new export for a different username, and with guest accounts inactive for 90 days |
+| Scheduled Letterboxd syncs | Stop after 12 months without playing; the data stays until one of the above |
 | `import_rows` | Matched rows at once; unmatched after 30 days |
 | `title_deep_links` | Until `expires_at` (7 days) |
 | `rate_limits` | 1 day |
@@ -967,10 +1003,12 @@ None of these need a change to a v1 key or relationship.
 7. **Hosting cap month.** "Resets on the 1st" in UTC or in the host's time zone.
 8. **Joining mid-game.** Allowed while swiping, not while dealing or in the finale. Confirm.
 9. **Room size at launch.** 10, because the match rules go to 10.
+10. **RSS check threshold.** 80% of the feed's pre-export entries found in the upload is my starting value. Too strict and a player who edited entries after exporting gets refused; too loose and it stops nothing.
+11. **Re-export reminder.** How often to suggest a fresh export for watchlist changes: every 6 months, before Watchlist Showdown, or only when a gap is found.
 
 ## What was tested
 
-In this session, on a throwaway Postgres 16 database with pgvector 0.6 and small stand-ins for Supabase's `auth`, `realtime` and `pgmq` (the stand-ins are not part of schema.sql). The schema loads with no errors on a fresh database: 42 tables and 1 view in `public`, 4 tables in `rec`, 17 views and 17 functions in `api`, 21 functions in `internal`, 7 queues. Then 86 checks, all passing:
+In this session, on a throwaway Postgres 16 database with pgvector 0.6 and small stand-ins for Supabase's `auth`, `realtime` and `pgmq` (the stand-ins are not part of schema.sql). The schema loads with no errors on a fresh database: 43 tables and 1 view in `public`, 4 tables in `rec`, 17 views and 18 functions in `api`, 27 functions in `internal`, 7 queues. Then 115 checks, all passing:
 
 - **Access**: phones can't update a profile directly, read a catalog table, read room cards, read `rec` or call `deal_cards`; they can read the catalog views. Non-members see no rooms or seats; players see only their own profile and votes.
 - **Profiles and lobby**: name validation, services, room creation and joining, a wrong code, settings by the host but not a guest, seat services making the room's union, start refused to a guest.
@@ -981,6 +1019,7 @@ In this session, on a throwaway Postgres 16 database with pgvector 0.6 and small
 - **Game rules**: a unanimous match ends Quick Match and queues `room_finished`; like propagation moves a 10th card to 4th; a player leaving completes a match; Final Cut records a match without ending and opens the finale with that film seeded first; "seen it" drops a card for others; undo refunds a super like; 4 likes out of 5 is a majority match.
 - **After the game**: calibration saves only calibration films and queues a taste refresh; the after-game answer turns the winner into a seen film; the export contains the profile and both games.
 - **Realtime**: members read room events, can't send on the server topic, can send on `:live`; outsiders read nothing.
+- **Letterboxd** (with a synthetic export shaped like a real one): phones can't start an import; the username comes from the export in lower case; consent recorded; films staged and the diary stored; after matching, 3 films applied and 1 left for the fix screen; the export's rating beats an older diary rating; hearts, watch dates and the watchlist kept; diary entries get their film; the export counts as a sync with the next in 14 days. A feed sync adds 2 new entries, recognises 1 it already had (without duplicating it), lets a rating logged after the export win, counts a rewatch and stores the etag. A full feed with nothing known flags a gap and the app is asked for a new export, which clears it. A second account uploading the same username gets a separate copy; when it disconnects, its data and consent go and the first account's 54 entries are untouched. A different username replaces the old link and its entries. Joining a room queues one sync for a never-synced account and none when the last sync is recent; the hourly job queues a due account, skips a player away 13 months, and doesn't queue twice within the hour; the data export includes the username.
 - **Limits and deletion**: joining a room queues a due Letterboxd sync once, not again on the next join; the 11th join attempt in 10 minutes is refused; deleting an account removes profile, consents, linked account and history, while seats and votes stay, anonymous.
 
 Separately: two overlapping votes on the same card, through `api.cast_vote`, where the second waited for the first's lock and then matched; the retrieval timing above; all diagrams render with Mermaid 11.

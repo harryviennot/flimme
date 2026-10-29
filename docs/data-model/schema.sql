@@ -302,16 +302,25 @@ create unique index consents_active_idx on public.consents (profile_id, kind) wh
 -- 4. Film history and taste
 -- =========================================================================
 
+-- A player's Letterboxd account. Connected only by uploading their own
+-- export, which is where the username comes from. Several profiles may link
+-- the same username; each keeps its own copy of the data, so nobody can
+-- read or delete anyone else's.
 create table public.linked_accounts (
   id uuid primary key default gen_random_uuid(),
   profile_id uuid not null references public.profiles on delete cascade,
   provider public.linked_provider not null,
-  username text not null,
+  username text not null,                          -- from profile.csv in the export
   consent_id uuid not null references public.consents,
+  exported_at timestamptz,                         -- when the latest export was made
+  rss_match_share real,                            -- share of the public feed's entries found in the export
+  rss_checked_at timestamptz,
   feed_etag text,
   feed_last_modified text,
-  last_synced_at timestamptz,
-  next_sync_after timestamptz not null default now(),
+  last_synced_at timestamptz,                      -- the export counts as a sync
+  sync_requested_at timestamptz,
+  next_sync_after timestamptz not null default now() + interval '14 days',
+  gap_detected_at timestamptz,                     -- the feed moved past what we had: ask for a new export
   last_error text,
   created_at timestamptz not null default now(),
   unique (profile_id, provider)
@@ -332,9 +341,9 @@ create table public.imports (
 );
 create index imports_account_idx on public.imports (linked_account_id, started_at desc);
 
--- One row per film from a Letterboxd export, already merged across the CSVs
--- on the phone. Matched rows are applied to user_titles and deleted; unmatched
--- rows stay for the manual fix screen.
+-- One row per film from a Letterboxd export (watched, ratings, likes and
+-- watchlist merged on the phone). Matched rows are applied to user_titles and
+-- deleted; unmatched rows stay for the manual fix screen.
 create table public.import_rows (
   id bigint generated always as identity primary key,
   import_id uuid not null references public.imports on delete cascade,
@@ -352,9 +361,32 @@ create table public.import_rows (
 );
 create index import_rows_import_idx on public.import_rows (import_id, status);
 
--- Shared by all players: each Letterboxd film is resolved to TMDB once.
+-- Every diary entry we have seen for a linked account: the whole diary from
+-- the export, then new entries from the RSS feed. An export row and a feed
+-- item for the same film and watched date are one entry.
+create table public.letterboxd_entries (
+  id bigint generated always as identity primary key,
+  linked_account_id uuid not null references public.linked_accounts on delete cascade,
+  title_id bigint references public.titles,        -- null until the film is matched
+  film_name text not null,
+  film_year smallint,
+  watched_on date not null,                        -- "Watched Date" in the export, letterboxd:watchedDate in RSS
+  logged_on date,                                  -- "Date" in the export, the item's pubDate in RSS
+  rating numeric(2,1) check (rating between 0.5 and 5 and rating * 2 = floor(rating * 2)),
+  rewatch boolean not null default false,
+  liked boolean,                                   -- RSS only; the export records likes per film
+  source text not null check (source in ('export', 'rss')),
+  export_uri text,                                 -- boxd.it link of the entry (not of the film)
+  rss_guid text,
+  first_seen_at timestamptz not null default now()
+);
+create unique index letterboxd_entries_natural_idx
+  on public.letterboxd_entries (linked_account_id, lower(film_name), coalesce(film_year, 0), watched_on);
+create index letterboxd_entries_title_idx on public.letterboxd_entries (linked_account_id, title_id);
+
+-- Shared by all players, no personal data: each Letterboxd film is resolved to TMDB once.
 create table public.letterboxd_film_map (
-  letterboxd_key text primary key,                 -- normalized film slug or boxd.it id
+  letterboxd_key text primary key,                 -- 'boxd:<id>' from an export film link, or 'slug:<slug>' from RSS
   title_id bigint not null references public.titles,
   matched_by public.match_method not null,
   confidence real not null default 1,
@@ -1412,7 +1444,318 @@ $$;
 
 
 -- =========================================================================
--- 13. api: profile and personal data
+-- 13. Letterboxd: export, feed and schedule (internal, called by the server)
+-- =========================================================================
+
+-- Step 1 of connecting, called by the server's HTTP API once it has checked
+-- the player's token and compared the export with the public feed. A
+-- different username replaces the profile's old link and everything that came
+-- with it. Films go to import_rows for matching; the diary goes straight in.
+--
+-- Payload, built on the phone from the export ZIP (names, email, bio, review
+-- text, tags and comments never leave the phone):
+-- {"username": "hryvnt", "exported_at": "2026-10-29T11:01:00Z", "consent_version": "v1",
+--  "rss_match_share": 0.98,
+--  "films": [{"uri": "https://boxd.it/AbC1", "name": "...", "year": 2019, "watched": true,
+--             "rating": 4.5, "liked": false, "on_watchlist": false}],
+--  "diary": [{"uri": "https://boxd.it/xYz9", "name": "...", "year": 2019,
+--             "watched_on": "2026-10-21", "logged_on": "2026-10-22", "rating": 4, "rewatch": false}]}
+create function internal.start_letterboxd_import(p_profile_id uuid, p_payload jsonb) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_username text := lower(btrim(p_payload->>'username'));
+  v_account public.linked_accounts;
+  v_consent uuid;
+  v_import uuid;
+  v_films integer;
+  v_entries integer;
+begin
+  if v_username is null or v_username !~ '^[a-z0-9_]{1,30}$' then
+    return jsonb_build_object('status', 'invalid_username');
+  end if;
+
+  select * into v_account from public.linked_accounts
+  where profile_id = p_profile_id and provider = 'letterboxd'
+  for update;
+  if found and v_account.username <> v_username then
+    delete from public.linked_accounts where id = v_account.id;
+    v_account := null;
+  end if;
+
+  select id into v_consent from public.consents
+  where profile_id = p_profile_id and kind = 'letterboxd_import' and revoked_at is null;
+  if v_consent is null then
+    insert into public.consents (profile_id, kind, version)
+    values (p_profile_id, 'letterboxd_import', coalesce(p_payload->>'consent_version', 'v1'))
+    returning id into v_consent;
+  end if;
+
+  if v_account.id is null then
+    insert into public.linked_accounts (profile_id, provider, username, consent_id)
+    values (p_profile_id, 'letterboxd', v_username, v_consent)
+    returning * into v_account;
+  end if;
+  update public.linked_accounts
+  set consent_id = v_consent,
+      exported_at = (p_payload->>'exported_at')::timestamptz,
+      rss_match_share = (p_payload->>'rss_match_share')::real,
+      rss_checked_at = now(),
+      gap_detected_at = null,
+      last_error = null
+  where id = v_account.id;
+
+  insert into public.imports (linked_account_id, kind, status)
+  values (v_account.id, 'export', 'matching')
+  returning id into v_import;
+
+  insert into public.import_rows (import_id, film_name, film_year, letterboxd_uri, watched, rating, liked, on_watchlist)
+  select v_import, f->>'name', (f->>'year')::smallint, f->>'uri',
+         coalesce((f->>'watched')::boolean, false), (f->>'rating')::numeric,
+         coalesce((f->>'liked')::boolean, false), coalesce((f->>'on_watchlist')::boolean, false)
+  from jsonb_array_elements(coalesce(p_payload->'films', '[]')) f;
+  get diagnostics v_films = row_count;
+
+  insert into public.letterboxd_entries as e
+    (linked_account_id, film_name, film_year, watched_on, logged_on, rating, rewatch, source, export_uri)
+  select v_account.id, d->>'name', (d->>'year')::smallint, (d->>'watched_on')::date, (d->>'logged_on')::date,
+         (d->>'rating')::numeric, coalesce((d->>'rewatch')::boolean, false), 'export', d->>'uri'
+  from jsonb_array_elements(coalesce(p_payload->'diary', '[]')) d
+  where d->>'watched_on' is not null
+  on conflict (linked_account_id, lower(film_name), coalesce(film_year, 0), watched_on) do update
+    set rating = coalesce(excluded.rating, e.rating),
+        rewatch = excluded.rewatch,
+        logged_on = coalesce(e.logged_on, excluded.logged_on),
+        export_uri = coalesce(e.export_uri, excluded.export_uri);
+  get diagnostics v_entries = row_count;
+
+  update public.imports set films_total = v_films where id = v_import;
+  return jsonb_build_object('status', 'ok', 'linked_account_id', v_account.id, 'import_id', v_import,
+                            'films', v_films, 'entries', v_entries);
+end
+$$;
+
+-- Per film, what the diary entries say: last watch, number of watches, any
+-- heart, and the latest rating overall and since the export.
+create function internal.letterboxd_entry_facts(p_account_id uuid, p_since date)
+returns table (title_id bigint, last_watched date, watches integer, liked boolean,
+               newer_rating numeric, any_rating numeric)
+language sql stable security definer set search_path = ''
+as $$
+  select e.title_id,
+         max(e.watched_on),
+         count(*)::int,
+         coalesce(bool_or(e.liked), false),
+         (array_agg(e.rating order by e.logged_on desc nulls last, e.watched_on desc)
+            filter (where e.rating is not null and e.logged_on > p_since))[1],
+         (array_agg(e.rating order by e.logged_on desc nulls last, e.watched_on desc)
+            filter (where e.rating is not null))[1]
+  from public.letterboxd_entries e
+  where e.linked_account_id = p_account_id and e.title_id is not null
+  group by e.title_id
+$$;
+
+-- Folds diary entries into the per-film rows in user_titles. A rating logged
+-- after the export beats the export's rating; the export's beats older entries.
+create function internal.fold_letterboxd_entries(p_account_id uuid, p_title_ids bigint[] default null)
+returns void
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_profile uuid;
+  v_since date;
+begin
+  select la.profile_id, la.exported_at::date into v_profile, v_since
+  from public.linked_accounts la where la.id = p_account_id;
+
+  update public.user_titles ut
+  set seen = true,
+      rating = coalesce(f.newer_rating, ut.rating, f.any_rating),
+      liked = ut.liked or f.liked,
+      rewatch_count = greatest(f.watches - 1, 0),
+      last_watched_on = greatest(ut.last_watched_on, f.last_watched),
+      updated_at = now()
+  from internal.letterboxd_entry_facts(p_account_id, v_since) f
+  where ut.profile_id = v_profile and ut.source = 'letterboxd' and ut.title_id = f.title_id
+    and (p_title_ids is null or f.title_id = any (p_title_ids));
+
+  insert into public.user_titles (profile_id, title_id, source, linked_account_id, seen, rating, liked,
+                                  rewatch_count, last_watched_on)
+  select v_profile, f.title_id, 'letterboxd', p_account_id, true, coalesce(f.newer_rating, f.any_rating),
+         f.liked, greatest(f.watches - 1, 0), f.last_watched
+  from internal.letterboxd_entry_facts(p_account_id, v_since) f
+  where (p_title_ids is null or f.title_id = any (p_title_ids))
+    and not exists (select 1 from public.user_titles ut
+                    where ut.profile_id = v_profile and ut.title_id = f.title_id and ut.source = 'letterboxd');
+end
+$$;
+
+-- Step 2, once the server has matched the films (title_id and status set on
+-- import_rows). The export is the account's complete per-film state at export
+-- time, so it replaces the account's Letterboxd rows; then the diary is folded in.
+create function internal.finish_letterboxd_import(p_import_id uuid) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_account uuid;
+  v_profile uuid;
+  v_matched integer;
+  v_unmatched integer;
+begin
+  select i.linked_account_id, la.profile_id into v_account, v_profile
+  from public.imports i join public.linked_accounts la on la.id = i.linked_account_id
+  where i.id = p_import_id and i.status = 'matching'
+  for update of i;
+  if not found then
+    return jsonb_build_object('status', 'not_found');
+  end if;
+
+  -- Diary rows only carry the film's name and year; take the title from the matched film.
+  update public.letterboxd_entries e
+  set title_id = r.title_id
+  from public.import_rows r
+  where r.import_id = p_import_id and r.status = 'matched'
+    and e.linked_account_id = v_account and e.title_id is null
+    and lower(e.film_name) = lower(r.film_name) and coalesce(e.film_year, 0) = coalesce(r.film_year, 0);
+
+  delete from public.user_titles where linked_account_id = v_account;
+  insert into public.user_titles (profile_id, title_id, source, linked_account_id, seen, rating, liked, on_watchlist)
+  select distinct on (r.title_id) v_profile, r.title_id, 'letterboxd', v_account,
+         r.watched, r.rating, r.liked, r.on_watchlist
+  from public.import_rows r
+  where r.import_id = p_import_id and r.status = 'matched'
+  order by r.title_id, r.watched desc;
+  perform internal.fold_letterboxd_entries(v_account);
+
+  select count(*) filter (where status = 'matched'), count(*) filter (where status = 'unmatched')
+  into v_matched, v_unmatched
+  from public.import_rows where import_id = p_import_id;
+  delete from public.import_rows where import_id = p_import_id and status = 'matched';
+
+  update public.imports
+  set status = 'done', finished_at = now(), films_matched = v_matched, films_unmatched = v_unmatched
+  where id = p_import_id;
+  update public.linked_accounts
+  set last_synced_at = now(), next_sync_after = now() + interval '14 days'
+  where id = v_account;
+
+  perform internal.enqueue('taste_refresh', jsonb_build_object('profile_id', v_profile, 'reason', 'letterboxd_export'));
+  return jsonb_build_object('status', 'ok', 'matched', v_matched, 'unmatched', v_unmatched);
+end
+$$;
+
+-- An RSS sync. The server fetches the feed (conditionally; a 304 is an empty
+-- item list) and passes the items as they are, with TMDB ids from the feed:
+-- [{"guid": "letterboxd-watch-123", "tmdb_id": 550, "film_title": "...", "film_year": 1999,
+--   "watched_on": "2026-10-28", "published_at": "2026-10-28T21:00:00Z",
+--   "rating": 4.5, "liked": true, "rewatch": false}]
+create function internal.apply_letterboxd_feed(
+  p_account_id uuid,
+  p_items jsonb,
+  p_etag text default null,
+  p_last_modified text default null
+) returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_profile uuid;
+  v_had integer;
+  v_known integer;
+  v_new integer;
+  v_titles bigint[];
+  v_gap boolean;
+begin
+  select la.profile_id into v_profile from public.linked_accounts la where la.id = p_account_id for update;
+  if not found then
+    return jsonb_build_object('status', 'not_found');     -- disconnected while the sync was queued
+  end if;
+
+  select count(*) into v_had from public.letterboxd_entries where linked_account_id = p_account_id;
+  select count(*) into v_known
+  from jsonb_array_elements(p_items) i
+  where exists (
+    select 1 from public.letterboxd_entries e
+    where e.linked_account_id = p_account_id
+      and (e.rss_guid = i->>'guid'
+           or (lower(e.film_name) = lower(i->>'film_title')
+               and coalesce(e.film_year, 0) = coalesce((i->>'film_year')::int, 0)
+               and e.watched_on = (i->>'watched_on')::date)));
+
+  with written as (
+    insert into public.letterboxd_entries as e
+      (linked_account_id, title_id, film_name, film_year, watched_on, logged_on, rating, rewatch, liked, source, rss_guid)
+    select p_account_id, t.id, i->>'film_title', (i->>'film_year')::smallint, (i->>'watched_on')::date,
+           (i->>'published_at')::timestamptz::date, (i->>'rating')::numeric,
+           coalesce((i->>'rewatch')::boolean, false), (i->>'liked')::boolean, 'rss', i->>'guid'
+    from jsonb_array_elements(p_items) i
+    left join public.titles t on t.media_type = 'movie' and t.tmdb_id = (i->>'tmdb_id')::int
+    where i->>'watched_on' is not null
+    on conflict (linked_account_id, lower(film_name), coalesce(film_year, 0), watched_on) do update
+      set rss_guid = coalesce(e.rss_guid, excluded.rss_guid),
+          title_id = coalesce(e.title_id, excluded.title_id),
+          rating = coalesce(excluded.rating, e.rating),
+          liked = coalesce(excluded.liked, e.liked)
+    returning e.title_id, (xmax = 0) as inserted
+  )
+  select count(*) filter (where inserted), array_agg(distinct title_id) filter (where title_id is not null)
+  into v_new, v_titles
+  from written;
+
+  if cardinality(v_titles) > 0 then
+    perform internal.fold_letterboxd_entries(p_account_id, v_titles);
+  end if;
+
+  -- The feed carries about 50 entries. If it is full and none of them were
+  -- already here, entries were logged in between that we will never see.
+  v_gap := v_had > 0 and v_known = 0 and jsonb_array_length(p_items) >= 50;
+
+  update public.linked_accounts
+  set last_synced_at = now(),
+      sync_requested_at = null,
+      next_sync_after = now() + interval '14 days',
+      feed_etag = coalesce(p_etag, feed_etag),
+      feed_last_modified = coalesce(p_last_modified, feed_last_modified),
+      gap_detected_at = case when v_gap then now() else gap_detected_at end,
+      last_error = null
+  where id = p_account_id;
+
+  if v_new > 0 then
+    perform internal.enqueue('taste_refresh', jsonb_build_object('profile_id', v_profile, 'reason', 'letterboxd_feed'));
+  end if;
+  return jsonb_build_object('status', 'ok', 'new', v_new, 'known', v_known, 'gap', v_gap);
+end
+$$;
+
+-- Hourly: queue the scheduled syncs that are due (every 14 days per account).
+-- Players who haven't played for 12 months stop being synced.
+create function internal.enqueue_due_letterboxd_syncs() returns integer
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_account_id uuid;
+  v_count integer := 0;
+begin
+  for v_account_id in
+    update public.linked_accounts la
+    set sync_requested_at = now()
+    from public.profiles p
+    where p.id = la.profile_id
+      and la.next_sync_after <= now()
+      and (la.sync_requested_at is null or la.sync_requested_at < now() - interval '1 hour')
+      and coalesce(p.last_seen_at, la.created_at) > now() - interval '12 months'
+    returning la.id
+  loop
+    perform internal.enqueue('letterboxd_sync', jsonb_build_object(
+      'linked_account_id', v_account_id, 'reason', 'scheduled'));
+    v_count := v_count + 1;
+  end loop;
+  return v_count;
+end
+$$;
+
+
+-- =========================================================================
+-- 14. api: profile and personal data
 -- =========================================================================
 
 create function api.update_profile(
@@ -1458,6 +1801,25 @@ begin
 end
 $$;
 
+-- Removes the caller's Letterboxd link and everything that came with it:
+-- imports, diary entries and per-film rows. Nobody else's copy is touched.
+create function api.disconnect_letterboxd() returns jsonb
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_me uuid := internal.my_profile_id();
+begin
+  delete from public.linked_accounts where profile_id = v_me and provider = 'letterboxd';
+  if not found then
+    return jsonb_build_object('status', 'not_linked');
+  end if;
+  update public.consents set revoked_at = now()
+  where profile_id = v_me and kind = 'letterboxd_import' and revoked_at is null;
+  perform internal.enqueue('taste_refresh', jsonb_build_object('profile_id', v_me, 'reason', 'letterboxd_disconnected'));
+  return jsonb_build_object('status', 'ok');
+end
+$$;
+
 -- GDPR export: everything stored about the caller.
 create function api.export_my_data() returns jsonb
 language sql stable security definer set search_path = ''
@@ -1469,8 +1831,15 @@ as $$
     'consents', (select coalesce(jsonb_agg(to_jsonb(c) - 'profile_id'), '[]') from public.consents c, me where c.profile_id = me.id),
     'linked_accounts', (
       select coalesce(jsonb_agg(jsonb_build_object('provider', la.provider, 'username', la.username,
-                                                   'created_at', la.created_at, 'last_synced_at', la.last_synced_at)), '[]')
+                                                   'created_at', la.created_at, 'exported_at', la.exported_at,
+                                                   'last_synced_at', la.last_synced_at)), '[]')
       from public.linked_accounts la, me where la.profile_id = me.id),
+    'letterboxd_diary', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+               'film', e.film_name, 'year', e.film_year, 'watched_on', e.watched_on, 'rating', e.rating,
+               'rewatch', e.rewatch, 'liked', e.liked, 'source', e.source) order by e.watched_on), '[]')
+      from public.letterboxd_entries e join public.linked_accounts la on la.id = e.linked_account_id, me
+      where la.profile_id = me.id),
     'film_history', (
       select coalesce(jsonb_agg(jsonb_build_object(
                'tmdb_id', t.tmdb_id, 'title', t.original_title, 'source', ut.source, 'seen', ut.seen,
@@ -1492,7 +1861,7 @@ $$;
 
 
 -- =========================================================================
--- 14. api: rooms
+-- 15. api: rooms
 -- =========================================================================
 
 create function api.create_room(p_mode text default 'quick_match', p_country char(2) default null)
@@ -1587,15 +1956,18 @@ begin
     return jsonb_build_object('status', 'not_found');
   end if;
 
-  -- Fresh Letterboxd data for tonight: queue a sync if one is due.
+  -- Fresh Letterboxd data for tonight: sync if the last one is over 6 hours old.
   update public.profiles set last_seen_at = now() where id = v_profile.id;
   for v_account_id in
     update public.linked_accounts la
-    set next_sync_after = now() + interval '10 minutes'   -- the worker sets the real next time
-    where la.profile_id = v_profile.id and la.next_sync_after <= now()
+    set sync_requested_at = now()
+    where la.profile_id = v_profile.id
+      and (la.last_synced_at is null or la.last_synced_at < now() - interval '6 hours')
+      and (la.sync_requested_at is null or la.sync_requested_at < now() - interval '10 minutes')
     returning la.id
   loop
-    perform internal.enqueue('letterboxd_sync', jsonb_build_object('linked_account_id', v_account_id));
+    perform internal.enqueue('letterboxd_sync', jsonb_build_object(
+      'linked_account_id', v_account_id, 'reason', 'joined_room'));
   end loop;
 
   -- Rejoin after a dropped connection or an app restart: same seat.
@@ -1867,7 +2239,7 @@ $$;
 
 
 -- =========================================================================
--- 15. api: the vote. Save, count, match, propagate, in one transaction
+-- 16. api: the vote. Save, count, match, propagate, in one transaction
 -- =========================================================================
 
 create function api.cast_vote(
@@ -2065,7 +2437,7 @@ $$;
 
 
 -- =========================================================================
--- 16. api: calibration and after the game
+-- 17. api: calibration and after the game
 -- =========================================================================
 
 -- p_answers: [{"title_id": 1, "answer": "love" | "fine" | "nope" | "not_seen"}]
@@ -2141,7 +2513,7 @@ $$;
 
 
 -- =========================================================================
--- 17. api: what the app reads
+-- 18. api: what the app reads
 -- =========================================================================
 
 -- Views run as the caller (security_invoker), so row-level security on the
@@ -2203,7 +2575,9 @@ create view api.my_votes with (security_invoker = true) as
   select v.room_id, v.room_member_id, v.title_id, v.answer, v.created_at from public.votes v;
 
 create view api.my_linked_accounts with (security_invoker = true) as
-  select la.id, la.provider, la.username, la.last_synced_at, la.last_error, la.created_at
+  select la.id, la.provider, la.username, la.exported_at, la.last_synced_at,
+         la.gap_detected_at is not null as needs_new_export,
+         la.last_error, la.created_at
   from public.linked_accounts la;
 
 create view api.my_imports with (security_invoker = true) as
@@ -2270,7 +2644,7 @@ $$;
 
 
 -- =========================================================================
--- 18. Security: row-level security, roles and grants
+-- 19. Security: row-level security, roles and grants
 -- =========================================================================
 
 -- The recommendation server's role. Create a login for the server and grant
@@ -2358,7 +2732,7 @@ grant insert, update, delete on
   public.certification_ages, public.titles, public.title_translations, public.title_credits,
   public.title_certifications, public.title_availability, public.title_watch_links,
   public.title_deep_links, public.title_vectors, public.calibration_titles, public.ingest_runs,
-  public.consents, public.linked_accounts, public.imports, public.import_rows,
+  public.consents, public.linked_accounts, public.imports, public.import_rows, public.letterboxd_entries,
   public.letterboxd_film_map, public.user_titles, public.taste_profiles, public.room_models
 to app_server;
 grant update (stats) on public.rooms to app_server;
@@ -2381,12 +2755,15 @@ grant execute on function
   internal.deal_baseline(uuid, uuid),
   internal.card_payloads(bigint[], text, char, integer[]),
   internal.broadcast_room(uuid, text, jsonb),
-  internal.enqueue(text, jsonb)
+  internal.enqueue(text, jsonb),
+  internal.start_letterboxd_import(uuid, jsonb),
+  internal.finish_letterboxd_import(uuid),
+  internal.apply_letterboxd_feed(uuid, jsonb, text, text)
 to app_server;
 
 
 -- =========================================================================
--- 19. Configuration rows (starting values from the revival plan, to tune)
+-- 20. Configuration rows (starting values from the revival plan, to tune)
 -- =========================================================================
 
 insert into public.game_modes (slug, min_players, max_players, ends_on_first_match, defaults, sort) values
