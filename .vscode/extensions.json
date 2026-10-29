@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "expo.vscode-expo-tools",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "charliermarsh.ruff",
+    "ms-python.python",
+    "supabase.vscode-supabase-extension"
+  ]
+}

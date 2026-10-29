@@ -1,0 +1,5 @@
+/* The styling entry point (Uniwind, Tailwind 4). Tailwind scans src/ for classes.
+   The design system's theme is generated from theme/tokens.json: run `pnpm tokens`. */
+@import 'tailwindcss';
+@import 'uniwind';
+@import './theme/generated/theme.css';

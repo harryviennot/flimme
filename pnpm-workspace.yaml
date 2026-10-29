@@ -1,0 +1,9 @@
+packages:
+  - mobile
+  - packages/*
+
+# pnpm 10 skips install scripts unless a package is listed here.
+onlyBuiltDependencies:
+  - lefthook
+  - '@parcel/watcher'
+  - unrs-resolver

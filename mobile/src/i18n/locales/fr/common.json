@@ -1,0 +1,55 @@
+{
+  "actions": {
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "back": "Retour",
+    "cancel": "Annuler"
+  },
+  "states": {
+    "loading": "Chargement",
+    "offline": "Hors ligne",
+    "reconnecting": "Reconnexion…",
+    "offlineVotes_one": "Hors ligne : {{count}} vote en attente",
+    "offlineVotes_other": "Hors ligne : {{count}} votes en attente"
+  },
+  "errors": {
+    "generic": {
+      "title": "Petit souci de projecteur",
+      "body": "Quelque chose s'est mal passé. On relance ?"
+    },
+    "notFound": {
+      "title": "Cette page n'existe pas",
+      "body": "Le lien est peut-être trop vieux."
+    }
+  },
+  "placeholder": {
+    "body": "Cet écran arrive avec la tâche {{task}}."
+  },
+  "answers": {
+    "nope": "Bof",
+    "undo": "Annuler",
+    "super": "Super",
+    "like": "J'aime",
+    "seen": "Déjà vu"
+  },
+  "card": {
+    "flipHint": "Touche pour retourner la carte",
+    "tmdbRating": "Note TMDB",
+    "letterboxdRating": "{{name}}, Letterboxd",
+    "synopsis": "Synopsis",
+    "director": "Réalisation  {{name}}",
+    "cast": "Avec  {{names}}",
+    "trailer": "Bande-annonce",
+    "flipBack": "Touche la carte pour la retourner",
+    "stampLike": "J'aime",
+    "stampNope": "Bof",
+    "stars": "★ {{rating}}"
+  },
+  "ticket": {
+    "roomCode": "Code de la salle"
+  },
+  "services": {
+    "tapToAdd": "Touche pour ajouter",
+    "youHaveIt": "Tu l'as"
+  }
+}

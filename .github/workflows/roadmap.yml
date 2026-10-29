@@ -1,0 +1,37 @@
+# After a merge, ticks the roadmap task named in the pull request title, so parallel
+# pull requests don't all edit roadmap.md. Needs "GitHub Actions" allowed to push to
+# main in the branch rules (docs/pipeline.md#one-time-setup).
+name: Roadmap
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tick:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Tick the task
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: node tools/roadmap-tick.mjs --title "$TITLE"
+      - name: Commit
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Tick the roadmap for: $TITLE"
+          git push

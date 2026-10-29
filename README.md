@@ -1,19 +1,33 @@
-# movie-swipe-backend
+# MovieMatch (working name)
 
-Backend for the MovieMatch revival, in two parts:
+A group movie-picking game: friends join a room on their phones, swipe on films they can all watch, and get a pick in under 5 minutes. One repository for everything:
 
-- **Supabase** runs the game: Postgres with pgvector, Auth for guests and accounts, Realtime for rooms, Queues and Cron. The app reaches it only through the `api` schema.
-- **The recommendation server** runs around it: it ranks every deck, learns from swipes, Letterboxd ratings and global ratings, and handles TMDB and Letterboxd.
+| Folder | What |
+| --- | --- |
+| [`mobile/`](mobile/) | The Expo SDK 58 app: Expo Router, Uniwind (Tailwind 4), Reanimated, the design system and its gallery |
+| [`supabase/`](supabase/) | Supabase runs the game: config, migrations, pgTAP tests, the lite database for cloud sessions |
+| [`server/`](server/) | The Python recommendation server: ranks decks, learns, makes every outside call (TMDB, Letterboxd) |
+| [`packages/contract/`](packages/contract/) | Types and answers shared by the app and the bot players |
+| [`tools/`](tools/) | `next`, `doc-section`, `check`, `typegen`, `roadmap-tick`, `check-links`, the cloud setup script |
+| [`docs/`](docs/README.md) | Everything we know: product, architecture, integrations, design, decisions |
+| [`.claude/`](.claude/) | The agents, skills and hooks that build it |
 
-## Docs
+## Start here
 
-Everything is in [docs/](docs/README.md). The main ones:
+- **The plan:** [docs/product/roadmap.md](docs/product/roadmap.md). What's ready to start: `node tools/next.mjs`.
+- **What's decided:** [docs/decisions.md](docs/decisions.md).
+- **How agents build it:** [docs/agent-workflow.md](docs/agent-workflow.md); how to run them day to day: [docs/pipeline.md](docs/pipeline.md).
+- **What was set up and why:** [docs/architecture/groundwork.md](docs/architecture/groundwork.md).
 
-- [Roadmap](docs/product/roadmap.md): every milestone and task, in order, with progress.
-- [Revival plan](docs/product/revival-plan.md): the audit of the old app, the stack, the deck engine, game design and the original roadmap.
-- [Decisions](docs/decisions.md): what's decided, what's waiting for a yes, what's open.
-- [Data model](docs/architecture/data-model.md) and its [schema.sql](docs/architecture/schema.sql).
-- [Recommendation server](docs/architecture/recommendation-server.md).
-- [Deck engine](docs/architecture/deck-engine.md): how every card is chosen.
-- [Letterboxd integration](docs/integrations/letterboxd.md).
-- [Monetization options](docs/product/monetization.md).
+## Setup
+
+On a Mac with Xcode, Android Studio, a Docker runtime and [mise](https://mise.jdx.dev):
+
+```bash
+mise install        # Node, pnpm, Python, uv, the Supabase CLI, flyctl, gitleaks
+mise run setup      # dependencies, .env.local files, the local Supabase stack, types
+mise run check:all  # lint, types and tests for everything
+mise run dev        # the local stack and Metro for the development builds
+```
+
+Cloud sessions use `tools/cloud-setup.sh` instead (see [docs/pipeline.md](docs/pipeline.md#5-cloud-sessions)).

@@ -1,0 +1,18 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[python]": { "editor.defaultFormatter": "charliermarsh.ruff" },
+  "[markdown]": { "editor.formatOnSave": false },
+  "tailwindCSS.experimental.configFile": "mobile/src/global.css",
+  "tailwindCSS.classAttributes": [
+    "className",
+    "contentContainerClassName",
+    "columnWrapperClassName",
+    "imageClassName",
+    "tintColorClassName",
+    "placeholderTextColorClassName",
+    "selectionColorClassName",
+    "cursorColorClassName"
+  ],
+  "tailwindCSS.classFunctions": ["cn", "useResolveClassNames"]
+}

@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Environment: never commit secrets. Each package keeps a committed .env.example.
+.env
+.env.*
+!.env.example
+
+# Expo and React Native
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+.metro-health-check*
+mobile/ios/
+mobile/android/
+
+# Supabase
+supabase/.branches/
+supabase/.temp/
+
+# Tooling
+*.tsbuildinfo
+.pytest_cache/
+.ruff_cache/
+coverage/
+.DS_Store
+npm-debug.*
+.claude/settings.local.json
+.claude/state/

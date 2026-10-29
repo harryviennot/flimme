@@ -1,6 +1,6 @@
 # App structure
 
-How the MovieMatch app is built: the Expo project, its screens and navigation, where state lives, how it talks to the backend, sign-in, realtime, the offline vote queue, the card stack, the Letterboxd export on the phone, invites and deep links, translations, analytics and crash reports, testing, and builds and updates. Written on 29 October 2026, before the first line of app code; the app's repository, [movie-swipe-app](https://github.com/harryviennot/movie-swipe-app), is still empty.
+How the MovieMatch app is built: the Expo project, its screens and navigation, where state lives, how it talks to the backend, sign-in, realtime, the offline vote queue, the card stack, the Letterboxd export on the phone, invites and deep links, translations, analytics and crash reports, testing, and builds and updates. Written on 29 October 2026, before the first line of app code. The app now lives in `mobile/` of the one repository (decided on 29 October 2026); its foundations are described in [groundwork.md](groundwork.md#the-apps-foundations).
 
 It builds on the revival plan's [stack](../product/revival-plan.md#picking-the-stack) and [Expo upgrade notes](../product/revival-plan.md#upgrading-expo-and-packages), the [data model](data-model.md) (above all [The app's API](data-model.md#the-apps-api) and [Realtime](data-model.md#realtime)), the [Letterboxd integration](../integrations/letterboxd.md#connecting) and the [deck engine](deck-engine.md). Game rules, the onboarding flow as a product and how cards are chosen are covered elsewhere. Decisions are in [decisions.md](../decisions.md).
 
@@ -297,6 +297,8 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 - **Minimum version.** At launch and on every return to the foreground, the app reads `min_app_version` from `api.app_config`. Below it, a full-screen "Update the app" with the store link replaces everything. This is what lets the backend retire an old `api` function once a `_v2` has shipped.
 
 ## Folder structure
+
+> **Replaced on 29 October 2026** by the structure in [groundwork.md](groundwork.md#structure): routes in `mobile/src/app/`, components in `ui/`, `shared/` and `screens/<screen>/`, logic in `features/`. The tree below is the original plan.
 
 ```
 movie-swipe-app/

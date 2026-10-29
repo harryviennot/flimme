@@ -53,7 +53,7 @@ flowchart TD
 
 ```
 movie-swipe/
-  mobile/              the Expo app; its own app/ folder holds the routes
+  mobile/              the Expo app; routes in mobile/src/app/
   server/              the Python recommendation server (uv)
   supabase/            config.toml, migrations/, tests/ (pgTAP), seed.sql
   packages/contract/   the api client, generated types, payload types, Realtime events
@@ -195,8 +195,8 @@ Your proposal, with two additions: pieces reused across screens that know about 
 
 ```
 mobile/
-  app/                    routes only, one file per screen
   src/
+    app/                  routes only, one file per screen (Expo Router, SDK 58's default place)
     components/
       ui/                 reusable primitives that know nothing about films or rooms
       shared/             reusable pieces that do: movie card, poster thumb, player pill, room ticket
@@ -206,6 +206,7 @@ mobile/
     theme/                tokens.json, the generated theme and tokens.ts, motion
     lib/                  haptics, sound, analytics, storage, formatting, server time
     i18n/                 setup, locales/fr, locales/en
+  scripts/                tokens (theme and icons from tokens.json), check-i18n, check-gallery
   .maestro/
 ```
 
@@ -217,6 +218,8 @@ mobile/
 - Routes stay thin: they lay out a screen from `screens/` pieces and `features/` hooks. Logic in `features/` is tested without rendering anything.
 
 ### Styling: NativeWind or Uniwind
+
+> **Decided on 29 October 2026: Uniwind.** Built in the groundwork: Uniwind 1.13 with Tailwind 4.3 on SDK 58 bundles for iOS and renders on the web. The M3.12 spike confirms it on a low-end Android.
 
 Checked on npm today:
 
@@ -272,7 +275,7 @@ The Figma already has the first set:
 
 **Missing from the Figma, needed by every screen:** `Text`, `Icon`, `Screen` (safe areas, background, top bar), `Pressable` (the one touchable everything tappable uses: the press animation, the haptic, a 44-point minimum target, a required accessibility label), `Sheet`, `Skeleton`, `EmptyState`, `ErrorState`, `Banner` (Reconnecting, offline), `Countdown`, `MarqueeBulbs` (the chasing lights, the brand's signature) and `Spotlight` (the gradient backdrops). The designer specs each from the screens it appears on.
 
-**The gallery:** `app/dev/gallery.tsx`, in development builds only, shows every `ui/` and `shared/` component in every state, with fixture data and the Figma's fictional posters. A Maestro flow screenshots it. The designer compares it with the Figma page once when the set is done, and after that only for the components a pull request changes.
+**The gallery:** `src/app/dev/gallery.tsx`, in development builds only, shows every `ui/` and `shared/` component in every state, with fixture data and the Figma's fictional posters. A Maestro flow screenshots it. The designer compares it with the Figma page once when the set is done, and after that only for the components a pull request changes.
 
 ### Keeping every screen consistent
 

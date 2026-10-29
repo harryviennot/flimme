@@ -1,0 +1,19 @@
+# Git hooks, installed by `pnpm install` (postinstall).
+pre-commit:
+  parallel: true
+  commands:
+    prettier:
+      glob: '*.{ts,tsx,js,mjs,cjs,json,css,yml,yaml}'
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+    ruff:
+      glob: 'server/**/*.py'
+      run: ruff format {staged_files} && ruff check --fix {staged_files}
+      stage_fixed: true
+    gitleaks:
+      run: command -v gitleaks >/dev/null 2>&1 && gitleaks git --staged --redact --no-banner || echo "gitleaks not installed, skipped (CI still scans)"
+
+pre-push:
+  commands:
+    check:
+      run: node tools/check.mjs

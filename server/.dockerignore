@@ -1,0 +1,21 @@
+# Only pyproject.toml, uv.lock, README.md and src/ go into the image.
+.venv
+.git
+.gitignore
+.dockerignore
+Dockerfile
+
+# Caches
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.pyright
+
+# Tests and tools are not needed to run the server
+tests
+tools
+
+# Local settings and secrets never go into an image
+.env
+.env.*

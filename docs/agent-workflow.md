@@ -295,7 +295,7 @@ The waiting states count too: Reconnecting, "Offline: 6 swipes waiting", "Jo is 
 - **Week 0: simulate the rules.** A small script plays bot groups of 2 to 10 with made-up tastes over a popularity-shaped deck, under the first release's rules: how often each group size matches before card 40, how often the Final Cut decides, how long a pick takes. It tests the mechanics, not real taste, and it feeds M0.7 before any SQL is written. One thing it may show: with a crowd deck, 70% of 8 to 10 players rarely like the same film, so the Final Cut would be the normal ending for big groups. Fine, if we know it.
 - **The M6 kickoff:** the pacing of a 5-minute game and the beats above.
 - **Playtests** (M6.20, M10.3, M12): who plays, what to watch for, three questions afterwards, and a write-up that turns into changes to the starting values, which the docs already list.
-- **Scope.** The first release leaves the recap card (M16.1), Play again (M16.3) and reactions (M16.7) until after launch. All three are cheap, already designed, and carry both fun and growth. **Decided on 29 October 2026:** the recap card and Play again join the first release; reactions wait.
+- **Scope.** The first release left the recap card, Play again (then M16.1 to M16.3, now M6.21 to M6.23) and reactions (M16.7) until after launch. All three are cheap, already designed, and carry both fun and growth. **Decided on 29 October 2026:** the recap card and Play again join the first release; reactions wait.
 
 ## How each layer is tested
 
@@ -340,7 +340,7 @@ EAS's free plan allows 15 builds per platform a month, so JavaScript changes go 
 
 - **roadmap.md stays the source of truth.** Its task lines are regular enough to parse (`- [ ] **M4.8** … · needs …`), which is all `tools/next` needs.
 - **One task, one branch, one pull request**, as the roadmap says. The brief lives in the pull request body, so the plan, the code, the review and the test evidence sit together. For M and L tasks, the planner opens the draft pull request.
-- **On merge**, an Action ticks the box and updates "Progress: N of 235".
+- **On merge**, an Action ticks the box and updates the "Progress" line.
 - **Questions** from briefs go to Harry; the scribe writes the answers into decisions.md.
 - **A board** (GitHub Projects) can be generated from the roadmap later if a visual board helps. Linear is connected here too, but it would be a second source of truth.
 

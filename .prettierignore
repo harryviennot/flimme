@@ -1,0 +1,11 @@
+# Docs keep their own hand formatting.
+*.md
+docs/
+# Generated or locked files.
+pnpm-lock.yaml
+server/uv.lock
+packages/contract/src/database.types.ts
+mobile/src/theme/generated/
+mobile/src/uniwind-types.d.ts
+mobile/assets/
+supabase/

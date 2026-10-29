@@ -37,7 +37,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | Sound only for the match and the finale's reveal: off everywhere else, quiet when the phone is set to silent, never pausing other audio | 29 Oct 2026 | [Motion, haptics and sound](architecture/groundwork.md#motion-haptics-and-sound) |
 | One repository for the app, the server, Supabase and the docs; `movie-swipe-app` is retired | 29 Oct 2026 | [The repository](architecture/groundwork.md#the-repository) |
 | Agents build the app as the agent workflow describes: plan by feature, build by layer, eight agents, ceremony by task size. Harry merges everything for the first two weeks, then small backend tasks merge themselves once CI and the review pass | 29 Oct 2026 | [Agent workflow](agent-workflow.md) |
-| The app is styled with Tailwind classes (NativeWind-style) | 29 Oct 2026 | [Styling](architecture/groundwork.md#styling-nativewind-or-uniwind) |
+| The app is styled with Tailwind 4 classes through Uniwind (not NativeWind). The M3.12 spike confirms it on a low-end Android; NativeWind 4.2.7 is the fallback if it fails there | 29 Oct 2026 | [Styling](architecture/groundwork.md#styling-nativewind-or-uniwind) |
 
 ## Defaults, not yet confirmed
 
@@ -94,9 +94,8 @@ Chosen while designing; each is easy to change.
 | Deck A/B tests: the room is the unit, "a pick within 5 minutes" decides, with misery, repeat rate, abandoned rooms and the fallback share as guardrails; one test at a time, about 350 rooms per variant, at least 2 weeks | Sized for a small app | [Reading A/B tests](product/analytics.md#reading-ab-tests) |
 | Store assets use fictional posters; copy never says "for kids"; an honest 13+ rating on Apple and a 13+ target audience on Google Play until family profiles exist. French is the primary store language. Listed only where hosting works | Apple reserves "For Kids" wording for its Kids Category, and Google's Families policy would apply | [Age ratings](product/store-listing.md#age-ratings) |
 | Store reviewers get a demo room (a reserved code where two bot players join and swipe) and a demo Letterboxd account we own | A reviewer alone on one phone can't play a group game, and the RSS check refuses a made-up export | [Passing review](product/store-listing.md#passing-review) |
-| The styling engine is picked in the M3.12 spike on a low-end Android: Uniwind first, NativeWind 4.2.7 as the fallback | Same classes either way; Uniwind is on current Tailwind and compiles styles at build time, NativeWind 5 is still a release candidate | [Styling](architecture/groundwork.md#styling-nativewind-or-uniwind) |
 | Components in three tiers: `ui/` (primitives), `shared/` (reused pieces that know about films and rooms), `screens/<screen>/` (single use) | Screens never differ, and an agent finds a screen's pieces from its route | [Structure](architecture/groundwork.md#structure) |
-| A neutral bundle id, chosen now | Players never see it, so the app can start before the name | [Accounts](architecture/groundwork.md#accounts) |
+| A neutral bundle id, chosen now: `com.harryviennot.moviematch` (with `.dev` and `.preview`), set in `mobile/app.config.ts`. Change it before M10.1 if you want another | Players never see it, so the app can start before the name | [Accounts](architecture/groundwork.md#accounts) |
 | Cloud sessions test SQL on their own Postgres 16 with stand-ins for Supabase's schemas; the full stack runs in CI and on the Mac | Image pulls are rate-limited in cloud containers | [Cloud sessions](architecture/groundwork.md#cloud-sessions) |
 | Starting values for the server, operations, security, privacy, analytics and the store listing | Placeholders until playtests | [Server](architecture/server-structure.md), [Operations](architecture/operations.md#starting-values), [Security](architecture/security.md), [Privacy](product/privacy.md#starting-values), [Analytics](product/analytics.md#every-metric) |
 

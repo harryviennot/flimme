@@ -1,0 +1,170 @@
+# Every pull request: only the parts that changed are checked, so a docs-only or app-only
+# change doesn't start the database. See docs/architecture/groundwork.md#ci-and-repository-settings.
+# Actions are on version tags for now; roadmap M1.15 pins them to commit SHAs
+# (Dependabot keeps them current).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      mobile: ${{ steps.filter.outputs.mobile }}
+      server: ${{ steps.filter.outputs.server }}
+      database: ${{ steps.filter.outputs.database }}
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            mobile:
+              - 'mobile/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+            server:
+              - 'server/**'
+            database:
+              - 'supabase/**'
+              - 'docs/architecture/schema.sql'
+            docs:
+              - '**/*.md'
+
+  title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: The title starts with a task id (or says what kind of change it is)
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! printf '%s' "$TITLE" | grep -Eq '^(M[0-9]+\.[0-9]+|Docs|Chore|Fix|Bootstrap)\b'; then
+            echo "Start the title with the roadmap task id, e.g. \"M4.8 Join with a code\"."
+            exit 1
+          fi
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  mobile:
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Versions match the Expo SDK
+        run: pnpm --filter mobile exec expo install --check
+      - name: Tokens, translations, gallery, lint, types, tests
+        run: pnpm --filter mobile run check
+      - name: Contract types
+        run: pnpm --filter @movie-swipe/contract run typecheck
+
+  server:
+    needs: changes
+    if: needs.changes.outputs.server == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run ruff check . && uv run ruff format --check .
+      - run: uv run pyright
+      - run: uv run pytest -q
+
+  database-lite:
+    # Until schema.sql becomes the baseline migration (M1.5), the schema is tested on
+    # plain Postgres 16 with stand-ins for Supabase's schemas, like cloud sessions do.
+    needs: changes
+    if: needs.changes.outputs.database == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Postgres 16 with pgTAP and pgvector
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-16-pgtap postgresql-16-pgvector libtap-parser-sourcehandler-pgtap-perl
+          sudo systemctl start postgresql
+          sudo -u postgres createuser --superuser "$USER"
+      - run: bash supabase/lite/load.sh
+        env:
+          PGDATABASE: postgres
+      - run: bash supabase/lite/test.sh
+
+  database:
+    # The real local stack, once migrations exist. M1.5 turns this on by adding the
+    # baseline migration; M1.15 adds the deploy workflows.
+    needs: changes
+    if: needs.changes.outputs.database == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: migrations
+        run: echo "count=$(ls supabase/migrations/*.sql 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
+      - if: steps.migrations.outputs.count != '0'
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - if: steps.migrations.outputs.count != '0'
+        name: Start only the services the tests need
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
+      - if: steps.migrations.outputs.count != '0'
+        run: supabase db reset
+      - if: steps.migrations.outputs.count != '0'
+        run: supabase test db
+      - if: steps.migrations.outputs.count != '0'
+        name: New migrations are safe (Squawk)
+        run: |
+          changed=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref || 'main' }}... -- 'supabase/migrations/*.sql')
+          if [ -n "$changed" ]; then npx --yes squawk-cli $changed; fi
+      - if: steps.migrations.outputs.count != '0'
+        uses: pnpm/action-setup@v4
+      - if: steps.migrations.outputs.count != '0'
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - if: steps.migrations.outputs.count != '0'
+        name: Generated types are up to date
+        run: pnpm install --frozen-lockfile && node tools/typegen.mjs --check
+
+  docs:
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node tools/check-links.mjs

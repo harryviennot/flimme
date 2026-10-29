@@ -1,0 +1,71 @@
+# Tools and commands for everyone: Harry's Mac, CI and agents.
+# `mise install` installs the tools; `mise run <task>` runs a task; `mise tasks` lists them.
+# CLIs marked latest: run `mise use <tool>@<version>` once installed to pin them.
+
+[tools]
+node = "24"
+pnpm = "10.28.0"
+python = "3.13"
+uv = "0.11"
+supabase = "latest"
+flyctl = "latest"
+gitleaks = "latest"
+
+[tasks.setup]
+description = "Install every dependency, create .env.local files, start the local stack and generate types"
+run = [
+  "pnpm install",
+  "uv sync --directory server",
+  "node tools/env-init.mjs",
+  "supabase start",
+  "supabase db reset",
+  "node tools/typegen.mjs",
+]
+
+[tasks.dev]
+description = "Start the local stack (if needed) and Metro for development builds"
+run = [
+  "supabase status >/dev/null 2>&1 || supabase start",
+  "node tools/env-init.mjs --lan",
+  "pnpm --filter mobile start",
+]
+
+[tasks.check]
+description = "Lint, type-check and test the packages changed on this branch (what the Stop hook and pre-push run)"
+run = "node tools/check.mjs"
+
+[tasks."check:all"]
+description = "Lint, type-check and test every package"
+run = "node tools/check.mjs --all"
+
+[tasks.test]
+description = "Run every test suite"
+run = "node tools/check.mjs --all --tests-only"
+
+[tasks."db:reset"]
+description = "Rebuild the local database from migrations and the seed"
+run = "supabase db reset"
+
+[tasks."db:test"]
+description = "pgTAP tests against the local Supabase stack"
+run = "supabase test db"
+
+[tasks."db:lite"]
+description = "Load the schema into plain Postgres 16 with stand-ins (cloud sessions)"
+run = "bash supabase/lite/load.sh"
+
+[tasks."db:lite:test"]
+description = "pgTAP tests against the lite database (cloud sessions)"
+run = "bash supabase/lite/test.sh"
+
+[tasks.typegen]
+description = "Generate the api types into packages/contract from the local database"
+run = "node tools/typegen.mjs"
+
+[tasks.tokens]
+description = "Generate the Uniwind theme and tokens.ts from mobile/src/theme/tokens.json"
+run = "pnpm --filter mobile tokens"
+
+[tasks.next]
+description = "List roadmap tasks whose dependencies are done"
+run = "node tools/next.mjs"
