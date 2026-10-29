@@ -362,6 +362,8 @@ flowchart LR
 
 Then the Final Cut starts at the mode's card count or time limit, as in the [data model](data-model.md#finale).
 
+> If the card counts proposed in [game-modes.md](../product/game-modes.md#time-to-a-pick) are accepted, the narrow phase ends at card 24 for every Quick Match size and card 18 in Final Cut.
+
 **Live learning**, at every refill:
 
 - **The room's live taste** (`room_models.embedding`) starts as the average of the seated players' profiles. It moves toward the films liked tonight (super likes count double) and away from noped ones, more as votes come in, at full weight after 20 votes.
@@ -443,6 +445,8 @@ Joined to the seat's vote, each card is a labelled example: likes and super like
 
 The stages around the one being replaced don't change.
 
+> TMDB's terms may require a commercial agreement for using its content in the engine at all, language model mood tags included: see [tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution).
+
 ## Measuring it
 
 | Metric | What | Starting target |
@@ -455,6 +459,8 @@ The stages around the one being replaced don't change.
 | Misery | Share of picks where a present player's fit was under 2 | Low; watch the trend |
 | Taste check | Started, finished, skipped | Watch it |
 | Crews back within 30 days | From the revival plan | |
+
+> Exact definitions and sources, and how A/B tests are read, are in [analytics.md](../product/analytics.md#reading-ab-tests).
 
 ## Changes to the data model
 

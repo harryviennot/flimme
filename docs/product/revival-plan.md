@@ -12,6 +12,11 @@ Project review, 28 October 2026. A review of [MovieMatch](https://github.com/har
 > - **Backend**: Supabase still runs the game and realtime, but ranking, learning and every outside call move to a recommendation server around it, and the app reaches Supabase only through an `api` schema. No Edge Functions. The server's language is open. See [architecture/recommendation-server.md](../architecture/recommendation-server.md).
 > - **Data model**: the table list in [A faster foundation](#data-model) is replaced by [architecture/data-model.md](../architecture/data-model.md).
 > - **Deck engine**: the taste weights, the slate, moods and the taste check in [A smarter deck](#a-smarter-deck) are replaced by [architecture/deck-engine.md](../architecture/deck-engine.md).
+> - **Game rules**: the modes, match rules and finale are worked through in [game-modes.md](game-modes.md).
+> - **Catalog and where to watch**: the refresh schedule, provider data and embeddings are in [integrations/tmdb.md](../integrations/tmdb.md); gte-small now runs on the recommendation server, not as Supabase's built-in model. [integrations/streaming-availability.md](../integrations/streaming-availability.md) compares where-to-watch sources. Streaming Availability is dropped from v1: the winner screen says where the film is, with no "Open in Netflix" links.
+> - **App and onboarding**: how the Expo app is built is in [architecture/app-structure.md](../architecture/app-structure.md); the path from install to the first pick is in [onboarding.md](onboarding.md), which recommends web guests at launch.
+> - **Running and launching**: [architecture/server-structure.md](../architecture/server-structure.md), [architecture/operations.md](../architecture/operations.md), [architecture/security.md](../architecture/security.md), [privacy.md](privacy.md), [analytics.md](analytics.md) and [store-listing.md](store-listing.md). Together they replace the publishing checklist below.
+> - **Roadmap**: replaced by [roadmap.md](roadmap.md).
 >
 > Every decision since the report is in [decisions.md](../decisions.md).
 
@@ -406,11 +411,13 @@ Weights are starting points. Log every swipe with the score that produced the ca
 
 ### When is it a match?
 
+> Superseded in detail: see [game-modes.md](game-modes.md#when-its-a-match).
+
 | Players | Instant match when | Otherwise |
 | --- | --- | --- |
 | 2 | Both like it | Final Cut after 40 cards |
 | 3 to 4 | Everyone likes it | Final Cut after 50 cards or 8 minutes |
-| 5 to 10 | At least 70% like it and nobody used a super nope | Ranked vote among the top 4 |
+| 5 to 10 | At least 70% like it and nobody used a super nope (super nope since dropped, see [decisions.md](../decisions.md)) | Ranked vote among the top 4 |
 
 Thresholds are starting values. Count only players currently present, so someone leaving doesn't block every match.
 
@@ -539,6 +546,8 @@ With the recommended stack the FastAPI service retires: nightly ingest runs on S
 
 Tick items here as you go.
 
+> Replaced: the Store items by the [release checklist](store-listing.md#release-checklist), privacy and account items by [privacy.md](privacy.md), security items by [security.md](../architecture/security.md). The load test is planned in [operations.md](../architecture/operations.md#load-test).
+
 ### Data and licensing
 
 - [ ] TMDB notice and an approved TMDB logo in About: "This product uses the TMDB API but is not endorsed or certified by TMDB."
@@ -579,6 +588,8 @@ Tick items here as you go.
 
 ## Roadmap
 
+> Superseded: the build order, milestones and tasks are in [roadmap.md](roadmap.md), which also cuts the first release down to rooms, the game and a simple deck.
+
 Sizes are relative (S, M, L) for one developer. Each phase ends with something you can play.
 
 1. **Groundwork (S).** Confirm the name and the stack. Contact TMDB about commercial terms if you plan to earn money. Send a Letterboxd API application as upside only. Create the SDK 58 project with Expo Router and port the Figma design tokens, fonts and components.
@@ -604,6 +615,8 @@ Sizes are relative (S, M, L) for one developer. Each phase ends with something y
 | Swipes per match | Deck quality, independent of how fast people swipe |
 | Guests who install | Growth from every movie night |
 | Crews back within 30 days | Whether it became the way the group picks |
+
+> Defined, with sources and targets, in [analytics.md](analytics.md#every-metric). "Crews back within 30 days" is measured as groups back within 30 days until crews exist.
 
 ## Decisions for you
 
