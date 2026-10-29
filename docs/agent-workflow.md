@@ -76,6 +76,8 @@ The app repository is still empty, so this is the cheapest moment to choose.
 
 **Recommended: one repository.** Keep one task, one branch, one pull request either way; in one repository the app's pull request simply follows the backend's.
 
+> **Decided on 29 October 2026: one repository.** How it's set up is in [groundwork.md](architecture/groundwork.md#the-repository).
+
 ## The roster
 
 ### Agents
@@ -256,12 +258,12 @@ Leave out: streak guilt, notifications that play on loss, sessions that never en
 
 ### The motion system
 
-The designer writes it once, during M3.4, as tokens in code and as the `motion` skill, so every screen moves the same way.
+The Figma's Motion page already sets the durations and easings. During M3.4 the designer turns them into tokens in code, adds what the Figma can't hold (springs, haptics, sound) and writes the `motion` skill, so every screen moves the same way. Details in [groundwork.md](architecture/groundwork.md#motion-haptics-and-sound).
 
-- **Springs** for each kind of movement: snappy (buttons, chips), card (drag and throw), bouncy (celebrations), gentle (sheets). **Durations** for the rest: about 120 ms for a press, 200 ms for a change of state, 320 ms for a screen entering; longer only for celebrations.
+- **Durations and easings, from the Figma:** instant 80 ms, fast 150 ms, base 250 ms, slow 400 ms, celebrate 800 ms; easings standard, exit and arcade (an overshoot for stamps and buttons). **Springs**, added in code, for anything a finger drives: the card's drag and throw, presses.
 - **Rules.** Nothing blocks input. Every animation can be interrupted. The next card is already mounted. Reduce Motion swaps flights for fades. Nothing runs on the JavaScript thread during a gesture.
 - **A haptic vocabulary**, one meaning per pattern: a selection tick when a card crosses the commit line, a light tap on a button press, a firmer one on a throw, success on a match, a hard knock on a veto, a soft tick each second through the last 5 of the countdown.
-- **Sound** isn't in any doc yet. Duolingo's feel is half sound. On a couch, four phones playing the match sound at the same instant could be the best moment of the night, or just noise. See [Decisions for Harry](#decisions-for-harry).
+- **Sound**, decided on 29 October 2026: only for the match and the reveal, when four phones on a couch play it at the same instant. Off everywhere else, quiet when the phone is set to silent, and never pausing the TV or music.
 
 ### The signature moments
 
@@ -293,7 +295,7 @@ The waiting states count too: Reconnecting, "Offline: 6 swipes waiting", "Jo is 
 - **Week 0: simulate the rules.** A small script plays bot groups of 2 to 10 with made-up tastes over a popularity-shaped deck, under the first release's rules: how often each group size matches before card 40, how often the Final Cut decides, how long a pick takes. It tests the mechanics, not real taste, and it feeds M0.7 before any SQL is written. One thing it may show: with a crowd deck, 70% of 8 to 10 players rarely like the same film, so the Final Cut would be the normal ending for big groups. Fine, if we know it.
 - **The M6 kickoff:** the pacing of a 5-minute game and the beats above.
 - **Playtests** (M6.20, M10.3, M12): who plays, what to watch for, three questions afterwards, and a write-up that turns into changes to the starting values, which the docs already list.
-- **Scope.** The first release leaves the recap card (M16.1), Play again (M16.3) and reactions (M16.7) until after launch. All three are cheap, already designed, and carry both fun and growth. The game designer would argue for the recap card and Play again in the beta. See [Decisions for Harry](#decisions-for-harry).
+- **Scope.** The first release leaves the recap card (M16.1), Play again (M16.3) and reactions (M16.7) until after launch. All three are cheap, already designed, and carry both fun and growth. **Decided on 29 October 2026:** the recap card and Play again join the first release; reactions wait.
 
 ## How each layer is tested
 
@@ -414,7 +416,7 @@ Assumptions: Harry spends about half days on reviews, decisions, device checks a
 
 Once this proposal is agreed:
 
-1. The repository decision, and the layout if it's one repository.
+1. The monorepo, the tools and the rest of [groundwork.md](architecture/groundwork.md).
 2. CLAUDE.md at the root and one per layer.
 3. The eight agent files.
 4. The sixteen skills, starting with `task`, `brief`, `supabase-sql`, `expo-app`, `design-system` and `motion`.
@@ -427,13 +429,15 @@ Once this proposal is agreed:
 
 ## Decisions for Harry
 
-| Question | Recommended |
+Answered on 29 October 2026, except where marked open.
+
+| Question | Answer |
 | --- | --- |
-| One repository or two? | One, while the app repository is empty |
-| How much time a day for reviews, decisions and device checks? | Sets the number of lanes and the timeline. The timeline above assumes half days |
+| One repository or two? | One |
+| How much time a day for reviews, decisions and device checks? | Harry checks most days; the timeline above holds |
 | Where agents run | Both: backend and logic in the cloud, UI on the Mac |
 | Who merges | Harry, everything, for the first two weeks; then small backend tasks merge themselves when CI and the review pass |
-| Sound | On for the match and the reveal, off elsewhere, silent with the phone's silent switch |
-| The recap card and Play again in the first release | Yes for both; reactions can wait |
-| What took ages in the other project? | So it gets a rule here |
+| Sound | On for the match and the reveal only, off elsewhere, quiet on silent |
+| The recap card and Play again in the first release | Yes for both; reactions wait |
+| What took ages in the other project? | Open: so it gets a rule here |
 | Tracking | roadmap.md and pull requests; a board only if it helps |
