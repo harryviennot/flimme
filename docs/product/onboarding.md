@@ -228,6 +228,8 @@ Right after a successful import, a guest is offered to save their account: "Keep
 
 Errors are in [Empty and error states](#empty-and-error-states). The later prompts for a fresh export are in [Coming back](#coming-back).
 
+> The Letterboxd consent wording should also say what others in your rooms can see and how derived scores are used: see [privacy.md](privacy.md#consents).
+
 ## Accounts
 
 **Everyone starts as a guest:** an anonymous Supabase user with a profile. Everything works, including Letterboxd.
@@ -353,6 +355,8 @@ Notes for other docs, not applied there:
 | Notifications | Asked, accepted | Watch |
 | Web guests who install | From the revival plan's guests-who-install metric | Watch |
 | Accounts saved | Share of guests with 3 or more games who save | Watch |
+
+> Each metric's definition, its source (the database or PostHog) and the events behind it are in [analytics.md](analytics.md#every-metric).
 
 ## Starting values
 

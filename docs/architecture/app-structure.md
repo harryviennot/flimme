@@ -167,6 +167,8 @@ sequenceDiagram
 - **If the Apple or Google account already exists** (a reinstall, a second phone), linking fails. Default: the app offers to sign in to that account instead; the guest's games aren't merged, and the guest account is deleted after 90 days without activity like any other.
 - Development and preview builds use their own bundle ids, and each one is listed in Supabase's Apple provider settings.
 
+> Store the session encrypted, with the key in SecureStore and out of backups, rather than as plain SQLite: see [security.md](security.md#the-app). Deleting an account must also revoke Sign in with Apple tokens ([store-listing.md](../product/store-listing.md#passing-review)).
+
 ## Realtime
 
 Each room uses two topics from the [data model](data-model.md#realtime), both opened as private channels (`config: { private: true }`), which only works with "Allow public access" switched off in the project's Realtime settings.
@@ -254,6 +256,8 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 - **Sharing** uses the system share sheet: "Join my room: <link> (code 482 913)". The recap card is shared as an image with `expo-sharing`.
 - **Rejoining.** The phone keeps the current room's code. Reopening the app calls `api.join_room` with it and gets the same seat back.
 
+> The invite page also needs a Smart App Banner, the official store badges, the privacy policy link and the TMDB and JustWatch credits ([store-listing.md](../product/store-listing.md#invite-links-and-the-web-page)). If tablets are supported, Apple requires 13-inch iPad screenshots and reviews on iPad.
+
 ## Translations
 
 - `i18next` with `react-i18next`, one JSON file per feature in `src/i18n/locales/en` and `fr`, plurals through i18next. The device language (`expo-localization`) sets the profile's language at first launch, and it can be changed in settings.
@@ -266,6 +270,8 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 - **Crashes: Sentry**, with its Expo config plugin, its Metro config wrapper, `Sentry.wrap` around the root layout, and source maps uploaded by EAS Build and EAS Update. No names, codes or emails in events.
 - **Product analytics: PostHog**, wrapped in `src/lib/analytics.ts` so screens call `track(event, props)` and never the vendor. Off by default (`defaultOptIn: false`) until the player accepts analytics, recorded as an `analytics` consent. Screens are tracked from the router's path. The person is the profile id, never a name. Per the monetization doc, kid profiles are never tracked individually.
 - The event list belongs in a future analytics doc; the funnel the revival plan asks for (room created, first card, match) is the minimum.
+
+> The event list, naming rules, identity and the kids' rule are in [analytics.md](../product/analytics.md#events-sent-to-posthog). When analytics run and whether they need a prompt is an open question: [privacy.md](../product/privacy.md#analytics-without-a-consent-prompt) proposes anonymous analytics on by default with an opt-out.
 
 ## Testing
 

@@ -65,6 +65,8 @@ Kids play but never pay, never see an ad and never hand over personal data. Thes
 - **General audience, not the Kids category.** Apple's Kids category restricts third-party analytics and ads and adds stricter review; a family app for all ages doesn't need it.
 - **Store age rating.** The rating will likely follow the most mature posters the app can show, so some locked-down kid devices may not install it. The web join link covers them.
 
+> Checked in [store-listing.md](store-listing.md#age-ratings): an honest rating is 13+ on Apple, and Apple reserves "For Kids" wording for its Kids Category, so the pitch stays "the whole family". What the law asks for kids in each market, and what family profiles need before they're built, is in [privacy.md](privacy.md#children).
+
 ## Options compared
 
 Three options work from day one and fit together: Host Pro, the night pass and deck packs. The rest add income once the app has players.
@@ -140,6 +142,8 @@ Earn nothing until people come back on their own, then switch on the three launc
 
 1. **Launch free.** Track the revival plan's metrics: time to first match and crews back within 30 days. Earning nothing keeps you non-commercial under TMDB while you get their quote. Include 3 to 5 families with kids in the closed beta.
     - Gate: crews come back within 30 days at a rate you set before launch.
+
+      > Defined in [analytics.md](analytics.md#every-metric) as groups back within 30 days; 25% suggested.
 2. **Turn on the 3-games-a-month hosting cap, Host Pro with the family modes, the Night Pass, deck packs and winner-screen affiliate links in one release.** Sign the TMDB license the same week. Use RevenueCat for purchases, and join Apple's Small Business Program so Apple takes 15% instead of 30%.
     - Gate: TMDB license signed.
 3. **Add rewarded ads and pilot venue mode.** Rewarded ads only if many hosts skip the pass. Run venue mode free with 3 to 5 venues before building billing.
@@ -159,7 +163,7 @@ About 200 to 300 yearly subscribers cover the fixed costs, and the TMDB license 
 | Apple Developer Program | $99/year, about $8/month |
 | **Total** | **About $200 to $250/month** |
 
-> Streaming Availability is dropped from v1: the winner screen only says where to watch, so that line costs nothing. See [decisions.md](../decisions.md).
+> Streaming Availability is dropped from v1: the winner screen only says where to watch, so that line costs nothing. See [decisions.md](../decisions.md). The full monthly bill, checked on 29 October 2026, is in [operations.md](../architecture/operations.md#monthly-costs).
 
 At €14.99/year you keep about €10.60 per subscriber in France (after 20% VAT and Apple's 15%) and about $12.70 in the US. That makes roughly 200 to 300 subscribers. If 2 to 5% of active hosts subscribe (an assumption, typical for freemium), you need about 4,000 to 15,000 active hosts.
 

@@ -4,6 +4,8 @@ The service around Supabase that chooses every card: it ranks decks, learns from
 
 > Streaming Availability is dropped from v1: the winner screen only says where to watch, from TMDB's data. Its mentions below (winner deep links, its key) no longer apply.
 
+> How the server's code is built (language, layout, queues, latency, hosting) is in [server-structure.md](server-structure.md).
+
 The split with Supabase is one rule: **Postgres decides the game, the server decides the deck.** Why, and what each side owns, is in the data model's [Who does what](data-model.md#who-does-what). The tables the server reads and writes are in the [data model](data-model.md), its own data in [`rec`](data-model.md#6-recommendation-data). Decisions and open questions (including the server's language) are in [decisions.md](../decisions.md).
 
 ## Contents
@@ -90,3 +92,5 @@ What the algorithm may and may not do with Letterboxd data is in [integrations/l
 - Always-on processes (workers hold queue connections), so a container host with persistent machines rather than per-request serverless, in the same region as the Supabase project (the EU for French players).
 - Secrets: the database login, TMDB and Streaming Availability keys, the Supabase service key only for account deletion (it calls Supabase's auth admin API).
 - The HTTP API checks the phone's Supabase access token against the project's signing keys, so it needs no session of its own.
+
+> The hosts compared and the recommendation are in [server-structure.md](server-structure.md#hosting); secrets, deploys, monitoring and backups in [operations.md](operations.md); token checks, request limits and separate logins in [security.md](security.md#the-servers-http-api-and-letterboxd-uploads).

@@ -4,7 +4,7 @@ The database for the first public release of MovieMatch and how every part talks
 
 Companion docs: the [recommendation server](recommendation-server.md) (its processes, its contract with this database, the algorithm), the [deck engine](deck-engine.md) (how every card is chosen) and the [Letterboxd integration](../integrations/letterboxd.md) (the export, connecting, syncing). Decisions and open questions live in [decisions.md](../decisions.md).
 
-> **Pending.** The [deck engine](deck-engine.md) needs changes that aren't in this doc or in schema.sql yet: a `card_history` table, mood scores per film, deck recipes, moods on the room instead of the seat, `allow_rewatch` as the default seen rule, and a taste check that no longer marks films as seen. The full list is in [Changes to the data model](deck-engine.md#changes-to-the-data-model). The other pre-coding docs ask for more: [game-modes.md](../product/game-modes.md#changes-to-the-data-model) (one finale stage, a rewatch answer, a time limit on every rule, the game functions still to write and fixes to existing ones), [tmdb.md](../integrations/tmdb.md#changes-to-the-data-model) and [streaming-availability.md](../integrations/streaming-availability.md#changes-to-the-data-model) (the catalog jobs, service variants, free services), [app-structure.md](app-structure.md#changes-this-asks-of-the-backend) (accepting votes on cards a refill removed, fixing unmatched Letterboxd films, app config keys) and [onboarding.md](../product/onboarding.md#what-this-needs-elsewhere) (a room reference on invite links). Streaming Availability is dropped from v1 ([decisions.md](../decisions.md)): `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue and the `result` event go, and the winner screen shows where to watch from `title_availability`.
+> **Pending.** The [deck engine](deck-engine.md) needs changes that aren't in this doc or in schema.sql yet: a `card_history` table, mood scores per film, deck recipes, moods on the room instead of the seat, `allow_rewatch` as the default seen rule, and a taste check that no longer marks films as seen. The full list is in [Changes to the data model](deck-engine.md#changes-to-the-data-model). The other pre-coding docs ask for more: [game-modes.md](../product/game-modes.md#changes-to-the-data-model) (one finale stage, a rewatch answer, a time limit on every rule, the game functions still to write and fixes to existing ones), [tmdb.md](../integrations/tmdb.md#changes-to-the-data-model) and [streaming-availability.md](../integrations/streaming-availability.md#changes-to-the-data-model) (the catalog jobs, service variants, free services), [app-structure.md](app-structure.md#changes-this-asks-of-the-backend) (accepting votes on cards a refill removed, fixing unmatched Letterboxd films, app config keys) and [onboarding.md](../product/onboarding.md#what-this-needs-elsewhere) (a room reference on invite links). Streaming Availability is dropped from v1 ([decisions.md](../decisions.md)): `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue and the `result` event go, and the winner screen shows where to watch from `title_availability`. The launch docs add more: [security.md](security.md#the-database-gaps-found) (default privileges, a restricted `api.title_cards`, removing a player and locking a room, per-IP rate limits, preset avatars and name filtering, a narrower role for the server's HTTP API), [server-structure.md](server-structure.md#consuming-the-queues) (queue grants for `app_server`, a `letterboxd_match` queue), [operations.md](operations.md#changes-this-asks-elsewhere) (`internal.ops_health()`, `internal.run_retention()`), [privacy.md](../product/privacy.md#what-we-store-and-why) (training and Letterboxd-ratings switches, two retention periods) and [analytics.md](../product/analytics.md#changes-this-asks-elsewhere) (more keys in `rooms.stats`, an aggregate-only `analytics` schema).
 
 - **[schema.sql](schema.sql)** is the reference DDL for everything marked v1 below: tables, indexes, row-level security, roles, realtime policies, the queues, the app's API and the game functions. It loads cleanly on Postgres 16 with pgvector, and a 120-check test suite passed against it (see [What was tested](#what-was-tested)).
 - **v1** means the first release: the revival plan's Launch items and roadmap phases 1 to 5.
@@ -777,6 +777,8 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 - Other players' answers never reach a phone as rows. In Party mode they arrive as counts; in Blind mode not at all.
 - Phones can't send on `room:<id>`, so a fake `match` event can't appear there.
 
+> Reviewed in [security.md](security.md): what holds, the gaps found (players who left keep room access, for one) and the Supabase settings this table depends on.
+
 ## Realtime
 
 | Event | Topic | Sent by | Payload | The phone |
@@ -812,6 +814,8 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 | `embed_titles` | catalog refresh | titles whose text changed | pipeline worker |
 | `winner_links` | end of room | room, title, country | pipeline worker |
 | `room_finished` | trigger on rooms reaching `done` | room | pipeline worker |
+
+> How the server consumes each queue (visibility timeouts, poison messages, why running a message twice is safe) is in [server-structure.md](server-structure.md#consuming-the-queues). It adds a `letterboxd_match` queue, and `app_server` still needs read and delete grants on the queues it consumes.
 
 **Scheduled jobs** (Supabase Cron, inside the database, so schedules live next to the data and the server only consumes):
 
@@ -868,6 +872,8 @@ The query body is unchanged since that measurement; only its schema moved. The p
 | Guest accounts with no activity for 90 days | Deleted with their data |
 
 Training exports carry seat ids, never profile ids, names or Letterboxd usernames.
+
+> How these rules run (one daily job, plus server jobs for guest accounts and TMDB content) is in [operations.md](operations.md#retention-jobs). [privacy.md](../product/privacy.md#what-we-store-and-why) adds retention for training exports (24 months) and for a minimal proof of consent after deletion (5 years).
 
 ## Later: how each future feature lands
 
@@ -926,3 +932,5 @@ In this session, on a throwaway Postgres 16 database with pgvector 0.6 and small
 Separately: two overlapping votes on the same card, through `api.cast_vote`, where the second waited for the first's lock and then matched; the retrieval timing above; all diagrams render with Mermaid 11.
 
 Not tested: anything that needs a real Supabase project (Realtime delivery, the token's `is_anonymous` claim, the real Queues and their grants, the Data API's exposed-schema setting), the server itself, and the functions marked "to write".
+
+> These checks were never saved to the repository. They get rewritten as pgTAP tests before migrations start, and schema.sql becomes the baseline migration: see [operations.md](operations.md#from-schemasql-to-migrations).

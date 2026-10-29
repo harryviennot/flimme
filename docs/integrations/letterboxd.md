@@ -84,7 +84,7 @@ sequenceDiagram
 - **What leaves the phone**: the username from `profile.csv`; per film from `watched.csv` and `watchlist.csv`: name, year, film link, watched, on watchlist; per diary entry from `diary.csv`: name, year, entry link, watched date, logged date, rating if any, rewatch. Nothing else is read.
 - **Consent** is asked before the upload and stored in `consents`; the link points at it.
 
-> On Android, the browser sheet's call returns as soon as the tab opens, so the app waits until it is back in the foreground before opening the picker ([app-structure.md](../architecture/app-structure.md#letterboxd-on-the-phone)). Where Letterboxd is offered in the app and how it's pitched: [onboarding.md](../product/onboarding.md#letterboxd).
+> On Android, the browser sheet's call returns as soon as the tab opens, so the app waits until it is back in the foreground before opening the picker ([app-structure.md](../architecture/app-structure.md#letterboxd-on-the-phone)). Where Letterboxd is offered in the app and how it's pitched: [onboarding.md](../product/onboarding.md#letterboxd). Matching runs on its own queue, `letterboxd_match`, so an import never waits behind scheduled syncs ([server-structure.md](../architecture/server-structure.md#consuming-the-queues)).
 
 ## The RSS check
 
@@ -95,6 +95,8 @@ The export isn't signed, so a hand-made one could carry any username. When an ex
 - Since every app account has its own copy of its Letterboxd data, even a fake export only puts public data in the faker's own account. It can't read or delete anyone else's.
 
 The check runs on the server, which isn't built yet; the database only stores its result.
+
+> What the check does and doesn't prove, and how the server fetches the feed safely, are in [security.md](../architecture/security.md#the-servers-http-api-and-letterboxd-uploads). Store reviewers connect with a demo Letterboxd account we own ([store-listing.md](../product/store-listing.md#passing-review)).
 
 ## Keeping it fresh
 
@@ -140,6 +142,8 @@ The server writes all of this through `internal.start_letterboxd_import`, `inter
 - It is not pooled across players into per-film scores ("average rating of our users on Letterboxd"). Letterboxd's terms forbid building an index of its content, and a pooled score is close to that. `rec.title_stats` uses in-app swipes only.
 - There is no Letterboxd global rating to use: the feed only carries the member's own rating, the API is closed, and scraping is forbidden. The global rating is TMDB's, plus the app's own like rate.
 - A trained model that takes each player's own Letterboxd ratings as input features is the grey area. It is the player's personal data used for their own recommendations, but the model itself is learned across players. Worth a short legal read before launch.
+
+> The options for the shared model, and what Letterboxd's terms (updated October 2026) say, are in [privacy.md](../product/privacy.md#letterboxd).
 
 ## Ground rules
 

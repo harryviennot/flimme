@@ -15,6 +15,7 @@ Project review, 28 October 2026. A review of [MovieMatch](https://github.com/har
 > - **Game rules**: the modes, match rules and finale are worked through in [game-modes.md](game-modes.md).
 > - **Catalog and where to watch**: the refresh schedule, provider data and embeddings are in [integrations/tmdb.md](../integrations/tmdb.md); gte-small now runs on the recommendation server, not as Supabase's built-in model. [integrations/streaming-availability.md](../integrations/streaming-availability.md) compares where-to-watch sources. Streaming Availability is dropped from v1: the winner screen says where the film is, with no "Open in Netflix" links.
 > - **App and onboarding**: how the Expo app is built is in [architecture/app-structure.md](../architecture/app-structure.md); the path from install to the first pick is in [onboarding.md](onboarding.md), which recommends web guests at launch.
+> - **Running and launching**: [architecture/server-structure.md](../architecture/server-structure.md), [architecture/operations.md](../architecture/operations.md), [architecture/security.md](../architecture/security.md), [privacy.md](privacy.md), [analytics.md](analytics.md) and [store-listing.md](store-listing.md). Together they replace the publishing checklist below.
 >
 > Every decision since the report is in [decisions.md](../decisions.md).
 
@@ -544,6 +545,8 @@ With the recommended stack the FastAPI service retires: nightly ingest runs on S
 
 Tick items here as you go.
 
+> Replaced: the Store items by the [release checklist](store-listing.md#release-checklist), privacy and account items by [privacy.md](privacy.md), security items by [security.md](../architecture/security.md). The load test is planned in [operations.md](../architecture/operations.md#load-test).
+
 ### Data and licensing
 
 - [ ] TMDB notice and an approved TMDB logo in About: "This product uses the TMDB API but is not endorsed or certified by TMDB."
@@ -609,6 +612,8 @@ Sizes are relative (S, M, L) for one developer. Each phase ends with something y
 | Swipes per match | Deck quality, independent of how fast people swipe |
 | Guests who install | Growth from every movie night |
 | Crews back within 30 days | Whether it became the way the group picks |
+
+> Defined, with sources and targets, in [analytics.md](analytics.md#every-metric). "Crews back within 30 days" is measured as groups back within 30 days until crews exist.
 
 ## Decisions for you
 

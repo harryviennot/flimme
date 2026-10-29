@@ -460,6 +460,8 @@ The stages around the one being replaced don't change.
 | Taste check | Started, finished, skipped | Watch it |
 | Crews back within 30 days | From the revival plan | |
 
+> Exact definitions and sources, and how A/B tests are read, are in [analytics.md](../product/analytics.md#reading-ab-tests).
+
 ## Changes to the data model
 
 None of these are in [data-model.md](data-model.md) or [schema.sql](schema.sql) yet. They add to or change v1 parts that aren't live, so nothing needs migrating.

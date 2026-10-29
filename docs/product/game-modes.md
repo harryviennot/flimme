@@ -142,6 +142,8 @@ When the finale starts is in [The finale](#the-finale); the card counts and time
 | **The host goes silent in the lobby** | After 2 minutes, the host role moves the same way, so the room can still start |
 | **Fewer than 2 players present while swiping** | If it lasts 5 minutes, the room is abandoned. If someone comes back before that, the game carries on |
 
+> The host can also remove a player, who can't rejoin, and lock the room against new seats, and anyone can report a player: see [security.md](../architecture/security.md#room-codes-joining-and-the-host). Apple's guideline 1.2 asks for it ([store-listing.md](store-listing.md#passing-review)).
+
 ## What players see: Party and Blind
 
 The host chooses before the start. Party is the default.
