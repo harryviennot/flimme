@@ -39,6 +39,8 @@ Everything written about the MovieMatch revival: what we're building, how it wor
 | [streaming-availability.md](integrations/streaming-availability.md) | Where-to-watch sources compared and the choice; Streaming Availability's data, terms and attribution; deep links and the last check on the winner screen; the staleness metric; service mapping; cost | Not used in v1: kept as the comparison of sources and a plan B |
 | **Decisions** | | |
 | [decisions.md](decisions.md) | Decided, defaults, open, dropped | Kept up to date |
+| **Process** | | |
+| [agent-workflow.md](agent-workflow.md) | How we build with agents: full stack or split, the agents and skills, how a task flows from brief to merge, slices for the first release, design and game feel, testing per layer, where agents run, tracking, guardrails, models and token budgets, a timeline to the beta | Proposal for discussion, 29 Oct 2026 |
 | **Archive** | | |
 | [revival-plan-2026-10-28.html](archive/revival-plan-2026-10-28.html) | The original revival plan report, with its interactive checklist and group-scoring demo. Download and open in a browser | Frozen |
 
