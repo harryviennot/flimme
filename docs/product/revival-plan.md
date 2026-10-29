@@ -11,6 +11,7 @@ Project review, 28 October 2026. A review of [MovieMatch](https://github.com/har
 > - **Letterboxd**: players connect only by uploading their own export, not by typing a username; the RSS feed only keeps the diary up to date. Ratings come only from diary entries. See [integrations/letterboxd.md](../integrations/letterboxd.md).
 > - **Backend**: Supabase still runs the game and realtime, but ranking, learning and every outside call move to a recommendation server around it, and the app reaches Supabase only through an `api` schema. No Edge Functions. The server's language is open. See [architecture/recommendation-server.md](../architecture/recommendation-server.md).
 > - **Data model**: the table list in [A faster foundation](#data-model) is replaced by [architecture/data-model.md](../architecture/data-model.md).
+> - **Deck engine**: the taste weights, the slate, moods and the taste check in [A smarter deck](#a-smarter-deck) are replaced by [architecture/deck-engine.md](../architecture/deck-engine.md).
 >
 > Every decision since the report is in [decisions.md](../decisions.md).
 
@@ -351,6 +352,8 @@ Votes go through one database function that inserts the row and checks the match
 - Titles and overviews in the device language from the catalog (the server hard-codes English today).
 
 ## A smarter deck
+
+> Superseded in detail: see [architecture/deck-engine.md](../architecture/deck-engine.md).
 
 The old engine picks genre combinations at random and shows whatever the search returns, A to Z. The new one scores every eligible title for each player, combines those scores for the group, and keeps learning while people swipe.
 

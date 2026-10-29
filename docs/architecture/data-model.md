@@ -2,7 +2,9 @@
 
 The database for the first public release of MovieMatch and how every part talks to it. It is built from the [revival plan](../product/revival-plan.md) (stack, catalog, deck engine, game design, Letterboxd) and the [monetization options](../product/monetization.md) (Host Pro, family modes, packs). Written in October 2026.
 
-Companion docs: the [recommendation server](recommendation-server.md) (its processes, its contract with this database, the algorithm) and the [Letterboxd integration](../integrations/letterboxd.md) (the export, connecting, syncing). Decisions and open questions live in [decisions.md](../decisions.md).
+Companion docs: the [recommendation server](recommendation-server.md) (its processes, its contract with this database, the algorithm), the [deck engine](deck-engine.md) (how every card is chosen) and the [Letterboxd integration](../integrations/letterboxd.md) (the export, connecting, syncing). Decisions and open questions live in [decisions.md](../decisions.md).
+
+> **Pending.** The [deck engine](deck-engine.md) needs changes that aren't in this doc or in schema.sql yet: a `card_history` table, mood scores per film, deck recipes, moods on the room instead of the seat, `allow_rewatch` as the default seen rule, and a taste check that no longer marks films as seen. The full list is in [Changes to the data model](deck-engine.md#changes-to-the-data-model).
 
 - **[schema.sql](schema.sql)** is the reference DDL for everything marked v1 below: tables, indexes, row-level security, roles, realtime policies, the queues, the app's API and the game functions. It loads cleanly on Postgres 16 with pgvector, and a 120-check test suite passed against it (see [What was tested](#what-was-tested)).
 - **v1** means the first release: the revival plan's Launch items and roadmap phases 1 to 5.
@@ -356,6 +358,8 @@ The view **user_title_facts** merges the sources into one row per player and fil
 | model, computed_at | | Which model built it, and when |
 
 The embedding is what SQL retrieval uses. The server is free to keep richer per-player features of its own in `rec`.
+
+> The weights above are replaced by the deck engine's [signals](deck-engine.md#signals), which also add a `confidence` column.
 
 ## 5. Rooms and the game
 
