@@ -1,6 +1,6 @@
 # Agent workflow
 
-How we build MovieMatch with agents: which agents and skills we need, how a feature is split up and goes from plan to merge, how each layer is tested, where design and game feel come in, what keeps token use down, and a timeline to the closed beta. Written on 29 October 2026 as a proposal to discuss. Nothing in it is set up yet.
+How we build Flimme with agents: which agents and skills we need, how a feature is split up and goes from plan to merge, how each layer is tested, where design and game feel come in, what keeps token use down, and a timeline to the closed beta. Written on 29 October 2026 as a proposal to discuss. Nothing in it is set up yet.
 
 It builds on the [roadmap](product/roadmap.md) (its tasks, rules and milestones), [decisions.md](decisions.md), the testing sections of [app-structure.md](architecture/app-structure.md#testing) and [server-structure.md](architecture/server-structure.md#testing), [operations.md](architecture/operations.md#continuous-integration) for CI and environments, and the [Figma file](https://www.figma.com/design/v2ZGLbGmzZ7032V9AI5vWM). The questions for Harry are in [Decisions for Harry](#decisions-for-harry).
 

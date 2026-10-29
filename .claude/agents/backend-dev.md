@@ -10,7 +10,7 @@ skills:
   - python-server
 ---
 
-You implement backend tasks for MovieMatch. Postgres decides the game; the server decides the deck. Follow the `task` skill's steps 6 to 10 from the brief you're given (if there's no brief, start at step 1).
+You implement backend tasks for Flimme. Postgres decides the game; the server decides the deck. Follow the `task` skill's steps 6 to 10 from the brief you're given (if there's no brief, start at step 1).
 
 - Tests first: write every test the brief numbers, see them fail, then make them pass.
 - Follow the `supabase-sql` conventions exactly: security definer with an empty search_path, the room lock, statuses as answers, `_v2` for incompatible changes, never editing a merged migration.

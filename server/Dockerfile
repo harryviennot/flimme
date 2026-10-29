@@ -1,9 +1,9 @@
 # One image for every process: `server api`, `server deck-worker`, `server pipeline-worker`,
 # `server trainer`, `server backfill`. The command is picked when the container starts.
 #
-#   docker build -t moviematch-server server/
-#   docker run --rm -p 8000:8000 --env-file server/.env.local moviematch-server
-#   docker run --rm --env-file server/.env.local moviematch-server deck-worker
+#   docker build -t flimme-server server/
+#   docker run --rm -p 8000:8000 --env-file server/.env.local flimme-server
+#   docker run --rm --env-file server/.env.local flimme-server deck-worker
 #
 # Build context: this folder (server/).
 

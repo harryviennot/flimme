@@ -1,1 +1,1 @@
-"""MovieMatch recommendation server."""
+"""Flimme recommendation server."""

@@ -1,6 +1,6 @@
 # TMDB
 
-How MovieMatch builds its film catalog from TMDB and keeps it fresh, including where every film can be watched, which decides what may appear in a deck. Written on 29 October 2026.
+How Flimme builds its film catalog from TMDB and keeps it fresh, including where every film can be watched, which decides what may appear in a deck. Written on 29 October 2026.
 
 It builds on the [data model](../architecture/data-model.md#2-catalog) (the catalog tables), the [recommendation server](../architecture/recommendation-server.md#processes) (its pipeline worker runs everything here) and the [deck engine](../architecture/deck-engine.md) (embeddings and moods). The choice of where-to-watch source and the winner's deep links are in [streaming-availability.md](streaming-availability.md). Facts about TMDB were checked on its live documentation, terms and forum on 29 October 2026; see [Sources checked](#sources-checked). Decisions are in [decisions.md](../decisions.md).
 

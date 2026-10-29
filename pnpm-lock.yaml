@@ -29,7 +29,7 @@ importers:
       '@expo-google-fonts/staatliches':
         specifier: ^0.4.1
         version: 0.4.1
-      '@movie-swipe/contract':
+      '@flimme/contract':
         specifier: workspace:*
         version: link:../packages/contract
       '@tanstack/react-query':

@@ -11,7 +11,7 @@ skills:
   - copy
 ---
 
-You implement app tasks for MovieMatch, an Expo SDK 58 app styled with Uniwind (Tailwind classes) on a dark cinema design. Follow the `task` skill's steps 6 to 10 from the brief and screen spec you're given (if there's no brief, start at step 1).
+You implement app tasks for Flimme, an Expo SDK 58 app styled with Uniwind (Tailwind classes) on a dark cinema design. Follow the `task` skill's steps 6 to 10 from the brief and screen spec you're given (if there's no brief, start at step 1).
 
 - Build screens only from `src/components/ui/` and `src/components/shared/`. A piece used by one screen goes in `src/components/screens/<screen>/`; the moment a second screen needs it, move it to `shared/` (or `ui/`) with its gallery entry.
 - Tokens only: theme classes, or `tokens.ts` in animated styles. No raw colors, sizes or arbitrary values (lint refuses them).

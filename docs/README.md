@@ -1,6 +1,6 @@
 # Docs
 
-Everything written about the MovieMatch revival: what we're building, how it works, and what has been decided.
+Everything written about Flimme (the revival of MovieMatch): what we're building, how it works, and what has been decided.
 
 ## Start here
 

@@ -43,7 +43,7 @@ Two branches are waiting: `claude/agent-workflow` (the docs) and `claude/groundw
 
 ### 2. One repository on GitHub
 
-1. Rename `movie-swipe-backend` to `movie-swipe` (Settings, General, Repository name). GitHub keeps redirecting the old address. Locally: `git remote set-url origin git@github.com:harryviennot/movie-swipe.git`.
+1. Rename `movie-swipe-backend` to `flimme` (Settings, General, Repository name). GitHub keeps redirecting the old address. Locally: `git remote set-url origin git@github.com:harryviennot/flimme.git`.
 2. Archive `movie-swipe-app` (Settings, Danger zone, Archive).
 3. Turn on: Dependabot alerts and security updates (Settings, Code security); "Allow auto-merge" and "Automatically delete head branches" (Settings, General); squash merging only.
 4. A ruleset for `main` (Settings, Rules, Rulesets): require a pull request, require the CI checks to pass (`changes`, `title`, `secrets`, and `mobile`, `server`, `database-lite`, `database`, `docs`: a job skipped by its path filter counts as passed), require branches to be up to date before merging, block force pushes. Add **GitHub Actions** to the bypass list so `roadmap.yml` can push the tick; without it, tick boxes by hand with `node tools/roadmap-tick.mjs M4.8` in the next pull request.
@@ -127,7 +127,7 @@ or with ids: `/slice M4.1 M4.8 M4.14 M4.15`. The planner writes one plan for the
 - **At most three at a time**, one per lane. More than that and the review queue becomes the bottleneck.
 - **Never two tasks that touch the same SQL function or the same screen.** Each brief lists its SQL functions; a second migration replacing the same function would silently undo the first. The ruleset's "up to date before merging" makes CI run on what will actually land.
 - **Cloud sessions** run in parallel by default: one per task.
-- **On the Mac**, one worktree per task so sessions don't share a working copy: `git worktree add ../movie-swipe-m4-8 -b m4-8-join-with-a-code origin/main`, then `claude` in that folder.
+- **On the Mac**, one worktree per task so sessions don't share a working copy: `git worktree add ../flimme-m4-8 -b m4-8-join-with-a-code origin/main`, then `claude` in that folder.
 
 ## Calling an agent directly
 

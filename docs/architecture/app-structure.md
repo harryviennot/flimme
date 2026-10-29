@@ -1,6 +1,6 @@
 # App structure
 
-How the MovieMatch app is built: the Expo project, its screens and navigation, where state lives, how it talks to the backend, sign-in, realtime, the offline vote queue, the card stack, the Letterboxd export on the phone, invites and deep links, translations, analytics and crash reports, testing, and builds and updates. Written on 29 October 2026, before the first line of app code. The app now lives in `mobile/` of the one repository (decided on 29 October 2026); its foundations are described in [groundwork.md](groundwork.md#the-apps-foundations).
+How the Flimme app is built: the Expo project, its screens and navigation, where state lives, how it talks to the backend, sign-in, realtime, the offline vote queue, the card stack, the Letterboxd export on the phone, invites and deep links, translations, analytics and crash reports, testing, and builds and updates. Written on 29 October 2026, before the first line of app code. The app now lives in `mobile/` of the one repository (decided on 29 October 2026); its foundations are described in [groundwork.md](groundwork.md#the-apps-foundations).
 
 It builds on the revival plan's [stack](../product/revival-plan.md#picking-the-stack) and [Expo upgrade notes](../product/revival-plan.md#upgrading-expo-and-packages), the [data model](data-model.md) (above all [The app's API](data-model.md#the-apps-api) and [Realtime](data-model.md#realtime)), the [Letterboxd integration](../integrations/letterboxd.md#connecting) and the [deck engine](deck-engine.md). Game rules, the onboarding flow as a product and how cards are chosen are covered elsewhere. Decisions are in [decisions.md](../decisions.md).
 
@@ -249,7 +249,7 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 
 ## Invites and deep links
 
-- **The link** is `https://<domain>/join/482913`, the same path as the route, so Expo Router handles it whether it arrives as a universal link, an Android app link or the custom scheme. The domain and the scheme wait on the app's name.
+- **The link** is `https://<domain>/join/482913`, the same path as the route, so Expo Router handles it whether it arrives as a universal link, an Android app link or the custom scheme. The scheme is `flimme` (`flimme-dev` and `flimme-preview` for the other builds); the domain waits on M0.2.
 - **Verification files.** iOS needs `apple-app-site-association` and Android `assetlinks.json` under `/.well-known/` on that domain. They live in the app repo's `public/.well-known/` and are served by the web export. The app config lists the domain in `ios.associatedDomains` and in Android intent filters with automatic verification. iOS reads the file at install and on updates, so changing its paths needs an app update.
 - **Not installed.** The link opens the web page, which at launch only shows the code in large type and the store buttons; the player types the code after installing. Web guests who swipe in the browser come later, as the revival plan says.
 - **QR code** in the invite sheet, drawn with `react-native-qrcode-svg`, encoding the same link. Guests scan it with their camera app; the app has no scanner of its own.

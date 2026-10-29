@@ -13,7 +13,7 @@ supabase/
 
 ## config.toml
 
-Made from the CLI's own template (`npx supabase@latest init`, CLI 2.122.0) with these changes: `project_id = "movie-swipe"`, the Data API exposes only the `api` schema, anonymous sign-ins on, Realtime on (already the default), seed from `./seed.sql`, `[db] major_version = 17`. Version 17 is what `supabase init` writes today and what Supabase says new projects get; the lite database runs on Postgres 16 because that is what the cloud image has.
+Made from the CLI's own template (`npx supabase@latest init`, CLI 2.122.0) with these changes: `project_id = "flimme"`, the Data API exposes only the `api` schema, anonymous sign-ins on, Realtime on (already the default), seed from `./seed.sql`, `[db] major_version = 17`. Version 17 is what `supabase init` writes today and what Supabase says new projects get; the lite database runs on Postgres 16 because that is what the cloud image has.
 
 The CLI's config loader accepts the file (`supabase status` gets past it to the Docker step; a wrong value fails with the key's name). **To verify on the Mac with `supabase start`**, which can't run in a cloud session:
 

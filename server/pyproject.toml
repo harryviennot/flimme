@@ -1,7 +1,7 @@
 [project]
-name = "moviematch-server"
+name = "flimme-server"
 version = "0.1.0"
-description = "MovieMatch recommendation server: deck and pipeline workers, HTTP API and trainer."
+description = "Flimme recommendation server: deck and pipeline workers, HTTP API and trainer."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

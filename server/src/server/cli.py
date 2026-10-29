@@ -64,7 +64,7 @@ PLANNED = (
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="server", description="MovieMatch recommendation server.")
+    parser = argparse.ArgumentParser(prog="server", description="Flimme recommendation server.")
     commands = parser.add_subparsers(dest="command", required=True, metavar="command")
 
     api = commands.add_parser("api", help="run the HTTP API")

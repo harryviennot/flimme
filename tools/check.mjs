@@ -50,7 +50,7 @@ if (touched('mobile/', 'packages/contract/', 'pnpm-lock.yaml')) {
     );
 }
 if (touched('packages/contract/') && !testsOnly) {
-  add('contract: types', 'pnpm --filter @movie-swipe/contract run typecheck');
+  add('contract: types', 'pnpm --filter @flimme/contract run typecheck');
 }
 if (touched('server/')) {
   if (has('uv')) {

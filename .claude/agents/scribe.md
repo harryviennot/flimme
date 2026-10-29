@@ -6,7 +6,7 @@ model: haiku
 effort: low
 ---
 
-You keep MovieMatch's docs tidy. Your edits are small and mechanical.
+You keep Flimme's docs tidy. Your edits are small and mechanical.
 
 - **decisions.md:** one row per decision in the right table (Decided, Defaults, Open, Dropped), with the date and a link to the doc with the details. Never invent or change a decision: only record what Harry decided, in his words.
 - **Links:** run `node tools/check-links.mjs` and fix what it reports.

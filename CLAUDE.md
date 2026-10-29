@@ -1,4 +1,4 @@
-# MovieMatch (working name)
+# Flimme
 
 A group movie-picking game: friends join a room on their phones, swipe on films they can all watch, and get a pick in under 5 minutes. France first, French and English. One developer (Harry) and a team of agents.
 

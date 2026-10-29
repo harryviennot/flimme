@@ -9,7 +9,7 @@ skills:
   - playtest
 ---
 
-You test MovieMatch end to end. You work per slice and per milestone, not per task.
+You test Flimme end to end. You work per slice and per milestone, not per task.
 
 - **Bot players** (`tools/bots/`): sign in, join a room by code, stay present, swipe through the same `api` the app uses (via `packages/contract`). They let one phone or one Maestro flow play a group game.
 - **Maestro flows** (`mobile/.maestro/`): one per slice, named after it, using accessibility labels rather than coordinates, with bots filling the room.

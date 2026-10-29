@@ -4,16 +4,15 @@ type Variant = 'development' | 'preview' | 'production';
 
 const variant = (process.env.APP_VARIANT ?? 'development') as Variant;
 
-// Players never see the bundle id, and it can't change once the store records
-// exist (roadmap M10.1). It doesn't wait for the app's name (M0.1).
-const BUNDLE_ID = 'com.harryviennot.moviematch';
-// Until the name is chosen (M0.1).
-const DISPLAY_NAME = 'MovieMatch';
+// The app is called Flimme (decided on 29 October 2026). The bundle id can't change
+// once the store records exist (roadmap M10.1).
+const BUNDLE_ID = 'com.harryviennot.flimme';
+const DISPLAY_NAME = 'Flimme';
 
 const variants = {
-  development: { idSuffix: '.dev', name: `${DISPLAY_NAME} Dev`, scheme: 'moviematch-dev' },
-  preview: { idSuffix: '.preview', name: `${DISPLAY_NAME} Preview`, scheme: 'moviematch-preview' },
-  production: { idSuffix: '', name: DISPLAY_NAME, scheme: 'moviematch' },
+  development: { idSuffix: '.dev', name: `${DISPLAY_NAME} Dev`, scheme: 'flimme-dev' },
+  preview: { idSuffix: '.preview', name: `${DISPLAY_NAME} Preview`, scheme: 'flimme-preview' },
+  production: { idSuffix: '', name: DISPLAY_NAME, scheme: 'flimme' },
 } as const;
 
 const current = variants[variant];
@@ -21,7 +20,7 @@ const current = variants[variant];
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: current.name,
-  slug: 'movie-swipe',
+  slug: 'flimme',
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',

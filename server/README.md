@@ -1,6 +1,6 @@
 # server/
 
-The MovieMatch recommendation server: one Python codebase that runs as the deck worker, the pipeline worker, the HTTP API and the trainer. The design is in [server-structure.md](../docs/architecture/server-structure.md); this folder is the skeleton from roadmap task M2.1. Only `server api` and its `GET /health` route exist so far.
+The Flimme recommendation server: one Python codebase that runs as the deck worker, the pipeline worker, the HTTP API and the trainer. The design is in [server-structure.md](../docs/architecture/server-structure.md); this folder is the skeleton from roadmap task M2.1. Only `server api` and its `GET /health` route exist so far.
 
 ## Install
 
@@ -80,9 +80,9 @@ tests/
 One image runs every process; the command is chosen when the container starts. The context is this folder.
 
 ```sh
-docker build -t moviematch-server .
-docker run --rm -p 8000:8000 --env-file .env.local moviematch-server               # server api
-docker run --rm --env-file .env.local moviematch-server pipeline-worker             # another process
+docker build -t flimme-server .
+docker run --rm -p 8000:8000 --env-file .env.local flimme-server               # server api
+docker run --rm --env-file .env.local flimme-server pipeline-worker             # another process
 ```
 
 The image has Python 3.13 (slim), the locked dependencies without the dev group, and a non-root user. It has not been built yet: Docker Hub throttles image pulls in cloud sessions, so the first build is on a machine with Docker.

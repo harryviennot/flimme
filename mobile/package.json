@@ -5,7 +5,7 @@
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo-google-fonts/schibsted-grotesk": "^0.4.2",
     "@expo-google-fonts/staatliches": "^0.4.1",
-    "@movie-swipe/contract": "workspace:*",
+    "@flimme/contract": "workspace:*",
     "@tanstack/react-query": "^5.105.0",
     "expo": "~58.0.21",
     "expo-audio": "~58.0.10",

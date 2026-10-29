@@ -9,7 +9,7 @@ from fastapi import FastAPI
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="MovieMatch server")
+    app = FastAPI(title="Flimme server")
 
     @app.get("/healthz")
     def health() -> dict[str, str]:

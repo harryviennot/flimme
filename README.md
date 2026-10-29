@@ -1,4 +1,4 @@
-# MovieMatch (working name)
+# Flimme
 
 A group movie-picking game: friends join a room on their phones, swipe on films they can all watch, and get a pick in under 5 minutes. One repository for everything:
 
