@@ -97,7 +97,8 @@ Deduplicated from the docs above. "DB" means the database through the nightly vi
 | Join failures | Join attempts by status (`not_found`, `full`, `starting`, `in_finale`, `rate_limited`, `closed`) | PostHog: `join:attempt_finish` | Watch | Onboarding |
 | Notifications | Asked, accepted | PostHog | Watch | Onboarding |
 | Letterboxd | Offered, started, file picked (PostHog); imported or failed, with the reason (DB: `imports`) | PostHog and DB | Watch | Onboarding |
-| Analytics consent rate | New players with an `analytics` consent, out of all new players | DB: `consents` | Watch: it says how far PostHog's numbers can be trusted | |
+| Analytics opt-outs and opt-ins | Players who turned analytics off, and EU, UK and Swiss players who opted in to detailed stats, out of active players | DB: `consents` | Watch: it says how far PostHog's numbers can be trusted |
+| **Time to finish onboarding** | Median of a new player's first vote minus `profiles.created_at`: from first launch to the first swipe of their first game, split by guests who joined by link, guests who typed a code, and hosts | DB | 1 minute for guests (placeholder); watch for hosts, who wait for friends | Harry |
 
 ### Coming back
 
@@ -107,6 +108,7 @@ Deduplicated from the docs above. "DB" means the database through the nightly vi
 | **Guests who become hosts** | Players whose first seat was a guest seat who host a started room within 30 days | DB | 10% | Monetization |
 | **Groups back within 30 days** | Rooms with a pick and at least 2 players with a profile, where at least 2 of the same players play another started room together within 30 days. It stands in for "crews back within 30 days" until crews exist | DB | Set by Harry before launch; suggested 25% | Revival plan, monetization |
 | Active hosts | Players who hosted a started room in the last 7 days (weekly) and 30 days (monthly) | DB | Watch: the break-even in [monetization.md](monetization.md#break-even) is counted in active hosts | Monetization |
+| **Time to first watch** | For new players: the share who answer "Did you watch it?" with yes within 7 days of their first launch, and the median time from first launch to that pick's room ending | DB: `room_members.watched_answer`, `rooms.ended_at` | Watch; it's the closest we get to "the app ended a movie night" | Harry |
 | Accounts saved | Players without an account at their third game who link Apple or Google by their tenth | DB: auth users | Watch | Onboarding |
 | Guests who install | Web guests who later play in the app | DB | Only if web guests launch | Revival plan, onboarding |
 
@@ -166,7 +168,7 @@ Estimated volume: about 20 events per player per game, plus a few per app open. 
 
 ## Identity
 
-- **One person is one profile id**, as in [app structure](../architecture/app-structure.md#analytics-and-crash-reports). A guest is already a Supabase user with a profile from their first launch, so once they accept analytics the phone calls `identify` with that id and there's no anonymous history to merge: PostHog is off until then.
+- **In identified mode, one person is one profile id**, as in [app structure](../architecture/app-structure.md#analytics-and-crash-reports). A guest is already a Supabase user with a profile from their first launch, so the phone calls `identify` with that id and there's no anonymous history to merge. **In anonymous mode** (the default in the EU, the UK and Switzerland) there is no `identify`: events carry a random install id, never joined to the database. A player who opts in to detailed stats switches to identified mode from then on, with no merge of the anonymous history.
 - **Saving an account keeps the same id**, since linking Apple or Google keeps the Supabase user: nothing to do in PostHog.
 - **Signing into an existing account** (no merge, per [Sign-in](../architecture/app-structure.md#sign-in)) calls `reset`, then `identify` with the other profile id. The two are never aliased, as they're never merged in the database.
 - **Deleting an account** also deletes the person in PostHog, from the server's deletion flow (see [Changes](#changes-this-asks-elsewhere)).
@@ -176,9 +178,27 @@ Estimated volume: about 20 events per player per game, plus a few per app open. 
 
 ### Analytics consent
 
-- **PostHog is off until the player says yes** (`defaultOptIn: false`, as [app structure](../architecture/app-structure.md#analytics-and-crash-reports) decided): no events at all before that, not even app opens. The answer is stored as an `analytics` consent with its wording version, and can be withdrawn in Settings, which calls `optOut` and `reset`.
-- **Where it's asked.** App structure asks every player at first launch; onboarding allows no prompt before the first game. **Default to confirm:** one line with two equal buttons on the first launch's name screen ("Share anonymous usage stats to help improve the app? Yes / No"), so it's part of a screen the player already sees rather than a separate prompt, and saying nothing means no. Players who skip it can turn it on in Settings.
-- **The game's own records don't depend on this consent**: rooms, seats and votes exist because the game needs them. Whether aggregating them for statistics needs its own basis (legitimate interest, or the CNIL's audience-measurement exemption, which the CNIL reads strictly) is for [privacy.md](privacy.md) to settle. This doc is built so that every headline metric comes from the database either way.
+**Decided on 29 October 2026:** product analytics (no advertising) are on by default wherever the law allows, with an opt-out in Settings, and opt-in where a country requires consent. Advertising and ad measurement always need consent.
+
+How that applies at launch (default, to confirm in the lawyer's review):
+
+| Region | By default | What runs |
+| --- | --- | --- |
+| The EU, the UK, Switzerland | On, anonymous | The CNIL's exempt mode from [privacy.md](privacy.md#analytics-without-a-consent-prompt): a random install id reset after 13 months, no `identify`, no person profiles, IP capture off, no session replay, events kept 25 months. Settings has the opt-out, and an opt-in ("Help improve the app with detailed stats") that switches to identified mode |
+| Everywhere else we launch (the US, Canada) | On, identified | The profile id as the person (see [Identity](#identity)), disclosed in the privacy policy, with the opt-out in Settings |
+| Advertising and ad measurement, if ads come | Off everywhere | Only with consent, and on iOS only after Apple's tracking prompt. See [If ads come](#if-ads-come) |
+
+- **The region** comes from the device region and the profile's country. When they disagree or are missing, the stricter rule applies.
+- **The opt-out and the opt-in** are stored as an `analytics` consent row with its wording version; turning analytics off calls `optOut` and `reset`.
+- **The game's own records don't depend on any of this**: rooms, seats and votes exist because the game needs them, and every headline metric comes from the database, whatever a player chose.
+
+### If ads come
+
+Rewarded ads are the only kind the monetization doc considers: host's device only, never in rooms with kids ([monetization.md](monetization.md#options-compared)). If they come:
+
+- The ad network's measurement (impressions, completed rewarded videos, attribution of installs to campaigns) runs only for players who consented to advertising, and on iOS only after Apple's App Tracking Transparency prompt.
+- What we measure on our side, from the database: rewarded ads watched per host, extra games they unlocked, and whether hosts who watch ads keep hosting.
+- An attribution provider is a separate choice, made with ads, not before.
 
 ### Kids
 

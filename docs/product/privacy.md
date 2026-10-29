@@ -43,7 +43,7 @@ It builds on the data model's [retention](../architecture/data-model.md#retentio
 
 | Role | Who |
 | --- | --- |
-| Controller | Whoever publishes the app: Harry as an individual, or his company if he creates one. The privacy policy, the store developer accounts and the TMDB agreement must name the same entity (Harry's choice, see [Questions](#questions-for-a-lawyer)) |
+| Controller | Harry, as an individual (decided on 29 October 2026). The privacy policy, the store developer accounts and the TMDB agreement all name him |
 | Processors | Supabase, the server host, object storage, Sentry, PostHog, Expo (see [Who processes data for us](#who-processes-data-for-us)) |
 | Independent controllers | Apple and Google (sign-in, stores), Letterboxd (the member's own account) |
 | Data protection officer | Not required at launch in our reading: the mandatory cases are large-scale systematic monitoring or sensitive data as a core activity. **Lawyer**: revisit as the player count grows, since decks are built from profiling |
@@ -124,7 +124,7 @@ The CNIL exempts audience measurement from consent when it meets strict conditio
 
 Most of what we measure doesn't need analytics at all. Time to a pick, swipes per pick, repeat rate, rooms ending in a match and crews coming back come from our own game tables, which we hold to run the game anyway. PostHog only adds what happens between screens. The events themselves are designed in [analytics.md](analytics.md).
 
-This replaces "PostHog off until the player accepts, with the profile id as the person" in [app-structure.md](../architecture/app-structure.md#analytics-and-crash-reports), and needs Harry's yes.
+**Decided on 29 October 2026:** product analytics are on by default wherever the law allows, with an opt-out, and opt-in where consent is required; advertising measurement always needs consent. This exempt mode is the default in the EU, the UK and Switzerland, with an opt-in to identified analytics; elsewhere identified analytics run by default with an opt-out ([analytics.md](analytics.md#analytics-consent)). The UK and Switzerland have their own rules: **lawyer** to confirm that this mode fits them too.
 
 ## Crash reports
 

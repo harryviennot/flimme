@@ -31,7 +31,9 @@ Every number marked as a starting value or an estimate is a placeholder until me
 
 ## The language
 
-Still open in [decisions.md](../decisions.md). What the server has to do, now that the other docs exist:
+> **Decided on 29 October 2026: Python.** FastAPI serves the HTTP API; the workers and the trainer are plain async Python processes. The reasoning below is kept for the record.
+
+What the server has to do, now that the other docs exist:
 
 | Job | From | What it needs |
 | --- | --- | --- |
@@ -327,6 +329,8 @@ No Streaming Availability key: it's dropped from v1. How secrets are stored per 
 The 50-room load test is in [operations.md](operations.md).
 
 ## Hosting
+
+> **Decided on 29 October 2026: Fly.io in Paris, with Supabase in Paris (`eu-west-3`).**
 
 The workers hold queue connections, so they need always-on machines, not per-request serverless. They should sit close to the Supabase project. **Default region: Paris** (Supabase's `eu-west-3`), for French players and EU data; Supabase's regions page points projects that need the EU to Frankfurt, Ireland or Paris.
 

@@ -271,7 +271,7 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 - **Product analytics: PostHog**, wrapped in `src/lib/analytics.ts` so screens call `track(event, props)` and never the vendor. Off by default (`defaultOptIn: false`) until the player accepts analytics, recorded as an `analytics` consent. Screens are tracked from the router's path. The person is the profile id, never a name. Per the monetization doc, kid profiles are never tracked individually.
 - The event list belongs in a future analytics doc; the funnel the revival plan asks for (room created, first card, match) is the minimum.
 
-> The event list, naming rules, identity and the kids' rule are in [analytics.md](../product/analytics.md#events-sent-to-posthog). When analytics run and whether they need a prompt is an open question: [privacy.md](../product/privacy.md#analytics-without-a-consent-prompt) proposes anonymous analytics on by default with an opt-out.
+> **Decided on 29 October 2026:** analytics are on by default wherever the law allows, with an opt-out in Settings, so `defaultOptIn: false` above no longer holds. The wrapper picks the mode by region: anonymous (no `identify`) in the EU, the UK and Switzerland unless the player opts in, identified elsewhere. The event list, naming rules, identity and the kids' rule are in [analytics.md](../product/analytics.md#consent-and-kids).
 
 ## Testing
 
