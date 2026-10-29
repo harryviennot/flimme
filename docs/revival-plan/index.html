@@ -1,0 +1,1308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>MovieMatch Revival Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Staatliches&display=swap">
+<style>
+/* Layout: long-form review, sticky contents rail on wide screens, one ~70ch reading column. Dark-first like the app itself (Staatliches + #151515). */
+:root{
+  --bg:#0f1014; --surface:#171920; --surface-2:#20232b; --fg:#eceef3; --muted:#9a9fae; --line:#2a2d36;
+  --accent:#8794ff; --on-accent:#0c0e1a; --like:#74c94c; --nope:#ff7474; --warn:#efb54d;
+  --s-search:#8794ff; --s-tmdb:#45c2c9; --s-omdb:#c79bff; --s-db:#74c94c;
+  --display:"Staatliches","Bebas Neue","Arial Narrow",Impact,sans-serif;
+  --body:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f5f6f9; --surface:#ffffff; --surface-2:#eceef4; --fg:#14161c; --muted:#596070; --line:#d9dce5;
+    --accent:#3245e8; --on-accent:#ffffff; --like:#2c7a0b; --nope:#c22d2d; --warn:#8d5b00;
+    --s-search:#3245e8; --s-tmdb:#0b7f87; --s-omdb:#7a3fc2; --s-db:#2c7a0b;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f5f6f9; --surface:#ffffff; --surface-2:#eceef4; --fg:#14161c; --muted:#596070; --line:#d9dce5;
+  --accent:#3245e8; --on-accent:#ffffff; --like:#2c7a0b; --nope:#c22d2d; --warn:#8d5b00;
+  --s-search:#3245e8; --s-tmdb:#0b7f87; --s-omdb:#7a3fc2; --s-db:#2c7a0b;
+  color-scheme:light;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{
+  background:var(--bg); color:var(--fg);
+  font:400 16.5px/1.62 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:0 72px;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);text-underline-offset:3px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+p{margin:0;max-width:68ch}
+ul,ol{margin:0;padding:0}
+strong{font-weight:600}
+code{font-family:var(--mono);font-size:.84em;background:var(--surface-2);padding:.12em .38em;border-radius:3px;overflow-wrap:anywhere}
+
+.shell{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:48px}
+@media (min-width:1080px){.shell{grid-template-columns:200px minmax(0,1fr)}}
+main{min-width:0;max-width:780px}
+
+/* Contents rail */
+.rail{display:none}
+@media (min-width:1080px){
+  .rail{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 32px);align-self:start;padding-top:40px}
+}
+.rail .eyebrow{margin-bottom:12px}
+.rail ol{list-style:none;display:grid;gap:2px;border-left:1px solid var(--line)}
+.rail a{display:block;padding:5px 0 5px 14px;margin-left:-1px;border-left:2px solid transparent;color:var(--muted);text-decoration:none;font-size:.9rem;line-height:1.35}
+.rail a:hover{color:var(--fg)}
+.rail a[aria-current="true"]{color:var(--fg);border-left-color:var(--accent)}
+.toc-inline{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+.toc-inline a{font:500 .78rem/1 var(--mono);text-transform:uppercase;letter-spacing:.05em;text-decoration:none;color:var(--fg);border:1px solid var(--line);padding:8px 10px;border-radius:4px;background:var(--surface)}
+@media (min-width:1080px){.toc-inline{display:none}}
+
+/* Type */
+.eyebrow{font:500 .72rem/1.3 var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+h1{font:400 clamp(3.4rem,12vw,6.4rem)/.88 var(--display);letter-spacing:.01em;margin:14px 0 0;text-wrap:balance}
+h2{font:400 clamp(2.1rem,6vw,2.75rem)/1 var(--display);letter-spacing:.02em;margin:6px 0 0;text-wrap:balance}
+h3{font:600 1.1rem/1.35 var(--body);margin:0;text-wrap:balance}
+h4{font:500 .74rem/1.3 var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0}
+.lede{font-size:1.16rem;line-height:1.55;color:var(--fg);max-width:62ch}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+
+/* Sections */
+section{padding-block:60px 8px;display:grid;gap:22px}
+section + section{border-top:1px solid var(--line);margin-top:48px}
+.sec-head{display:grid;gap:4px}
+.stack{display:grid;gap:14px}
+.sub{display:grid;gap:14px;margin-top:14px}
+
+/* Hero */
+.hero{padding-top:40px;display:grid;gap:22px}
+.sprockets{height:9px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--surface-2) 0 15px,transparent 15px 27px)}
+.meta-row{display:flex;flex-wrap:wrap;gap:6px 18px;font:400 .8rem/1.4 var(--mono);color:var(--muted)}
+
+/* Verdict tickets */
+.verdicts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:12px;margin-top:6px}
+.ticket{background:var(--surface);border:1px solid var(--line);border-radius:6px;display:grid}
+.ticket .stub{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px dashed var(--line)}
+.ticket .body{padding:14px 16px 16px;display:grid;gap:8px}
+.ticket p{font-size:.95rem;color:var(--muted)}
+.ticket h3{font-size:1.14rem}
+
+/* Chips */
+.chip{display:inline-block;font:500 .68rem/1 var(--mono);text-transform:uppercase;letter-spacing:.07em;padding:.42em .6em;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.c-crit{color:var(--nope)} .c-high{color:var(--warn)} .c-med{color:var(--accent)} .c-low{color:var(--muted)} .c-ok{color:var(--like)}
+.tag-launch{color:var(--like)} .tag-later{color:var(--muted)}
+
+/* Ordered flow */
+.flow{list-style:none;counter-reset:f;display:grid;gap:0;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.flow li{counter-increment:f;display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:.95rem}
+.flow li:last-child{border-bottom:0}
+.flow li::before{content:counter(f,decimal-leading-zero);font:500 .78rem/1.9 var(--mono);color:var(--muted)}
+
+/* Lanes diagram */
+.lanes{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.lanes-title{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lane{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:14px;border-bottom:1px solid var(--line)}
+.lane:last-child{border-bottom:0}
+@media (min-width:640px){.lane{grid-template-columns:96px minmax(0,1fr);gap:14px}}
+.lane-label{font:500 .7rem/1.6 var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding-top:8px}
+.nodes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.node{border:1px solid var(--line);background:var(--surface);padding:7px 10px;border-radius:5px;font-size:.86rem;line-height:1.3;min-width:0}
+.node b{display:block;font-weight:600}
+.node span{color:var(--muted);font-size:.8rem}
+.node.hot{border-color:var(--nope)}
+.node.new{border-color:var(--like)}
+.arrow{font:500 .9rem/1 var(--mono);color:var(--muted)}
+
+/* Calls chart */
+.calls{border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;gap:18px;background:var(--surface)}
+.calls-row{display:grid;gap:8px}
+.calls-row .label{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.9rem}
+.calls-row .label b{font-weight:600}
+.calls-row .label span{font:500 .8rem/1.5 var(--mono);color:var(--muted)}
+.ticks{display:flex;flex-wrap:wrap;gap:3px}
+.tick{width:9px;height:22px;border-radius:2px;background:var(--s-tmdb)}
+.tick.search{background:var(--s-search)} .tick.omdb{background:var(--s-omdb)} .tick.db{background:var(--s-db)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* Findings */
+.findings{list-style:none;border-top:1px solid var(--line)}
+.finding{display:grid;grid-template-columns:76px minmax(0,1fr);gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+.finding .chip{justify-self:start;align-self:start;margin-top:3px}
+.finding .txt{display:grid;gap:6px;min-width:0}
+.finding p{font-size:.95rem;color:var(--muted)}
+.where{font:400 .76rem/1.5 var(--mono);color:var(--muted);overflow-wrap:anywhere}
+
+/* Two-column bullet lists */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px 28px}
+.ticklist{list-style:none;display:grid;gap:10px}
+.ticklist li{position:relative;padding-left:20px;font-size:.95rem}
+.ticklist li::before{content:"";position:absolute;left:2px;top:.62em;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--accent)}
+.ticklist.keep li::before{border-color:var(--like)}
+
+/* Tables */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.9rem;line-height:1.45}
+.table-wrap.wide table{min-width:680px}
+.table-wrap.mid table{min-width:540px}
+.table-wrap.xwide table{min-width:860px}
+.table-wrap.xwide td:first-child{font-weight:600;min-width:140px}
+th{text-align:left;font:500 .68rem/1.3 var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--surface);white-space:nowrap}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.mono{font-family:var(--mono);font-size:.8rem;white-space:nowrap}
+td.num{font-variant-numeric:tabular-nums;text-align:right;font-family:var(--mono);font-size:.84rem}
+th.num{text-align:right}
+.status-ok{color:var(--like);font-weight:600}
+.status-no{color:var(--nope);font-weight:600}
+.status-warn{color:var(--warn);font-weight:600}
+
+/* Field spec */
+.spec{display:grid;grid-template-columns:minmax(0,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.spec div{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;padding:9px 14px;border-bottom:1px solid var(--line);font-size:.92rem}
+@media (min-width:560px){.spec div{grid-template-columns:220px minmax(0,1fr);gap:14px}}
+.spec div:last-child{border-bottom:0}
+.spec code{background:none;padding:0;color:var(--fg)}
+.spec span{color:var(--muted)}
+
+/* Callout */
+.note{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:14px 16px;display:grid;gap:6px;font-size:.94rem}
+.note p{color:var(--muted)}
+.note.good{border-color:color-mix(in srgb,var(--like) 55%,var(--line))}
+.note.warn{border-color:color-mix(in srgb,var(--warn) 55%,var(--line))}
+
+/* Pipeline */
+.pipeline{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px;counter-reset:p}
+.pipeline li{counter-increment:p;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:12px 14px;display:grid;gap:6px;align-content:start}
+.pipeline li::before{content:"Stage " counter(p);font:500 .68rem/1 var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--accent)}
+.pipeline p{font-size:.88rem;color:var(--muted)}
+
+/* Strategy demo */
+.demo{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.demo-head{padding:14px;display:grid;gap:10px;background:var(--surface);border-bottom:1px solid var(--line)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:500 .8rem/1 var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:9px 12px;cursor:pointer}
+.seg button[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.demo table{min-width:0}
+@media (max-width:560px){.demo th,.demo td{padding:9px 7px}.demo td.num{font-size:.78rem}}
+.demo tr.win td{background:color-mix(in srgb,var(--like) 14%,transparent)}
+.demo tr.out td{color:var(--muted)}
+.demo tr.out td.score{color:var(--nope)}
+.demo .low-score{color:var(--nope)}
+.demo-foot{padding:12px 14px;border-top:1px solid var(--line);font-size:.92rem;color:var(--muted);min-height:3.2em}
+.demo-foot b{color:var(--fg);font-weight:600}
+
+/* Formula */
+.formula{font:400 .86rem/1.7 var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto}
+
+/* Feature groups */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:26px 32px}
+.fgroup{display:grid;gap:10px;align-content:start}
+.fgroup ul{list-style:none;display:grid;gap:12px}
+.fgroup li{display:grid;gap:3px;font-size:.94rem}
+.fgroup li .t{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:600}
+.fgroup li p{color:var(--muted);font-size:.9rem}
+
+/* Versions */
+.versions{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px}
+.ver{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:12px 14px;display:grid;gap:2px}
+.ver .big{font:400 2.5rem/1 var(--display);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.ver .big em{font-style:normal;color:var(--muted);padding:0 .15em}
+
+/* Checklist */
+.check-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.progress{font:500 .8rem/1 var(--mono);color:var(--muted)}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--like);transition:width .25s ease}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:22px 30px}
+fieldset{border:0;margin:0;padding:0;display:grid;gap:4px;align-content:start}
+legend{padding:0;margin-bottom:8px}
+.check{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;align-items:start;padding:6px 0;font-size:.93rem;cursor:pointer}
+.check input{width:17px;height:17px;margin:3px 0 0;accent-color:var(--like)}
+.check input:checked + span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+
+/* Roadmap */
+.phases{list-style:none;display:grid;gap:0;counter-reset:ph;border-top:1px solid var(--line)}
+.phase{counter-increment:ph;display:grid;grid-template-columns:52px minmax(0,1fr);gap:14px;padding:18px 0;border-bottom:1px solid var(--line)}
+.phase::before{content:counter(ph);font:400 2.6rem/1 var(--display);color:var(--accent)}
+.phase .txt{display:grid;gap:8px;min-width:0}
+.phase .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.phase p{font-size:.94rem;color:var(--muted)}
+.phase .done{font-size:.9rem}
+.phase .done b{font:500 .68rem/1 var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--like);margin-right:6px}
+
+/* Decisions */
+.decisions{list-style:none;display:grid;gap:12px}
+.decisions li{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:14px 16px;display:grid;gap:6px}
+.decisions p{color:var(--muted);font-size:.93rem}
+.rec{font:500 .7rem/1 var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--like)}
+
+.sources{list-style:none;display:grid;gap:8px;font-size:.9rem}
+.sources li span{color:var(--muted)}
+footer{max-width:1180px;margin:56px auto 0;padding-top:20px;border-top:1px solid var(--line);font-size:.84rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="rail" aria-label="Contents">
+    <div class="eyebrow">Contents</div>
+    <ol>
+      <li><a href="#verdict">Verdict</a></li>
+      <li><a href="#audit">The old code</a></li>
+      <li><a href="#letterboxd">Letterboxd</a></li>
+      <li><a href="#stack">Picking the stack</a></li>
+      <li><a href="#foundation">Faster foundation</a></li>
+      <li><a href="#engine">Smarter deck</a></li>
+      <li><a href="#fun">Making it fun</a></li>
+      <li><a href="#packages">Expo and packages</a></li>
+      <li><a href="#launch">Publishing checklist</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#decisions">Decisions</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero" id="verdict">
+      <div class="sprockets" aria-hidden="true"></div>
+      <div>
+        <div class="eyebrow">Project review · 28 October 2026</div>
+        <h1>MovieMatch Revival Plan</h1>
+      </div>
+      <p class="lede">The app (shipped as <em>FilmFlicker</em> in <code>app.json</code>) last changed in November 2024, the server in March 2024. This review reads both repositories line by line, checks what Letterboxd allows today, and lays out what to change so MovieMatch is fast, understands taste, and is fun enough to publish.</p>
+      <div class="meta-row">
+        <span>MovieMatch: Expo 51, 41 files</span>
+        <span>MovieMatchServer: FastAPI, 836 lines</span>
+        <span>Facts checked against live docs</span>
+        <a href="https://www.figma.com/design/v2ZGLbGmzZ7032V9AI5vWM" target="_blank" rel="noopener">Figma: release screens and design tokens</a>
+      </div>
+
+      <div class="verdicts">
+        <article class="ticket">
+          <div class="stub"><span class="eyebrow">Letterboxd</span><span class="chip c-ok">Feasible</span></div>
+          <div class="body">
+            <h3>Yes, without the official API</h3>
+            <p>The API is by application only and Letterboxd says it is not granting access to recommendation or personal projects. Public RSS feeds (checked: they carry TMDB IDs, star ratings and likes) plus each user's own data export cover what the game needs.</p>
+          </div>
+        </article>
+        <article class="ticket">
+          <div class="stub"><span class="eyebrow">Speed</span><span class="chip c-crit">Root cause found</span></div>
+          <div class="body">
+            <h3>Slow by design, fixable by design</h3>
+            <p>The server built every deck live: a streaming search, then one TMDB call and one OMDb call per new title, awaited one after another. A catalog kept in your own database turns deck building into a single query.</p>
+          </div>
+        </article>
+        <article class="ticket">
+          <div class="stub"><span class="eyebrow">Suggestions</span><span class="chip c-crit">Root cause found</span></div>
+          <div class="body">
+            <h3>The deck was alphabetical</h3>
+            <p>Saved cursors in <code>test.json</code> show results paged by title: “A Brush with Christmas”, “A Rose for Christmas”, “Alone in the Dark 2”. Replace the genre roulette with group-aware scoring that learns from every swipe.</p>
+          </div>
+        </article>
+        <article class="ticket">
+          <div class="stub"><span class="eyebrow">Stack</span><span class="chip c-high">7 SDKs behind</span></div>
+          <div class="body">
+            <h3>Expo 58 + Supabase, TypeScript end to end</h3>
+            <p>Keep Expo for the apps and the web join page, as a fresh SDK 58 project (React Native 0.88). Replace Firebase, MongoDB and FastAPI with one Supabase project: Postgres with vectors, realtime rooms, guest sign-in and scheduled jobs.</p>
+          </div>
+        </article>
+      </div>
+
+      <nav class="toc-inline" aria-label="Contents">
+        <a href="#audit">Old code</a><a href="#letterboxd">Letterboxd</a><a href="#stack">Stack</a><a href="#foundation">Foundation</a><a href="#engine">Deck engine</a><a href="#fun">Fun</a><a href="#packages">Expo</a><a href="#launch">Checklist</a><a href="#roadmap">Roadmap</a><a href="#decisions">Decisions</a>
+      </nav>
+    </header>
+
+    <!-- AUDIT -->
+    <section id="audit">
+      <div class="sec-head">
+        <div class="eyebrow">Where things stand</div>
+        <h2>What the old code does</h2>
+      </div>
+      <p>The concept already works end to end: a host creates a room, friends join with a PIN, everyone swipes the same queue, and a ranked list comes out. The problems are in how the queue is built, how state is shared, and how the game ends.</p>
+
+      <div class="sub">
+        <h4>How a game runs today</h4>
+        <ol class="flow">
+          <li><span>Player types a name and is signed in anonymously with Firebase.</span></li>
+          <li><span>The host picks Movies or Series and the streaming services. The country comes from the host's device region. Guests skip this step.</span></li>
+          <li><span>A Firestore document holds the lobby, keyed by a random 6-digit PIN.</span></li>
+          <li><span>Each player picks at least 2 genres. Picks are summed into a vote count per genre.</span></li>
+          <li><span>The last player to finish calls <code>/initialize</code>. The server builds 25 titles, then 50 more in the background.</span></li>
+          <li><span>Clients fetch pages of 25 cards. Likes are sent to the server in batches of 5.</span></li>
+          <li><span>The host ends the game. The server picks a stop card and everyone swipes until they reach it.</span></li>
+          <li><span>The playlist screen ranks titles by raw like count.</span></li>
+        </ol>
+      </div>
+
+      <div class="sub">
+        <div class="lanes" role="figure" aria-label="Current architecture">
+          <div class="lanes-title"><span class="eyebrow">Architecture today</span><span class="eyebrow">2 databases · 3 external APIs in the game path</span></div>
+          <div class="lane">
+            <div class="lane-label">Room state</div>
+            <div class="nodes">
+              <div class="node"><b>Expo 51 app</b><span>RN 0.74, React Navigation 6</span></div>
+              <span class="arrow">⇄</span>
+              <div class="node"><b>Firestore</b><span>lobby, players, genre votes, game state</span></div>
+            </div>
+          </div>
+          <div class="lane">
+            <div class="lane-label">Deck</div>
+            <div class="nodes">
+              <div class="node"><b>Expo 51 app</b><span>axios</span></div>
+              <span class="arrow">→</span>
+              <div class="node"><b>FastAPI on Cloud Run</b><span>no auth</span></div>
+              <span class="arrow">⇄</span>
+              <div class="node"><b>MongoDB</b><span>rooms, likes, title cache</span></div>
+            </div>
+          </div>
+          <div class="lane">
+            <div class="lane-label">Per title</div>
+            <div class="nodes">
+              <div class="node hot"><b>Streaming Availability</b><span>RapidAPI search by genres</span></div>
+              <span class="arrow">→</span>
+              <div class="node hot"><b>TMDB</b><span>1 call per new title</span></div>
+              <span class="arrow">→</span>
+              <div class="node hot"><b>OMDb</b><span>1 call per new title, 10 s timeout</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h4>Network calls before the first card can appear</h4>
+        <div class="calls" role="figure" aria-label="Count of sequential calls before the first card, today versus proposed">
+          <div class="calls-row">
+            <div class="label"><b>Today, cold room</b><span>at least 54 calls, one after another</span></div>
+            <div class="ticks" id="ticks-old" aria-hidden="true"></div>
+          </div>
+          <div class="calls-row">
+            <div class="label"><b>Proposed</b><span>1 database query, 0 external calls</span></div>
+            <div class="ticks" aria-hidden="true"><i class="tick db"></i></div>
+          </div>
+          <div class="legend">
+            <span><i style="background:var(--s-search)"></i>Streaming search</span>
+            <span><i style="background:var(--s-tmdb)"></i>TMDB details</span>
+            <span><i style="background:var(--s-omdb)"></i>OMDb ratings</span>
+            <span><i style="background:var(--s-db)"></i>Local catalog query</span>
+          </div>
+          <p class="small muted">Each mark is one HTTP request. <code>/initialize</code> waits for more than 25 new titles; each new title costs a TMDB call and an OMDb call inside a <code>for</code> loop (<code>routes/media.py:150-203</code>). Cached titles skip those calls, so warm rooms are faster, but every new genre combination starts cold.</p>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h4>Findings</h4>
+        <ul class="findings">
+          <li class="finding"><span class="chip c-crit">Critical</span><div class="txt">
+            <h3>The deck is built at request time, one call at a time</h3>
+            <p>Every new title triggers awaited TMDB and OMDb calls in sequence. Nothing runs in parallel, and a single slow OMDb response can add 10 seconds.</p>
+            <div class="where">routes/media.py:150-203 · routes/get_from_apis.py:43-95</div></div></li>
+          <li class="finding"><span class="chip c-crit">Critical</span><div class="txt">
+            <h3>Blocking database calls freeze the whole server</h3>
+            <p><code>pymongo</code> is synchronous, but it runs inside <code>async</code> handlers. While one room waits on Mongo, every other room waits too. <code>wait_for_task_completion</code> also polls Mongo once a second, and <code>get_media</code> does one query per card.</p>
+            <div class="where">config/mongo.py · routes/media.py:219-227, 285-290 · main.py:15-20</div></div></li>
+          <li class="finding"><span class="chip c-crit">Critical</span><div class="txt">
+            <h3>Results come back in alphabetical order, with no quality floor</h3>
+            <p>The search never sets a sort order, so each genre combination pages through titles A to Z. The cursors saved in <code>test.json</code> read “A Brush with Christmas”, “A Shoe Addict's Christmas”, “A Christmas Miracle for Daisy”, “365 dni”. There is no minimum rating or vote count.</p>
+            <div class="where">routes/get_from_apis.py:23-30 · test.json</div></div></li>
+          <li class="finding"><span class="chip c-high">High</span><div class="txt">
+            <h3>Genre roulette wastes calls and ignores taste</h3>
+            <p>The server picks 2 to 4 voted genres at random and joins them with AND or OR. 25 of the 43 genre combinations saved in <code>test.json</code> had already run dry. TV-only genres (News, Reality, Talk Show) are offered in movie mode and make AND queries return nothing.</p>
+            <div class="where">routes/page_genres.py:75-146 · utils/genresMap.js</div></div></li>
+          <li class="finding"><span class="chip c-high">High</span><div class="txt">
+            <h3>The combinations formula is wrong</h3>
+            <p><code>factorial(n) // factorial(k) * factorial(n-k)</code> evaluates as (n!/k!)·(n−k)!. With 4 room genres it returns 24 instead of 6, so the “discover a new genre” fallback kicks in far later than intended.</p>
+            <div class="where">routes/media.py:125-126</div></div></li>
+          <li class="finding"><span class="chip c-high">High</span><div class="txt">
+            <h3>Concurrent actions overwrite each other</h3>
+            <p>Joining, genre votes and likes all read a document, change it in memory and write the whole thing back. Two players acting together lose one update. The likes task reads the room before taking its lock, so likes are lost even with the lock.</p>
+            <div class="where">contexts/UserContext.jsx:329-351 · screens/GenresScreen.jsx:34-98 · routes/media.py:296-320</div></div></li>
+          <li class="finding"><span class="chip c-high">High</span><div class="txt">
+            <h3>There is no match moment, and no natural end</h3>
+            <p>Nobody is told when everyone liked the same film. The host decides when to stop, the “final content” is just the next unseen card on the host's page, and the winner is a raw like count where ties are common. Up to 4 queued likes per player are lost if the app closes, because they only post in batches of 5.</p>
+            <div class="where">routes/media.py:366-381 · screens/GameScreen.jsx:118-129, 179-199</div></div></li>
+          <li class="finding"><span class="chip c-med">Medium</span><div class="txt">
+            <h3>Two sources of truth, synced by the client</h3>
+            <p>Room state lives in Firestore and MongoDB at once. The genre screen sleeps 500 ms “to make sure the last player's data is updated” before starting the game.</p>
+            <div class="where">screens/GenresScreen.jsx:69-72</div></div></li>
+          <li class="finding"><span class="chip c-med">Medium</span><div class="txt">
+            <h3>Only the host's services and country count</h3>
+            <p>Guests never choose services, so a friend's Disney+ is ignored. The country is the host's phone region.</p>
+            <div class="where">screens/HomeScreen.jsx:152-163 · contexts/UserContext.jsx:353-371</div></div></li>
+          <li class="finding"><span class="chip c-med">Medium</span><div class="txt">
+            <h3>Heavy rendering on the swipe screen</h3>
+            <p>Every fetched card is mapped to a <code>MovieCard</code> with its own <code>Modal</code>, and the array grows by 25 each page. Posters load from TMDB's <code>/original</code> size, which is full resolution.</p>
+            <div class="where">screens/GameScreen.jsx:249-267 · components/MovieCardFront.jsx:25</div></div></li>
+          <li class="finding"><span class="chip c-med">Medium</span><div class="txt">
+            <h3>Open endpoints</h3>
+            <p><code>GET /</code> returns every room. No server route checks who is calling. No Firestore security rules are in the repo. The OMDb key travels over plain <code>http</code>.</p>
+            <div class="where">routes/media.py:15-18 · routes/get_from_apis.py:68</div></div></li>
+          <li class="finding"><span class="chip c-med">Medium</span><div class="txt">
+            <h3>Rejoining a running game lands in the lobby</h3>
+            <p>The join screen switches on the first word of <code>"joined playing"</code>, which is always “joined”, so a reconnecting player is sent to the lobby, which only navigates onward on the genres state.</p>
+            <div class="where">components/home/Join.jsx:60-78</div></div></li>
+          <li class="finding"><span class="chip c-low">Low</span><div class="txt">
+            <h3>Leftovers</h3>
+            <p><code>TestScreen</code> is still in navigation, <code>test.json</code> is committed, the Invite button has no action, <code>[loaded] = useFonts(...)</code> creates an implicit global, the server hard-codes English, and <code>@app.on_event</code> is deprecated in FastAPI.</p>
+            <div class="where">screens/Navigation.jsx · App.js:15 · routes/media.py:36 · main.py:10</div></div></li>
+        </ul>
+      </div>
+
+      <div class="sub">
+        <h4>Worth keeping</h4>
+        <ul class="ticklist keep cols">
+          <li>The PIN join flow: short, familiar, works out loud across a couch.</li>
+          <li>Tap-to-flip card with poster front and details back.</li>
+          <li>Staatliches as the display face and the dark cinema palette.</li>
+          <li>English and French translations, already structured with i18next.</li>
+          <li>The gesture math in <code>MovieCard.jsx</code> (rotation, velocity throw, stacked scale).</li>
+          <li>Per-country service lists, now sourced from TMDB's provider list instead of a 64,000-line JSON file.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- LETTERBOXD -->
+    <section id="letterboxd">
+      <div class="sec-head">
+        <div class="eyebrow">Feasibility</div>
+        <h2>Letterboxd: what's possible</h2>
+      </div>
+      <p class="lede">You can get most of the value without Letterboxd's API. Treat a Letterboxd username as a public handle, read the user's RSS feed for recent activity, and let them upload their own data export once for full history.</p>
+
+      <div class="note warn">
+        <h3>The official API is not an option for this app today</h3>
+        <p>Letterboxd's API page says access is by application, applications are read but not individually answered, and it is not granting access for recommendation projects, LLM or GPT use, private or personal projects, or anything that recreates features of its paid tiers. Its terms of use also forbid bots and scrapers. Build the plan without the API and treat any future approval as a bonus.</p>
+      </div>
+
+      <div class="sub">
+        <h4>Ways to get a player's film history</h4>
+        <div class="table-wrap wide">
+          <table>
+            <thead><tr><th>Source</th><th>What you get</th><th>Effort for the player</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Official API</strong> (OAuth)</td><td>Everything, including logging films back</td><td>One-tap sign in</td><td><span class="status-no">Closed</span> to recommendation and personal projects</td></tr>
+              <tr><td><strong>Public RSS feed</strong></td><td>Last ~50 diary entries with TMDB ID, rating, like, rewatch, watched date</td><td>Type a username</td><td><span class="status-ok">Works</span>, checked on a live feed today</td></tr>
+              <tr><td><strong>Data export</strong> (ZIP of CSVs)</td><td>Full history: watched, ratings, diary, watchlist, likes. Title, year and Letterboxd link per row, no TMDB ID</td><td>Export on the website, upload the file, about a minute</td><td><span class="status-ok">Works</span>, you match titles to TMDB yourself</td></tr>
+              <tr><td><strong>Scraping profile pages</strong></td><td>Everything public</td><td>None</td><td><span class="status-no">Don't</span>: forbidden by the terms, Cloudflare blocking reported</td></tr>
+              <tr><td><strong>TMDB account</strong></td><td>Ratings, watchlist, favorites kept on TMDB</td><td>Approve access on TMDB</td><td><span class="status-ok">Official</span>, but few people rate on TMDB</td></tr>
+              <tr><td><strong>Trakt</strong></td><td>Watch history and ratings</td><td>OAuth sign in</td><td><span class="status-warn">Uncertain</span>: reports say new API apps need a paid account and free users can connect one app</td></tr>
+              <tr><td><strong>In-app signals</strong></td><td>Seen it, likes, nopes, matches, what the group watched</td><td>None</td><td><span class="status-ok">Yours</span>, grows with every game</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h4>Fields in a Letterboxd RSS item (verified on a public feed, 28 Oct 2026)</h4>
+        <div class="spec">
+          <div><code>tmdb:movieId</code><span>TMDB ID, so no title matching is needed</span></div>
+          <div><code>letterboxd:memberRating</code><span>Star rating, present only when the entry is rated (40 of 50 in the feed checked)</span></div>
+          <div><code>letterboxd:memberLike</code><span>Whether the member hearted the film</span></div>
+          <div><code>letterboxd:rewatch</code><span>Rewatch flag</span></div>
+          <div><code>letterboxd:watchedDate</code><span>Date watched</span></div>
+          <div><code>letterboxd:filmTitle</code>, <code>filmYear</code><span>Title and year, for display and fallback matching</span></div>
+        </div>
+        <p class="small muted">The feed lives at <code>letterboxd.com/{username}/rss/</code>, holds about the 50 most recent diary entries, and only includes films logged in the diary. Ratings given without a diary entry don't appear, which is why the export matters for full history.</p>
+      </div>
+
+      <div class="sub">
+        <h4>Connect flow</h4>
+        <ol class="flow">
+          <li><span><strong>Add your Letterboxd username.</strong> The server fetches the feed and shows a preview (“Found 50 recent films, 41 rated”). It's public data, so treat it as a handle rather than a login.</span></li>
+          <li><span><strong>Import full history (optional).</strong> A short guide points to Letterboxd's export (Settings, Data). The player picks the ZIP with the document picker; the app unzips it on the phone and sends only titles, years, ratings, dates, likes and watchlist flags.</span></li>
+          <li><span><strong>Match to TMDB.</strong> Look up a shared mapping table first (Letterboxd link → TMDB ID), then search TMDB by title and year (±1 year). Store every new match so each film is resolved once for all users. List unmatched rows for a quick manual fix.</span></li>
+          <li><span><strong>Stay fresh.</strong> Re-read the RSS feed when the player opens the app or joins a room, at most every few hours. Disconnecting deletes everything imported.</span></li>
+        </ol>
+      </div>
+
+      <div class="sub">
+        <h4>What the data unlocks</h4>
+        <ul class="ticklist cols">
+          <li><strong>Seen filter.</strong> Skip films anyone in the room has logged. Room setting: “Hide anything someone has seen” or “Allow rewatches rated 4★ or higher”.</li>
+          <li><strong>Taste without questions.</strong> Ratings and likes build a taste profile, so genre picking becomes optional.</li>
+          <li><strong>Watchlist overlap.</strong> Films on two or more players' watchlists get a boost, and a whole mode built on them.</li>
+          <li><strong>Social proof on cards.</strong> “On Sam's watchlist”, “Jo gave the director's last film 4.5★”.</li>
+          <li><strong>Log it afterwards.</strong> <code>letterboxd.com/tmdb/{id}</code> redirects to the film's page (checked: <code>/tmdb/550</code> opens Fight Club), so the winner screen can link straight to logging it.</li>
+          <li><strong>Better cold start for friends.</strong> One connected player already improves the whole room's deck.</li>
+        </ul>
+      </div>
+
+      <div class="sub">
+        <h4>Ground rules</h4>
+        <ul class="ticklist">
+          <li>Fetch feeds from the server, cache them, send conditional requests, and name the app in the User-Agent. A few requests per user per day is plenty.</li>
+          <li>Store only what the game uses: TMDB ID, rating, liked, rewatch, watched date, watchlist flag, source. No review text.</li>
+          <li>Ask for consent before importing, and offer export and deletion. Watch history is personal data under GDPR for EU players.</li>
+          <li>Present it as “Import from Letterboxd”. No Letterboxd logo or wording that suggests a partnership.</li>
+          <li>If you still apply for API access, lead with what helps Letterboxd (sending people to log films and add to watchlists). The stated exclusions make approval unlikely, so nothing in the plan depends on it.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- STACK -->
+    <section id="stack">
+      <div class="sec-head">
+        <div class="eyebrow">Architecture</div>
+        <h2>Picking the stack</h2>
+      </div>
+      <p class="lede">Nothing from the old stack stays by default. Each layer is chosen for what this game needs: rooms that react instantly, a catalog you can filter and rank in one query, guests who join from a link, and as few moving parts as possible for one developer.</p>
+
+      <div class="sub">
+        <h4>What the stack has to do</h4>
+        <ul class="ticklist cols">
+          <li><strong>Live rooms.</strong> Presence, a vote that saves and checks for a match in one step, and the match pushed to every phone in well under a second.</li>
+          <li><strong>One deck query.</strong> Filter tens of thousands of titles by country, services, genres, runtime and “nobody here has seen it”, then rank by taste.</li>
+          <li><strong>Guests first.</strong> Play without an account, keep the same identity when signing in with Apple or Google later.</li>
+          <li><strong>Background work.</strong> Nightly catalog refresh, embeddings and Letterboxd syncs, all off the game path.</li>
+          <li><strong>Phones and a browser.</strong> iOS and Android apps, plus a web page so a friend can join from a link.</li>
+          <li><strong>Small to run.</strong> One developer, low fixed cost, little to operate.</li>
+        </ul>
+      </div>
+
+      <div class="sub">
+        <h4>The app: Expo stays, on its merits</h4>
+        <div class="table-wrap wide">
+          <table>
+            <thead><tr><th>Option</th><th>Strengths</th><th>Costs</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Expo</strong> (React Native) <span class="chip c-ok">Pick</span></td><td>One TypeScript codebase for iOS, Android and the web join page. Native-feeling swipes with Reanimated and Gesture Handler. EAS handles builds, store submission and over-the-air fixes. Your card and gesture code ports over.</td><td>Gestures on the web build need testing; native modules need development builds.</td></tr>
+              <tr><td><strong>Flutter</strong></td><td>Smooth custom UI from one codebase.</td><td>A full rewrite in Dart, and its web output is heavy for a page whose job is “tap a link, start swiping”.</td></tr>
+              <tr><td><strong>Swift + Kotlin</strong></td><td>Best platform feel.</td><td>Two codebases for one developer, and no web guests.</td></tr>
+              <tr><td><strong>Web app only</strong></td><td>Anyone joins from a link, no install.</td><td>No store presence, weaker haptics and notifications on iPhone.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h4>The backend: four complete options, each with Expo in front</h4>
+        <div class="table-wrap xwide">
+          <table>
+            <thead><tr><th>Need</th><th>Supabase</th><th>Convex</th><th>Cloudflare</th><th>Firebase, cleaned up</th></tr></thead>
+            <tbody>
+              <tr><td>Deck query</td>
+                <td><span class="status-ok">Strong.</span> One SQL query with indexes, ranked with pgvector.</td>
+                <td><span class="status-warn">OK.</span> Index scans merged in TypeScript; vector search returns at most 256 results, with equality filters only.</td>
+                <td><span class="status-warn">OK.</span> SQL in D1 (SQLite), vectors in a separate Vectorize index, joined in code.</td>
+                <td><span class="status-no">Weak.</span> Several Firestore queries merged in code before ranking.</td></tr>
+              <tr><td>Live rooms</td>
+                <td><span class="status-ok">Strong.</span> Presence and broadcast; the vote function saves, checks the match and broadcasts in one transaction.</td>
+                <td><span class="status-ok">Strong.</span> Reactive queries push every change to every phone; writes are transactional.</td>
+                <td><span class="status-ok">Strongest.</span> One Durable Object per room keeps state in memory, holds the WebSockets and runs timers.</td>
+                <td><span class="status-warn">OK.</span> Snapshot listeners; match logic in Cloud Functions.</td></tr>
+              <tr><td>Guests now, accounts later</td>
+                <td><span class="status-ok">Strong.</span> Anonymous sign-in; linking Apple or Google keeps the same user ID.</td>
+                <td><span class="status-warn">OK.</span> Through Convex Auth or a provider such as Clerk.</td>
+                <td><span class="status-no">Weak.</span> Bring your own auth.</td>
+                <td><span class="status-ok">Strong.</span> Anonymous auth with account linking.</td></tr>
+              <tr><td>Jobs and embeddings</td>
+                <td><span class="status-ok">Good.</span> Cron, Queues, Edge Functions, built-in gte-small embeddings.</td>
+                <td><span class="status-ok">Good.</span> Crons, scheduled functions, actions for outside calls.</td>
+                <td><span class="status-ok">Good.</span> Cron Triggers, Queues, Workers AI.</td>
+                <td><span class="status-warn">OK.</span> Scheduled Cloud Functions.</td></tr>
+              <tr><td>Moving parts</td>
+                <td><span class="status-ok">Few.</span> One platform, one database.</td>
+                <td><span class="status-ok">Few.</span> One platform.</td>
+                <td><span class="status-warn">More.</span> Several products wired together.</td>
+                <td><span class="status-warn">Few</span>, but the query model works against the deck.</td></tr>
+              <tr><td>Starting cost</td>
+                <td>$0 while building, $25/month Pro once testers rely on it.</td>
+                <td>Free tier, then $25 per developer per month.</td>
+                <td>Generous free tier, $5/month minimum on paid.</td>
+                <td>Free tier, then pay as you go.</td></tr>
+              <tr><td>Leaving later</td>
+                <td><span class="status-ok">Easy.</span> It's Postgres.</td>
+                <td><span class="status-warn">Harder.</span> Convex-specific data model and functions.</td>
+                <td><span class="status-warn">Medium.</span> Workers-specific runtime.</td>
+                <td><span class="status-warn">Harder.</span> Firestore data model.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="note good">
+        <h3>Recommendation: Expo + Supabase, TypeScript end to end</h3>
+        <p>Supabase is the only option where the hardest query in the app, the deck, is a single indexed SQL query with vector ranking inside it. It also brings presence, broadcast, guest sign-in, cron and functions in the same place. Because it's plain Postgres, leaving later means a database dump, not a rewrite. Convex is a close second if you'd rather write everything as reactive functions and model the catalog around its limits.</p>
+      </div>
+
+      <div class="sub">
+        <h4>The stack, layer by layer</h4>
+        <div class="spec">
+          <div><strong>App</strong><span>Expo SDK 58, Expo Router, TypeScript. Reanimated 4 and Gesture Handler for the card stack, <code>expo-image</code> for posters.</span></div>
+          <div><strong>App state</strong><span>TanStack Query for server data, a small Zustand store for the card stack.</span></div>
+          <div><strong>Web guests</strong><span>The same Expo Router screens exported for web (<code>/join/[code]</code>), on EAS Hosting or any static host.</span></div>
+          <div><strong>Sign-in</strong><span>Supabase Auth: anonymous for guests, Sign in with Apple and Google to keep history.</span></div>
+          <div><strong>Database</strong><span>Supabase Postgres with pgvector and row-level security on every table.</span></div>
+          <div><strong>Live rooms</strong><span>Supabase Realtime: presence for who's here, broadcast from the database for matches and progress.</span></div>
+          <div><strong>Server logic</strong><span>Postgres functions for join, vote and match, so they're transactional. TypeScript Edge Functions for outside calls (Letterboxd feeds, Streaming Availability, TMDB fallback) and deck refills.</span></div>
+          <div><strong>Jobs</strong><span>Supabase Cron and Queues for nightly catalog deltas in small batches. Edge Functions are built for short requests, so the first 40,000-title backfill runs once as a script from your machine or CI.</span></div>
+          <div><strong>Embeddings</strong><span>Supabase's built-in gte-small model (384 dimensions) to start, with no separate charge. Swap in a larger model later if taste matching needs it.</span></div>
+          <div><strong>Movie data</strong><span>TMDB for catalog, images and JustWatch provider data. Streaming Availability for the winner's deep links only.</span></div>
+          <div><strong>Ship</strong><span>EAS Build, Submit and Update.</span></div>
+          <div><strong>Watch</strong><span>Sentry for crashes, PostHog for product analytics.</span></div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h4>What goes away</h4>
+        <ul class="ticklist cols">
+          <li>Firebase Auth and Firestore</li>
+          <li>MongoDB Atlas</li>
+          <li>The FastAPI server on Cloud Run</li>
+          <li>RapidAPI search and OMDb calls in the game loop</li>
+          <li>The 64,000-line <code>countries.json</code> (TMDB lists providers per country)</li>
+          <li><code>axios</code>, <code>react-native-dotenv</code> and the Metro <code>.env</code> workaround</li>
+        </ul>
+      </div>
+
+      <div class="sub">
+        <h4>Why TypeScript instead of Python for the engine</h4>
+        <p>One language from the database types to the swipe screen. Supabase generates TypeScript types from the schema, Edge Functions run TypeScript, and the app shares those types, so a renamed column breaks the build instead of a live game. Python's machine-learning strengths matter little here: refilling a deck means scoring a few hundred titles for up to ten players, which Postgres and pgvector do directly. Keep Python only for a notebook to tune scoring weights on logged games.</p>
+      </div>
+
+      <div class="sub">
+        <h4>Sizing on Supabase</h4>
+        <p>About 40,000 movies with English and French text come to a few hundred megabytes, and their embeddings add roughly 60 MB (40,000 × 384 numbers × 4 bytes) before indexes. That fits easily in Pro's 8 GB but is tight in Free's 500 MB. Free projects also pause after a week without activity, so move to Pro ($25/month) when testers start relying on it. Pro includes 500 concurrent realtime connections and, each month, 5 million realtime messages, 2 million function calls and 100,000 active users.</p>
+      </div>
+
+      <div class="note">
+        <h3>When to add a room server</h3>
+        <p>Supabase Realtime is messaging: the database decides, and messages fan out. If the game grows timed rounds that must fire exactly on time, synced reveals, rapid live reactions, or hidden per-player queues managed on the server, give each room its own Cloudflare Durable Object. PartyServer, the successor to PartyKit, keeps this short. The object holds the room in memory, owns the WebSockets and runs timers, while Supabase keeps auth, catalog and history. Idle rooms hibernate and aren't billed for duration. Not needed for launch.</p>
+      </div>
+    </section>
+
+    <!-- FOUNDATION -->
+    <section id="foundation">
+      <div class="sec-head">
+        <div class="eyebrow">Speed</div>
+        <h2>A faster foundation</h2>
+      </div>
+      <p class="lede">Do the slow work before anyone opens a room. Keep a catalog of titles and where to watch them in your own database, refreshed on a schedule, so starting a game is one query instead of a chain of API calls.</p>
+
+      <div class="lanes" role="figure" aria-label="Proposed architecture">
+        <div class="lanes-title"><span class="eyebrow">Proposed architecture</span><span class="eyebrow">1 database · external calls moved off the game path</span></div>
+        <div class="lane">
+          <div class="lane-label">Nightly</div>
+          <div class="nodes">
+            <div class="node"><b>Supabase Cron + Queues</b><span>nightly deltas in small batches</span></div>
+            <span class="arrow">→</span>
+            <div class="node"><b>TMDB</b><span>1 call per title: details, keywords, credits, certifications, trailer, watch providers</span></div>
+            <span class="arrow">→</span>
+            <div class="node new"><b>Catalog in Postgres</b><span>titles, availability by country, embeddings, image placeholders</span></div>
+          </div>
+        </div>
+        <div class="lane">
+          <div class="lane-label">Live game</div>
+          <div class="nodes">
+            <div class="node new"><b>Expo 58 app</b><span>iOS, Android, web guests</span></div>
+            <span class="arrow">⇄</span>
+            <div class="node new"><b>Supabase</b><span>auth, Postgres with row-level security, realtime presence and broadcast</span></div>
+            <span class="arrow">⇄</span>
+            <div class="node new"><b>Deck engine</b><span>SQL + edge function, scores and re-ranks</span></div>
+          </div>
+        </div>
+        <div class="lane">
+          <div class="lane-label">On demand</div>
+          <div class="nodes">
+            <div class="node"><b>Letterboxd RSS</b><span>per linked player, cached</span></div>
+            <div class="node"><b>Streaming Availability</b><span>winner only, for “Open in Netflix” deep links</span></div>
+            <div class="node"><b>TMDB</b><span>fallback for a title missing from the catalog</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h4>The catalog</h4>
+        <ul class="ticklist">
+          <li><strong>What to store.</strong> The ~40,000 most popular movies to start (series later), using TMDB's popularity lists and daily ID exports. That covers nearly everything a group would actually pick.</li>
+          <li><strong>One request per title.</strong> TMDB's <code>append_to_response</code> returns details, keywords, credits, release certifications, videos and watch providers together.</li>
+          <li><strong>Refresh rhythm.</strong> Providers for popular titles daily, the long tail weekly, plus TMDB's changes feed for edits. At a polite 15 to 20 requests per second, the first full load takes about 35 to 45 minutes; TMDB documents a ceiling around 40 per second.</li>
+          <li><strong>Precompute.</strong> A quality score (rating weighted by vote count), a tiny image placeholder hash per poster, and one embedding per title for taste matching.</li>
+          <li><strong>Ratings.</strong> Show TMDB's score on the card, plus a group member's Letterboxd rating when someone in the room has rated the film. Drop OMDb entirely: no IMDb or Rotten Tomatoes scores, so there is no extra ratings API to pay for or keep in sync.</li>
+          <li><strong>Deep links.</strong> TMDB's provider link points to a TMDB page powered by JustWatch. Call Streaming Availability only for the winning title to get “Open in Netflix” links: one call per game instead of dozens per deck.</li>
+        </ul>
+      </div>
+
+      <div class="sub">
+        <h4>Data model</h4>
+        <div class="table-wrap mid">
+          <table>
+            <thead><tr><th>Table</th><th>Holds</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">titles</td><td>TMDB ID, type, localized title and overview, year, runtime, genres, keywords, certifications by country, popularity, quality score, poster and placeholder, trailer key</td></tr>
+              <tr><td class="mono">title_availability</td><td>Title, country, provider, kind (subscription, free, ads, rent, buy), last checked</td></tr>
+              <tr><td class="mono">title_vectors</td><td>Title, embedding</td></tr>
+              <tr><td class="mono">profiles</td><td>Player, display name, avatar, country, own streaming services</td></tr>
+              <tr><td class="mono">linked_accounts</td><td>Player, source (Letterboxd), username, last sync, consent date</td></tr>
+              <tr><td class="mono">user_titles</td><td>Player, title, seen, rating, liked, on watchlist, source, date</td></tr>
+              <tr><td class="mono">rooms</td><td>Code, host, mode, country, settings (service rule, runtime cap, seen rule, quality floor), state, expiry</td></tr>
+              <tr><td class="mono">room_members</td><td>Room, player, joined at, calibrated, done</td></tr>
+              <tr><td class="mono">room_cards</td><td>Room, title, position, score, reason shown on the card</td></tr>
+              <tr><td class="mono">votes</td><td>Room, player, title, answer (nope, like, super like, seen it), time. One per player per title</td></tr>
+              <tr><td class="mono">matches</td><td>Room, title, kind (unanimous, majority, finale), time</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small muted">Votes go through one database function that inserts the row and checks the match rule in the same transaction, then broadcasts. That removes every read-modify-write race in the old code.</p>
+      </div>
+
+      <div class="sub">
+        <h4>Room lifecycle</h4>
+        <ol class="flow">
+          <li><span><strong>Lobby.</strong> Presence shows who's here. Each player adds their own services; the room uses everything anyone has (you're watching on one screen), with an “everyone has it” option for long-distance watching.</span></li>
+          <li><span><strong>Calibrate.</strong> Players without Letterboxd rate a handful of well-known films while waiting for friends.</span></li>
+          <li><span><strong>Swipe.</strong> The deck streams from the engine. Votes save instantly; matches broadcast to everyone.</span></li>
+          <li><span><strong>Finale.</strong> If no unanimous match arrives in time, the top picks go head to head.</span></li>
+          <li><span><strong>Done.</strong> Winner, where to watch, share card, and later a “Did you watch it?” prompt that feeds the next game.</span></li>
+        </ol>
+      </div>
+
+      <div class="sub">
+        <h4>Performance budget</h4>
+        <div class="table-wrap wide">
+          <table>
+            <thead><tr><th>Step</th><th>Today (from the code)</th><th>Target</th></tr></thead>
+            <tbody>
+              <tr><td>Calls before the first card</td><td>At least 54 sequential external calls on a cold room</td><td>1 database query, no external calls</td></tr>
+              <tr><td>Building a deck</td><td>Grows with every call; one slow OMDb request adds up to 10 s</td><td>Under 150 ms</td></tr>
+              <tr><td>Poster images</td><td>Full-resolution <code>/original</code> files</td><td><code>w500</code> or <code>w780</code>, disk-cached, placeholder hash, next 3 prefetched</td></tr>
+              <tr><td>Cards mounted</td><td>Every card fetched so far, each with a Modal</td><td>3 at a time</td></tr>
+              <tr><td>Saving a like</td><td>Batched every 5 likes over REST, lost if the app closes</td><td>One row per swipe, optimistic, retried offline</td></tr>
+              <tr><td>Detecting a match</td><td>Not detected; the host ends the game</td><td>Under 300 ms after the deciding swipe</td></tr>
+              <tr><td>Places room state lives</td><td>Firestore and MongoDB</td><td>One database</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h4>On the phone</h4>
+        <ul class="ticklist cols">
+          <li><code>expo-image</code> for posters: memory and disk cache, placeholder while loading, prefetch of the next three.</li>
+          <li>Keep only the top 3 cards mounted; the rest of the deck is plain data.</li>
+          <li>Gestures stay on the UI thread with Reanimated 4 worklets; a haptic tick when a swipe crosses the commit line.</li>
+          <li>The UI never waits on the network to show the next card. Votes queue and retry.</li>
+          <li>Refill the deck when 15 cards remain, based on what the engine has learned, not on page numbers.</li>
+          <li>Titles and overviews in the device language from the catalog (the server hard-codes English today).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ENGINE -->
+    <section id="engine">
+      <div class="sec-head">
+        <div class="eyebrow">Suggestions</div>
+        <h2>A smarter deck</h2>
+      </div>
+      <p class="lede">The old engine picks genre combinations at random and shows whatever the search returns, A to Z. The new one scores every eligible title for each player, combines those scores for the group, and keeps learning while people swipe.</p>
+
+      <ol class="pipeline">
+        <li><h3>Eligible</h3><p>On the room's services in the room's country, right type and runtime, above the quality floor, not seen by anyone if that rule is on, certification suitable for Family mode.</p></li>
+        <li><h3>Player fit</h3><p>Score each title for each player from their taste profile, tonight's genre or mood picks, their watchlist and a popularity prior.</p></li>
+        <li><h3>Group score</h3><p>Combine player scores with “average without misery”: the group average, after dropping titles anyone is predicted to dislike.</p></li>
+        <li><h3>Diversify</h3><p>Choose the opening cards with a diversity rule so the deck doesn't start with five superhero sequels. Keep about 1 card in 8 as a wildcard.</p></li>
+        <li><h3>Learn live</h3><p>Every swipe updates the room's model. Upcoming cards are re-ranked, and liked titles move into other players' next few cards.</p></li>
+      </ol>
+
+      <div class="sub">
+        <h4>Taste profiles</h4>
+        <div class="cols">
+          <div class="stack">
+            <h3>With Letterboxd</h3>
+            <p class="muted small">Turn ratings into signed weights. Starting values to tune: 5★ = +1, 4★ = +0.6, 3★ = +0.1, 2★ = −0.5, 1★ or less = −1, a heart adds +0.3, logged without a rating = +0.2. The profile is the recency-weighted average of those films' embeddings, plus readable affinities (genres, decades, directors, languages) that power the “why this card” labels.</p>
+          </div>
+          <div class="stack">
+            <h3>Without Letterboxd</h3>
+            <p class="muted small">Calibrate in the lobby while waiting for friends: 8 to 10 well-known films picked to split tastes (a horror, a romcom, an arthouse pick, a blockbuster, an animated film), each answered Love, Fine, Nope or Haven't seen. It takes about 30 seconds and replaces most genre picking. Genre and mood chips stay as a quick “tonight I want…” filter.</p>
+          </div>
+        </div>
+        <p class="small muted">Embeddings: build one short text per film (title, year, genres, top keywords, director, main cast, overview) and embed it once during ingest with a small open-source sentence-embedding model. Cosine similarity between a player's profile and a film gives their fit score. It's a one-off batch, with no per-game cost.</p>
+      </div>
+
+      <div class="sub">
+        <h4>Why the group step matters</h4>
+        <p>Averaging scores lets one person's strong dislike get outvoted. Group recommender research names several ways to combine people's preferences; try them on the same three players below.</p>
+        <div class="demo">
+          <div class="demo-head">
+            <span class="eyebrow">Example numbers: predicted fit out of 5</span>
+            <div class="seg" role="radiogroup" aria-label="Group strategy">
+              <button type="button" role="radio" aria-checked="false" data-s="avg">Average</button>
+              <button type="button" role="radio" aria-checked="false" data-s="lm">Least misery</button>
+              <button type="button" role="radio" aria-checked="true" data-s="awm">Average without misery</button>
+            </div>
+          </div>
+          <div class="table-wrap" style="border:0;border-radius:0">
+            <table>
+              <thead><tr><th>Film</th><th class="num">Alex</th><th class="num">Sam</th><th class="num">Jo</th><th class="num">Group</th></tr></thead>
+              <tbody id="demo-body">
+                <tr class="out"><td>Hereditary (2018)</td><td class="num">4.9</td><td class="num">4.6</td><td class="num low-score">0.6</td><td class="num score">dropped</td></tr>
+                <tr class="out"><td>Dune: Part Two (2024)</td><td class="num">4.7</td><td class="num">4.3</td><td class="num low-score">2.1</td><td class="num score">dropped</td></tr>
+                <tr class="win"><td>The Grand Budapest Hotel (2014)</td><td class="num">4.2</td><td class="num">3.6</td><td class="num">2.9</td><td class="num score">3.57</td></tr>
+                <tr><td>Paddington 2 (2017)</td><td class="num">3.4</td><td class="num">3.3</td><td class="num">3.6</td><td class="num score">3.43</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="demo-foot" id="demo-foot" aria-live="polite">Titles where anyone falls below 2.5 are dropped, then the highest average wins: <b>The Grand Budapest Hotel</b>. Everyone is fine with it, and the group is happier overall than with the safest pick.</div>
+        </div>
+        <p class="small muted">Recommended default: average without misery, with the misery line around 2.5 out of 5. Use the Final Cut vote (below) to break near-ties.</p>
+      </div>
+
+      <div class="sub">
+        <h4>Learning during the game</h4>
+        <ul class="ticklist">
+          <li><strong>Room model.</strong> Start from the combined profiles. After each swipe, adjust weights on readable features (genre, decade, runtime band, language, top keywords) and nudge the room's taste vector toward liked films and away from noped ones.</li>
+          <li><strong>Explore, then narrow.</strong> Thompson sampling, or a simple 85/15 split, lets early cards test different directions and later cards focus on what the room agrees on.</li>
+          <li><strong>Like propagation.</strong> When one player likes a title, slot it into the next 2 to 4 cards of everyone who hasn't seen it. Matches need overlap, so this is the biggest single lever on time to match.</li>
+          <li><strong>Shared opening.</strong> Everyone sees the same first 10 cards in the same order, which creates early overlap. After that, order personalizes.</li>
+          <li><strong>Fast exits.</strong> If everyone nopes two films from the same genre quickly, drop that genre for the rest of the session.</li>
+          <li><strong>Seen it is its own answer.</strong> A swipe up records the film as seen (feeding the seen filter and the profile) without counting as a dislike.</li>
+        </ul>
+        <div class="formula" aria-label="Scoring formula">group_score = average(player_fit) + 0.3 × watchlist_overlap + 0.2 × live_room_signal + 0.1 × quality<br>only when min(player_fit) ≥ misery_line</div>
+        <p class="small muted">Weights are starting points. Log every swipe with the score that produced the card so you can tune them on real games.</p>
+      </div>
+
+      <div class="sub">
+        <h4>When is it a match?</h4>
+        <div class="table-wrap mid">
+          <table>
+            <thead><tr><th>Players</th><th>Instant match when</th><th>Otherwise</th></tr></thead>
+            <tbody>
+              <tr><td>2</td><td>Both like it</td><td>Final Cut after 40 cards</td></tr>
+              <tr><td>3 to 4</td><td>Everyone likes it</td><td>Final Cut after 50 cards or 8 minutes</td></tr>
+              <tr><td>5 to 10</td><td>At least 70% like it and nobody used a super nope</td><td>Ranked vote among the top 4</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small muted">Thresholds are starting values. Count only players currently present, so someone leaving doesn't block every match.</p>
+      </div>
+
+      <div class="sub">
+        <h4>Quality and trust</h4>
+        <ul class="ticklist">
+          <li><strong>Quality floor.</strong> By default require roughly 150+ TMDB votes and a weighted rating above about 6.2, which removes most of the filler the old deck surfaced. Toggles: “Hidden gems” (fewer votes, high rating) and “Guilty pleasures” (lower rating floor).</li>
+          <li><strong>Say why.</strong> A small label on each card: “Because you all liked Arrival”, “On Sam and Jo's watchlists”, “94 min”, “Wildcard”. Reasons make the deck feel smart and make yes easier.</li>
+          <li><strong>Later: learn from your own games.</strong> Once you have thousands of sessions, “people who liked X in a room also liked Y” improves scoring. Don't bootstrap with MovieLens or IMDb datasets in a commercial app: both licenses are non-commercial.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FUN -->
+    <section id="fun">
+      <div class="sec-head">
+        <div class="eyebrow">Game design</div>
+        <h2>Making it fun</h2>
+      </div>
+      <p>The store already has many swipe-to-match movie apps. The fun comes from moments (the match, the near miss, the finale) and from finishing fast. Items marked <span class="chip tag-launch">Launch</span> belong in the first public version.</p>
+
+      <div class="features">
+        <div class="fgroup">
+          <h4>The match moment</h4>
+          <ul>
+            <li><div class="t">“It's a match” <span class="chip tag-launch">Launch</span></div><p>Full-screen poster, haptic burst, everyone's avatar, where to watch and a Watch now button. The old app has no match moment at all.</p></li>
+            <li><div class="t">Near-miss teasers <span class="chip tag-launch">Launch</span></div><p>“2 of 3 of you liked this” without saying who. Party mode only, off in Blind mode.</p></li>
+            <li><div class="t">Recap card <span class="chip tag-launch">Launch</span></div><p>A shareable image: “Paddington 2 in 3 min 42 s, 3 people, 41 swipes”, with an app link. Free marketing every movie night.</p></li>
+          </ul>
+        </div>
+        <div class="fgroup">
+          <h4>Swiping</h4>
+          <ul>
+            <li><div class="t">Four answers <span class="chip tag-launch">Launch</span></div><p>Nope, Like, Super like (1 or 2 per game), and Seen it (swipe up).</p></li>
+            <li><div class="t">Undo <span class="chip tag-launch">Launch</span></div><p>The rewind button is already drawn in <code>GameScreen.jsx</code>, commented out.</p></li>
+            <li><div class="t">Buttons too <span class="chip tag-launch">Launch</span></div><p>Like and Nope buttons with screen-reader labels, next to the gestures.</p></li>
+            <li><div class="t">Richer card back <span class="chip tag-launch">Launch</span></div><p>Keep tap-to-flip. Add trailer link, runtime, director, main cast, and the room's services highlighted.</p></li>
+          </ul>
+        </div>
+        <div class="fgroup">
+          <h4>Modes</h4>
+          <ul>
+            <li><div class="t">Quick Match <span class="chip tag-launch">Launch</span></div><p>Ends at the first match. The default.</p></li>
+            <li><div class="t">Final Cut <span class="chip tag-launch">Launch</span></div><p>After N cards, the top 3 or 4 face off. One veto per player, then a ranked vote.</p></li>
+            <li><div class="t">Date Night <span class="chip tag-launch">Launch</span></div><p>Two players, tighter deck, “something neither of us has seen”.</p></li>
+            <li><div class="t">Watchlist Showdown <span class="chip tag-later">Later</span></div><p>A deck built only from the overlap of players' Letterboxd watchlists.</p></li>
+            <li><div class="t">Family <span class="chip tag-later">Later</span></div><p>Certification filter by country from TMDB release data.</p></li>
+            <li><div class="t">Pick for me <span class="chip tag-later">Later</span></div><p>Solo mode from your own taste profile.</p></li>
+          </ul>
+        </div>
+        <div class="fgroup">
+          <h4>Tonight's constraints</h4>
+          <ul>
+            <li><div class="t">Time budget <span class="chip tag-launch">Launch</span></div><p>“We have 2 hours” becomes a runtime cap.</p></li>
+            <li><div class="t">Mood chips <span class="chip tag-launch">Launch</span></div><p>Cozy, Mind-bending, Laugh, Scary, Background noise, mapped to genres, keywords and runtime.</p></li>
+            <li><div class="t">Era and language <span class="chip tag-later">Later</span></div><p>Decade range, original language, “subtitles are fine”.</p></li>
+          </ul>
+        </div>
+        <div class="fgroup">
+          <h4>Together</h4>
+          <ul>
+            <li><div class="t">Live presence <span class="chip tag-launch">Launch</span></div><p>Avatars with a progress ring, “Sam is done”, and rejoin after a dropped connection or app restart.</p></li>
+            <li><div class="t">Reactions <span class="chip tag-launch">Launch</span></div><p>Quick emoji reactions that pop up on everyone's screen.</p></li>
+            <li><div class="t">Crews and history <span class="chip tag-later">Later</span></div><p>Saved groups with their settings, what they watched, and how often they agree.</p></li>
+          </ul>
+        </div>
+        <div class="fgroup">
+          <h4>Joining and after</h4>
+          <ul>
+            <li><div class="t">Links and QR <span class="chip tag-launch">Launch</span></div><p>Invite link like <code>/join/482913</code> and a QR code. The Invite button finally does something.</p></li>
+            <li><div class="t">Web guests <span class="chip tag-later">Later</span></div><p>Friends join from the browser without installing, using Expo Router's web build of the swipe screen.</p></li>
+            <li><div class="t">Watch and log <span class="chip tag-launch">Launch</span></div><p>“Open in Netflix” deep link for the winner, and “Log on Letterboxd”.</p></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h4>What similar apps already do (from their store listings)</h4>
+        <div class="table-wrap mid">
+          <table>
+            <thead><tr><th>App</th><th>What stands out</th></tr></thead>
+            <tbody>
+              <tr><td>CineMatch</td><td>Group rooms, genre and rating filters, shared matches revealed automatically</td></tr>
+              <tr><td>MatchFlicks</td><td>Filters by your streaming services; swipe together, match automatically</td></tr>
+              <tr><td>ReelMatch</td><td>Swipe through trailers instead of posters; 15 swipes a day on the free plan</td></tr>
+              <tr><td>MatchMovie</td><td>Android, 6-digit room PINs, instant match alerts, TMDB data, no ads</td></tr>
+              <tr><td>Movie Night</td><td>Group rooms joined by QR code or manual code</td></tr>
+              <tr><td>LazyWatch</td><td>Group swiping with a place to talk afterwards</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note good">
+          <h3>Where MovieMatch can stand out</h3>
+          <p>Decks that know each player's taste from Letterboxd. Never showing a film someone has already seen. A defined finish (a match or the Final Cut) instead of open-ended swiping. Guests who join from a link. No daily swipe cap.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PACKAGES -->
+    <section id="packages">
+      <div class="sec-head">
+        <div class="eyebrow">Upgrade</div>
+        <h2>Upgrading Expo and packages</h2>
+      </div>
+      <div class="versions">
+        <div class="ver"><span class="eyebrow">Expo SDK</span><span class="big">51<em>→</em>58</span><span class="small muted">58 released 15 Oct 2026</span></div>
+        <div class="ver"><span class="eyebrow">React Native</span><span class="big">0.74<em>→</em>0.88</span><span class="small muted">New Architecture only</span></div>
+        <div class="ver"><span class="eyebrow">React</span><span class="big">18.2<em>→</em>19.2</span><span class="small muted">baseline since SDK 55</span></div>
+      </div>
+
+      <div class="note">
+        <h3>Recommendation: start a fresh project and port</h3>
+        <p>No <code>ios/</code> or <code>android/</code> folders are committed, so there's no native code to migrate. The client is about 20 screens and components, and their shape changes anyway (Expo Router, the new room flow, the new backend). Stepping through seven SDKs means seven upgrade guides, the Legacy to New Architecture switch, React Navigation to Expo Router, and Reanimated 3 to 4. Create the project with <code>npx create-expo-app --template default@sdk-58</code> and a development build: Expo Go for SDK 58 reaches the stores a few weeks after release. If a library you need isn't ready for 58, SDK 57 (React Native 0.86) is a safe fallback.</p>
+      </div>
+
+      <div class="sub">
+        <h4>Package by package</h4>
+        <div class="table-wrap wide">
+          <table>
+            <thead><tr><th>Package</th><th>Now</th><th>Target</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">expo</td><td class="mono">^51.0.38</td><td class="mono">^58.0.0</td><td>Run <code>npx expo-doctor@latest</code> after every change</td></tr>
+              <tr><td class="mono">react-native</td><td class="mono">0.74.5</td><td class="mono">0.88</td><td>Strict TypeScript API by default; deep imports from <code>react-native/Libraries</code> are errors; <code>InteractionManager</code> and the Modal <code>animated</code> prop are removed</td></tr>
+              <tr><td class="mono">react</td><td class="mono">18.2.0</td><td class="mono">19.2</td><td>Set by the SDK</td></tr>
+              <tr><td>Architecture</td><td>Legacy (default in 51)</td><td>New Architecture</td><td>Legacy removed in SDK 55</td></tr>
+              <tr><td>JS engine</td><td>Hermes</td><td>Hermes V1</td><td>Default since SDK 56; its memory regression was fixed in SDK 57</td></tr>
+              <tr><td class="mono">@react-navigation/*</td><td class="mono">6.x</td><td class="mono">expo-router</td><td>File-based routes give invite deep links for free. Since SDK 56 Expo Router no longer depends on React Navigation</td></tr>
+              <tr><td class="mono">react-native-reanimated</td><td class="mono">~3.10.1</td><td class="mono">4.x</td><td>Requires New Architecture; worklets live in <code>react-native-worklets</code>. Drop the manual Babel plugin line, the Expo preset handles it</td></tr>
+              <tr><td class="mono">react-native-gesture-handler</td><td class="mono">~2.16.1</td><td>SDK version</td><td>2.32 bundled with SDK 57</td></tr>
+              <tr><td class="mono">react-native-screens</td><td class="mono">3.31.1</td><td>SDK version</td><td>Install with <code>npx expo install</code></td></tr>
+              <tr><td class="mono">react-native-safe-area-context</td><td class="mono">4.10.5</td><td>SDK version</td><td>SDK 58 asks for an update for iOS 27 scenes</td></tr>
+              <tr><td class="mono">react-native-svg</td><td class="mono">15.2.0</td><td>SDK version</td><td></td></tr>
+              <tr><td class="mono">expo-blur</td><td class="mono">~13.0.2</td><td>SDK version</td><td><code>experimentalBlurMethod</code> renamed <code>blurMethod</code> in SDK 55</td></tr>
+              <tr><td class="mono">@react-native-community/blur</td><td class="mono">^4.4.0</td><td>Remove</td><td>Duplicates expo-blur</td></tr>
+              <tr><td class="mono">expo-localization</td><td class="mono">~15.0.3</td><td>SDK version</td><td>SDK 58 no longer forces right-to-left from the locale on iOS</td></tr>
+              <tr><td class="mono">expo-status-bar</td><td class="mono">~1.12.1</td><td>SDK version</td><td>Most styling props are no-ops under Android edge-to-edge</td></tr>
+              <tr><td class="mono">expo-updates</td><td class="mono">~0.25.27</td><td>SDK version</td><td><code>eas update</code> requires <code>--environment</code> since SDK 55</td></tr>
+              <tr><td class="mono">expo-insights</td><td class="mono">~0.7.0</td><td>Review</td><td>Pick one analytics path: Expo Observe (new in 58) or PostHog (EAS CLI has a setup command)</td></tr>
+              <tr><td class="mono">firebase</td><td class="mono">10.7.1</td><td class="mono">@supabase/supabase-js</td><td>Or Firebase 12 if you stay on Firebase</td></tr>
+              <tr><td class="mono">axios</td><td class="mono">^1.6.7</td><td>Remove</td><td><code>expo/fetch</code> is the default <code>fetch</code> since SDK 56; add TanStack Query for caching</td></tr>
+              <tr><td class="mono">react-native-dotenv</td><td class="mono">^3.4.9</td><td>Remove</td><td>Use <code>EXPO_PUBLIC_</code> variables and EAS environment variables; delete the Metro <code>.env</code> hash hack and <code>resetCache: true</code></td></tr>
+              <tr><td class="mono">async-storage</td><td class="mono">1.23.1</td><td>SDK version</td><td>Or <code>expo-sqlite</code>'s key-value store</td></tr>
+              <tr><td class="mono">typescript</td><td class="mono">~5.3.3</td><td class="mono">6.0</td><td>Bumped in SDK 56; convert <code>.jsx</code> files as you port them</td></tr>
+              <tr><td>Babel extras</td><td>5 packages</td><td>Remove</td><td><code>metro-react-native-babel-preset</code>, <code>@react-native/babel-preset</code>, <code>@react-native-community/cli</code>, <code>@types/react-native</code>, <code>@babel/plugin-transform-private-methods</code>; <code>babel-preset-expo</code> covers them</td></tr>
+              <tr><td>New</td><td>none</td><td>Add</td><td><code>expo-image</code>, <code>expo-haptics</code>, <code>expo-linking</code>, <code>expo-sharing</code>, <code>expo-document-picker</code> (Letterboxd ZIP), a small unzip library, <code>@tanstack/react-query</code>, <code>zustand</code>, <code>@sentry/react-native</code>, <code>posthog-react-native</code>, <code>@expo/vector-icons</code> if you use icons (no longer bundled since SDK 56)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sub">
+        <h4>Project configuration</h4>
+        <ul class="ticklist cols">
+          <li><code>main</code>: <code>node_modules/expo/AppEntry.js</code> → <code>expo-router/entry</code>, plus a <code>scheme</code> for links.</li>
+          <li><code>userInterfaceStyle</code> is <code>"light"</code> while the app is dark. Set <code>"dark"</code> or <code>"automatic"</code>.</li>
+          <li>Runtime version policy <code>appVersion</code> → fingerprint, so OTA updates never reach an incompatible build.</li>
+          <li>Android: edge-to-edge is mandatory (Android 16), R8 minify is on by default in SDK 58 release builds.</li>
+          <li>iOS: minimum 16.4 since SDK 56; SDK 58 generates the scene life cycle at prebuild. You have no custom <code>AppDelegate</code>, so nothing to migrate.</li>
+          <li>Tooling: Node 22.13+, 24.3+ or 26+. Builds for iOS 27 need Xcode 27, which EAS Build provides.</li>
+        </ul>
+      </div>
+
+      <div class="sub">
+        <h4>Server side</h4>
+        <p>With the recommended stack the FastAPI service retires: nightly ingest runs on Supabase Cron and Queues, and the engine lives in Postgres functions and Edge Functions. If you keep Python for ingest or embeddings, move to Python 3.13 and current FastAPI with a <code>lifespan</code> handler, use an async database driver, share one <code>httpx</code> client, run fan-out with <code>asyncio.gather</code> under a rate limiter, and log with structure instead of <code>print</code>.</p>
+      </div>
+    </section>
+
+    <!-- LAUNCH -->
+    <section id="launch">
+      <div class="sec-head">
+        <div class="eyebrow">Before the stores</div>
+        <h2>Publishing checklist</h2>
+      </div>
+      <div class="check-head">
+        <p class="muted small">Tick items as you go. Progress is saved in this browser only.</p>
+        <span class="progress" id="check-count">0 of 0 done</span>
+      </div>
+      <div class="bar" aria-hidden="true"><i id="check-bar"></i></div>
+      <div class="checks" id="checks">
+        <fieldset>
+          <legend><h4>Data and licensing</h4></legend>
+          <label class="check"><input type="checkbox" id="ck-tmdb-notice"><span>TMDB notice and an approved TMDB logo in About: “This product uses the TMDB API but is not endorsed or certified by TMDB.”</span></label>
+          <label class="check"><input type="checkbox" id="ck-justwatch"><span>JustWatch credited wherever streaming availability appears (TMDB requires it for provider data)</span></label>
+          <label class="check"><input type="checkbox" id="ck-tmdb-license"><span>TMDB commercial license if the app earns money (TMDB's API is free for non-commercial use)</span></label>
+          <label class="check"><input type="checkbox" id="ck-sa-plan"><span>Streaming Availability plan sized for winner-only lookups</span></label>
+          <label class="check"><input type="checkbox" id="ck-datasets"><span>No IMDb datasets or MovieLens data in a commercial build</span></label>
+          <label class="check"><input type="checkbox" id="ck-lb-brand"><span>Letterboxd named only as a data source, no logo or partnership wording</span></label>
+        </fieldset>
+        <fieldset>
+          <legend><h4>Privacy and accounts</h4></legend>
+          <label class="check"><input type="checkbox" id="ck-privacy"><span>Privacy policy that covers imported watch history</span></label>
+          <label class="check"><input type="checkbox" id="ck-consent"><span>Consent before importing; export and delete on request (GDPR)</span></label>
+          <label class="check"><input type="checkbox" id="ck-delete"><span>In-app account deletion (App Store guideline 5.1.1(v))</span></label>
+          <label class="check"><input type="checkbox" id="ck-apple"><span>Sign in with Apple offered if Google sign-in is offered (guideline 4.8)</span></label>
+          <label class="check"><input type="checkbox" id="ck-labels"><span>App Privacy labels and Google Play Data safety form</span></label>
+        </fieldset>
+        <fieldset>
+          <legend><h4>Security</h4></legend>
+          <label class="check"><input type="checkbox" id="ck-rls"><span>Row-level security on every table; no endpoint that lists rooms</span></label>
+          <label class="check"><input type="checkbox" id="ck-ratelimit"><span>Rate limits on join attempts so 6-digit codes can't be guessed</span></label>
+          <label class="check"><input type="checkbox" id="ck-keys"><span>API keys only on the server, HTTPS everywhere</span></label>
+        </fieldset>
+        <fieldset>
+          <legend><h4>Quality</h4></legend>
+          <label class="check"><input type="checkbox" id="ck-crash"><span>Crash reporting and funnel analytics (room created → first card → match)</span></label>
+          <label class="check"><input type="checkbox" id="ck-rejoin"><span>Rejoin after network drops and app restarts</span></label>
+          <label class="check"><input type="checkbox" id="ck-a11y"><span>Buttons and screen-reader labels alongside every gesture</span></label>
+          <label class="check"><input type="checkbox" id="ck-i18n"><span>English and French complete, including TMDB titles and overviews</span></label>
+          <label class="check"><input type="checkbox" id="ck-load"><span>Load test with 50 rooms at once</span></label>
+        </fieldset>
+        <fieldset>
+          <legend><h4>Store</h4></legend>
+          <label class="check"><input type="checkbox" id="ck-name"><span>Final name, icon, screenshots and a short video of a match</span></label>
+          <label class="check"><input type="checkbox" id="ck-links"><span>Universal links and Android App Links for invite URLs</span></label>
+          <label class="check"><input type="checkbox" id="ck-age"><span>Age rating questionnaires</span></label>
+          <label class="check"><input type="checkbox" id="ck-beta"><span>Closed testing with 5 to 10 real friend groups</span></label>
+        </fieldset>
+      </div>
+    </section>
+
+    <!-- ROADMAP -->
+    <section id="roadmap">
+      <div class="sec-head">
+        <div class="eyebrow">Order of work</div>
+        <h2>Roadmap</h2>
+      </div>
+      <p class="muted">Sizes are relative (S, M, L) for one developer. Each phase ends with something you can play.</p>
+      <ol class="phases">
+        <li class="phase"><div class="txt">
+          <div class="row"><h3>Groundwork</h3><span class="chip c-low">Size S</span></div>
+          <p>Confirm the name and the stack. Contact TMDB about commercial terms if you plan to earn money. Send a Letterboxd API application as upside only. Create the SDK 58 project with Expo Router and port the Figma design tokens, fonts and components.</p>
+          <div class="done"><b>Done when</b>an empty app builds through EAS for iOS and Android.</div></div></li>
+        <li class="phase"><div class="txt">
+          <div class="row"><h3>Catalog and rooms</h3><span class="chip c-med">Size M</span></div>
+          <p>Ingest job and schema. Anonymous sign-in. Create and join by code, link and QR. Lobby presence. Deck query with filters and the quality floor. Votes, instant match, winner screen.</p>
+          <div class="done"><b>Done when</b>three phones on real data reach a match in under 2 minutes.</div></div></li>
+        <li class="phase"><div class="txt">
+          <div class="row"><h3>Smarter deck</h3><span class="chip c-high">Size L</span></div>
+          <p>Lobby calibration, embeddings and taste profiles, group scoring, like propagation, live re-ranking, “why this card” labels, Final Cut.</p>
+          <div class="done"><b>Done when</b>median time to first match beats phase 2 in playtests.</div></div></li>
+        <li class="phase"><div class="txt">
+          <div class="row"><h3>Letterboxd</h3><span class="chip c-med">Size M</span></div>
+          <p>Username and RSS sync, ZIP import with the shared TMDB mapping, seen filter, watchlist overlap, consent, export and delete.</p>
+          <div class="done"><b>Done when</b>a connected player never sees a film they've logged.</div></div></li>
+        <li class="phase"><div class="txt">
+          <div class="row"><h3>Polish and launch</h3><span class="chip c-med">Size M</span></div>
+          <p>Haptics, recap share card, trailers, deep links, onboarding, analytics, crash reporting, store listings, privacy policy, TestFlight and Play closed testing with real friend groups.</p>
+          <div class="done"><b>Done when</b>testers run real movie nights without help.</div></div></li>
+        <li class="phase"><div class="txt">
+          <div class="row"><h3>After launch</h3><span class="chip c-low">Ongoing</span></div>
+          <p>Crews and history, series mode, web guests, signals from your own games, more languages.</p>
+          <div class="done"><b>Done when</b>crews come back on their own.</div></div></li>
+      </ol>
+
+      <div class="sub">
+        <h4>Measure these from day one</h4>
+        <div class="table-wrap mid">
+          <table>
+            <thead><tr><th>Metric</th><th>Why it matters</th></tr></thead>
+            <tbody>
+              <tr><td>Time to first card</td><td>The old app's biggest complaint; should feel instant</td></tr>
+              <tr><td>Median time to first match</td><td>The core promise: decide fast</td></tr>
+              <tr><td>Rooms that end with a match</td><td>Whether the engine and match rules work</td></tr>
+              <tr><td>Swipes per match</td><td>Deck quality, independent of how fast people swipe</td></tr>
+              <tr><td>Guests who install</td><td>Growth from every movie night</td></tr>
+              <tr><td>Crews back within 30 days</td><td>Whether it became the way the group picks</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- DECISIONS -->
+    <section id="decisions">
+      <div class="sec-head">
+        <div class="eyebrow">Your call</div>
+        <h2>Decisions for you</h2>
+      </div>
+      <ul class="decisions">
+        <li><h3>Name</h3><p><code>app.json</code> says FilmFlicker, the repo says MovieMatch, and the stores already list MatchMovie, Match Movie and similar names. Pick something distinctive before making store listings.</p></li>
+        <li><h3>Stack</h3><span class="rec">Recommended: Expo + Supabase</span><p>Expo for the apps and the web join page, one Supabase project behind it, TypeScript everywhere. Convex is the runner-up if you prefer writing everything as reactive functions. Add a Cloudflare Durable Object per room only if the game outgrows plain realtime messaging.</p></li>
+        <li><h3>Movies only at launch</h3><span class="rec">Decided: yes</span><p>Letterboxd data is film-only, and “seen it” is fuzzy for series. Series can come later as a mode. The Figma release screens are movies only.</p></li>
+        <li><h3>Money</h3><p>A free app with an optional Pro tier (crews, history, extra modes) counts as commercial use under TMDB's terms and needs their license. Decide before launch so licensing isn't a surprise.</p></li>
+      </ul>
+    </section>
+
+    <!-- SOURCES -->
+    <section id="sources">
+      <div class="sec-head">
+        <div class="eyebrow">References</div>
+        <h2>Sources</h2>
+      </div>
+      <ul class="sources">
+        <li><a href="https://letterboxd.com/api-beta/" target="_blank" rel="noopener">Letterboxd API access</a> <span>· who can apply and the excluded uses</span></li>
+        <li><a href="https://letterboxd.com/legal/terms-of-use/" target="_blank" rel="noopener">Letterboxd terms of use</a> <span>· bots and scrapers</span></li>
+        <li><a href="https://letterboxd.com/about/importing-data/" target="_blank" rel="noopener">Letterboxd: importing your data</a> <span>· CSV format</span></li>
+        <li><a href="https://github.com/ryanpag3/lettarrboxd/issues/37" target="_blank" rel="noopener">lettarrboxd issue #37</a> <span>· reports of scraping blocks</span></li>
+        <li><a href="https://expo.dev/changelog/sdk-58" target="_blank" rel="noopener">Expo SDK 58</a>, <a href="https://expo.dev/changelog/sdk-57" target="_blank" rel="noopener">57</a>, <a href="https://expo.dev/changelog/sdk-56" target="_blank" rel="noopener">56</a>, <a href="https://expo.dev/changelog/sdk-55" target="_blank" rel="noopener">55</a> <span>· versions and breaking changes</span></li>
+        <li><a href="https://developer.themoviedb.org/docs/faq" target="_blank" rel="noopener">TMDB FAQ</a> <span>· attribution and commercial use</span></li>
+        <li><a href="https://developer.themoviedb.org/reference/movie-watch-providers" target="_blank" rel="noopener">TMDB watch providers</a> <span>· JustWatch attribution</span></li>
+        <li><a href="https://developer.themoviedb.org/docs/rate-limiting" target="_blank" rel="noopener">TMDB rate limiting</a></li>
+        <li><a href="https://supabase.com/pricing" target="_blank" rel="noopener">Supabase pricing</a> <span>· plan limits, free-project pausing</span></li>
+        <li><a href="https://supabase.com/docs/guides/auth/auth-anonymous" target="_blank" rel="noopener">Supabase anonymous sign-ins</a> <span>· linking keeps the user ID</span></li>
+        <li><a href="https://supabase.com/blog/realtime-broadcast-from-database" target="_blank" rel="noopener">Supabase broadcast from database</a></li>
+        <li><a href="https://supabase.com/docs/guides/ai/quickstarts/generate-text-embeddings" target="_blank" rel="noopener">Supabase built-in embeddings</a> <span>· gte-small, 384 dimensions</span></li>
+        <li><a href="https://docs.convex.dev/production/state/limits" target="_blank" rel="noopener">Convex limits</a> and <a href="https://www.convex.dev/pricing" target="_blank" rel="noopener">pricing</a> <span>· vector search caps</span></li>
+        <li><a href="https://developers.cloudflare.com/durable-objects/platform/pricing/" target="_blank" rel="noopener">Cloudflare Durable Objects pricing</a> <span>· hibernation, free plan</span></li>
+        <li><a href="https://blog.partykit.io/posts/partykit-is-joining-cloudflare/" target="_blank" rel="noopener">PartyKit joins Cloudflare</a> <span>· PartyServer</span></li>
+        <li><a href="https://github.com/movieofthenight/streaming-availability-api" target="_blank" rel="noopener">Streaming Availability API</a> <span>· deep links per service</span></li>
+        <li><a href="https://alternativeto.net/news/2025/2/trakt-tv-has-set-stricter-limits-for-free-users-and-raised-vip-subscription-prices-by-100-/" target="_blank" rel="noopener">Trakt free-tier limits</a> <span>· secondary report</span></li>
+        <li>Store listings: <a href="https://play.google.com/store/apps/details?id=com.travisapps.cinematch" target="_blank" rel="noopener">CineMatch</a>, <a href="https://play.google.com/store/apps/details?id=com.matchflicks.app&amp;hl=en_US" target="_blank" rel="noopener">MatchFlicks</a>, <a href="https://reelmatch.app/" target="_blank" rel="noopener">ReelMatch</a>, <a href="https://matchmovie.sadik.work/" target="_blank" rel="noopener">MatchMovie</a>, <a href="https://play.google.com/store/apps/details?id=by.levankou.kino&amp;hl=en" target="_blank" rel="noopener">Movie Night</a>, <a href="https://www.lazywatch.app/blog/best-apps-to-pick-a-movie-with-friends" target="_blank" rel="noopener">LazyWatch</a></li>
+        <li>Checked directly on 28 October 2026: a public Letterboxd RSS feed (field names) and the <code>letterboxd.com/tmdb/550</code> redirect.</li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<footer>Based on harryviennot/MovieMatch (last commit 10 Nov 2024) and harryviennot/MovieMatchServer (last commit 6 Mar 2024). File references point to those commits.</footer>
+
+<script>
+(function(){
+  // Calls chart: 2 searches, each followed by 13 TMDB + OMDb pairs, in the order the loop runs them
+  var old = document.getElementById('ticks-old');
+  if (old) {
+    var html = '';
+    for (var r = 0; r < 2; r++) {
+      html += '<i class="tick search"></i>';
+      for (var t = 0; t < 13; t++) html += '<i class="tick"></i><i class="tick omdb"></i>';
+    }
+    old.innerHTML = html;
+  }
+
+  // Group strategy demo
+  var films = [
+    {t:'Hereditary (2018)', s:[4.9,4.6,0.6]},
+    {t:'Dune: Part Two (2024)', s:[4.7,4.3,2.1]},
+    {t:'The Grand Budapest Hotel (2014)', s:[4.2,3.6,2.9]},
+    {t:'Paddington 2 (2017)', s:[3.4,3.3,3.6]}
+  ];
+  var LINE = 2.5;
+  var notes = {
+    avg: function(w){ return 'The highest average wins: <b>' + w.t + '</b>. But Jo is predicted at 2.1, so one person sits through a film they don\'t want.'; },
+    lm: function(w){ return 'The film with the best worst score wins: <b>' + w.t + '</b>. Nobody suffers, but the group is less excited than it could be.'; },
+    awm: function(w){ return 'Titles where anyone falls below 2.5 are dropped, then the highest average wins: <b>' + w.t + '</b>. Everyone is fine with it, and the group is happier overall than with the safest pick.'; }
+  };
+  function avg(a){ return (a[0]+a[1]+a[2])/3; }
+  function render(mode){
+    var rows = films.map(function(f){
+      var mn = Math.min.apply(null, f.s), sc;
+      if (mode === 'avg') sc = avg(f.s);
+      else if (mode === 'lm') sc = mn;
+      else sc = mn < LINE ? null : avg(f.s);
+      return {f:f, sc:sc, mn:mn};
+    });
+    var best = null;
+    rows.forEach(function(r){ if (r.sc !== null && (!best || r.sc > best.sc)) best = r; });
+    var body = document.getElementById('demo-body');
+    body.innerHTML = rows.map(function(r){
+      var cls = r === best ? 'win' : (r.sc === null ? 'out' : '');
+      var cells = r.f.s.map(function(v){
+        var low = (mode !== 'avg' && v === r.mn && v < LINE) ? ' low-score' : '';
+        return '<td class="num' + low + '">' + v.toFixed(1) + '</td>';
+      }).join('');
+      var score = r.sc === null ? 'dropped' : r.sc.toFixed(2);
+      return '<tr class="' + cls + '"><td>' + r.f.t + '</td>' + cells + '<td class="num score">' + score + '</td></tr>';
+    }).join('');
+    document.getElementById('demo-foot').innerHTML = notes[mode](best.f);
+  }
+  var btns = document.querySelectorAll('.seg button');
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      btns.forEach(function(x){ x.setAttribute('aria-checked', x === b ? 'true' : 'false'); });
+      render(b.getAttribute('data-s'));
+    });
+  });
+  render('awm');
+
+  // Checklist with per-viewer persistence
+  var KEY = 'moviematch-launch-checklist';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('#checks input[type="checkbox"]'));
+  function update(){
+    var n = boxes.filter(function(b){ return b.checked; }).length;
+    document.getElementById('check-count').textContent = n + ' of ' + boxes.length + ' done';
+    document.getElementById('check-bar').style.width = (boxes.length ? (n / boxes.length * 100) : 0) + '%';
+  }
+  boxes.forEach(function(b){
+    if (saved[b.id]) b.checked = true;
+    b.addEventListener('change', function(){
+      saved[b.id] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+      update();
+    });
+  });
+  update();
+
+  // Contents rail highlight
+  var links = Array.prototype.slice.call(document.querySelectorAll('.rail a'));
+  if ('IntersectionObserver' in window && links.length) {
+    var byId = {};
+    links.forEach(function(a){ byId[a.getAttribute('href').slice(1)] = a; });
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting && byId[e.target.id]) {
+          links.forEach(function(l){ l.removeAttribute('aria-current'); });
+          byId[e.target.id].setAttribute('aria-current', 'true');
+        }
+      });
+    }, {rootMargin: '-35% 0px -60% 0px'});
+    document.querySelectorAll('main [id]').forEach(function(s){ if (byId[s.id]) io.observe(s); });
+  }
+})();
+</script>
+
+</body>
+</html>
