@@ -13,5 +13,6 @@ Everything is in [docs/](docs/README.md). The main ones:
 - [Decisions](docs/decisions.md): what's decided, what's waiting for a yes, what's open.
 - [Data model](docs/architecture/data-model.md) and its [schema.sql](docs/architecture/schema.sql).
 - [Recommendation server](docs/architecture/recommendation-server.md).
+- [Deck engine](docs/architecture/deck-engine.md): how every card is chosen.
 - [Letterboxd integration](docs/integrations/letterboxd.md).
 - [Monetization options](docs/product/monetization.md).

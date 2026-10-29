@@ -55,6 +55,8 @@ The payload `deal_cards` takes:
 
 ## The algorithm, stage by stage
 
+> **The details are in [deck-engine.md](deck-engine.md):** how taste is built, the scoring formulas, freshness between games, moods, the deck builder, recipes per mode and every starting value. Where it differs from this section, it wins: moods are set by the host on the room rather than per seat, the variety rules apply to every deal rather than only the opening, and exploration falls from 20% in the warm-up to 5% at the end rather than staying at 1 card in 8.
+
 **Signals**
 
 | Kind | What | Where it lives |
