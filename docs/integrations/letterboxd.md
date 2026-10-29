@@ -84,6 +84,8 @@ sequenceDiagram
 - **What leaves the phone**: the username from `profile.csv`; per film from `watched.csv` and `watchlist.csv`: name, year, film link, watched, on watchlist; per diary entry from `diary.csv`: name, year, entry link, watched date, logged date, rating if any, rewatch. Nothing else is read.
 - **Consent** is asked before the upload and stored in `consents`; the link points at it.
 
+> On Android, the browser sheet's call returns as soon as the tab opens, so the app waits until it is back in the foreground before opening the picker ([app-structure.md](../architecture/app-structure.md#letterboxd-on-the-phone)). Where Letterboxd is offered in the app and how it's pitched: [onboarding.md](../product/onboarding.md#letterboxd).
+
 ## The RSS check
 
 The export isn't signed, so a hand-made one could carry any username. When an export is uploaded, the server reads that username's public feed and checks how many of the feed's entries logged before the export appear in the uploaded diary. It stores the share it found (`rss_match_share`).

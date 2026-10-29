@@ -4,7 +4,7 @@ The database for the first public release of MovieMatch and how every part talks
 
 Companion docs: the [recommendation server](recommendation-server.md) (its processes, its contract with this database, the algorithm), the [deck engine](deck-engine.md) (how every card is chosen) and the [Letterboxd integration](../integrations/letterboxd.md) (the export, connecting, syncing). Decisions and open questions live in [decisions.md](../decisions.md).
 
-> **Pending.** The [deck engine](deck-engine.md) needs changes that aren't in this doc or in schema.sql yet: a `card_history` table, mood scores per film, deck recipes, moods on the room instead of the seat, `allow_rewatch` as the default seen rule, and a taste check that no longer marks films as seen. The full list is in [Changes to the data model](deck-engine.md#changes-to-the-data-model).
+> **Pending.** The [deck engine](deck-engine.md) needs changes that aren't in this doc or in schema.sql yet: a `card_history` table, mood scores per film, deck recipes, moods on the room instead of the seat, `allow_rewatch` as the default seen rule, and a taste check that no longer marks films as seen. The full list is in [Changes to the data model](deck-engine.md#changes-to-the-data-model). The other pre-coding docs ask for more: [game-modes.md](../product/game-modes.md#changes-to-the-data-model) (one finale stage, a rewatch answer, a time limit on every rule, the game functions still to write and fixes to existing ones), [tmdb.md](../integrations/tmdb.md#changes-to-the-data-model) and [streaming-availability.md](../integrations/streaming-availability.md#changes-to-the-data-model) (the catalog jobs, service variants, free services), [app-structure.md](app-structure.md#changes-this-asks-of-the-backend) (accepting votes on cards a refill removed, fixing unmatched Letterboxd films, app config keys) and [onboarding.md](../product/onboarding.md#what-this-needs-elsewhere) (a room reference on invite links).
 
 - **[schema.sql](schema.sql)** is the reference DDL for everything marked v1 below: tables, indexes, row-level security, roles, realtime policies, the queues, the app's API and the game functions. It loads cleanly on Postgres 16 with pgvector, and a 120-check test suite passed against it (see [What was tested](#what-was-tested)).
 - **v1** means the first release: the revival plan's Launch items and roadmap phases 1 to 5.
@@ -410,6 +410,8 @@ erDiagram
 
 The 10-minute limits are my starting values; the plan only gives 8 minutes for 3 to 4 players.
 
+> Proposed changes to these values (a time limit on every rule, 40 cards for every Quick Match size) are in [Time to a pick](../product/game-modes.md#time-to-a-pick).
+
 ### The room
 
 **rooms**
@@ -577,11 +579,15 @@ sequenceDiagram
 - The first load of 40,000 titles is a one-off run of the same worker code from a laptop or CI, about 35 to 45 minutes at a polite rate.
 - Availability rows a refresh no longer sees are deleted. Titles that drop out of TMDB are marked `is_active = false`.
 
+> This schedule is replaced by [tmdb.md](../integrations/tmdb.md#keeping-it-fresh): a daily availability sweep per country, and full fetches weekly for watchable films and monthly for the rest.
+
 ### First launch
 
 1. The app calls Supabase anonymous sign-in. The auth trigger creates the profile with the same id.
 2. The player types a name: `api.update_profile` (name, country from the device region, language), then `api.set_my_providers`.
 3. Signing in with Apple or Google later links the identity to the same auth user. Nothing in the database moves.
+
+> Services are now asked the first time a room needs them, not at first launch: see [onboarding](../product/onboarding.md#first-launch).
 
 ### Create and join
 
@@ -677,6 +683,8 @@ sequenceDiagram
 
 The veto, rank and stage-closing functions are described here but not yet in schema.sql.
 
+> The finale's rules change in [game-modes.md](../product/game-modes.md#the-finale): one 45-second round where players rank and veto at once, with secret vetoes, and the only film nobody vetoed wins. The functions still to write are specified in [Functions still to write](../product/game-modes.md#functions-still-to-write).
+
 ### After the match
 
 Every path to `done` fires a trigger that queues `room_finished`. The pipeline worker then:
@@ -737,6 +745,8 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 
 To write with the finale: `cast_ballot(round, kind, title, rank)`.
 
+> How the app calls this API (one typed wrapper per function, generated types, status answers) is in [app-structure.md](app-structure.md#talking-to-the-backend).
+
 **Rules for changing it**
 
 - In Supabase, set the Data API's exposed schemas to `api` only, and turn off GraphQL (`pg_graphql`), which the app doesn't use.
@@ -784,6 +794,8 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `reaction` | live | phones | emoji | Pops it on screen |
 
 Message budget: progress travels in presence updates every 5 swipes rather than one message per swipe. Counting every delivery to every phone, a 4-player game with 60 swipes each comes to roughly 350 messages, so Supabase Pro's 5 million a month covers about 14,000 games.
+
+> Phones open both topics as private channels, which needs "Allow public access" switched off in the project's Realtime settings. How the phone handles each event and missed messages is in [app-structure.md](app-structure.md#realtime).
 
 ## Queues and scheduled jobs
 

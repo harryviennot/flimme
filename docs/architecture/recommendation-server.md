@@ -25,6 +25,8 @@ One codebase, four processes, deployed together:
 
 The server never needs Supabase Edge Functions; everything outside the database runs here.
 
+> Catalog ingest and where-to-watch data are detailed in [tmdb.md](../integrations/tmdb.md) and [streaming-availability.md](../integrations/streaming-availability.md).
+
 ## The contract with the database
 
 The server connects with its own login, granted the `app_server` role, through Supabase's connection pooler.

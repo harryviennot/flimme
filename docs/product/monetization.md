@@ -14,6 +14,8 @@ Bet on parents: anyone can host 3 games a month for free, kids always play free,
 Four facts from the revival plan decide which options are safe.
 
 - **The first euro needs a TMDB license.** TMDB calls a project commercial when its main purpose is revenue, and that covers ads, subscriptions and affiliate links. TMDB publishes no price; one third-party source quotes $149/month under $1M revenue, unconfirmed. Ask sales@themoviedb.org for a quote.
+
+  > Since: TMDB staff confirmed the $149 a month commercial plan for under $1 million revenue (forum, 31 March 2026). TMDB's terms may also require the commercial agreement for the recommendation engine itself, before any revenue: see [integrations/tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution).
 - **Letterboxd features stay free and must not copy Letterboxd Pro.** Its terms (section 6.4) forbid recreating paid-only features "through our API or another means". Letterboxd Pro includes stats pages, filtering by your services and alerts when watchlist films reach them. So no paid stats or alerts built on imported Letterboxd data.
 - **Guests drive growth.** Each movie night brings 2 to 9 people who did not choose the app. Never charge them to join or swipe, which rules out a paid app and a swipe cap.
 - **The host is the buyer.** One person per group creates the room, usually once or twice a week. Pricing should target that person.
@@ -156,6 +158,8 @@ About 200 to 300 yearly subscribers cover the fixed costs, and the TMDB license 
 | Streaming Availability API | A plan sized for winner-only lookups; not priced yet |
 | Apple Developer Program | $99/year, about $8/month |
 | **Total** | **About $200 to $250/month** |
+
+> Streaming Availability: free while building, Starter at $49 a month from launch. See [integrations/streaming-availability.md](../integrations/streaming-availability.md#requests-and-cost).
 
 At €14.99/year you keep about €10.60 per subscriber in France (after 20% VAT and Apple's 15%) and about $12.70 in the US. That makes roughly 200 to 300 subscribers. If 2 to 5% of active hosts subscribe (an assumption, typical for freemium), you need about 4,000 to 15,000 active hosts.
 
