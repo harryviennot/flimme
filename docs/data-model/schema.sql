@@ -319,7 +319,7 @@ create table public.linked_accounts (
   feed_last_modified text,
   last_synced_at timestamptz,                      -- the export counts as a sync
   sync_requested_at timestamptz,
-  next_sync_after timestamptz not null default now() + interval '14 days',
+  next_sync_after timestamptz not null default now() + interval '14 days',  -- every sync pushes it 14 days out
   gap_detected_at timestamptz,                     -- the feed moved past what we had: ask for a new export
   last_error text,
   created_at timestamptz not null default now(),
@@ -341,9 +341,10 @@ create table public.imports (
 );
 create index imports_account_idx on public.imports (linked_account_id, started_at desc);
 
--- One row per film from a Letterboxd export (watched, ratings, likes and
--- watchlist merged on the phone). Matched rows are applied to user_titles and
--- deleted; unmatched rows stay for the manual fix screen.
+-- One row per film from the export's watched.csv and watchlist.csv, merged
+-- on the phone: watched (a seen flag, nothing more) and on the watchlist.
+-- Ratings come only from diary entries. Matched rows are applied to
+-- user_titles and deleted; unmatched rows stay for the manual fix screen.
 create table public.import_rows (
   id bigint generated always as identity primary key,
   import_id uuid not null references public.imports on delete cascade,
@@ -351,11 +352,7 @@ create table public.import_rows (
   film_year smallint,
   letterboxd_uri text,
   watched boolean not null default false,
-  rating numeric(2,1),
-  liked boolean not null default false,
   on_watchlist boolean not null default false,
-  last_watched_on date,
-  rewatch_count smallint not null default 0,
   status public.import_row_status not null default 'pending',
   title_id bigint references public.titles
 );
@@ -374,7 +371,6 @@ create table public.letterboxd_entries (
   logged_on date,                                  -- "Date" in the export, the item's pubDate in RSS
   rating numeric(2,1) check (rating between 0.5 and 5 and rating * 2 = floor(rating * 2)),
   rewatch boolean not null default false,
-  liked boolean,                                   -- RSS only; the export records likes per film
   source text not null check (source in ('export', 'rss')),
   export_uri text,                                 -- boxd.it link of the entry (not of the film)
   rss_guid text,
@@ -402,7 +398,6 @@ create table public.user_titles (
   linked_account_id uuid references public.linked_accounts on delete cascade,
   seen boolean not null default false,
   rating numeric(2,1) check (rating between 0.5 and 5 and rating * 2 = floor(rating * 2)),
-  liked boolean not null default false,
   on_watchlist boolean not null default false,
   reaction public.reaction,                        -- calibration answer or after-game reaction
   rewatch_count smallint not null default 0,
@@ -419,7 +414,6 @@ select
   ut.title_id,
   bool_or(ut.seen) as seen,
   max(ut.rating) filter (where ut.source = 'letterboxd') as letterboxd_rating,
-  bool_or(ut.liked) as liked,
   bool_or(ut.on_watchlist) as on_watchlist,
   (array_agg(ut.reaction order by ut.updated_at desc) filter (where ut.reaction is not null))[1] as reaction,
   max(ut.last_watched_on) as last_watched_on
@@ -553,7 +547,7 @@ create table public.room_cards (
   fits jsonb not null default '{}',                -- {member_id: predicted fit 0 to 5}
   reason_code text,                                -- 'watchlist_overlap', 'similar_to_liked', 'runtime_fit', 'wildcard'
   reason_params jsonb not null default '{}',       -- member ids and title ids, rendered on the phone
-  member_ratings jsonb not null default '[]',      -- [{"member_id": "...", "rating": 4.5, "liked": true}]
+  member_ratings jsonb not null default '[]',      -- [{"member_id": "...", "rating": 4.5}]
   like_count smallint not null default 0,
   super_like_count smallint not null default 0,
   nope_count smallint not null default 0,
@@ -1452,12 +1446,13 @@ $$;
 -- different username replaces the profile's old link and everything that came
 -- with it. Films go to import_rows for matching; the diary goes straight in.
 --
--- Payload, built on the phone from the export ZIP (names, email, bio, review
--- text, tags and comments never leave the phone):
+-- Payload, built on the phone from the export ZIP. Only the username from
+-- profile.csv, watched.csv, watchlist.csv and diary.csv are read; nothing
+-- else leaves the phone:
 -- {"username": "hryvnt", "exported_at": "2026-10-29T11:01:00Z", "consent_version": "v1",
 --  "rss_match_share": 0.98,
---  "films": [{"uri": "https://boxd.it/AbC1", "name": "...", "year": 2019, "watched": true,
---             "rating": 4.5, "liked": false, "on_watchlist": false}],
+--  "films": [{"uri": "https://boxd.it/AbC1", "name": "...", "year": 2019,
+--             "watched": true, "on_watchlist": false}],
 --  "diary": [{"uri": "https://boxd.it/xYz9", "name": "...", "year": 2019,
 --             "watched_on": "2026-10-21", "logged_on": "2026-10-22", "rating": 4, "rewatch": false}]}
 create function internal.start_letterboxd_import(p_profile_id uuid, p_payload jsonb) returns jsonb
@@ -1509,10 +1504,9 @@ begin
   values (v_account.id, 'export', 'matching')
   returning id into v_import;
 
-  insert into public.import_rows (import_id, film_name, film_year, letterboxd_uri, watched, rating, liked, on_watchlist)
+  insert into public.import_rows (import_id, film_name, film_year, letterboxd_uri, watched, on_watchlist)
   select v_import, f->>'name', (f->>'year')::smallint, f->>'uri',
-         coalesce((f->>'watched')::boolean, false), (f->>'rating')::numeric,
-         coalesce((f->>'liked')::boolean, false), coalesce((f->>'on_watchlist')::boolean, false)
+         coalesce((f->>'watched')::boolean, false), coalesce((f->>'on_watchlist')::boolean, false)
   from jsonb_array_elements(coalesce(p_payload->'films', '[]')) f;
   get diagnostics v_films = row_count;
 
@@ -1535,19 +1529,16 @@ begin
 end
 $$;
 
--- Per film, what the diary entries say: last watch, number of watches, any
--- heart, and the latest rating overall and since the export.
-create function internal.letterboxd_entry_facts(p_account_id uuid, p_since date)
-returns table (title_id bigint, last_watched date, watches integer, liked boolean,
-               newer_rating numeric, any_rating numeric)
+-- Per film, what the diary entries say: last watch, last log, number of
+-- watches, and the rating on the most recently logged rated entry.
+create function internal.letterboxd_entry_facts(p_account_id uuid)
+returns table (title_id bigint, last_watched date, last_logged date, watches integer, latest_rating numeric)
 language sql stable security definer set search_path = ''
 as $$
   select e.title_id,
          max(e.watched_on),
+         max(e.logged_on),
          count(*)::int,
-         coalesce(bool_or(e.liked), false),
-         (array_agg(e.rating order by e.logged_on desc nulls last, e.watched_on desc)
-            filter (where e.rating is not null and e.logged_on > p_since))[1],
          (array_agg(e.rating order by e.logged_on desc nulls last, e.watched_on desc)
             filter (where e.rating is not null))[1]
   from public.letterboxd_entries e
@@ -1555,8 +1546,9 @@ as $$
   group by e.title_id
 $$;
 
--- Folds diary entries into the per-film rows in user_titles. A rating logged
--- after the export beats the export's rating; the export's beats older entries.
+-- Folds diary entries into the per-film rows in user_titles: seen, the latest
+-- rating, number of watches, last watch. A film logged after the export no
+-- longer counts as on the watchlist; one re-added after an older watch stays.
 create function internal.fold_letterboxd_entries(p_account_id uuid, p_title_ids bigint[] default null)
 returns void
 language plpgsql security definer set search_path = ''
@@ -1570,20 +1562,20 @@ begin
 
   update public.user_titles ut
   set seen = true,
-      rating = coalesce(f.newer_rating, ut.rating, f.any_rating),
-      liked = ut.liked or f.liked,
+      rating = coalesce(f.latest_rating, ut.rating),
+      on_watchlist = ut.on_watchlist and coalesce(f.last_logged <= v_since, true),
       rewatch_count = greatest(f.watches - 1, 0),
       last_watched_on = greatest(ut.last_watched_on, f.last_watched),
       updated_at = now()
-  from internal.letterboxd_entry_facts(p_account_id, v_since) f
+  from internal.letterboxd_entry_facts(p_account_id) f
   where ut.profile_id = v_profile and ut.source = 'letterboxd' and ut.title_id = f.title_id
     and (p_title_ids is null or f.title_id = any (p_title_ids));
 
-  insert into public.user_titles (profile_id, title_id, source, linked_account_id, seen, rating, liked,
+  insert into public.user_titles (profile_id, title_id, source, linked_account_id, seen, rating,
                                   rewatch_count, last_watched_on)
-  select v_profile, f.title_id, 'letterboxd', p_account_id, true, coalesce(f.newer_rating, f.any_rating),
-         f.liked, greatest(f.watches - 1, 0), f.last_watched
-  from internal.letterboxd_entry_facts(p_account_id, v_since) f
+  select v_profile, f.title_id, 'letterboxd', p_account_id, true, f.latest_rating,
+         greatest(f.watches - 1, 0), f.last_watched
+  from internal.letterboxd_entry_facts(p_account_id) f
   where (p_title_ids is null or f.title_id = any (p_title_ids))
     and not exists (select 1 from public.user_titles ut
                     where ut.profile_id = v_profile and ut.title_id = f.title_id and ut.source = 'letterboxd');
@@ -1619,9 +1611,9 @@ begin
     and lower(e.film_name) = lower(r.film_name) and coalesce(e.film_year, 0) = coalesce(r.film_year, 0);
 
   delete from public.user_titles where linked_account_id = v_account;
-  insert into public.user_titles (profile_id, title_id, source, linked_account_id, seen, rating, liked, on_watchlist)
+  insert into public.user_titles (profile_id, title_id, source, linked_account_id, seen, on_watchlist)
   select distinct on (r.title_id) v_profile, r.title_id, 'letterboxd', v_account,
-         r.watched, r.rating, r.liked, r.on_watchlist
+         r.watched, r.on_watchlist
   from public.import_rows r
   where r.import_id = p_import_id and r.status = 'matched'
   order by r.title_id, r.watched desc;
@@ -1648,7 +1640,7 @@ $$;
 -- item list) and passes the items as they are, with TMDB ids from the feed:
 -- [{"guid": "letterboxd-watch-123", "tmdb_id": 550, "film_title": "...", "film_year": 1999,
 --   "watched_on": "2026-10-28", "published_at": "2026-10-28T21:00:00Z",
---   "rating": 4.5, "liked": true, "rewatch": false}]
+--   "rating": 4.5, "rewatch": false}]
 create function internal.apply_letterboxd_feed(
   p_account_id uuid,
   p_items jsonb,
@@ -1683,18 +1675,17 @@ begin
 
   with written as (
     insert into public.letterboxd_entries as e
-      (linked_account_id, title_id, film_name, film_year, watched_on, logged_on, rating, rewatch, liked, source, rss_guid)
+      (linked_account_id, title_id, film_name, film_year, watched_on, logged_on, rating, rewatch, source, rss_guid)
     select p_account_id, t.id, i->>'film_title', (i->>'film_year')::smallint, (i->>'watched_on')::date,
            (i->>'published_at')::timestamptz::date, (i->>'rating')::numeric,
-           coalesce((i->>'rewatch')::boolean, false), (i->>'liked')::boolean, 'rss', i->>'guid'
+           coalesce((i->>'rewatch')::boolean, false), 'rss', i->>'guid'
     from jsonb_array_elements(p_items) i
     left join public.titles t on t.media_type = 'movie' and t.tmdb_id = (i->>'tmdb_id')::int
     where i->>'watched_on' is not null
     on conflict (linked_account_id, lower(film_name), coalesce(film_year, 0), watched_on) do update
       set rss_guid = coalesce(e.rss_guid, excluded.rss_guid),
           title_id = coalesce(e.title_id, excluded.title_id),
-          rating = coalesce(excluded.rating, e.rating),
-          liked = coalesce(excluded.liked, e.liked)
+          rating = coalesce(excluded.rating, e.rating)
     returning e.title_id, (xmax = 0) as inserted
   )
   select count(*) filter (where inserted), array_agg(distinct title_id) filter (where title_id is not null)
@@ -1726,7 +1717,11 @@ begin
 end
 $$;
 
--- Hourly: queue the scheduled syncs that are due (every 14 days per account).
+-- Hourly: queue the scheduled syncs that are due. Every successful sync,
+-- whatever triggered it (the export, joining a room, this job), pushes
+-- next_sync_after 14 days out, so this only picks accounts with no sync in
+-- 14 days: in practice, players who haven't played in that time. A sync
+-- queued on join that failed leaves the account due, so this catches it.
 -- Players who haven't played for 12 months stop being synced.
 create function internal.enqueue_due_letterboxd_syncs() returns integer
 language plpgsql security definer set search_path = ''
@@ -1837,13 +1832,13 @@ as $$
     'letterboxd_diary', (
       select coalesce(jsonb_agg(jsonb_build_object(
                'film', e.film_name, 'year', e.film_year, 'watched_on', e.watched_on, 'rating', e.rating,
-               'rewatch', e.rewatch, 'liked', e.liked, 'source', e.source) order by e.watched_on), '[]')
+               'rewatch', e.rewatch, 'source', e.source) order by e.watched_on), '[]')
       from public.letterboxd_entries e join public.linked_accounts la on la.id = e.linked_account_id, me
       where la.profile_id = me.id),
     'film_history', (
       select coalesce(jsonb_agg(jsonb_build_object(
                'tmdb_id', t.tmdb_id, 'title', t.original_title, 'source', ut.source, 'seen', ut.seen,
-               'rating', ut.rating, 'liked', ut.liked, 'on_watchlist', ut.on_watchlist,
+               'rating', ut.rating, 'on_watchlist', ut.on_watchlist,
                'reaction', ut.reaction, 'last_watched_on', ut.last_watched_on)), '[]')
       from public.user_titles ut join public.titles t on t.id = ut.title_id, me
       where ut.profile_id = me.id),
