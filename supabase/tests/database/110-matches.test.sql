@@ -1,6 +1,6 @@
 -- Matches, leaving and the finale's seeding (game-modes.md#when-its-a-match and
 -- #the-finalists, data-model.md#what-was-tested, "Game rules"). G1b, G1c, G4b, G6b,
--- G8c and G9b are beyond the 120 checks of data-model.md#what-was-tested.
+-- G6c, G8c and G9b are beyond the 120 checks of data-model.md#what-was-tested.
 --
 -- No card count, time limit or finale size is written here: the rules are read from
 -- rooms.rule, which M6.1 changes. G6 checks only that the finale opens, its kind and

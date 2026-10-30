@@ -313,7 +313,7 @@ One call per player with the whole ballot. This replaces the data model's one-ro
 
 ### `api.close_round_stage(round)` and `internal.close_round_stage(round)`
 
-Every phone counts down from `stage_closes_at` and calls `api.close_round_stage` at zero. It closes the round only if the deadline has passed or every present seat has locked in, and it does nothing if the round is already closed, so several phones calling it at once is harmless. The minute sweeper is only the backstop: on its own it could close a 45-second round a minute late.
+Every phone counts down from `stage_closes_at` and calls `api.close_round_stage` at zero. It closes the round only if the deadline has passed or every present seat has locked in, and it does nothing if the round is already closed, so several phones calling it at once is harmless. The minute sweeper is only the backstop: on its own it could close a 60-second round a minute late.
 
 Closing a round:
 
@@ -375,7 +375,7 @@ Not yet in [data-model.md](../architecture/data-model.md) or [schema.sql](../arc
 | --- | --- |
 | `vote_answer` | Add `seen_rewatch` ("Watch it again tonight? Yes", counts as a like and as seen). `seen` in rooms that allow rewatches counts as a nope |
 | `round_stage` | One open stage, `vote`, then `closed`. `veto` and `rank` go |
-| `match_rules` | `finale_after_seconds` on every row (see [Time to a pick](#time-to-a-pick)); 40 cards for 2 to 4 players, 30 for 5 to 10 |
+| `match_rules` | `finale_after_seconds` on every row (see [Time to a pick](#time-to-a-pick)); 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for Quick Match with 5 to 10 and for Final Cut |
 | `rooms.stats` | Adds `outcome`: `match`, `finale`, `no_pick` or `abandoned` |
 | New functions | `api.cast_ballot` (whole ballot), `api.close_round_stage`, `api.start_finale_now`, `api.keep_swiping`, `api.play_again`, `internal.close_round_stage`, `internal.sweep_rooms` |
 | Realtime | New `next_room` (code of the new room) and `host_changed`. `round_progress` carries which seats have locked in. `match` for a finale carries the points and vetoes |
