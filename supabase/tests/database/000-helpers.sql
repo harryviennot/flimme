@@ -194,6 +194,70 @@ as $$
   where m.room_id = p_room_id and m.profile_id = tests.uid(p_name)
 $$;
 
+-- -------------------------------------------------------------------------
+-- Catalog and Realtime fixtures
+-- -------------------------------------------------------------------------
+-- Everything here is made up: names and ids are invented, never TMDB data.
+-- Setup writes only to public tables, so it works on the real stack too, where
+-- tests run as `postgres` and not as a superuser.
+
+-- A made-up active movie. The TMDB id comes from the name, so the same name is
+-- always the same film (and a second call with that name fails on the unique key).
+create or replace function tests.create_title(p_name text) returns bigint
+language sql
+as $$
+  insert into public.titles (media_type, tmdb_id, original_title, original_language, release_date,
+                             runtime_min, popularity, vote_average, vote_count, quality_score)
+  values ('movie', ('x' || substr(md5('tests:title:' || p_name), 1, 6))::bit(24)::integer + 1000000,
+          p_name, 'en', date '2001-01-01', 100, 10, 7.5, 1000, 7.0)
+  returning id
+$$;
+
+-- The id of the film tests.create_title made with this name.
+create or replace function tests.title_id(p_name text) returns bigint
+language sql stable
+as $$
+  select t.id from public.titles t where t.original_title = p_name
+$$;
+
+-- A made-up streaming service available in a country (added to
+-- public.countries if missing). Calling it again for the same id and country
+-- changes nothing but the name.
+create or replace function tests.create_provider(p_id integer, p_name text, p_country char(2) default 'FR')
+returns integer
+language plpgsql
+as $$
+begin
+  insert into public.countries (code) values (p_country) on conflict do nothing;
+  insert into public.providers (id, name) values (p_id, p_name)
+  on conflict (id) do update set name = excluded.name;
+  insert into public.provider_regions (provider_id, country) values (p_id, p_country)
+  on conflict do nothing;
+  return p_id;
+end
+$$;
+
+-- Realtime reads the topic of the request from realtime.topic(), and
+-- realtime.send overwrites it in this transaction (on lite and on the real
+-- stack). Call this right before every read or insert on realtime.messages.
+create or replace function tests.use_topic(p_topic text) returns void
+language sql
+as $$
+  select set_config('realtime.topic', p_topic, true)
+$$;
+
+-- The payloads broadcast on room:<id> with this event, oldest first. Call it as
+-- the superuser. Rows of one transaction share a timestamp, so do not depend
+-- on the order inside a test: check counts and keys (->>), never whole payloads
+-- (realtime.send adds an id).
+create or replace function tests.broadcasts(p_room_id uuid, p_event text) returns setof jsonb
+language sql stable
+as $$
+  select m.payload from realtime.messages m
+  where m.topic = 'room:' || p_room_id::text and m.event = p_event
+  order by m.inserted_at
+$$;
+
 select plan(1);
 select ok(true, 'test helpers installed (schema "tests")');
 select * from finish();
