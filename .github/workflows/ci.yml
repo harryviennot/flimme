@@ -46,6 +46,7 @@ jobs:
               - '.github/workflows/**'
             database:
               - 'supabase/**'
+              - 'packages/contract/**'
               - '.github/workflows/**'
             docs:
               - '**/*.md'
@@ -145,7 +146,8 @@ jobs:
           fetch-depth: 0
       - uses: supabase/setup-cli@v3
         with:
-          version: latest
+          # Pinned with mise.toml: the generated api types depend on the CLI version.
+          version: 2.122.0
       - name: Start only the services the tests need
         run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
       - run: supabase db reset
@@ -160,13 +162,23 @@ jobs:
           node-version: 24
           cache: pnpm
       - name: Generated types are up to date
+        id: typegen
         run: |
-          # packages/contract holds a placeholder until M1.17 generates the real types.
-          if grep -q "Placeholder until the baseline migration exists" packages/contract/src/database.types.ts; then
-            echo "::warning::Typegen check skipped: packages/contract still holds the placeholder until M1.17."
-            exit 0
-          fi
-          pnpm install --frozen-lockfile && node tools/typegen.mjs --check
+          pnpm install --frozen-lockfile
+          node tools/typegen.mjs --check
+      - name: Show the generated types when they are stale
+        if: failure() && steps.typegen.outcome == 'failure'
+        run: |
+          node tools/typegen.mjs || true
+          git diff --stat -- packages/contract/src/database.types.ts
+          git diff -- packages/contract/src/database.types.ts | head -400
+      - name: Upload the generated types when they are stale
+        if: failure() && steps.typegen.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: database.types.ts
+          path: packages/contract/src/database.types.ts
+          if-no-files-found: ignore
 
   docs:
     needs: changes
