@@ -933,4 +933,4 @@ Separately: two overlapping votes on the same card, through `api.cast_vote`, whe
 
 Not tested: anything that needs a real Supabase project (Realtime delivery, the token's `is_anonymous` claim, the real Queues and their grants, the Data API's exposed-schema setting), the server itself, and the functions marked "to write".
 
-> These checks were never saved to the repository. They get rewritten as pgTAP tests before migrations start, and schema.sql becomes the baseline migration: see [operations.md](operations.md#from-schemasql-to-migrations).
+> These checks are now pgTAP tests in `supabase/tests/database/`. Every assertion's description starts with the id of its clause (`B16`), and rules beyond the list are marked "(beyond the 120)". schema.sql becomes the baseline migration, and the same tests must pass on it: see [operations.md](operations.md#from-schemasql-to-migrations).

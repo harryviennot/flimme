@@ -2,7 +2,7 @@
 -- Runs on the lite database and on the real stack.
 
 begin;
-select plan(31);
+select plan(48);
 
 select tests.create_room(3);
 select is(tests.room_code() ~ '^[0-9]{6}$', true, 'create_room remembers the room code');
@@ -140,6 +140,109 @@ select is(
   (select m.swipe_count from public.room_members m where m.id = tests.member_id('d1')),
   3,
   'vote_next cast three votes for the player'
+);
+
+-- Letterboxd fixtures.
+select tests.create_player('lbh');
+select is(
+  tests.letterboxd_export('Test_Viewer')->>'username',
+  'Test_Viewer',
+  'letterboxd_export puts the given username in the payload as it is'
+);
+select is(
+  (select count(*) from public.titles where original_title like 'Letterboxd Film %'),
+  5::bigint,
+  'letterboxd_export created Films 1 to 5 and never Film 6'
+);
+select is(
+  (select jsonb_array_length(x->'films') || '/' || jsonb_array_length(x->'diary')
+          || '/' || (x->>'consent_version') || '/' || (x->>'rss_match_share')
+   from (select tests.letterboxd_export() as x) y),
+  '6/3/test-1/0.95',
+  'letterboxd_export has 6 films, 3 diary entries, consent version test-1 and share 0.95'
+);
+select is(
+  (select count(*) from public.titles where original_title like 'Letterboxd Film %'),
+  5::bigint,
+  'a second letterboxd_export skips the films that exist'
+);
+
+select is(
+  tests.connect_letterboxd('lbh', 'test_viewer', false)->'finish',
+  'null'::jsonb,
+  'connect_letterboxd without p_finish leaves finish null'
+);
+select is(
+  (select count(*) from public.import_rows r
+   where r.import_id = (select i.id from public.imports i where i.linked_account_id = tests.linked_account_id('lbh'))
+     and r.status = 'pending'),
+  6::bigint,
+  'the unfinished import still holds 6 pending rows'
+);
+select is(
+  tests.match_letterboxd_import(
+    (select i.id from public.imports i where i.linked_account_id = tests.linked_account_id('lbh'))),
+  5,
+  'match_letterboxd_import matches the 5 films that exist'
+);
+select is(
+  (select string_agg(r.film_name || ':' || r.status::text, ',' order by r.film_name)
+   from public.import_rows r
+   where r.import_id = (select i.id from public.imports i where i.linked_account_id = tests.linked_account_id('lbh'))
+     and r.film_name in ('Letterboxd Film 1', 'Letterboxd Film 6')),
+  'Letterboxd Film 1:matched,Letterboxd Film 6:unmatched',
+  'a made-up film is matched and the one outside the catalog is unmatched'
+);
+select is(
+  (current_user = session_user and auth.uid() is null),
+  true,
+  'match_letterboxd_import leaves the session as the superuser'
+);
+
+select tests.create_player('lbi');
+select is(
+  (select c->>'status' from (select tests.connect_letterboxd('lbi') as c) x),
+  null,
+  'connect_letterboxd returns the start and finish answers, not a status of its own'
+);
+select is(
+  (select (c->'start'->>'status') || '/' || (c->'finish'->>'status') || '/' || (c->'finish'->>'matched')
+   from (select tests.connect_letterboxd('lbi', 'test_viewer_new') as c) x),
+  'ok/ok/5',
+  'connect_letterboxd again with another username replaces the link and finishes with 5 matched'
+);
+select is(
+  (select la.username from public.linked_accounts la where la.id = tests.linked_account_id('lbi')),
+  'test_viewer_new',
+  'linked_account_id finds the link, and connect_letterboxd stored the username'
+);
+select is(tests.linked_account_id('nobody'), null, 'linked_account_id is null for a player with no link');
+select is(
+  (select (c->>'linked_account_id')::uuid = tests.linked_account_id('lbi')
+   from (select tests.connect_letterboxd('lbi', 'test_viewer_new') as c) x),
+  true,
+  'connect_letterboxd returns the link id'
+);
+select throws_ok(
+  $$select tests.connect_letterboxd('lbi', 'not a name!')$$,
+  'P0001', null,
+  'connect_letterboxd raises on any answer but ok'
+);
+
+select tests.create_title('Letterboxd Film 7');
+select is(
+  (select (f->>'tmdb_id')::int = (select t.tmdb_id from public.titles t where t.original_title = 'Letterboxd Film 7')
+          and f->>'guid' = 'test-guid-' || md5('Letterboxd Film 7' || date '2026-10-25')
+          and f->>'film_year' = '2001' and f->>'published_at' = '2026-10-26T21:00:00Z'
+   from (select tests.feed_item('Letterboxd Film 7', date '2026-10-25') as f) x),
+  true,
+  'feed_item carries the catalog film''s tmdb id, a guid, year 2001 and the next day at 21:00Z'
+);
+select is(
+  (select (f->>'tmdb_id') is null and (f->>'rating')::numeric = 2.5 and (f->>'rewatch')::boolean
+   from (select tests.feed_item('Feed Film 01', date '2026-10-25', 2.5, true) as f) x),
+  true,
+  'feed_item has a null tmdb id for a film that is not in the catalog, and takes the rating and rewatch flag'
 );
 
 select * from finish();

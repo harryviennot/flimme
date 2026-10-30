@@ -69,9 +69,14 @@ All in schema `tests`, defined in `000-helpers.sql`. Players have names (`'alice
 | `tests.broadcasts(room_id, event)` | The payloads sent on `room:<id>` with that event. Check keys with `->>`, never whole payloads, and do not rely on the order within one transaction |
 | `tests.create_catalog(count := 40, provider := 9001, country := 'FR')` | Made-up films `Catalog Film 001` and up (existing names skipped), each with a falling popularity, a subscription offer from the service in the country and a constant made-up vector, so `internal.deck_candidates` finds them. Returns the ids in number order |
 | `tests.act_as_server()` | Acts as the `app_server` role with no token. On the real stack it grants `postgres` the right to `set role app_server` if it lacks it (rolled back with the test). `tests.clear_authentication()` ends it |
-| `tests.queued(queue)` | The messages of a queue, oldest first, read from the queue table (nothing is consumed). Call it as the superuser and filter by `room_id` |
+| `tests.queued(queue)` | The messages of a queue, oldest first, read from the queue table (nothing is consumed). Call it as the superuser and filter by `room_id` (or by `profile_id` or `linked_account_id`) |
 | `tests.deal_game(players := 2, prefix := 'p', until := 'swiping')` | A room dealt through the real functions: `'lobby'` (seats with service 9001), `'dealing'` (the host has tapped start), `'swiping'` (the server dealt 25 catalog films: a shared opening of 10, then 15 ranked, ascending for odd seats and descending for even). Needs `create_catalog(25)` at least. Returns `{room_id, code, players, member_ids, title_ids, deal}` |
 | `tests.vote_next(name, count, answer := 'nope')` | As that player, votes on the next `count` cards from `my_next_cards`. Raises on any answer but `ok`. Returns the last answer |
+| `tests.letterboxd_export(username := 'test_viewer')` | The payload of `internal.start_letterboxd_import` for a made-up export: Films 1 to 5 are created in the catalog (never Film 6), 6 films, 3 diary entries, consent `test-1`, share 0.95 (details in `000-helpers.sql`) |
+| `tests.match_letterboxd_import(import_id)` | As the server, marks each pending row whose film is a `create_title` film as matched, the rest as unmatched. Returns the matched count, leaves the session as the superuser |
+| `tests.connect_letterboxd(name, username := 'test_viewer', finish := true)` | Starts the player's import as the server, and unless `finish` is false matches and finishes it. Raises on any answer but `ok`. Returns `{linked_account_id, import_id, start, finish}` |
+| `tests.linked_account_id(name)` | A player's Letterboxd link id, null if none |
+| `tests.feed_item(film, watched_on, rating := null, rewatch := false)` | One item for `internal.apply_letterboxd_feed`, with the catalog film's TMDB id (null if the film is not in the catalog) |
 
 After `authenticate_as`, call `tests.clear_authentication()` before creating more players or fixtures: setup writes need the superuser.
 

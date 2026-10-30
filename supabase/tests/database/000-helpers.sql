@@ -481,6 +481,159 @@ begin
 end
 $$;
 
+-- -------------------------------------------------------------------------
+-- Letterboxd fixtures
+-- -------------------------------------------------------------------------
+-- A made-up Letterboxd export and feed, and the calls that connect an account
+-- through the real internal functions. Usernames, films and links are invented
+-- (test_viewer, Letterboxd Film 1, https://example.test/lb/...), never a real
+-- person's data. Setup writes only to public tables, like the fixtures above.
+
+-- The payload of internal.start_letterboxd_import for a made-up export. Creates
+-- the catalog films 'Letterboxd Film 1' to 'Letterboxd Film 5' (existing names
+-- are skipped; never Film 6, which stays outside the catalog). Films, all year 2001:
+--   1 watched          2 watched          3 watched, with a stray "rating" key (ignored)
+--   4 watchlist only   5 watched and on the watchlist     6 watched, not in the catalog
+-- Diary: Film 1 watched 2026-09-10, logged 09-11, rating 4; Film 2 watched
+-- 2026-08-01, logged 08-02, rating 3.5; Film 5 watched 2025-06-01, logged the
+-- same day, no rating. The username is used as given (the function lower-cases it).
+create or replace function tests.letterboxd_export(p_username text default 'test_viewer') returns jsonb
+language plpgsql
+as $$
+declare
+  i integer;
+begin
+  for i in 1..5 loop
+    if tests.title_id('Letterboxd Film ' || i) is null then
+      perform tests.create_title('Letterboxd Film ' || i);
+    end if;
+  end loop;
+  return jsonb_build_object(
+    'username', p_username,
+    'exported_at', '2026-10-01T10:00:00Z',
+    'consent_version', 'test-1',
+    'rss_match_share', 0.95,
+    'films', jsonb_build_array(
+      jsonb_build_object('uri', 'https://example.test/lb/film-1', 'name', 'Letterboxd Film 1', 'year', 2001,
+                         'watched', true, 'on_watchlist', false),
+      jsonb_build_object('uri', 'https://example.test/lb/film-2', 'name', 'Letterboxd Film 2', 'year', 2001,
+                         'watched', true, 'on_watchlist', false),
+      jsonb_build_object('uri', 'https://example.test/lb/film-3', 'name', 'Letterboxd Film 3', 'year', 2001,
+                         'watched', true, 'on_watchlist', false, 'rating', 5),
+      jsonb_build_object('uri', 'https://example.test/lb/film-4', 'name', 'Letterboxd Film 4', 'year', 2001,
+                         'watched', false, 'on_watchlist', true),
+      jsonb_build_object('uri', 'https://example.test/lb/film-5', 'name', 'Letterboxd Film 5', 'year', 2001,
+                         'watched', true, 'on_watchlist', true),
+      jsonb_build_object('uri', 'https://example.test/lb/film-6', 'name', 'Letterboxd Film 6', 'year', 2001,
+                         'watched', true, 'on_watchlist', false)),
+    'diary', jsonb_build_array(
+      jsonb_build_object('uri', 'https://example.test/lb/entry-1', 'name', 'Letterboxd Film 1', 'year', 2001,
+                         'watched_on', '2026-09-10', 'logged_on', '2026-09-11', 'rating', 4, 'rewatch', false),
+      jsonb_build_object('uri', 'https://example.test/lb/entry-2', 'name', 'Letterboxd Film 2', 'year', 2001,
+                         'watched_on', '2026-08-01', 'logged_on', '2026-08-02', 'rating', 3.5, 'rewatch', false),
+      jsonb_build_object('uri', 'https://example.test/lb/entry-5', 'name', 'Letterboxd Film 5', 'year', 2001,
+                         'watched_on', '2025-06-01', 'logged_on', '2025-06-01', 'rewatch', false)));
+end
+$$;
+
+-- Acting as the server, as the matching step would: every pending row of the
+-- import whose film name is a film made by tests.create_title becomes matched
+-- with that title; the others become unmatched. Returns the matched count and
+-- leaves the session as the superuser.
+create or replace function tests.match_letterboxd_import(p_import_id uuid) returns integer
+language plpgsql
+as $$
+declare
+  v_matched integer;
+begin
+  perform tests.act_as_server();
+  update public.import_rows r
+  set title_id = x.tid,
+      status = case when x.tid is null then 'unmatched'::public.import_row_status
+                    else 'matched'::public.import_row_status end
+  from (select r2.id, tests.title_id(r2.film_name) as tid
+        from public.import_rows r2
+        where r2.import_id = p_import_id and r2.status = 'pending') x
+  where r.id = x.id;
+  select count(*) into v_matched
+  from public.import_rows r where r.import_id = p_import_id and r.status = 'matched';
+  perform tests.clear_authentication();
+  return v_matched;
+end
+$$;
+
+-- Connects a player's Letterboxd account the way the server does: builds the
+-- export (as the superuser), calls internal.start_letterboxd_import as the
+-- server, and unless p_finish is false matches the films and calls
+-- internal.finish_letterboxd_import. Raises on any answer but 'ok'. Leaves the
+-- session as the superuser. Returns {linked_account_id, import_id, start, finish}
+-- (finish is null when not finished).
+create or replace function tests.connect_letterboxd(
+  p_name text,
+  p_username text default 'test_viewer',
+  p_finish boolean default true
+) returns jsonb
+language plpgsql
+as $$
+declare
+  v_payload jsonb := tests.letterboxd_export(p_username);
+  v_start jsonb;
+  v_finish jsonb;
+begin
+  perform tests.act_as_server();
+  v_start := internal.start_letterboxd_import(tests.uid(p_name), v_payload);
+  perform tests.clear_authentication();
+  if v_start->>'status' <> 'ok' then
+    raise exception 'tests.connect_letterboxd: start answered %', v_start;
+  end if;
+
+  if p_finish then
+    perform tests.match_letterboxd_import((v_start->>'import_id')::uuid);
+    perform tests.act_as_server();
+    v_finish := internal.finish_letterboxd_import((v_start->>'import_id')::uuid);
+    perform tests.clear_authentication();
+    if v_finish->>'status' <> 'ok' then
+      raise exception 'tests.connect_letterboxd: finish answered %', v_finish;
+    end if;
+  end if;
+
+  return jsonb_build_object('linked_account_id', v_start->'linked_account_id', 'import_id', v_start->'import_id',
+                            'start', v_start, 'finish', v_finish);
+end
+$$;
+
+-- The id of a named player's Letterboxd link (null if none). Security definer,
+-- like tests.member_id, so it also works while a test is acting as someone.
+create or replace function tests.linked_account_id(p_name text) returns uuid
+language sql stable security definer set search_path = ''
+as $$
+  select la.id from public.linked_accounts la
+  where la.profile_id = tests.uid(p_name) and la.provider = 'letterboxd'
+$$;
+
+-- One item of the feed payload of internal.apply_letterboxd_feed, for a film
+-- watched on a date. The guid comes from the film and the date, the entry was
+-- published the next day at 21:00 UTC, and tmdb_id is the catalog film's (null
+-- when no film has that name). Security definer, so a test can call it as the server.
+create or replace function tests.feed_item(
+  p_film text,
+  p_watched_on date,
+  p_rating numeric default null,
+  p_rewatch boolean default false
+) returns jsonb
+language sql stable security definer set search_path = ''
+as $$
+  select jsonb_build_object(
+    'guid', 'test-guid-' || md5(p_film || p_watched_on::text),
+    'tmdb_id', (select t.tmdb_id from public.titles t where t.media_type = 'movie' and t.original_title = p_film),
+    'film_title', p_film,
+    'film_year', 2001,
+    'watched_on', p_watched_on,
+    'published_at', (p_watched_on + 1)::text || 'T21:00:00Z',
+    'rating', p_rating,
+    'rewatch', p_rewatch)
+$$;
+
 select plan(1);
 select ok(true, 'test helpers installed (schema "tests")');
 select * from finish();
