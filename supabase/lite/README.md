@@ -38,7 +38,7 @@ supabase/lite/test.sh    # run the pgTAP tests; non-zero exit on failure
   It ends with a one-line summary, for example `tables public=43 rec=4; views public=1 api=17; functions api=18 internal=27 rec=0; queues=7`, so a change that adds or loses an object shows at a glance.
 - **`test.sh`** runs `supabase/tests/**/*.sql` in alphabetical order with `pg_prove`, the same files and order as `supabase test db`, except the stack-only ones (`*.stack.test.sql`), which it lists and skips. Pass file paths to run only those: `supabase/lite/test.sh supabase/tests/database/010-smoke.test.sql`.
 - Reload before testing after any change to the schema, a migration or a stand-in. Tests roll back their own changes, so repeated `test.sh` runs need no reload.
-- One lite database per cluster: `schema.sql` creates the role `app_server`, and roles outlive databases, so `load.sh` drops that role with the database.
+- Several lite databases can share a cluster, one per session: set `LITE_DB` (for example `LITE_DB=m14_part2`) for both `load.sh` and `test.sh`. `schema.sql` creates the role `app_server` only if it's missing, and `load.sh` keeps that role while another database still uses it.
 
 Tests, their helpers (`tests.create_room(3)`, `tests.authenticate_as('p2')`, ...) and the naming rules are described in [supabase/README.md](../README.md#tests).
 

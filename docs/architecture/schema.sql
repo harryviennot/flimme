@@ -2644,7 +2644,15 @@ $$;
 
 -- The recommendation server's role. Create a login for the server and grant
 -- it this role; the server never uses the service role key for the database.
-create role app_server nologin;
+-- Created only if it's missing: roles belong to the whole cluster, so a second
+-- database in the same cluster (two lite databases, say) finds it already there.
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'app_server') then
+    create role app_server nologin;
+  end if;
+end
+$$;
 
 -- Row-level security on every table. The server sees every row; phones only
 -- what the policies below allow, and only through api views.
