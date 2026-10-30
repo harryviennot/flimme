@@ -276,7 +276,7 @@ The game designer defines each moment's beat (when, why, what it tells the playe
 | The near miss | "One more yes and it's a match" | The toast slides in, the card takes the like glow (`Glow/Like`) |
 | The flip | Curiosity without leaving the stack | A flip in place, under 300 ms, possible mid-stack |
 | It's a match | Every phone at once | The marquee bulbs chase, the poster scales in, avatars pop one by one, a haptic burst |
-| The Final Cut | 45 seconds of tension, vetoes secret | A countdown ring that turns red for the last 10 seconds, ticks, the veto slams, "locked in" |
+| The Final Cut | 60 seconds of tension, vetoes secret | A countdown ring that turns red for the last 10 seconds, ticks, the veto slams, "locked in" |
 | The reveal | Vetoes all at once, then the points | Vetoed posters fall away, the winner takes the spotlight (`Gradient/Spotlight`) |
 | The winner and the recap | Pride, and something to share | The ticket and the share card |
 

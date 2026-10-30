@@ -305,7 +305,7 @@ Built before any screen:
 - **`app.config.ts`** with the three variants (bundle ids, names, icons with a visible DEV or PREVIEW badge, so builds can't be confused), dark only, the fingerprint runtime version.
 - **A dev menu** in development builds: local or staging backend, reset the hints and onboarding, clear the vote queue, open the gallery, show the room's state.
 - **App config at launch:** `api.app_config` read once (minimum version, image base, feature switches), so a feature can ship switched off.
-- **Server time:** countdowns such as the Final Cut's 45 seconds run from the server's deadline, corrected by the phone's clock offset, so a phone with a wrong clock doesn't close early.
+- **Server time:** countdowns such as the Final Cut's 60 seconds run from the server's deadline, corrected by the phone's clock offset, so a phone with a wrong clock doesn't close early.
 - **Translations:** French written first, English next to it, plurals through i18next.
 - **Accessibility basics:** a cap on font scaling for the display font (Staatliches at 48 points can't triple without breaking a screen), 44-point targets, Reduce Motion.
 
