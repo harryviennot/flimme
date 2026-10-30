@@ -196,7 +196,7 @@ The server calls these pgmq functions directly with SQL. No client library is ne
 | `embed_titles` | 300 s | 5 | Embed changed films, re-score moods | Skips films whose `source_hash` is unchanged |
 | `room_finished` | 60 s | 5 | Room stats, card history, seen films, taste refreshes | Stats are overwritten; card history is skipped for a film whose `last_room_id` is already this room, so nothing is counted twice |
 
-`winner_links` goes: Streaming Availability is dropped from v1. `letterboxd_match` is new (see [Changes this asks elsewhere](#changes-this-asks-elsewhere)).
+`winner_links` is gone (migration `remove_v1_dropped`): Streaming Availability is dropped from v1. `letterboxd_match` is new (see [Changes this asks elsewhere](#changes-this-asks-elsewhere)).
 
 ## The database layer
 
@@ -360,7 +360,7 @@ Not applied to [data-model.md](data-model.md) or [schema.sql](schema.sql).
 | --- | --- | --- |
 | Queues | Grant `app_server` the right to read, delete, archive and extend messages on the queues it consumes (pgmq's functions and the queue and archive tables). schema.sql only has a comment saying so | Without it, the server can't consume anything |
 | Queues | Add `letterboxd_match` | The Letterboxd connect flow says the HTTP API "queues matching", but no queue is named for it. A separate queue keeps a player watching their import from waiting behind scheduled syncs |
-| Queues | Drop `winner_links` | Streaming Availability is dropped from v1 |
+| Queues | `winner_links` dropped | Streaming Availability is dropped from v1 |
 | `rec.requests` | Add `queue_ms`: how long the request waited in the queue | Splits slow deals into "waited" and "computed" |
 | `room_finished` | Card history is updated only for films whose `last_room_id` isn't already this room | Makes the end-of-room job safe to run twice |
 | HTTP API | `GET /v1/letterboxd/search` for fixing unmatched films | The gap [app-structure.md](app-structure.md#changes-this-asks-of-the-backend) found |

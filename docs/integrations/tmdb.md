@@ -268,7 +268,7 @@ None of these are in [data-model.md](../architecture/data-model.md) or [schema.s
 | `titles` | `refresh_tier` becomes 1 = available in an enabled country (weekly fetch), 2 = the rest (monthly fetch). Add `tmdb_missing_since` |
 | `title_certifications` | Add `inferred_from`: the country whose certification was used, null when it's the country's own |
 | `title_availability` | Rent and buy aren't stored at launch |
-| Streaming Availability | Dropped from v1: `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue and the `result` event go |
+| Streaming Availability | Dropped from v1: `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue are gone (migration `remove_v1_dropped`), and the `result` event is never sent |
 | New `api.report_unavailable(room, title, provider)` | A player's "Not there anymore?" on the winner screen; queues a re-fetch of the film |
 | `ingest_runs.kind` | `backfill`, `availability_sweep`, `popularity_daily`, `changes_daily`, `details_weekly`, `details_monthly`, `reference_weekly`, `embeddings`, `moods` |
 
