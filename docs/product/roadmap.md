@@ -93,10 +93,10 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | # | Milestone | Done when | Tasks | Status |
 | --- | --- | --- | --- | --- |
 | **First release** | | | | |
-| [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | Not started |
+| [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | In progress |
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production in Paris | 17 | Not started |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 14 | Not started |
-| [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | Not started |
+| [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 16 | Not started |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | Not started |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 0 of 245 tasks done.
+Progress: 4 of 245 tasks done.
 
 ```mermaid
 flowchart LR
@@ -184,9 +184,9 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
   Done when: the name is checked on both stores, in trademark databases and for domains, and recorded in decisions.md.
 - [ ] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the domain resolves and support@ receives mail.
-- [ ] **M0.3** Enrol in the Apple Developer Program as an individual and declare trader status · publishing · S · [store-listing](store-listing.md#developer-accounts)
+- [x] **M0.3** Enrol in the Apple Developer Program as an individual and declare trader status · publishing · S · [store-listing](store-listing.md#developer-accounts)
   Done when: enrolment is accepted.
-- [ ] **M0.4** Open a Google Play personal developer account and pass identity verification · publishing · S · [store-listing](store-listing.md#developer-accounts)
+- [x] **M0.4** Open a Google Play personal developer account and pass identity verification · publishing · S · [store-listing](store-listing.md#developer-accounts)
   Done when: the account is verified.
 - [ ] **M0.5** Email TMDB about the licence: catalog only at launch, embeddings and trained models later · legal · S · [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
   Done when: the email is sent; the answer, when it comes, goes in decisions.md.
@@ -198,7 +198,7 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
   Done when: recorded in decisions.md (this roadmap assumes yes).
 - [ ] **M0.9** Update the Figma to the first release: no taste check, no Letterboxd card, no account screens, winner screen with service logos, host menu with Remove player and Lock room, Report, `/join/` links · design · M · needs M0.7, M0.8 · [onboarding](onboarding.md#changes-to-the-figma)
   Done when: the affected frames match this list.
-- [ ] **M0.10** One repository: rename `movie-swipe-backend` to `flimme`, archive `movie-swipe-app`, and the shared tools (mise, pnpm workspaces, lefthook) · ops · S · [groundwork](../architecture/groundwork.md#the-repository)
+- [x] **M0.10** One repository: rename `movie-swipe-backend` to `flimme`, archive `movie-swipe-app`, and the shared tools (mise, pnpm workspaces, lefthook) · ops · S · [groundwork](../architecture/groundwork.md#the-repository)
   Done when: the repository is renamed, the old one archived, and `mise run check:all` passes on main.
 - [ ] **M0.11** The agent setup: CLAUDE.md files, agents, skills, hooks and settings · ops · S · needs M0.10 · [pipeline](../pipeline.md#one-time-setup), [agent-workflow](../agent-workflow.md#the-roster)
   Done when: `.claude/settings.json` is in place and a first small task has gone through `/task` to a merged pull request.
