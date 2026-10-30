@@ -94,7 +94,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | --- | --- | --- | --- | --- |
 | **First release** | | | | |
 | [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | In progress |
-| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production in Paris | 17 | Not started |
+| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production in Paris | 17 | In progress |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 14 | Not started |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 16 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 6 of 243 tasks done.
+Progress: 7 of 243 tasks done.
 
 ```mermaid
 flowchart LR
@@ -215,7 +215,7 @@ Done when: migrations and the test suite run from CI on staging and production.
   Done when: only `api` is exposed, Realtime public access is off, ES256 signing keys and the new API keys are in use, the spend cap is on.
 - [ ] **M1.3** Set up the Supabase CLI in the backend repo: `supabase/` folder and the local stack · backend · S · [operations](../architecture/operations.md#from-schemasql-to-migrations)
   Done when: `supabase start` runs the local stack from the repo.
-- [ ] **M1.4** Rewrite the 120 checks as pgTAP tests against `schema.sql` as it stands · test · L · needs M1.3 · [data-model](../architecture/data-model.md#what-was-tested)
+- [x] **M1.4** Rewrite the 120 checks as pgTAP tests against `schema.sql` as it stands · test · L · needs M1.3 · [data-model](../architecture/data-model.md#what-was-tested)
   Done when: the suite runs locally and passes.
 - [ ] **M1.5** Turn `schema.sql` into the baseline migration · backend · M · needs M1.4 · [operations](../architecture/operations.md#from-schemasql-to-migrations)
   Done when: the migration builds a fresh database and the suite passes on it.

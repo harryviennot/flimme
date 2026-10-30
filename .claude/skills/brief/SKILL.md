@@ -12,7 +12,7 @@ The brief is the only thing the implementer and the reviewer read, so it carries
 1. `node tools/next.mjs --task <id>`: the task line, its needs and its linked sections.
 2. Each linked section, and only that: `node tools/doc-section.mjs <link>`. Roadmap links are relative to `docs/product/`; the tool resolves them. `--toc` lists a doc's headings when you need a neighbouring section.
 3. `docs/decisions.md`: grep for the topic. **Decisions win over a doc when they disagree.**
-4. The code it touches: grep for the functions, tables, routes or components named. Never read `docs/architecture/schema.sql` in full (124 KB): grep for the function and read that range; after M1.5 the migrations are the truth.
+4. The code it touches: grep for the functions, tables, routes or components named. Never read the baseline migration in full (124 KB): grep `supabase/migrations/` for the function and read that range; the migrations are the truth, and later ones may replace a function.
 5. Docs the task doesn't link to are read only when a rule is missing; say which you read.
 
 ## The template

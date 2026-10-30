@@ -63,7 +63,7 @@ if (touched('server/')) {
     console.warn('server: skipped, uv is not installed');
   }
 }
-if (touched('supabase/', 'docs/architecture/schema.sql')) {
+if (touched('supabase/')) {
   const stackUp =
     has('supabase') &&
     spawnSync('supabase', ['status'], { cwd: ROOT, stdio: 'ignore' }).status === 0;

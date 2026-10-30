@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Drop and recreate the lite database, then load into it:
 #   1. the stand-ins (supabase/lite/standins.sql)
-#   2. every supabase/migrations/*.sql in order, or, while there are none,
-#      docs/architecture/schema.sql (retired once roadmap task M1.5 lands)
+#   2. every supabase/migrations/*.sql in order (stops if there are none)
 #   3. supabase/seed.sql
 # and print a one-line summary. Stops at the first SQL error.
 #
@@ -39,7 +38,7 @@ if [[ "$(admin -Atc "select rolsuper from pg_roles where rolname = current_user"
   exit 1
 fi
 
-# Roles belong to the whole cluster and outlive databases. schema.sql creates
+# Roles belong to the whole cluster and outlive databases. the baseline creates
 # app_server only if it's missing, so the role from the previous load is dropped
 # when nothing else uses it, and kept while another lite database still does.
 admin -c "drop database if exists $db with (force)"
@@ -51,17 +50,15 @@ run_file "$here/standins.sql"
 
 shopt -s nullglob
 migrations=("$repo"/supabase/migrations/*.sql)
-if ((${#migrations[@]} > 0)); then
-  source_label="${#migrations[@]} migration(s)"
-  for f in "${migrations[@]}"; do # the glob expands in sorted order
-    echo "load.sh: ${f#"$repo"/}" >&2
-    run_file "$f"
-  done
-else
-  source_label="docs/architecture/schema.sql"
-  echo "load.sh: no migrations yet, loading $source_label" >&2
-  run_file "$repo/docs/architecture/schema.sql"
+if ((${#migrations[@]} == 0)); then
+  echo "load.sh: no migrations in supabase/migrations" >&2
+  exit 1
 fi
+source_label="${#migrations[@]} migration(s)"
+for f in "${migrations[@]}"; do # the glob expands in sorted order
+  echo "load.sh: ${f#"$repo"/}" >&2
+  run_file "$f"
+done
 
 echo "load.sh: supabase/seed.sql" >&2
 run_file "$repo/supabase/seed.sql"
