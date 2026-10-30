@@ -162,18 +162,19 @@ jobs:
           node-version: 24
           cache: pnpm
       - name: Generated types are up to date
+        id: typegen
         run: |
           pnpm install --frozen-lockfile
           node tools/typegen.mjs --check
       - name: Show the generated types when they are stale
-        if: failure()
+        if: failure() && steps.typegen.outcome == 'failure'
         run: |
           node tools/typegen.mjs || true
           git diff --stat -- packages/contract/src/database.types.ts
           git diff -- packages/contract/src/database.types.ts | head -400
       - name: Upload the generated types when they are stale
-        if: failure()
-        uses: actions/upload-artifact@v4
+        if: failure() && steps.typegen.outcome == 'failure'
+        uses: actions/upload-artifact@v7
         with:
           name: database.types.ts
           path: packages/contract/src/database.types.ts
