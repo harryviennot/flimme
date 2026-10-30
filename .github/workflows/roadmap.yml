@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          # The tick script needs no packages, and pnpm isn't set up in this job.
+          package-manager-cache: false
       - name: Tick the task
         env:
           TITLE: ${{ github.event.pull_request.title }}

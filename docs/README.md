@@ -20,6 +20,7 @@ Everything written about Flimme (the revival of MovieMatch): what we're building
 | [monetization.md](product/monetization.md) | The family bet, kids' safety, free vs Host Pro, the hosting cap, affiliate payouts, break-even | Proposal, snapshot of 29 Oct 2026 |
 | [roadmap.md](product/roadmap.md) | Every step from an empty repo to launch and beyond: the first release's scope, 25 milestones with their status, and 245 tasks with dependencies and the docs to read | Kept up to date: tick tasks as they're done |
 | [game-modes.md](product/game-modes.md) | The rules of play: modes, answers, match rules, presence, joining and leaving, Party and Blind, the finale, every way a game ends, the winner screen and "Did you watch it?", later modes, time to a pick, specs for the game functions still to write | Draft for review. Its data model changes aren't applied yet |
+| [simulations.md](product/simulations.md) | Bot games under the match rules: how to run them, the model and what is made up in it, results by group size for the card count, the time limit, the finale and the 70% rule, and what they mean for M0.7 | Evidence for Harry's M0.7 decision, 30 Oct 2026. Bot tastes are made up |
 | [privacy.md](product/privacy.md) | Privacy and the legal ground: a data map with bases and retention, consents, analytics without a prompt, training across players, players' rights, children by market, Letterboxd and TMDB terms, processors and data locations, store privacy forms, privacy policy and terms outlines, questions for a lawyer | Draft for review; needs a lawyer's read before launch |
 | [analytics.md](product/analytics.md) | How we know the app works: the questions, every metric defined once with its source and target, the PostHog event list, identity, consent and kids, funnels, first dashboards, reading A/B tests, PostHog's plan and EU hosting | Draft for review. Its data model changes aren't applied yet |
 | [store-listing.md](product/store-listing.md) | Getting into the App Store and Google Play: choosing the name, developer accounts, store records, the listing in English and French, screenshots and video, age ratings, passing review, invite links, price and countries, the closed beta, a release checklist | Draft for review |
@@ -37,6 +38,7 @@ Everything written about Flimme (the revival of MovieMatch): what we're building
 | **Design** | | |
 | [design/components.md](design/components.md) | The Figma library's components as built in code, with the Figma's own description of each | Extracted 29 Oct 2026; the code is the source of truth |
 | [design/figma-map.md](design/figma-map.md) | Node ids of every page, screen, component, poster and icon in the Figma file | Extracted 29 Oct 2026 |
+| design/screens/ | One spec per screen: purpose, layout from the components, every state and status answer, copy in French and English, motion, haptics, accessibility, open questions. First launch: [splash](design/screens/splash.md), [welcome](design/screens/welcome.md), [your name](design/screens/name.md), [home](design/screens/home.md). Joining: [join with a code](design/screens/join-code.md), [join sheet](design/screens/join-sheet.md), [invite page (web)](design/screens/invite-page.md). Hosting: [host setup](design/screens/host-setup.md). The lobby: [lobby](design/screens/lobby.md), [invite sheet](design/screens/invite-sheet.md), [reconnecting](design/screens/reconnecting.md) | Draft for review, 30 Oct 2026. Each ends with its open questions |
 | **Integrations** | | |
 | [letterboxd.md](integrations/letterboxd.md) | What Letterboxd allows, the export file format, connecting, the RSS check, syncing, storage, rules for using the data | Draft for review |
 | [tmdb.md](integrations/tmdb.md) | The catalog from TMDB: terms and the machine-learning clause, which films, one request per film, the daily availability sweep, services and variants, the refresh schedule, the first load, images, certifications, translations, embeddings, failures, countries at launch | Draft for review. Its data model changes aren't applied yet |
@@ -58,7 +60,7 @@ Outside the repo: the [design file in Figma](https://www.figma.com/design/v2ZGLb
 | `product/` | What we build and why: game design, modes, onboarding, pricing, the store listing | `playtests.md` |
 | `architecture/` | How the system works: backend, app structure, the recommendation algorithm, operations | `notifications.md` |
 | `integrations/` | One file per outside service: what it allows, how we call it, its rules | `revenuecat.md` |
-| `design/` | Specs extracted from the Figma and written by the designer agent: components, screens, moments | `screens/lobby.md`, `moments.md` |
+| `design/` | Specs extracted from the Figma and written by the designer agent: components, screens, moments | `moments.md` |
 | `decisions.md` | One line per decision or open question, linking to the doc with the details | |
 | `archive/` | Frozen snapshots. Never edited | |
 

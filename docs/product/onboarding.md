@@ -48,11 +48,10 @@ Five rules shape everything below:
 flowchart TD
   inst["Installs from the store"] --> wel["Welcome"] --> name["Name and color"] --> home["Home"]
   home --> host["Open a room:<br/>mode, vibe, services"] --> lobby["Lobby"]
-  home --> code["Enter a code<br/>or scan a QR code"] --> lobby
+  home --> code["Enter a code"] --> lobby
   link["Taps an invite link<br/>or scans the QR with the camera"] --> has{"App installed?"}
   has -->|yes| sheet["Join sheet:<br/>name and color the first time"]
-  has -->|no| page["Invite page in the browser"]
-  page -->|join in the browser| sheet
+  has -->|no| page["Invite page in the browser:<br/>the code and the store buttons"]
   page -->|get the app| store["Store, install"] --> again["Tap the link again<br/>or type the code"] --> sheet
   sheet -->|room in the lobby| lobby
   sheet -->|swiping already started| game["Swiping"]
@@ -63,7 +62,6 @@ flowchart TD
 | --- | --- | --- |
 | Invited, app installed, first time | Tap the link, type a name, pick a color, Join | About 15 seconds |
 | Invited, app installed, played before | Tap the link | About 5 seconds |
-| Invited, no app, joins in the browser | Tap the link, Join in the browser, name, color, Join | About 25 seconds |
 | Invited, no app, installs | Tap the link, store, install, open, tap the link again | A minute or more, mostly the store |
 | New player, hosting | Welcome, name, Open a room, mode, vibe and services, Open the room | About a minute, plus waiting for friends |
 
@@ -111,9 +109,8 @@ The link opens the app straight on the room, skipping Welcome and Home.
 
 ### App not installed
 
-The link opens the invite page in the browser (that is what universal links do when the app isn't installed, per Expo's docs). The page shows "Harry invited you to pick a movie", the room code in large type, and two buttons:
+The link opens the invite page in the browser (that is what universal links do when the app isn't installed, per Expo's docs). The page shows "Harry invited you to pick a movie", the room code in large type, and the store buttons. There is no browser version of the game: guests download the app (decided on 30 October 2026), so a guest without the app is a minute or more from the first card, mostly in the store.
 
-- **Join in the browser.** The same join sheet, then the lobby, in the browser, with no install. This is the only way a guest without the app gets near the 30-second goal. The backend needs nothing new: anonymous sign-in works in a browser and the API is the same ([data model](../architecture/data-model.md#later-how-each-future-feature-lands)). The revival plan lists web guests as Later; this doc recommends launching with them (see [Open questions](#open-questions)).
 - **Get the app.** The store page, with a Smart App Banner on iOS. After installing, the app can't know which room the guest came from on its own, so:
   - **Launch:** the page says "Once it's installed, tap your invite link again" and keeps showing the code. The app's Welcome has **I have a room code**.
   - **Small upgrades:** on Android, the Play Install Referrer API can carry the room through the store: Google keeps the referrer for 90 days and asks apps to read it once, on first launch (checked today). On iOS, the code screen can show a **Paste** button (`ClipboardPasteButton` in expo-clipboard, iOS 16 and later), which pastes the link the page copied without the system's paste permission alert (checked today).
@@ -121,7 +118,7 @@ The link opens the invite page in the browser (that is what universal links do w
 ## Joining with a code or a QR code
 
 - **Code:** Home's **Got a room code?** opens six boxes over a number pad. The app tries to join as soon as the sixth digit is typed; there's no Join button (as in the Figma's screen 05). Errors show under the boxes (see [Empty and error states](#empty-and-error-states)).
-- **QR code in the app:** **Scan QR code** asks for the camera only when tapped. If refused: "Type the code instead", and the phone's normal camera still works.
+- **No QR scanner in the app** (decided on 30 October 2026): guests scan the invite QR code with the phone's normal camera, which opens the link. The app never asks for the camera.
 - **Name first:** a player who comes in by code before naming themselves (they tapped **I have a room code** on Welcome) gets the name and color step after the code, so the code is never lost.
 
 ## Hosting
@@ -265,7 +262,6 @@ The save screen (the Figma's screen 21) offers **Continue with Apple** and **Con
 | Permission | Asked when | If refused |
 | --- | --- | --- |
 | Notifications | Only after **Yes** on the winner screen's "Remind me tomorrow?" | The follow-up card on Home instead. Not asked again for 30 days; after that only from Settings |
-| Camera | Only when **Scan QR code** is tapped in the app | "Type the code instead"; the phone's normal camera still opens invite QR codes |
 | Files | Never: the system file picker for the Letterboxd ZIP needs no permission | |
 | Location | Never: the country comes from the device's region | |
 | Tracking (App Tracking Transparency) | Never: no ad tracking at launch | |
@@ -305,7 +301,6 @@ Every state says what happened and offers a next step, never a raw error.
 | No name yet (`name_required`) | Join | The name and color step | |
 | The host's country has no availability data | Open a room | "We can't show where to watch in your country yet. You can still join friends' rooms." | Choose another country (for people abroad), or join |
 | No services picked | Open a room | **Open the room** stays disabled, with "Pick at least one service" | |
-| Camera refused | Scan QR code | "Type the code instead." | The code boxes |
 | Not a Letterboxd export | Letterboxd import | "This doesn't look like a Letterboxd export. Pick the ZIP Letterboxd sent you." | Pick again |
 | The export doesn't match the public profile (the RSS check) | Letterboxd import | "This export doesn't match the public diary of @harryv. Make sure it's your own export, made recently." | Open Letterboxd again |
 | Upload failed | Letterboxd import | "The import didn't go through." | Retry, keeping the picked file |
@@ -320,7 +315,7 @@ A deck that runs out mid-game (the Figma's screen 26) is a game state, in `produ
 | --- | --- | --- |
 | 02 Welcome | Add **Already have an account? Sign in**. Change "Skips anything someone has already seen" to fit the new default seen rule, for example "Skips films you've seen, unless you all loved them" | Restoring on a new phone; the default is now `allow_rewatch` |
 | New: Join sheet | "Join Harry's movie night": name, color, Join, in one sheet | The invite link path skips Welcome and Home |
-| New: Invite page (web) | The room code, **Join in the browser**, **Get the app** | Guests without the app |
+| New: Invite page (web) | The room code and **Get the app** (the store buttons) | Guests without the app |
 | 05 Join with code | Inline error states; a **Paste** button where available | Errors; the install path |
 | 07 Set the vibe | Moods are host only, up to 3; the seen toggle follows the new default | Agreed in the deck engine |
 | 08 Lobby | The rules line for guests, a guest's services row, the taste check card for the host | Guests who didn't choose the mode; services asked when needed |
@@ -339,7 +334,6 @@ Notes for other docs, not applied there:
 - **Data model:** the invite link carries a room reference, and `api.join_room` takes it as an optional argument, answering `closed` when the code now belongs to another room. Today a stale code either finds nothing or finds a newer room.
 - **Data model:** when does a room close? The Figma says "20 minutes after the last swipe"; the data model only abandons lobbies after 3 hours and ends rooms on a pick. Rooms where everyone has drifted away mid-game need a rule.
 - **Supabase settings:** enable manual linking (for saving accounts); turn on the bot check for anonymous sign-ins, which Supabase strongly recommends; and look at the anonymous sign-in limit, 30 per hour per IP address by default (checked today), since a party or a venue shares one network.
-- **Revival plan:** web guests move from Later to launch if [Open questions](#open-questions) agrees.
 - **Analytics doc, when written:** the events in [Measuring it](#measuring-it).
 
 ## Measuring it
@@ -353,7 +347,7 @@ Notes for other docs, not applied there:
 | Taste check | Offered, started, finished, skipped | Watch |
 | Letterboxd | Offered, started, file picked, imported, failed (with the reason) | Watch |
 | Notifications | Asked, accepted | Watch |
-| Web guests who install | From the revival plan's guests-who-install metric | Watch |
+| Invited guests who install | From the revival plan's guests-who-install metric | Watch |
 | Accounts saved | Share of guests with 3 or more games who save | Watch |
 
 > Each metric's definition, its source (the database or PostHog) and the events behind it are in [analytics.md](analytics.md#every-metric).
@@ -383,7 +377,6 @@ These are Harry's calls; the doc uses the recommendation until he decides.
 
 | Question | Recommendation |
 | --- | --- |
-| Launch with web guests (joining in the browser without installing)? | Yes: it's the only way a guest without the app swipes within about 30 seconds, and the backend needs nothing new. If it slips, the install path with "tap the link again" still works |
 | Email sign-in as well as Apple and Google? | No, not at launch: two buttons are simpler, and Apple's rule is met |
 | Where to ask for notifications? | On the winner screen of the first game, after a one-line in-app ask; quiet iOS notifications as a later experiment |
 | Should the taste check open by itself for guests? | Yes for guests, as a card for the host |

@@ -73,7 +73,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | Feature | Milestone | Why it can wait |
 | --- | --- | --- |
 | Accounts (Apple, Google), "Did you watch it?", notifications | [M15](#m15-accounts-and-follow-up) | Guests can play. No third-party sign-in also means Apple's Sign in with Apple rule (4.8) doesn't apply yet |
-| Web guests | [M16](#m16-growth-loop) | Growth comes once the core works. The recap card and Play again moved into M6 (decided on 29 October 2026) |
+| Web guests | Dropped | Guests download the app (decided on 30 October 2026). The recap card and Play again moved into M6 (decided on 29 October 2026) |
 | Card memory, Rematch, moods, the deck worker | [M17](#m17-fresher-decks-and-moods) | The SQL shuffle already varies decks |
 | Final Cut and Date Night modes, Keep swiping, Vote now | [M18](#m18-more-modes-and-host-controls) | Quick Match covers every group size |
 | Taste profiles, the taste check, embeddings | [M19](#m19-smart-deck) | Needs data and TMDB's commercial agreement (its terms restrict machine learning) |
@@ -110,7 +110,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | **After launch** | | | | |
 | [M14](#m14-measure-and-learn) | Measure and learn | Dashboards and funnels drive a weekly review | 5 | Not started |
 | [M15](#m15-accounts-and-follow-up) | Accounts and follow-up | Players can save an account, and "Did you watch it?" is measured | 10 | Not started |
-| [M16](#m16-growth-loop) | Growth loop | The invite page and web guests bring new players | 4 | Not started |
+| [M16](#m16-growth-loop) | Growth loop | The invite page and reactions bring new players | 2 | Not started |
 | [M17](#m17-fresher-decks-and-moods) | Fresher decks and moods | Repeat rate under 10%, moods live, the deck worker dealing | 15 | Not started |
 | [M18](#m18-more-modes-and-host-controls) | More modes and host controls | Final Cut and Date Night modes and the host controls are live | 8 | Not started |
 | [M19](#m19-smart-deck) | Smart deck | Taste-based decks beat the crowd deck in an A/B test | 10 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 4 of 245 tasks done.
+Progress: 6 of 243 tasks done.
 
 ```mermaid
 flowchart LR
@@ -192,9 +192,9 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
   Done when: the email is sent; the answer, when it comes, goes in decisions.md.
 - [ ] **M0.6** Open the service accounts with 2FA: Supabase (Pro organization), Fly.io, Sentry (EU), PostHog (EU), Expo, GitHub secret scanning · ops · S · [operations](../architecture/operations.md#environments), [security](../architecture/security.md#dependencies-and-accounts)
   Done when: every account exists in Harry's name with 2FA on.
-- [ ] **M0.7** Confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards) · decision · M · [game-modes](game-modes.md#time-to-a-pick)
+- [x] **M0.7** Confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards) · decision · M · [game-modes](game-modes.md#time-to-a-pick)
   Done when: recorded in decisions.md.
-- [ ] **M0.8** Confirm web guests wait until after launch · decision · S · [onboarding](onboarding.md#joining-from-an-invite-link)
+- [x] **M0.8** Confirm web guests wait until after launch · decision · S · [onboarding](onboarding.md#joining-from-an-invite-link)
   Done when: recorded in decisions.md (this roadmap assumes yes).
 - [ ] **M0.9** Update the Figma to the first release: no taste check, no Letterboxd card, no account screens, winner screen with service logos, host menu with Remove player and Lock room, Report, `/join/` links · design · M · needs M0.7, M0.8 · [onboarding](onboarding.md#changes-to-the-figma)
   Done when: the affected frames match this list.
@@ -641,14 +641,10 @@ Done when: players can save an account, and "Did you watch it?" feeds the time t
 
 Each movie night bringing the next players.
 
-Done when: the invite page and web guests bring new players, visible in the funnels. The recap card and Play again moved into the first release on 29 October 2026 (M6.21 to M6.23).
+Done when: the invite page brings new players, visible in the funnels. The recap card and Play again moved into the first release on 29 October 2026 (M6.21 to M6.23).
 
 - [ ] **M16.4** Invite page polish: Smart App Banner, store badges, credits, the install referrer on Android and the paste button on iOS · ops · needs M4.14 · [onboarding](onboarding.md#app-not-installed)
   Done when: an invited guest without the app reaches the room after installing.
-- [ ] **M16.5** Decide on web guests, with the funnel numbers · decision · needs M14.3 · [onboarding](onboarding.md#joining-from-an-invite-link)
-  Done when: recorded in decisions.md.
-- [ ] **M16.6** Web guests, if M16.5 says yes: join, swipe and match in the browser · app · needs M16.5 · [onboarding](onboarding.md#app-not-installed)
-  Done when: a guest without the app plays a full game in a browser.
 - [ ] **M16.7** Reactions from a fixed emoji set · app · needs M4.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: reactions pop on every phone.
 
@@ -856,8 +852,8 @@ This roadmap assumes answers to some open questions. Each has a task to confirm 
 
 | Assumption | Confirmed by |
 | --- | --- |
-| The finale is one 45-second round, and every rule has a time limit | M0.7 |
-| Web guests wait until after launch | M0.8, then M16.5 |
+| The finale is one 60-second round, and every rule has a 6-minute limit | M0.7 (decided on 30 October 2026) |
+| No browser version: guests download the app | M0.8 (decided on 30 October 2026) |
 | The first release has no accounts, no Letterboxd, no taste check, no moods and no other modes | This roadmap, at Harry's request |
 | France only at launch; Belgium and Switzerland follow in M24 | M24.1 |
 | No lawyer's review is scheduled unless M8.11 says so | M8.11 |
