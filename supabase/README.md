@@ -70,8 +70,11 @@ All in schema `tests`, defined in `000-helpers.sql`. Players have names (`'alice
 | `tests.create_catalog(count := 40, provider := 9001, country := 'FR')` | Made-up films `Catalog Film 001` and up (existing names skipped), each with a falling popularity, a subscription offer from the service in the country and a constant made-up vector, so `internal.deck_candidates` finds them. Returns the ids in number order |
 | `tests.act_as_server()` | Acts as the `app_server` role with no token. On the real stack it grants `postgres` the right to `set role app_server` if it lacks it (rolled back with the test). `tests.clear_authentication()` ends it |
 | `tests.queued(queue)` | The messages of a queue, oldest first, read from the queue table (nothing is consumed). Call it as the superuser and filter by `room_id` |
-| `tests.deal_game(players := 2, prefix := 'p', until := 'swiping')` | A room dealt through the real functions: `'lobby'` (seats with service 9001), `'dealing'` (the host has tapped start), `'swiping'` (the server dealt 25 catalog films: a shared opening of 10, then 15 ranked, ascending for odd seats and descending for even). Needs `create_catalog(25)` at least. Returns `{room_id, code, players, member_ids, title_ids, deal}` |
+| `tests.deal_game(players := 2, prefix := 'p', until := 'swiping', mode := 'quick_match')` | A room dealt through the real functions: `'lobby'` (seats with service 9001), `'dealing'` (the host has tapped start), `'swiping'` (the server dealt 25 catalog films: a shared opening of 10, then 15 ranked, ascending for odd seats and descending for even). Needs `create_catalog(25)` at least. Returns `{room_id, code, players, member_ids, title_ids, deal}`. `mode` is the room's game mode |
 | `tests.vote_next(name, count, answer := 'nope')` | As that player, votes on the next `count` cards from `my_next_cards`. Raises on any answer but `ok`. Returns the last answer |
+| `tests.film(n)` | The id of `Catalog Film <n>` (numbers from 1) |
+| `tests.vote(name, film, answer := 'like')` | As that player, `api.cast_vote` on catalog film `film` in the last room. Returns the answer whatever its status (`closed`, `dropped`, `duplicate`), so a test can check it. Leaves the session as the superuser |
+| `tests.upcoming(name, room_id := tests.room_id())` | The films still ahead of a seat (dealt, active card, no vote from it), in deck order |
 
 After `authenticate_as`, call `tests.clear_authentication()` before creating more players or fixtures: setup writes need the superuser.
 

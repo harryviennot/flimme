@@ -362,7 +362,7 @@ flowchart LR
 
 Then the Final Cut starts at the mode's card count or time limit, as in the [data model](data-model.md#finale).
 
-> If the card counts proposed in [game-modes.md](../product/game-modes.md#time-to-a-pick) are accepted, the narrow phase ends at card 24 for every Quick Match size and card 18 in Final Cut.
+> If the card counts proposed in [game-modes.md](../product/game-modes.md#time-to-a-pick) are accepted, the narrow phase ends at card 24 for 2 to 4 players, 18 for 5 to 10 and Final Cut.
 
 **Live learning**, at every refill:
 
