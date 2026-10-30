@@ -180,27 +180,27 @@ Everything that blocks building or publishing, started first. Several items take
 
 Done when: the name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, and the repository and the agents are set up.
 
-- [ ] **M0.1** Choose the app's name · decision · [store-listing](store-listing.md#choosing-the-name)
+- [ ] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
   Done when: the name is checked on both stores, in trademark databases and for domains, and recorded in decisions.md.
-- [ ] **M0.2** Buy the domain and set up a support email on it · ops · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
+- [ ] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the domain resolves and support@ receives mail.
-- [ ] **M0.3** Enrol in the Apple Developer Program as an individual and declare trader status · publishing · [store-listing](store-listing.md#developer-accounts)
+- [ ] **M0.3** Enrol in the Apple Developer Program as an individual and declare trader status · publishing · S · [store-listing](store-listing.md#developer-accounts)
   Done when: enrolment is accepted.
-- [ ] **M0.4** Open a Google Play personal developer account and pass identity verification · publishing · [store-listing](store-listing.md#developer-accounts)
+- [ ] **M0.4** Open a Google Play personal developer account and pass identity verification · publishing · S · [store-listing](store-listing.md#developer-accounts)
   Done when: the account is verified.
-- [ ] **M0.5** Email TMDB about the licence: catalog only at launch, embeddings and trained models later · legal · [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
+- [ ] **M0.5** Email TMDB about the licence: catalog only at launch, embeddings and trained models later · legal · S · [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
   Done when: the email is sent; the answer, when it comes, goes in decisions.md.
-- [ ] **M0.6** Open the service accounts with 2FA: Supabase (Pro organization), Fly.io, Sentry (EU), PostHog (EU), Expo, GitHub secret scanning · ops · [operations](../architecture/operations.md#environments), [security](../architecture/security.md#dependencies-and-accounts)
+- [ ] **M0.6** Open the service accounts with 2FA: Supabase (Pro organization), Fly.io, Sentry (EU), PostHog (EU), Expo, GitHub secret scanning · ops · S · [operations](../architecture/operations.md#environments), [security](../architecture/security.md#dependencies-and-accounts)
   Done when: every account exists in Harry's name with 2FA on.
-- [ ] **M0.7** Confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards) · decision · [game-modes](game-modes.md#time-to-a-pick)
+- [ ] **M0.7** Confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards) · decision · M · [game-modes](game-modes.md#time-to-a-pick)
   Done when: recorded in decisions.md.
-- [ ] **M0.8** Confirm web guests wait until after launch · decision · [onboarding](onboarding.md#joining-from-an-invite-link)
+- [ ] **M0.8** Confirm web guests wait until after launch · decision · S · [onboarding](onboarding.md#joining-from-an-invite-link)
   Done when: recorded in decisions.md (this roadmap assumes yes).
-- [ ] **M0.9** Update the Figma to the first release: no taste check, no Letterboxd card, no account screens, winner screen with service logos, host menu with Remove player and Lock room, Report, `/join/` links · design · needs M0.7 · [onboarding](onboarding.md#changes-to-the-figma)
+- [ ] **M0.9** Update the Figma to the first release: no taste check, no Letterboxd card, no account screens, winner screen with service logos, host menu with Remove player and Lock room, Report, `/join/` links · design · M · needs M0.7, M0.8 · [onboarding](onboarding.md#changes-to-the-figma)
   Done when: the affected frames match this list.
-- [ ] **M0.10** One repository: rename `movie-swipe-backend` to `flimme`, archive `movie-swipe-app`, and the shared tools (mise, pnpm workspaces, lefthook) · ops · [groundwork](../architecture/groundwork.md#the-repository)
+- [ ] **M0.10** One repository: rename `movie-swipe-backend` to `flimme`, archive `movie-swipe-app`, and the shared tools (mise, pnpm workspaces, lefthook) · ops · S · [groundwork](../architecture/groundwork.md#the-repository)
   Done when: the repository is renamed, the old one archived, and `mise run check:all` passes on main.
-- [ ] **M0.11** The agent setup: CLAUDE.md files, agents, skills, hooks and settings · ops · needs M0.10 · [pipeline](../pipeline.md#one-time-setup), [agent-workflow](../agent-workflow.md#the-roster)
+- [ ] **M0.11** The agent setup: CLAUDE.md files, agents, skills, hooks and settings · ops · S · needs M0.10 · [pipeline](../pipeline.md#one-time-setup), [agent-workflow](../agent-workflow.md#the-roster)
   Done when: `.claude/settings.json` is in place and a first small task has gone through `/task` to a merged pull request.
 
 ## M1 Backend foundation
@@ -209,39 +209,39 @@ The database the first release needs, tested and deployable to staging and produ
 
 Done when: migrations and the test suite run from CI on staging and production.
 
-- [ ] **M1.1** Create the staging and production Supabase projects in Paris (`eu-west-3`) · ops · needs M0.6 · [operations](../architecture/operations.md#environments)
+- [ ] **M1.1** Create the staging and production Supabase projects in Paris (`eu-west-3`) · ops · S · needs M0.6 · [operations](../architecture/operations.md#environments)
   Done when: both projects exist on Pro.
-- [ ] **M1.2** Apply the Supabase settings checklist to both projects · ops · needs M1.1 · [operations](../architecture/operations.md#supabase-settings), [security](../architecture/security.md#supabase-settings)
+- [ ] **M1.2** Apply the Supabase settings checklist to both projects · ops · M · needs M1.1 · [operations](../architecture/operations.md#supabase-settings), [security](../architecture/security.md#supabase-settings)
   Done when: only `api` is exposed, Realtime public access is off, ES256 signing keys and the new API keys are in use, the spend cap is on.
-- [ ] **M1.3** Set up the Supabase CLI in the backend repo: `supabase/` folder and the local stack · backend · [operations](../architecture/operations.md#from-schemasql-to-migrations)
+- [ ] **M1.3** Set up the Supabase CLI in the backend repo: `supabase/` folder and the local stack · backend · S · [operations](../architecture/operations.md#from-schemasql-to-migrations)
   Done when: `supabase start` runs the local stack from the repo.
-- [ ] **M1.4** Rewrite the 120 checks as pgTAP tests against `schema.sql` as it stands · test · needs M1.3 · [data-model](../architecture/data-model.md#what-was-tested)
+- [ ] **M1.4** Rewrite the 120 checks as pgTAP tests against `schema.sql` as it stands · test · L · needs M1.3 · [data-model](../architecture/data-model.md#what-was-tested)
   Done when: the suite runs locally and passes.
-- [ ] **M1.5** Turn `schema.sql` into the baseline migration · backend · needs M1.4 · [operations](../architecture/operations.md#from-schemasql-to-migrations)
+- [ ] **M1.5** Turn `schema.sql` into the baseline migration · backend · M · needs M1.4 · [operations](../architecture/operations.md#from-schemasql-to-migrations)
   Done when: the migration builds a fresh database and the suite passes on it.
-- [ ] **M1.6** Remove what v1 dropped: `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue, the `result` event · backend · needs M1.5 · [decisions](../decisions.md)
+- [ ] **M1.6** Remove what v1 dropped: `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue, the `result` event · backend · M · needs M1.5 · [decisions](../decisions.md)
   Done when: none of them exist and the tests are updated.
-- [ ] **M1.7** Revoke default privileges and add a CI check for tables without row-level security and functions open to phones (security gap 1) · backend · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
+- [ ] **M1.7** Revoke default privileges and add a CI check for tables without row-level security and functions open to phones (security gap 1) · backend · L · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: the check fails on purpose-built bad examples and passes on the schema.
-- [ ] **M1.8** Players who left or were removed lose room access: `room_members.removed_at`, `is_room_member` and `can_use_room_topic` updated (gap 3, access part) · backend · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
+- [ ] **M1.8** Players who left or were removed lose room access: `room_members.removed_at`, `is_room_member` and `can_use_room_topic` updated (gap 3, access part) · backend · L · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: tests show a removed seat reads nothing and can't send on the room's topics.
-- [ ] **M1.9** One `internal.rate_limit` helper, per profile and per IP, stricter on failed joins, used by every write function (gaps 6 and 7) · backend · needs M1.5 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [ ] **M1.9** One `internal.rate_limit` helper, per profile and per IP, stricter on failed joins, used by every write function (gaps 6 and 7) · backend · L · needs M1.5 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: tests show the limits per profile and per IP.
-- [ ] **M1.10** `api.update_room_settings` checks ranges and broadcasts the saved values (gap 5) · backend · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
+- [ ] **M1.10** `api.update_room_settings` checks ranges and broadcasts the saved values (gap 5) · backend · M · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: out-of-range settings are refused in tests.
-- [ ] **M1.11** Clamp dwell and client times, cap array sizes, draw room codes from `pgcrypto` (gaps 8 to 10) · backend · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
+- [ ] **M1.11** Clamp dwell and client times, cap array sizes, draw room codes from `pgcrypto` (gaps 8 to 10) · backend · M · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: tests cover each.
-- [ ] **M1.12** Database roles: `app_server` grants on the queues it consumes, one login per server process, a narrower role for the HTTP API (gap 11) · backend · needs M1.5 · [security](../architecture/security.md#secrets-and-the-servers-database-logins), [server-structure](../architecture/server-structure.md#the-database-layer)
+- [ ] **M1.12** Database roles: `app_server` grants on the queues it consumes, one login per server process, a narrower role for the HTTP API (gap 11) · backend · L · needs M1.5 · [security](../architecture/security.md#secrets-and-the-servers-database-logins), [server-structure](../architecture/server-structure.md#the-database-layer)
   Done when: each role can do exactly its job in tests.
-- [ ] **M1.13** `app_config` keys: `deck_engine` set to `sql`, `tmdb_image_base`, `invite_base_url`. With `sql`, starting a game and refills deal the SQL baseline at once, without the 8-second wait · backend · needs M1.5 · [deck-engine](../architecture/deck-engine.md#the-sql-fallback), [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
+- [ ] **M1.13** `app_config` keys: `deck_engine` set to `sql`, `tmdb_image_base`, `invite_base_url`. With `sql`, starting a game and refills deal the SQL baseline at once, without the 8-second wait · backend · L · needs M1.5 · [deck-engine](../architecture/deck-engine.md#the-sql-fallback), [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
   Done when: a test game starts swiping straight after `start_game`.
-- [ ] **M1.14** A synthetic seed for local work and CI: a few hundred made-up films with French availability, no TMDB data · backend · needs M1.5 · [operations](../architecture/operations.md#seed-and-test-data)
+- [ ] **M1.14** A synthetic seed for local work and CI: a few hundred made-up films with French availability, no TMDB data · backend · M · needs M1.5 · [operations](../architecture/operations.md#seed-and-test-data)
   Done when: a local game can be played on the seed.
-- [ ] **M1.15** Backend CI: the test suite on every pull request, migrations to staging on merge, to production by a manual workflow, actions pinned to commit SHAs · ops · needs M1.2, M1.5 · [operations](../architecture/operations.md#continuous-integration)
+- [ ] **M1.15** Backend CI: the test suite on every pull request, migrations to staging on merge, to production by a manual workflow, actions pinned to commit SHAs · ops · M · needs M1.2, M1.5 · [operations](../architecture/operations.md#continuous-integration)
   Done when: a merged migration reaches staging without hands.
-- [ ] **M1.16** The lite database for cloud sessions and the pgTAP helpers: stand-ins for Supabase's `auth`, `realtime` and `pgmq`, the `tests` helpers, a smoke test · test · needs M1.3 · [groundwork](../architecture/groundwork.md#cloud-sessions)
+- [ ] **M1.16** The lite database for cloud sessions and the pgTAP helpers: stand-ins for Supabase's `auth`, `realtime` and `pgmq`, the `tests` helpers, a smoke test · test · S · needs M1.3 · [groundwork](../architecture/groundwork.md#cloud-sessions)
   Done when: the smoke test passes on the lite database and with `supabase test db`.
-- [ ] **M1.17** `packages/contract` and `mise run typegen`: the generated `api` types, the answers, the Realtime events · backend · needs M1.5 · [groundwork](../architecture/groundwork.md#the-backends-foundations)
+- [ ] **M1.17** `packages/contract` and `mise run typegen`: the generated `api` types, the answers, the Realtime events · backend · M · needs M1.5 · [groundwork](../architecture/groundwork.md#the-backends-foundations)
   Done when: the generated types are committed and CI fails when they're stale.
 
 ## M2 Catalog for France
@@ -250,33 +250,33 @@ The films a French room can watch tonight, from TMDB, refreshed every night by t
 
 Done when: production holds France's watchable films, and the daily sweep has run for a week without help.
 
-- [ ] **M2.1** Server repo skeleton: Python with uv, the folder layout, settings and secrets, one Docker image, tests in CI · server · needs M1.12 · [server-structure](../architecture/server-structure.md#folder-layout)
+- [ ] **M2.1** Server repo skeleton: Python with uv, the folder layout, settings and secrets, one Docker image, tests in CI · server · S · [server-structure](../architecture/server-structure.md#folder-layout)
   Done when: the image builds and an empty test passes in CI.
-- [ ] **M2.2** Database layer and queue consumer: psycopg, typed wrappers for contract functions, the pgmq loop with visibility timeouts and poison messages · server · needs M2.1 · [server-structure](../architecture/server-structure.md#consuming-the-queues)
+- [ ] **M2.2** Database layer and queue consumer: psycopg, typed wrappers for contract functions, the pgmq loop with visibility timeouts and poison messages · server · L · needs M2.1, M1.5, M1.12 · [server-structure](../architecture/server-structure.md#consuming-the-queues)
   Done when: a test message is consumed once, a failing one ends up archived as poison.
-- [ ] **M2.3** TMDB client: polite request rate, retries, 429 handling, failure logging · server · needs M2.1 · [tmdb](../integrations/tmdb.md#failures-and-retries)
+- [ ] **M2.3** TMDB client: polite request rate, retries, 429 handling, failure logging · server · M · needs M2.1 · [tmdb](../integrations/tmdb.md#failures-and-retries)
   Done when: tests with recorded responses cover success, 429 and errors.
-- [ ] **M2.4** Catalog migration from tmdb.md: `providers.parent_id`, `provider_regions.is_listed` and `free_for_all`, `rooms.include_free_services`, refresh tiers, `title_certifications.inferred_from`, `titles.tmdb_missing_since`, `ingest_runs` kinds · backend · needs M1.5 · [tmdb](../integrations/tmdb.md#changes-to-the-data-model)
+- [ ] **M2.4** Catalog migration from tmdb.md: `providers.parent_id`, `provider_regions.is_listed` and `free_for_all`, `rooms.include_free_services`, refresh tiers, `title_certifications.inferred_from`, `titles.tmdb_missing_since`, `ingest_runs` kinds · backend · L · needs M1.5 · [tmdb](../integrations/tmdb.md#changes-to-the-data-model)
   Done when: migrated and tested; free services count for rooms when the switch is on.
-- [ ] **M2.5** Reference data job: genres, countries, services and their regions, certification ages, image configuration · server · needs M2.2, M2.3, M2.4 · [tmdb](../integrations/tmdb.md#what-we-use-tmdb-for)
+- [ ] **M2.5** Reference data job: genres, countries, services and their regions, certification ages, image configuration · server · M · needs M2.2, M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#what-we-use-tmdb-for)
   Done when: the tables fill from TMDB on staging.
-- [ ] **M2.6** Curate France's services: listed services, variants under their main service, free services, display order; check the ids for Canal+, TF1+, M6+ and Arte · content · needs M2.5 · [tmdb](../integrations/tmdb.md#services-variants-and-channels)
+- [ ] **M2.6** Curate France's services: listed services, variants under their main service, free services, display order; check the ids for Canal+, TF1+, M6+ and Arte · content · M · needs M2.5 · [tmdb](../integrations/tmdb.md#services-variants-and-channels)
   Done when: France's picker list is set in `provider_regions`.
-- [ ] **M2.7** Film fetch, one request per film: details, French and English text, credits, certifications with the US fallback, trailer, watch providers, watch link, quality score · server · needs M2.3, M2.4 · [tmdb](../integrations/tmdb.md#one-request-per-film)
+- [ ] **M2.7** Film fetch, one request per film: details, French and English text, credits, certifications with the US fallback, trailer, watch providers, watch link, quality score · server · L · needs M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#one-request-per-film)
   Done when: a fetched film fills every table it should, in tests and on staging.
-- [ ] **M2.8** Poster placeholders computed at ingest · server · needs M2.7 · [tmdb](../integrations/tmdb.md#images)
+- [ ] **M2.8** Poster placeholders computed at ingest · server · S · needs M2.7 · [tmdb](../integrations/tmdb.md#images)
   Done when: every film with a poster has a placeholder.
-- [ ] **M2.9** Which films: popularity from the daily export file, the floor, and the `backfill` command · server · needs M2.7 · [tmdb](../integrations/tmdb.md#which-films-are-in-the-catalog)
+- [ ] **M2.9** Which films: popularity from the daily export file, the floor, and the `backfill` command · server · M · needs M2.7, M1.15 · [tmdb](../integrations/tmdb.md#which-films-are-in-the-catalog)
   Done when: `backfill` loads the top films on staging.
-- [ ] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
+- [ ] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · M · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
   Done when: a sweep updates `title_availability`, and a simulated glitch is refused by the guard.
-- [ ] **M2.11** The refresh schedule: the changes feed, weekly and monthly fetches, the 6-month rule, enqueued by Supabase Cron · server · needs M2.9, M2.10 · [tmdb](../integrations/tmdb.md#keeping-it-fresh)
+- [ ] **M2.11** The refresh schedule: the changes feed, weekly and monthly fetches, the 6-month rule, enqueued by Supabase Cron · server · M · needs M2.9, M2.10 · [tmdb](../integrations/tmdb.md#keeping-it-fresh)
   Done when: each job runs on schedule on staging.
-- [ ] **M2.12** Deploy the pipeline worker on Fly.io in Paris, staging and production, with its secrets · ops · needs M2.2, M1.15 · [server-structure](../architecture/server-structure.md#deploying), [operations](../architecture/operations.md#secrets)
+- [ ] **M2.12** Deploy the pipeline worker on Fly.io in Paris, staging and production, with its secrets · ops · M · needs M2.2, M1.15 · [server-structure](../architecture/server-structure.md#deploying), [operations](../architecture/operations.md#secrets)
   Done when: the worker runs in both environments and restarts on failure.
-- [ ] **M2.13** First full load on staging, then production · ops · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
+- [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
   Done when: about 40,000 to 60,000 films, and every listed French service has availability rows.
-- [ ] **M2.14** Spot-check 30 French films against TMDB's watch pages and JustWatch · test · needs M2.13 · [streaming-availability](../integrations/streaming-availability.md#the-sources-compared)
+- [ ] **M2.14** Spot-check 30 French films against TMDB's watch pages and JustWatch · test · S · needs M2.13 · [streaming-availability](../integrations/streaming-availability.md#the-sources-compared)
   Done when: mismatches are under 5% or explained.
 
 ## M3 App foundation
@@ -285,37 +285,37 @@ An empty app that builds for both platforms, signs in as a guest and talks to th
 
 Done when: a development build on iOS and Android signs in as a guest and reads the API.
 
-- [ ] **M3.1** Create the Expo SDK 58 project: Expo Router, TypeScript, development builds, lint, format, tests, folder layout · app · needs M0.1 · [app-structure](../architecture/app-structure.md#project-setup)
+- [ ] **M3.1** Create the Expo SDK 58 project: Expo Router, TypeScript, development builds, lint, format, tests, folder layout · app · S · needs M0.1 · [app-structure](../architecture/app-structure.md#project-setup)
   Done when: the project runs in a development build on both platforms.
-- [ ] **M3.2** EAS: build profiles (development, preview, production), fingerprint runtime versions, update channels · ops · needs M3.1, M0.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
+- [ ] **M3.2** EAS: build profiles (development, preview, production), fingerprint runtime versions, update channels · ops · M · needs M3.1, M0.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: each profile builds.
-- [ ] **M3.3** App CI: lint and tests on every pull request, preview builds on demand · ops · needs M3.1 · [operations](../architecture/operations.md#continuous-integration)
+- [ ] **M3.3** App CI: lint and tests on every pull request, preview builds on demand · ops · S · needs M3.1 · [operations](../architecture/operations.md#continuous-integration)
   Done when: a failing test blocks a pull request.
-- [ ] **M3.4** Design tokens from the Figma: `tokens.json`, the generated Uniwind theme and `tokens.ts`, the three fonts, the 38 icons · design · needs M3.1 · [groundwork](../architecture/groundwork.md#tokens)
+- [ ] **M3.4** Design tokens from the Figma: `tokens.json`, the generated Uniwind theme and `tokens.ts`, the three fonts, the 38 icons · design · S · needs M3.1 · [groundwork](../architecture/groundwork.md#tokens)
   Done when: `pnpm tokens --check` passes and every type style renders in the gallery.
-- [ ] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · needs M3.1, M1.2 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
+- [ ] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · M · needs M3.1, M1.2 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
   Done when: a fresh install gets a guest user that survives a restart.
-- [ ] **M3.6** Typed API layer: generated types for the `api` schema, one wrapper per function, status answers as values · app · needs M3.5, M1.5 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
+- [ ] **M3.6** Typed API layer: generated types for the `api` schema, one wrapper per function, status answers as values · app · M · needs M3.5, M1.17 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
   Done when: wrappers compile against the generated types and a status answer isn't thrown as an error.
-- [ ] **M3.7** State: TanStack Query for server data, Zustand stores, persistence with expo-sqlite · app · needs M3.1 · [app-structure](../architecture/app-structure.md#where-state-lives)
+- [ ] **M3.7** State: TanStack Query for server data, Zustand stores, persistence with expo-sqlite · app · M · needs M3.1 · [app-structure](../architecture/app-structure.md#where-state-lives)
   Done when: a persisted store survives a restart.
-- [ ] **M3.8** Translations: i18next with French and English, the device language, English as fallback · app · needs M3.1 · [app-structure](../architecture/app-structure.md#translations)
+- [ ] **M3.8** Translations: i18next with French and English, the device language, English as fallback · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#translations)
   Done when: switching the device language switches the app.
-- [ ] **M3.9** Sentry with no personal data, source maps from EAS · app · needs M3.2 · [app-structure](../architecture/app-structure.md#analytics-and-crash-reports)
+- [ ] **M3.9** Sentry with no personal data, source maps from EAS · app · M · needs M3.2 · [app-structure](../architecture/app-structure.md#analytics-and-crash-reports)
   Done when: a test crash shows in Sentry with readable frames.
-- [ ] **M3.10** `app_config` at launch and the `min_app_version` gate · app · needs M3.6, M1.13 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
+- [ ] **M3.10** `app_config` at launch and the `min_app_version` gate · app · M · needs M3.6, M1.13 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: raising the minimum shows the update screen.
-- [ ] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
+- [ ] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · M · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
   Done when: the findings are written in app-structure.md.
-- [ ] **M3.12** Spike: the card stack at full frame rate on a low-end Android, styled with Uniwind · test · needs M3.4 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
+- [ ] **M3.12** Spike: the card stack at full frame rate on a low-end Android, styled with Uniwind · test · L · needs M3.4 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
   Done when: the findings are written in app-structure.md, and Uniwind is confirmed (or NativeWind 4.2.7 chosen) in decisions.md.
-- [ ] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
+- [ ] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
   Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
-- [ ] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
+- [ ] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: the gallery's motion section plays each spring and haptic on a phone.
-- [ ] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
+- [ ] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
   Done when: every route in app-structure.md opens, and the dev menu switches between local and staging.
-- [ ] **M3.16** The consistency checks: theme classes only, no arbitrary values or raw colors, primitives only from `ui/`, the component tiers, strings through `t()`, a gallery entry per component · app · needs M3.13 · [groundwork](../architecture/groundwork.md#keeping-every-screen-consistent)
+- [x] **M3.16** The consistency checks: theme classes only, no arbitrary values or raw colors, primitives only from `ui/`, the component tiers, strings through `t()`, a gallery entry per component · app · S · needs M3.13 · [groundwork](../architecture/groundwork.md#keeping-every-screen-consistent)
   Done when: each check fails on a purpose-built bad example and passes on the app.
 
 ## M4 First launch, rooms and lobby
@@ -324,37 +324,37 @@ From opening the app to a room full of friends ready to start.
 
 Done when: three phones join one room by code, link and QR code, see each other live, and the host can start.
 
-- [ ] **M4.1** Invite links carry a room reference; `api.join_room` takes it, answers `closed` for a stale link, and stores how the player came in (`via`, `link_opened_at`) · backend · needs M1.5 · [onboarding](onboarding.md#the-link), [analytics](analytics.md#changes-this-asks-elsewhere)
+- [ ] **M4.1** Invite links carry a room reference; `api.join_room` takes it, answers `closed` for a stale link, and stores how the player came in (`via`, `link_opened_at`) · backend · M · needs M1.5 · [onboarding](onboarding.md#the-link), [analytics](analytics.md#changes-this-asks-elsewhere)
   Done when: a link to a closed room can't join the newer room that reused its code.
-- [ ] **M4.2** Host powers: `rooms.locked`, `api.remove_member`, `api.set_room_locked`; a removed player can't rejoin · backend · needs M1.8 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [ ] **M4.2** Host powers: `rooms.locked`, `api.remove_member`, `api.set_room_locked`; a removed player can't rejoin · backend · L · needs M1.8 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: tests cover removing, locking and rejoining.
-- [ ] **M4.3** Names normalised and filtered with an English and French blocklist; avatars from presets only · backend · needs M1.5 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
+- [ ] **M4.3** Names normalised and filtered with an English and French blocklist; avatars from presets only · backend · M · needs M1.5 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tests refuse blocked names, invisible characters and unknown avatars.
-- [ ] **M4.4** `api.create_room` takes the room settings, so opening a room is one call · backend · needs M1.5 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
+- [ ] **M4.4** `api.create_room` takes the room settings, so opening a room is one call · backend · S · needs M1.5, M1.10 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
   Done when: a room is created with its settings in one call.
-- [ ] **M4.5** The host role passes to the longest-seated present player when the host leaves · backend · needs M1.5 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
+- [ ] **M4.5** The host role passes to the longest-seated present player when the host leaves · backend · M · needs M1.5 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
   Done when: tested with an absent player who joined earlier.
-- [ ] **M4.6** First launch: splash, welcome, name and colour; country and language from the device · app · needs M3.4, M3.6, M3.8, M4.3 · [onboarding](onboarding.md#first-launch)
+- [ ] **M4.6** First launch: splash, welcome, name and colour; country and language from the device · app · M · needs M3.4, M3.6, M3.8, M4.3, M3.13, M3.15 · [onboarding](onboarding.md#first-launch)
   Done when: Home is three taps from a fresh install.
-- [ ] **M4.7** Home: host a movie night, join with a code · app · needs M4.6 · [onboarding](onboarding.md#the-paths-at-a-glance)
+- [ ] **M4.7** Home: host a movie night, join with a code · app · S · needs M4.6 · [onboarding](onboarding.md#the-paths-at-a-glance)
   Done when: both buttons lead to their flows.
-- [ ] **M4.8** Join with a code: the keypad and a message for each `join_room` answer · app · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
+- [ ] **M4.8** Join with a code: the keypad and a message for each `join_room` answer · app · M · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
   Done when: a wrong code, a full room and a started room each show their message.
-- [ ] **M4.9** Host setup: the country's services (saved to the profile), age cap, time budget, then "Open the room" · app · needs M4.7, M4.4, M2.6 · [onboarding](onboarding.md#hosting)
+- [ ] **M4.9** Host setup: the country's services (saved to the profile), age cap, time budget, then "Open the room" · app · M · needs M4.7, M4.4, M2.6 · [onboarding](onboarding.md#hosting)
   Done when: a room opens with those settings.
-- [ ] **M4.10** The room layout: both Realtime topics, presence, the 30-second heartbeat, re-reading on reconnect and foreground, screens by room state, the Reconnecting banner, unknown messages dropped · app · needs M3.6, M3.7, M3.11 · [app-structure](../architecture/app-structure.md#realtime)
+- [ ] **M4.10** The room layout: both Realtime topics, presence, the 30-second heartbeat, re-reading on reconnect and foreground, screens by room state, the Reconnecting banner, unknown messages dropped · app · L · needs M3.6, M3.7, M3.11, M3.15 · [app-structure](../architecture/app-structure.md#realtime)
   Done when: killing the network mid-lobby and restoring it shows the right state.
-- [ ] **M4.11** The lobby: code, players and their services, the host's crown, Start for the host, Leave room; an optional services row for guests · app · needs M4.10 · [onboarding](onboarding.md#the-lobby)
+- [ ] **M4.11** The lobby: code, players and their services, the host's crown, Start for the host, Leave room; an optional services row for guests · app · M · needs M4.10 · [onboarding](onboarding.md#the-lobby)
   Done when: players appear and leave live on three phones.
-- [ ] **M4.12** The invite sheet: share the link, show the QR code · app · needs M4.11, M0.2 · [onboarding](onboarding.md#the-link)
+- [ ] **M4.12** The invite sheet: share the link, show the QR code · app · S · needs M4.11, M0.2, M4.1 · [onboarding](onboarding.md#the-link)
   Done when: sharing works on both platforms.
-- [ ] **M4.13** The host menu: Remove player, Lock room · app · needs M4.11, M4.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [ ] **M4.13** The host menu: Remove player, Lock room · app · M · needs M4.11, M4.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: a removed player sees why and can't come back.
-- [ ] **M4.14** Universal links and App Links: verification files on the domain, Associated Domains, a minimal invite page with the code and store buttons · ops · needs M0.2, M3.2 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
+- [ ] **M4.14** Universal links and App Links: verification files on the domain, Associated Domains, a minimal invite page with the code and store buttons · ops · M · needs M0.2, M3.2 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
   Done when: a link opens the app when installed and the invite page when not.
-- [ ] **M4.15** The `/join/[code]` route: a link or a QR code from the phone's camera opens the room · app · needs M4.14, M4.8 · [onboarding](onboarding.md#app-installed)
+- [ ] **M4.15** The `/join/[code]` route: a link or a QR code from the phone's camera opens the room · app · M · needs M4.14, M4.8 · [onboarding](onboarding.md#app-installed)
   Done when: tested from a cold start on both platforms.
-- [ ] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · needs M4.1, M3.6 · [groundwork](../architecture/groundwork.md#the-local-environment)
+- [ ] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · M · needs M4.1, M3.6, M1.17 · [groundwork](../architecture/groundwork.md#the-local-environment)
   Done when: `mise run bots` fills a local room with three present players.
 
 ## M5 Basic deck
@@ -363,21 +363,21 @@ The first release's deck, entirely in SQL: films the room can watch, ranked by q
 
 Done when: a room is dealt in under a second, only with films its players can watch, and two games in a row open with different cards.
 
-- [ ] **M5.1** `internal.deck_candidates` for the first release: the crowd score (quality and popularity percentiles), the room's services including free services, age cap, time budget, quality floor, seen films · backend · needs M2.4, M1.13 · [deck-engine](../architecture/deck-engine.md#scoring-a-film-for-a-player)
+- [ ] **M5.1** `internal.deck_candidates` for the first release: the crowd score (quality and popularity percentiles), the room's services including free services, age cap, time budget, quality floor, seen films · backend · L · needs M2.4, M1.13 · [deck-engine](../architecture/deck-engine.md#scoring-a-film-for-a-player)
   Done when: tests show each filter, and the crowd score orders the rest.
-- [ ] **M5.2** The weighted shuffle in the SQL deal (noise from a hash of the room's seed and the film), with the shared opening of 10 · backend · needs M5.1 · [deck-engine](../architecture/deck-engine.md#weighted-shuffle)
+- [ ] **M5.2** The weighted shuffle in the SQL deal (noise from a hash of the room's seed and the film), with the shared opening of 10 · backend · M · needs M5.1 · [deck-engine](../architecture/deck-engine.md#weighted-shuffle)
   Done when: the same room settings give different but repeatable decks per seed.
-- [ ] **M5.3** One film per franchise in the opening and in any 10 cards · backend · needs M5.2 · [deck-engine](../architecture/deck-engine.md#variety)
+- [ ] **M5.3** One film per franchise in the opening and in any 10 cards · backend · M · needs M5.2 · [deck-engine](../architecture/deck-engine.md#variety)
   Done when: tested with a franchise-heavy seed.
-- [ ] **M5.4** "Seen it" swipes saved to `user_titles` (source `app`), so later games leave them out · backend · needs M1.5 · [deck-engine](../architecture/deck-engine.md#signals)
+- [ ] **M5.4** "Seen it" swipes saved to `user_titles` (source `app`), so later games leave them out · backend · M · needs M1.5 · [deck-engine](../architecture/deck-engine.md#signals)
   Done when: a film swiped "Seen it" doesn't come back in the player's next room.
-- [ ] **M5.5** Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing · backend · needs M5.1 · [game-modes](game-modes.md#how-a-game-ends)
+- [ ] **M5.5** Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing · backend · M · needs M5.1 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: tested with a room whose services have almost nothing.
-- [ ] **M5.6** Card payloads (`api.my_next_cards`, `api.title_cards`): poster, placeholder, year, runtime, genres, TMDB score, director, cast, trailer, the room's services for that film, watch link; `api.title_cards` limited to the caller's rooms (gap 2) · backend · needs M2.7, M1.7 · [data-model](../architecture/data-model.md#the-apps-api), [security](../architecture/security.md#the-database-gaps-found)
+- [ ] **M5.6** Card payloads (`api.my_next_cards`, `api.title_cards`): poster, placeholder, year, runtime, genres, TMDB score, director, cast, trailer, the room's services for that film, watch link; `api.title_cards` limited to the caller's rooms (gap 2) · backend · L · needs M2.7, M1.7 · [data-model](../architecture/data-model.md#the-apps-api), [security](../architecture/security.md#the-database-gaps-found)
   Done when: a card renders from one call, and scraping other films is refused.
-- [ ] **M5.7** `api.cast_vote` accepts a vote on any active card in the room's pool, even if a refill removed it from the seat's deck · backend · needs M1.5 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
+- [ ] **M5.7** `api.cast_vote` accepts a vote on any active card in the room's pool, even if a refill removed it from the seat's deck · backend · L · needs M1.5 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
   Done when: the refill race is covered by a test.
-- [ ] **M5.8** Check decks on the real catalog: five sample rooms (2 to 10 players, different services and age caps) look right, and 4 players deal in under 150 ms · test · needs M5.3, M5.6, M2.13 · [data-model](../architecture/data-model.md#sizes-and-speed)
+- [ ] **M5.8** Check decks on the real catalog: five sample rooms (2 to 10 players, different services and age caps) look right, and 4 players deal in under 150 ms · test · M · needs M5.3, M5.6, M2.13 · [data-model](../architecture/data-model.md#sizes-and-speed)
   Done when: findings written; anything wrong becomes a task.
 
 ## M6 The game
@@ -388,62 +388,62 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 **Backend**
 
-- [ ] **M6.1** Match rules with the confirmed values: a time limit on every rule, 40 cards for every Quick Match size · backend · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
+- [ ] **M6.1** Match rules with the confirmed values: a time limit on every rule, 40 cards for every Quick Match size · backend · L · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
   Done when: seeded and tested.
-- [ ] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions · backend · needs M1.5 · [game-modes](game-modes.md#the-answers)
+- [ ] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: the match check is tested with both answers.
-- [ ] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back · backend · needs M1.5 · [game-modes](game-modes.md#the-answers)
+- [ ] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: tested.
-- [ ] **M6.4** Starting the finale: finalists need at least one like; one 45-second round; card counts use seats seated at the start; every time limit; everyone done · backend · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
+- [ ] **M6.4** Starting the finale: finalists need at least one like; one 45-second round; card counts use seats seated at the start; every time limit; everyone done · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: each trigger and the finalist rule are tested.
-- [ ] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
+- [ ] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · L · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tests cover vetoes, ties, missing ballots and phones closing at once.
-- [ ] **M6.6** `internal.sweep_rooms` every minute, as specified · backend · needs M6.5, M4.5 · [game-modes](game-modes.md#functions-still-to-write)
+- [ ] **M6.6** `internal.sweep_rooms` every minute, as specified · backend · L · needs M6.5, M4.5, M1.13, M6.7 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: each row of the spec's table has a test.
-- [ ] **M6.7** Starting to swipe moves `expires_at` to 1 hour after the start · backend · needs M1.5 · [game-modes](game-modes.md#changes-to-functions-already-written)
+- [ ] **M6.7** Starting to swipe moves `expires_at` to 1 hour after the start · backend · S · needs M1.5 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: a room opened 3 hours earlier isn't abandoned mid-game.
-- [ ] **M6.8** End of room on the server: `rooms.stats` with the outcome, seconds to the pick, players present, swipes per seat, why the finale started · server · needs M2.2, M6.5 · [analytics](analytics.md#changes-this-asks-elsewhere)
+- [ ] **M6.8** End of room on the server: `rooms.stats` with the outcome, seconds to the pick, players present, swipes per seat, why the finale started · server · M · needs M2.2, M6.5 · [analytics](analytics.md#changes-this-asks-elsewhere)
   Done when: every finished room on staging has its stats, written once even if the message comes twice.
 
 **App**
 
-- [ ] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched · app · needs M3.12, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [ ] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched · app · L · needs M3.12, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: smooth on a low-end Android and usable with a screen reader.
-- [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · L · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: flipping works mid-stack.
-- [ ] **M6.11** The vote queue: persisted, sent in order, retried, swiping offline, undo · app · needs M6.9, M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
+- [ ] **M6.11** The vote queue: persisted, sent in order, retried, swiping offline, undo · app · L · needs M6.9, M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
   Done when: votes made in airplane mode all arrive in order.
-- [ ] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
+- [ ] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · M · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: both answers reach the server.
-- [ ] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
+- [ ] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · L · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
   Done when: shown on the right phones, never naming anyone.
-- [ ] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
+- [ ] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
   Done when: it appears on every phone together.
-- [ ] **M6.15** The Final Cut screen: rank by dragging, veto one, a 45-second countdown, who has locked in, closing at zero · app · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
+- [ ] **M6.15** The Final Cut screen: rank by dragging, veto one, a 45-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
   Done when: a round with a missing ballot still closes on time.
-- [ ] **M6.16** The winner screen: the poster, the logos of the room's services that have it, the JustWatch credit, "More details" to TMDB's watch page · app · needs M6.14, M6.15 · [game-modes](game-modes.md#after-the-pick), [tmdb](../integrations/tmdb.md#the-watch-link)
+- [ ] **M6.16** The winner screen: the poster, the logos of the room's services that have it, the JustWatch credit, "More details" to TMDB's watch page · app · L · needs M6.14, M6.15 · [game-modes](game-modes.md#after-the-pick), [tmdb](../integrations/tmdb.md#the-watch-link)
   Done when: shown after a match and after the Final Cut.
-- [ ] **M6.17** "Nothing left" and the closed-room screen · app · needs M6.9, M5.5 · [game-modes](game-modes.md#how-a-game-ends)
+- [ ] **M6.17** "Nothing left" and the closed-room screen · app · M · needs M6.9, M5.5 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: both reachable in a test room.
-- [ ] **M6.18** Hints over the first game's first cards: how to swipe, Seen it, super likes · app · needs M6.9 · [onboarding](onboarding.md#the-first-game)
+- [ ] **M6.18** Hints over the first game's first cards: how to swipe, Seen it, super likes · app · M · needs M6.9 · [onboarding](onboarding.md#the-first-game)
   Done when: shown once per player.
 
 **Tests**
 
-- [ ] **M6.19** The bot player script: signs in, joins by code, swipes · test · needs M6.5 · [app-structure](../architecture/app-structure.md#testing)
+- [ ] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
   Done when: bots can fill a room on staging.
-- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15 · [game-modes](game-modes.md#a-game-at-a-glance)
+- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24 · [game-modes](game-modes.md#a-game-at-a-glance)
   Done when: every run ends with a pick within the limits; bugs become tasks.
 
 **Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
 
-- [ ] **M6.21** The recap share card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes") with the app link · app · needs M6.8, M6.16 · [game-modes](game-modes.md#after-the-pick)
+- [ ] **M6.21** The recap share card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes") with the app link · app · L · needs M6.8, M6.16 · [game-modes](game-modes.md#after-the-pick)
   Done when: shareable from the winner screen.
-- [ ] **M6.22** `api.play_again` and the `next_room` event · backend · needs M6.6 · [game-modes](game-modes.md#functions-still-to-write)
+- [ ] **M6.22** `api.play_again` and the `next_room` event · backend · M · needs M6.6 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tested.
-- [ ] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · needs M6.22, M6.16 · [game-modes](game-modes.md#after-the-pick)
+- [ ] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · M · needs M6.22, M6.16 · [game-modes](game-modes.md#after-the-pick)
   Done when: a group starts a second room in two taps.
-- [ ] **M6.24** The match and reveal sounds: commissioned or licensed for use in an app, each under about 1.5 seconds, wired into `lib/sound` · content · needs M3.14 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
+- [ ] **M6.24** The match and reveal sounds: commissioned or licensed for use in an app, each under about 1.5 seconds, wired into `lib/sound` · content · S · needs M3.14 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: both play on the match and the reveal, mixed with other audio and quiet on silent.
 
 ## M7 Safety and moderation
@@ -452,13 +452,13 @@ What stops trolls and protects kids on screen, plus the security pass before out
 
 Done when: the security checklist for the closed beta is ticked.
 
-- [ ] **M7.1** Reports: `api.report_member` stores a report, and Harry gets an alert · backend · needs M1.9 · [store-listing](store-listing.md#passing-review)
+- [ ] **M7.1** Reports: `api.report_member` stores a report, and Harry gets an alert · backend · M · needs M1.9, M9.5 · [store-listing](store-listing.md#passing-review)
   Done when: a report reaches Harry within minutes.
-- [ ] **M7.2** Report a player, from the player list · app · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [ ] **M7.2** Report a player, from the player list · app · M · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: works on both platforms.
-- [ ] **M7.3** No trailer button in rooms with an age cap under 13 · app · needs M6.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
+- [ ] **M7.3** No trailer button in rooms with an age cap under 13 · app · S · needs M6.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tested in a capped room.
-- [ ] **M7.4** Walk the security checklist for the closed beta · test · needs M1.6, M1.7, M1.8, M1.9, M1.10, M1.11, M1.12, M4.1, M4.2, M4.3, M7.1 · [security](../architecture/security.md#checklist)
+- [ ] **M7.4** Walk the security checklist for the closed beta · test · M · needs M1.6, M1.7, M1.8, M1.9, M1.10, M1.11, M1.12, M4.1, M4.2, M4.3, M7.1, M1.2, M4.10, M5.6, M7.3, M8.4 · [security](../architecture/security.md#checklist)
   Done when: every first-release item is ticked or deferred in decisions.md.
 
 ## M8 Privacy, legal and settings
@@ -467,27 +467,27 @@ What the law and the stores ask of a guest-only app.
 
 Done when: the policy and terms are online, and players can download and delete their data from the app.
 
-- [ ] **M8.1** Privacy policy in French and English, for the first release's data only · legal · needs M0.1 · [privacy](privacy.md#privacy-policy-outline)
+- [ ] **M8.1** Privacy policy in French and English, for the first release's data only · legal · M · needs M0.1 · [privacy](privacy.md#privacy-policy-outline)
   Done when: written from the outline and the data map.
-- [ ] **M8.2** Terms of use in French and English · legal · needs M0.1 · [privacy](privacy.md#terms-of-use-outline)
+- [ ] **M8.2** Terms of use in French and English · legal · M · needs M0.1 · [privacy](privacy.md#terms-of-use-outline)
   Done when: written from the outline.
-- [ ] **M8.3** Host the policy, the terms, a support page and an account deletion request page on the domain · ops · needs M8.1, M8.2, M0.2 · [store-listing](store-listing.md#release-checklist)
+- [ ] **M8.3** Host the policy, the terms, a support page and an account deletion request page on the domain · ops · M · needs M8.1, M8.2, M0.2 · [store-listing](store-listing.md#release-checklist)
   Done when: all four URLs are live.
-- [ ] **M8.4** The server's HTTP API (FastAPI): token checks with ES256 against Supabase's signing keys, request limits, health check · server · needs M2.2, M1.12 · [server-structure](../architecture/server-structure.md#the-http-api), [security](../architecture/security.md#the-servers-http-api-and-letterboxd-uploads)
+- [ ] **M8.4** The server's HTTP API (FastAPI): token checks with ES256 against Supabase's signing keys, request limits, health check · server · L · needs M2.2, M1.12 · [server-structure](../architecture/server-structure.md#the-http-api), [security](../architecture/security.md#the-servers-http-api-and-letterboxd-uploads)
   Done when: a bad or expired token is refused in tests; deployed with the worker.
-- [ ] **M8.5** Delete my data: an HTTP API route that deletes the guest's auth user (everything cascades) and their analytics person · server · needs M8.4 · [security](../architecture/security.md#account-deletion-and-data-export)
+- [ ] **M8.5** Delete my data: an HTTP API route that deletes the guest's auth user (everything cascades) and their analytics person · server · L · needs M8.4 · [security](../architecture/security.md#account-deletion-and-data-export)
   Done when: after deletion, nothing about the player remains except anonymous seats.
-- [ ] **M8.6** `api.export_my_data` matches the first release (profile, services, seen films, votes) · backend · needs M1.5 · [privacy](privacy.md#players-rights-in-practice)
+- [ ] **M8.6** `api.export_my_data` matches the first release (profile, services, seen films, votes) · backend · M · needs M1.5 · [privacy](privacy.md#players-rights-in-practice)
   Done when: tested.
-- [ ] **M8.7** Settings: language, analytics opt-out, download my data, delete my data, About with the TMDB logo and notice and the JustWatch credit, policy, terms, support · app · needs M8.5, M8.6, M3.8 · [privacy](privacy.md#players-rights-in-practice), [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
+- [ ] **M8.7** Settings: language, analytics opt-out, download my data, delete my data, About with the TMDB logo and notice and the JustWatch credit, policy, terms, support · app · L · needs M8.5, M8.6, M3.8, M8.3 · [privacy](privacy.md#players-rights-in-practice), [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
   Done when: every item works on both platforms.
-- [ ] **M8.8** Guest cleanup: guests inactive for 90 days are deleted from `auth.users` · server · needs M8.4 · [security](../architecture/security.md#guest-accounts)
+- [ ] **M8.8** Guest cleanup: guests inactive for 90 days are deleted from `auth.users` · server · M · needs M8.4, M8.5 · [security](../architecture/security.md#guest-accounts)
   Done when: a scheduled run deletes a test guest on staging.
-- [ ] **M8.9** The daily retention job (`internal.run_retention`) · backend · needs M1.5 · [operations](../architecture/operations.md#retention-jobs)
+- [ ] **M8.9** The daily retention job (`internal.run_retention`) · backend · M · needs M1.5 · [operations](../architecture/operations.md#retention-jobs)
   Done when: each retention rule is tested.
-- [ ] **M8.10** Record of processing for the first release · legal · needs M8.1 · [privacy](privacy.md#who-is-responsible)
+- [ ] **M8.10** Record of processing for the first release · legal · S · needs M8.1 · [privacy](privacy.md#who-is-responsible)
   Done when: written from the data map.
-- [ ] **M8.11** Decide on a lawyer's review and a DPIA before launch · decision · [privacy](privacy.md#questions-for-a-lawyer)
+- [ ] **M8.11** Decide on a lawyer's review and a DPIA before launch · decision · S · [privacy](privacy.md#questions-for-a-lawyer)
   Done when: recorded in decisions.md (open today).
 
 ## M9 Observability and analytics
@@ -496,19 +496,19 @@ Knowing that the app works and how it's used, from the first outside game.
 
 Done when: the headline metrics, alerts and backups work, and the load test passes.
 
-- [ ] **M9.1** PostHog by region: anonymous in the EU, the UK and Switzerland unless the player opts in, identified elsewhere; the opt-out; no events from rooms with an age cap under 13 · app · needs M3.6, M8.7 · [analytics](analytics.md#consent-and-kids)
+- [ ] **M9.1** PostHog by region: anonymous in the EU, the UK and Switzerland unless the player opts in, identified elsewhere; the opt-out; no events from rooms with an age cap under 13 · app · L · needs M3.6, M8.7 · [analytics](analytics.md#consent-and-kids)
   Done when: tested with a French and a US device region.
-- [ ] **M9.2** The first release's events, through the typed wrapper · app · needs M9.1 · [analytics](analytics.md#events-sent-to-posthog)
+- [ ] **M9.2** The first release's events, through the typed wrapper · app · M · needs M9.1 · [analytics](analytics.md#events-sent-to-posthog)
   Done when: each event shows in PostHog from a test device.
-- [ ] **M9.3** SQL views for the headline metrics: time to a pick, rooms ending with a pick, time to finish onboarding, link to first swipe, second game · backend · needs M6.8, M4.1 · [analytics](analytics.md#every-metric)
+- [ ] **M9.3** SQL views for the headline metrics: time to a pick, rooms ending with a pick, time to finish onboarding, link to first swipe, second game · backend · M · needs M6.8, M4.1 · [analytics](analytics.md#every-metric)
   Done when: the views return sensible numbers on staging test games.
-- [ ] **M9.4** Server logging without personal data, and Sentry on the server · server · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
+- [ ] **M9.4** Server logging without personal data, and Sentry on the server · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
   Done when: a server error shows in Sentry with no personal data.
-- [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load · backend · needs M2.11, M6.6, M9.4 · [operations](../architecture/operations.md#monitoring-and-alerts)
+- [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load · backend · M · needs M2.11, M6.6, M9.4, M2.12 · [operations](../architecture/operations.md#monitoring-and-alerts)
   Done when: a stopped worker raises an alert.
-- [ ] **M9.6** Backups: the weekly logical dump and a restore drill on staging · ops · needs M1.1 · [operations](../architecture/operations.md#backups-and-restore)
+- [ ] **M9.6** Backups: the weekly logical dump and a restore drill on staging · ops · M · needs M1.1 · [operations](../architecture/operations.md#backups-and-restore)
   Done when: staging is restored from a dump and works.
-- [ ] **M9.7** The load test on staging: 45 rooms of 4 and 5 rooms of 10 played by bots · test · needs M6.19, M6.20 · [operations](../architecture/operations.md#load-test)
+- [ ] **M9.7** The load test on staging: 45 rooms of 4 and 5 rooms of 10 played by bots · test · L · needs M6.19, M6.20 · [operations](../architecture/operations.md#load-test)
   Done when: the doc's targets hold.
 
 ## M10 Internal alpha
@@ -517,13 +517,13 @@ The first real builds on real phones, through TestFlight and Play internal testi
 
 Done when: five real movie nights end with a pick.
 
-- [ ] **M10.1** Create the App Store Connect app and the Play Console app: bundle id, package name, French as primary language, Entertainment · publishing · needs M0.1, M0.3, M0.4 · [store-listing](store-listing.md#setting-up-the-store-records)
+- [ ] **M10.1** Create the App Store Connect app and the Play Console app: bundle id, package name, French as primary language, Entertainment · publishing · S · needs M0.1, M0.3, M0.4 · [store-listing](store-listing.md#setting-up-the-store-records)
   Done when: both records exist.
-- [ ] **M10.2** First production-signed builds to TestFlight internal and Play internal testing · ops · needs M10.1, M3.2, M3.9, M6.20 · [store-listing](store-listing.md#the-closed-beta)
+- [ ] **M10.2** First production-signed builds to TestFlight internal and Play internal testing · ops · M · needs M10.1, M3.2, M3.9, M6.20, M4.14 · [store-listing](store-listing.md#the-closed-beta)
   Done when: the testers install from TestFlight and Play.
-- [ ] **M10.3** A week of real movie nights with Harry and two or three friends, on the production catalog · product · needs M10.2, M2.13 · [store-listing](store-listing.md#the-closed-beta)
+- [ ] **M10.3** A week of real movie nights with Harry and two or three friends, on the production catalog · product · M · needs M10.2, M2.13 · [store-listing](store-listing.md#the-closed-beta)
   Done when: five nights played; issues filed as tasks.
-- [ ] **M10.4** Fix what blocks the alpha · app · needs M10.3
+- [ ] **M10.4** Fix what blocks the alpha · app · L · needs M10.3
   Done when: no open issue stops a night from ending with a pick.
 
 ## M11 Store readiness
@@ -532,23 +532,23 @@ Everything the stores ask before outside testers and reviewers.
 
 Done when: listings, ratings, privacy forms and the reviewers' demo room are ready on both stores.
 
-- [ ] **M11.1** Listing copy in French and English: subtitle, descriptions, keywords, within limits, no "for kids", the TMDB and JustWatch credits · content · needs M0.1 · [store-listing](store-listing.md#the-listing-in-english-and-french)
+- [ ] **M11.1** Listing copy in French and English: subtitle, descriptions, keywords, within limits, no "for kids", the TMDB and JustWatch credits · content · M · needs M0.1 · [store-listing](store-listing.md#the-listing-in-english-and-french)
   Done when: entered in both consoles.
-- [ ] **M11.2** The icon, and Play's feature graphic · design · needs M0.1 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [ ] **M11.2** The icon, and Play's feature graphic · design · M · needs M0.1 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: exported at every size the stores ask.
-- [ ] **M11.3** Screenshots with fictional posters, captioned in French and English · design · needs M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [ ] **M11.3** Screenshots with fictional posters, captioned in French and English · design · M · needs M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: uploaded at the sizes required today.
-- [ ] **M11.4** A 15 to 30-second preview video from screen captures (optional) · design · needs M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [ ] **M11.4** A 15 to 30-second preview video from screen captures (optional) · design · M · needs M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: uploaded, or skipped in decisions.md.
-- [ ] **M11.5** The age rating questionnaires (Apple, IARC) and Play's 13-and-over audience · publishing · needs M10.1 · [store-listing](store-listing.md#age-ratings)
+- [ ] **M11.5** The age rating questionnaires (Apple, IARC) and Play's 13-and-over audience · publishing · S · needs M10.1 · [store-listing](store-listing.md#age-ratings)
   Done when: both ratings issued.
-- [ ] **M11.6** App Privacy labels and Play's Data safety form for the first release · publishing · needs M8.1, M9.1, M10.1 · [privacy](privacy.md#store-privacy-forms)
+- [ ] **M11.6** App Privacy labels and Play's Data safety form for the first release · publishing · M · needs M8.1, M9.1, M10.1 · [privacy](privacy.md#store-privacy-forms)
   Done when: both submitted.
-- [ ] **M11.7** The reviewers' demo room: a reserved code where two server bots join and swipe · server · needs M6.19, M2.12 · [store-listing](store-listing.md#passing-review)
+- [ ] **M11.7** The reviewers' demo room: a reserved code where two server bots join and swipe · server · L · needs M6.19, M2.12 · [store-listing](store-listing.md#passing-review)
   Done when: one phone alone reaches a pick with the demo code.
-- [ ] **M11.8** Review notes: how to play alone with the demo room, no account needed, deletion in Settings · publishing · needs M11.7 · [store-listing](store-listing.md#passing-review)
+- [ ] **M11.8** Review notes: how to play alone with the demo room, no account needed, deletion in Settings · publishing · S · needs M11.7 · [store-listing](store-listing.md#passing-review)
   Done when: entered in both consoles.
-- [ ] **M11.9** Support, privacy and deletion URLs; content rights; the encryption exemption; Android target API 36 · publishing · needs M8.3, M10.1 · [store-listing](store-listing.md#release-checklist)
+- [ ] **M11.9** Support, privacy and deletion URLs; content rights; the encryption exemption; Android target API 36 · publishing · S · needs M8.3, M10.1 · [store-listing](store-listing.md#release-checklist)
   Done when: both consoles show no missing item.
 
 ## M12 Closed beta
@@ -557,19 +557,19 @@ Five to ten friend groups and three to five families play real nights. On Androi
 
 Done when: the beta goals hold, the 14 days have passed, and Harry decides to launch.
 
-- [ ] **M12.1** Play closed testing with a Google Group; 12 testers opted in, which starts the 14-day count · publishing · needs M10.2 · [store-listing](store-listing.md#developer-accounts)
+- [ ] **M12.1** Play closed testing with a Google Group; 12 testers opted in, which starts the 14-day count · publishing · S · needs M10.2 · [store-listing](store-listing.md#developer-accounts)
   Done when: 12 testers have been opted in for 14 days in a row.
-- [ ] **M12.2** TestFlight external testing with a public link; the first build passes TestFlight review · publishing · needs M10.4, M11.8 · [store-listing](store-listing.md#the-closed-beta)
+- [ ] **M12.2** TestFlight external testing with a public link; the first build passes TestFlight review · publishing · S · needs M10.4, M11.8 · [store-listing](store-listing.md#the-closed-beta)
   Done when: the public link works.
-- [ ] **M12.3** Recruit the testers and send one message with both links and a feedback channel · product · needs M12.1, M12.2 · [store-listing](store-listing.md#the-closed-beta)
+- [ ] **M12.3** Recruit the testers and send one message with both links and a feedback channel · product · M · needs M12.1, M12.2 · [store-listing](store-listing.md#the-closed-beta)
   Done when: the groups and families have played a first night.
-- [ ] **M12.4** A weekly beta review: time to a pick, rooms ending with a pick, time to finish onboarding, bugs · product · needs M9.3, M12.3 · [analytics](analytics.md#every-metric)
+- [ ] **M12.4** A weekly beta review: time to a pick, rooms ending with a pick, time to finish onboarding, bugs · product · M · needs M9.3, M12.3 · [analytics](analytics.md#every-metric)
   Done when: held weekly through the beta, with notes.
-- [ ] **M12.5** Fix what the beta finds and tune the starting values: match rules, time limits, the shuffle · app · needs M12.4 · [decisions](../decisions.md)
+- [ ] **M12.5** Fix what the beta finds and tune the starting values: match rules, time limits, the shuffle · app · L · needs M12.4 · [decisions](../decisions.md)
   Done when: the review shows no blocker.
-- [ ] **M12.6** The security checklist for the public launch, the first-release items · test · needs M7.4, M9.5 · [security](../architecture/security.md#checklist)
+- [ ] **M12.6** The security checklist for the public launch, the first-release items · test · M · needs M7.4, M9.5, M8.5, M8.8, M3.5, M1.15 · [security](../architecture/security.md#checklist)
   Done when: ticked, or deferred in decisions.md.
-- [ ] **M12.7** Go or no-go: the beta goals hold (median time to a pick under 5 minutes, most rooms ending with a pick) and Google's 14 days are done · decision · needs M12.1, M12.5, M12.6 · [analytics](analytics.md#every-metric)
+- [ ] **M12.7** Go or no-go: the beta goals hold (median time to a pick under 5 minutes, most rooms ending with a pick) and Google's 14 days are done · decision · S · needs M12.1, M12.5, M12.6 · [analytics](analytics.md#every-metric)
   Done when: recorded in decisions.md.
 
 ## M13 Public launch
@@ -578,17 +578,17 @@ Live in France on both stores.
 
 Done when: the app is live on both stores in France.
 
-- [ ] **M13.1** The lawyer's review, if M8.11 says so · legal · needs M8.11 · [privacy](privacy.md#questions-for-a-lawyer)
+- [ ] **M13.1** The lawyer's review, if M8.11 says so · legal · M · needs M8.11 · [privacy](privacy.md#questions-for-a-lawyer)
   Done when: done and the policy and terms updated, or not needed.
-- [ ] **M13.2** Apply for Google Play production access · publishing · needs M12.1 · [store-listing](store-listing.md#developer-accounts)
+- [ ] **M13.2** Apply for Google Play production access · publishing · S · needs M12.1 · [store-listing](store-listing.md#developer-accounts)
   Done when: granted.
-- [ ] **M13.3** Production readiness: spend cap off, alerts on, backups checked, the incident checklist at hand · ops · needs M9.5, M9.6 · [operations](../architecture/operations.md#incidents)
+- [ ] **M13.3** Production readiness: spend cap off, alerts on, backups checked, the incident checklist at hand · ops · S · needs M9.5, M9.6 · [operations](../architecture/operations.md#incidents)
   Done when: each item checked.
-- [ ] **M13.4** Submit the release build to App Review and Play review, for France · publishing · needs M12.7, M13.1, M13.2, M11.1, M11.2, M11.3, M11.5, M11.6, M11.9 · [store-listing](store-listing.md#release-checklist)
+- [ ] **M13.4** Submit the release build to App Review and Play review, for France · publishing · M · needs M12.7, M13.1, M13.2, M11.1, M11.2, M11.3, M11.5, M11.6, M11.9 · [store-listing](store-listing.md#release-checklist)
   Done when: both accepted.
-- [ ] **M13.5** Release: a phased release on iOS, a staged rollout on Play · publishing · needs M13.3, M13.4 · [operations](../architecture/operations.md#releasing)
+- [ ] **M13.5** Release: a phased release on iOS, a staged rollout on Play · publishing · S · needs M13.3, M13.4 · [operations](../architecture/operations.md#releasing)
   Done when: at 100% on both.
-- [ ] **M13.6** Launch day: the invite page live, a share message, dashboards watched for 72 hours · product · needs M13.5 · [analytics](analytics.md#dashboards-to-build-first)
+- [ ] **M13.6** Launch day: the invite page live, a share message, dashboards watched for 72 hours · product · M · needs M13.5 · [analytics](analytics.md#dashboards-to-build-first)
   Done when: 72 hours without an open incident.
 
 ---

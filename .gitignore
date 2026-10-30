@@ -39,3 +39,4 @@ coverage/
 npm-debug.*
 .claude/settings.local.json
 .claude/state/
+.claude/worktrees/
