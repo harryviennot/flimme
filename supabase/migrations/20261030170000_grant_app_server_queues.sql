@@ -33,7 +33,18 @@ to app_server;
 do $$
 declare
   v_fn regprocedure;
+  v_names integer;
 begin
+  -- Fail loudly on a pgmq that lacks one of them, instead of granting less.
+  select count(distinct p.proname) into v_names
+  from pg_catalog.pg_proc p
+  join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'pgmq'
+    and p.proname in ('read', 'read_with_poll', 'delete', 'archive', 'set_vt');
+  if v_names <> 5 then
+    raise exception 'pgmq has % of the 5 functions app_server needs', v_names;
+  end if;
+
   for v_fn in
     select p.oid::regprocedure
     from pg_catalog.pg_proc p

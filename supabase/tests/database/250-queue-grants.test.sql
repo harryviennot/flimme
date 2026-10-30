@@ -5,7 +5,7 @@
 -- Runs on the lite database and on the real stack.
 
 begin;
-select plan(22);
+select plan(25);
 
 -- A: the loop's functions, as app_server, on deck_requests.
 select pgmq.send('deck_requests', jsonb_build_object('t', 'a'));
@@ -131,7 +131,9 @@ select is(
   'B5 the refused calls left the queue as it was'
 );
 
--- C: phones read no queue.
+-- C: phones read no queue. On lite they have no usage on schema pgmq, so these
+-- fail there; on the stack they may fail on table rights instead. Either way the
+-- phone reads nothing.
 select tests.create_player('fan');
 select tests.authenticate_as('fan');
 
@@ -175,6 +177,48 @@ select throws_ok(
 );
 
 select tests.clear_authentication();
+
+-- D: the function grants themselves. pgmq's functions are executable by PUBLIC on
+-- lite (and on the stack until M1.7), so A passes with or without app_server's
+-- execute grants; the functions' access lists show whether it holds them.
+select ok(
+  (select count(distinct p.proname) = 5
+   from pg_catalog.pg_proc p
+   join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'pgmq'
+     and p.proname in ('read', 'read_with_poll', 'delete', 'archive', 'set_vt')),
+  'D1 pgmq has all five functions the loop uses, so D2 checks something'
+);
+
+select is(
+  (select count(*)::integer
+   from pg_catalog.pg_proc p
+   join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'pgmq'
+     and p.proname in ('read', 'read_with_poll', 'delete', 'archive', 'set_vt')
+     and not exists (
+       select 1
+       from pg_catalog.aclexplode(coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))) a
+       where a.grantee = 'app_server'::regrole::oid and a.privilege_type = 'EXECUTE'
+     )),
+  0,
+  'D2 app_server holds execute on every overload of read, read_with_poll, delete, archive and set_vt'
+);
+
+select is(
+  (select count(*)::integer
+   from pg_catalog.pg_proc p
+   join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'pgmq'
+     and p.proname in ('send', 'send_batch', 'create', 'purge_queue', 'drop_queue')
+     and exists (
+       select 1
+       from pg_catalog.aclexplode(coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))) a
+       where a.grantee = 'app_server'::regrole::oid
+     )),
+  0,
+  'D3 app_server holds no grant on send, create, purge_queue or drop_queue'
+);
 
 select * from finish();
 rollback;
