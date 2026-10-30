@@ -2215,7 +2215,7 @@ begin
   join public.room_cards c on c.room_id = d.room_id and c.title_id = d.title_id and c.state = 'active'
   where d.room_member_id = v_member.id
     and not exists (select 1 from public.votes v where v.room_member_id = d.room_member_id and v.title_id = d.title_id);
-  if v_remaining >= 5 then
+  if v_remaining > 5 then
     return jsonb_build_object('status', 'enough', 'remaining', v_remaining);
   end if;
 
