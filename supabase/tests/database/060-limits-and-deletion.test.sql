@@ -36,6 +36,8 @@ select tests.uid('d2'), 'letterboxd', 'test_user', c.id from c;
 insert into public.user_titles (profile_id, title_id, source, seen)
 values (tests.uid('d2'), tests.title_id('Test Film One'), 'app', true);
 insert into public.taste_profiles (profile_id) values (tests.uid('d2'));
+-- A chosen avatar, so D4 proves the scrub resets it.
+update public.room_members set avatar_key = 'fox' where id = tests.member_id('d2');
 insert into public.room_cards (room_id, title_id, group_score)
 values (tests.room_id(), tests.title_id('Test Film One'), 1);
 insert into public.votes (room_id, room_member_id, title_id, answer)

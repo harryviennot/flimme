@@ -4,7 +4,7 @@
 -- data-model.md#what-was-tested: create-and-join also states `full` and `in_finale`.
 
 begin;
-select plan(40);
+select plan(41);
 
 select tests.create_provider(9001, 'Test Service A');
 select tests.create_provider(9002, 'Test Service B');
@@ -58,7 +58,12 @@ select tests.clear_authentication();
 select tests.create_player('maker');
 select tests.authenticate_as('maker');
 select api.set_my_providers('{9001}');
-select is((select api.create_room('quick_match', 'FR')->>'status'), 'ok', 'L3 create_room answers ok');
+select is(
+  (select (a->>'status') || '/' || ((a->>'code') ~ '^[0-9]{6}$')::text || '/' || (a->>'room_id' is not null)::text
+   from (select api.create_room('quick_match', 'FR') as a) x),
+  'ok/true/true',
+  'L3 create_room answers ok with a room id and a 6-digit code'
+);
 select tests.clear_authentication();
 select is(
   (select count(*) from public.rooms r where r.host_id = tests.uid('maker') and r.code ~ '^[0-9]{6}$'),
@@ -194,6 +199,10 @@ select tests.authenticate_as('g2');
 select throws_ok($$select api.start_game(tests.room_id())$$, '42501', null, 'L9 a guest''s start_game raises 42501');
 select tests.clear_authentication();
 select is((select state::text from public.rooms where id = tests.room_id()), 'lobby', 'L9 the room stays in the lobby');
+-- Control: the same call reaches start_game for the host, so the guest's 42501 is the host check.
+select tests.authenticate_as('g1');
+select lives_ok($$select api.start_game(tests.room_id())$$, 'L9 control: the host''s start_game runs');
+select tests.clear_authentication();
 
 select * from finish();
 rollback;
