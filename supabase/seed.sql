@@ -30,7 +30,7 @@ insert into public.countries (code, default_language, catalog_enabled) values ('
 
 insert into public.providers (id, name) values
   (8001, 'Lumo'), (8002, 'Orbite'), (8003, 'Kinobay'), (8004, 'Reelwave'), (8005, 'Nuvola'),
-  (8006, 'Bobine'), (8007, 'Cinefaro'), (8008, 'Gratuito'), (8009, 'Pubscreen'), (8010, 'Ecranlibre');
+  (8006, 'Bobine'), (8007, 'Cinefaro'), (8008, 'Gratuito'), (8009, 'Pubscreen'), (8010, 'Écranlibre');
 
 insert into public.provider_regions (provider_id, country, display_priority)
 select id, 'FR', (id - 8000)::smallint from public.providers where id between 8001 and 8010;
@@ -42,10 +42,10 @@ insert into public.genres (id, slug, names) values
   (7001, 'laugh',     '{"en": "Laughs", "fr": "Rires"}'),
   (7002, 'tears',     '{"en": "Tears", "fr": "Larmes"}'),
   (7003, 'chase',     '{"en": "Chase", "fr": "Course-poursuite"}'),
-  (7004, 'mystery',   '{"en": "Mystery", "fr": "Mystere"}'),
+  (7004, 'mystery',   '{"en": "Mystery", "fr": "Mystère"}'),
   (7005, 'journey',   '{"en": "Journey", "fr": "Voyage"}'),
   (7006, 'family',    '{"en": "Family", "fr": "Famille"}'),
-  (7007, 'stars',     '{"en": "Stars", "fr": "Etoiles"}'),
+  (7007, 'stars',     '{"en": "Stars", "fr": "Étoiles"}'),
   (7008, 'chills',    '{"en": "Chills", "fr": "Frissons"}'),
   (7009, 'romance',   '{"en": "Romance", "fr": "Romance"}'),
   (7010, 'true_tale', '{"en": "True tale", "fr": "Histoire vraie"}'),
@@ -61,12 +61,13 @@ with f as (
 syl as (
   select array['ka','vel','mor','tan','quen','lis','bro','zar','nu','fel','dro','ami','sor','pil','gan','xe'] as s,
          array['Quiet','Rapid','Last','Strange','Simple','Magic','Tragic','Funny','Odd','Fragile','Proud','Wild'] as adj_en,
-         array['calme','rapide','ultime','etrange','simple','magique','tragique','drole','bizarre','fragile','fier','sauvage'] as adj_fr
+         array['calme','rapide','ultime','étrange','simple','magique','tragique','drôle','bizarre','fragile','fier','sauvage'] as adj_fr
 )
 select f.i,
   50000000 + f.i as tmdb_id,
   initcap(syl.s[1 + pg_temp.h(f.i, 'p1') % 16] || syl.s[1 + pg_temp.h(f.i, 'p2') % 16] || syl.s[1 + pg_temp.h(f.i, 'p3') % 16]) as place,
-  1 + pg_temp.h(f.i, 'adj') % 12 as adj,
+  syl.adj_en[1 + pg_temp.h(f.i, 'adj') % 12] as adj_en,
+  syl.adj_fr[1 + pg_temp.h(f.i, 'adj') % 12] as adj_fr,
   80 + pg_temp.h(f.i, 'runtime') % 101 as runtime_min,
   make_date(1980 + pg_temp.h(f.i, 'year') % 46, 1 + pg_temp.h(f.i, 'month') % 12, 1 + pg_temp.h(f.i, 'day') % 28) as release_date,
   case when pg_temp.h(f.i, 'lang') % 3 = 0 then 'fr' else 'en' end as original_language,
@@ -96,7 +97,7 @@ insert into public.titles
   (media_type, tmdb_id, original_title, original_language, release_date, runtime_min, genre_ids,
    popularity, vote_average, vote_count, quality_score)
 select 'movie', s.tmdb_id,
-  'The ' || (array['Quiet','Rapid','Last','Strange','Simple','Magic','Tragic','Funny','Odd','Fragile','Proud','Wild'])[s.adj] || ' ' || s.place,
+  'The ' || s.adj_en || ' ' || s.place,
   s.original_language, s.release_date, s.runtime_min, s.genre_ids,
   s.popularity, s.score, s.vote_count, s.score
 from seed_films s order by s.i;
@@ -104,12 +105,12 @@ from seed_films s order by s.i;
 insert into public.title_translations (title_id, language, title, overview)
 select t.id, l.language,
   case l.language
-    when 'en' then 'The ' || (array['Quiet','Rapid','Last','Strange','Simple','Magic','Tragic','Funny','Odd','Fragile','Proud','Wild'])[s.adj] || ' ' || s.place
-    else s.place || ' ' || (array['calme','rapide','ultime','etrange','simple','magique','tragique','drole','bizarre','fragile','fier','sauvage'])[s.adj]
+    when 'en' then 'The ' || s.adj_en || ' ' || s.place
+    else s.place || ' ' || s.adj_fr
   end,
   case l.language
     when 'en' then 'An invented story set in ' || s.place || ', where ' || (2 + s.i % 5) || ' friends find out that a made-up secret is never quite what it seems.'
-    else 'Une histoire inventee a ' || s.place || ', ou ' || (2 + s.i % 5) || ' amis decouvrent qu''un secret imaginaire n''est jamais tout a fait ce qu''il semble.'
+    else 'Une histoire inventée à ' || s.place || ', où ' || (2 + s.i % 5) || ' amis découvrent qu''un secret imaginaire n''est jamais tout à fait ce qu''il semble.'
   end
 from seed_films s
 join public.titles t on t.media_type = 'movie' and t.tmdb_id = s.tmdb_id
