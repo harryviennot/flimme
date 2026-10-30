@@ -26,6 +26,8 @@ The CLI's config loader accepts the file (`supabase status` gets past it to the 
 `migrations/` holds only a `.gitkeep`. Turning [schema.sql](../docs/architecture/schema.sql) into `migrations/<timestamp>_baseline.sql` is roadmap task M1.5; until then `lite/load.sh` loads schema.sql directly. Things M1.5 will run into, found while building the lite database:
 
 - `schema.sql` runs `create role app_server nologin;`. Roles belong to the whole cluster, so loading the file twice into one cluster fails on the second run. The lite loader drops the role itself. `supabase db reset` recreates only the database, so the baseline migration probably needs a guard (`do $$ ... if not exists (select from pg_roles ...) ...`). Verify on the Mac.
+- Since Postgres 16 the role that creates `app_server` gets ADMIN on it but not SET. The tests act as the server with `set role app_server` (`tests.act_as_server()`), which on the stack runs as `postgres`. The helper grants `postgres` SET when it lacks it and says so clearly if that fails; only the Mac run proves it. If the grant fails there, the baseline migration (or M1.12, which sets the server's grants) must give `postgres` SET on `app_server`.
+- The test setup also grants `app_server` usage on the `tests` and `extensions` schemas, so a test can call its helpers and pgTAP while acting as the server. That is test setup, not what the real server needs (M1.12).
 - The file's last section leaves a to-do: give `app_server` access to the queues it consumes (`usage` on schema `pgmq`, and `select, update, delete` on the queue tables or `execute` on the functions). Server-structure.md also reports that enabling pgmq from a normal migration can fail on permissions.
 
 ## Tests
@@ -65,6 +67,11 @@ All in schema `tests`, defined in `000-helpers.sql`. Players have names (`'alice
 | `tests.create_provider(id, name, country := 'FR')` | A made-up service available in a country (use ids from 9001 up) |
 | `tests.use_topic(topic)` | Sets the Realtime topic of the request. Call it right before every read or insert on `realtime.messages`, since `realtime.send` overwrites it |
 | `tests.broadcasts(room_id, event)` | The payloads sent on `room:<id>` with that event. Check keys with `->>`, never whole payloads, and do not rely on the order within one transaction |
+| `tests.create_catalog(count := 40, provider := 9001, country := 'FR')` | Made-up films `Catalog Film 001` and up (existing names skipped), each with a falling popularity, a subscription offer from the service in the country and a constant made-up vector, so `internal.deck_candidates` finds them. Returns the ids in number order |
+| `tests.act_as_server()` | Acts as the `app_server` role with no token. On the real stack it grants `postgres` the right to `set role app_server` if it lacks it (rolled back with the test). `tests.clear_authentication()` ends it |
+| `tests.queued(queue)` | The messages of a queue, oldest first, read from the queue table (nothing is consumed). Call it as the superuser and filter by `room_id` |
+| `tests.deal_game(players := 2, prefix := 'p', until := 'swiping')` | A room dealt through the real functions: `'lobby'` (seats with service 9001), `'dealing'` (the host has tapped start), `'swiping'` (the server dealt 25 catalog films: a shared opening of 10, then 15 ranked, ascending for odd seats and descending for even). Needs `create_catalog(25)` at least. Returns `{room_id, code, players, member_ids, title_ids, deal}` |
+| `tests.vote_next(name, count, answer := 'nope')` | As that player, votes on the next `count` cards from `my_next_cards`. Raises on any answer but `ok`. Returns the last answer |
 
 After `authenticate_as`, call `tests.clear_authentication()` before creating more players or fixtures: setup writes need the superuser.
 
