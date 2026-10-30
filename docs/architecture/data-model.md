@@ -4,7 +4,7 @@ The database for the first public release of Flimme and how every part talks to 
 
 Companion docs: the [recommendation server](recommendation-server.md) (its processes, its contract with this database, the algorithm), the [deck engine](deck-engine.md) (how every card is chosen) and the [Letterboxd integration](../integrations/letterboxd.md) (the export, connecting, syncing). Decisions and open questions live in [decisions.md](../decisions.md).
 
-> **Pending.** The [deck engine](deck-engine.md) needs changes that aren't in this doc or in schema.sql yet: a `card_history` table, mood scores per film, deck recipes, moods on the room instead of the seat, `allow_rewatch` as the default seen rule, and a taste check that no longer marks films as seen. The full list is in [Changes to the data model](deck-engine.md#changes-to-the-data-model). The other pre-coding docs ask for more: [game-modes.md](../product/game-modes.md#changes-to-the-data-model) (one finale stage, a rewatch answer, a time limit on every rule, the game functions still to write and fixes to existing ones), [tmdb.md](../integrations/tmdb.md#changes-to-the-data-model) and [streaming-availability.md](../integrations/streaming-availability.md#changes-to-the-data-model) (the catalog jobs, service variants, free services), [app-structure.md](app-structure.md#changes-this-asks-of-the-backend) (accepting votes on cards a refill removed, fixing unmatched Letterboxd films, app config keys) and [onboarding.md](../product/onboarding.md#what-this-needs-elsewhere) (a room reference on invite links). Streaming Availability is dropped from v1 ([decisions.md](../decisions.md)): `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue and the `result` event go, and the winner screen shows where to watch from `title_availability`. The launch docs add more: [security.md](security.md#the-database-gaps-found) (default privileges, a restricted `api.title_cards`, removing a player and locking a room, per-IP rate limits, preset avatars and name filtering, a narrower role for the server's HTTP API), [server-structure.md](server-structure.md#consuming-the-queues) (queue grants for `app_server`, a `letterboxd_match` queue), [operations.md](operations.md#changes-this-asks-elsewhere) (`internal.ops_health()`, `internal.run_retention()`), [privacy.md](../product/privacy.md#what-we-store-and-why) (training and Letterboxd-ratings switches, two retention periods) and [analytics.md](../product/analytics.md#changes-this-asks-elsewhere) (more keys in `rooms.stats`, an aggregate-only `analytics` schema).
+> **Pending.** The [deck engine](deck-engine.md) needs changes that aren't in this doc or in schema.sql yet: a `card_history` table, mood scores per film, deck recipes, moods on the room instead of the seat, `allow_rewatch` as the default seen rule, and a taste check that no longer marks films as seen. The full list is in [Changes to the data model](deck-engine.md#changes-to-the-data-model). The other pre-coding docs ask for more: [game-modes.md](../product/game-modes.md#changes-to-the-data-model) (one finale stage, a rewatch answer, a time limit on every rule, the game functions still to write and fixes to existing ones), [tmdb.md](../integrations/tmdb.md#changes-to-the-data-model) and [streaming-availability.md](../integrations/streaming-availability.md#changes-to-the-data-model) (the catalog jobs, service variants, free services), [app-structure.md](app-structure.md#changes-this-asks-of-the-backend) (accepting votes on cards a refill removed, fixing unmatched Letterboxd films, app config keys) and [onboarding.md](../product/onboarding.md#what-this-needs-elsewhere) (a room reference on invite links). Streaming Availability is dropped from v1 ([decisions.md](../decisions.md)): `title_deep_links`, `providers.streaming_availability_id` and the `winner_links` queue are gone from the schema (migration `remove_v1_dropped`), the `result` event is never sent, and the winner screen shows where to watch from `title_availability`. The launch docs add more: [security.md](security.md#the-database-gaps-found) (default privileges, a restricted `api.title_cards`, removing a player and locking a room, per-IP rate limits, preset avatars and name filtering, a narrower role for the server's HTTP API), [server-structure.md](server-structure.md#consuming-the-queues) (queue grants for `app_server`, a `letterboxd_match` queue), [operations.md](operations.md#changes-this-asks-elsewhere) (`internal.ops_health()`, `internal.run_retention()`), [privacy.md](../product/privacy.md#what-we-store-and-why) (training and Letterboxd-ratings switches, two retention periods) and [analytics.md](../product/analytics.md#changes-this-asks-elsewhere) (more keys in `rooms.stats`, an aggregate-only `analytics` schema).
 
 - **[schema.sql](schema.sql)** was the reference DDL for everything marked v1 below and is now a pointer to the baseline migration in `supabase/migrations/` (roadmap task M1.5), which holds the same DDL plus the extension lines: tables, indexes, row-level security, roles, realtime policies, the queues, the app's API and the game functions. It loads cleanly on Postgres 16 with pgvector, and a 120-check test suite passed against it (see [What was tested](#what-was-tested)).
 - **v1** means the first release: the revival plan's Launch items and roadmap phases 1 to 5.
@@ -43,7 +43,7 @@ Companion docs: the [recommendation server](recommendation-server.md) (its proce
 | Recommendation server | 4 processes in one codebase: deck worker, pipeline worker, HTTP API, nightly trainer |
 | Queues | 7, from the database to the server |
 | Realtime topics | 2 per room: `room:<id>` for server events, `room:<id>:live` for presence and reactions |
-| External calls during a game | None. TMDB and Letterboxd are read by the server in the background; Streaming Availability is called once per game, for the winner |
+| External calls during a game | None. TMDB and Letterboxd are read by the server in the background |
 
 ```mermaid
 flowchart LR
@@ -63,7 +63,6 @@ flowchart LR
   end
   tmdb[TMDB]
   lb[Letterboxd RSS]
-  sa[Streaming Availability]
   store[(Object storage<br/>models, training data)]
   app --> auth
   app -->|reads and game actions| api --> db
@@ -80,7 +79,6 @@ flowchart LR
   train --> store
   pipe --> tmdb
   pipe --> lb
-  pipe --> sa
 ```
 
 ## Who does what
@@ -91,7 +89,7 @@ The split follows one rule: **Postgres decides the game, the server decides the 
 | --- | --- | --- |
 | Owns | The truth: rooms, seats, votes, matches, the finale, sign-in, live messaging | Choosing cards: ranking, learning, every call to an outside service |
 | Runs | The game functions (join, vote, match, finale) in one transaction each; the retrieval query; queues; schedules | Workers that consume queues, a small HTTP API, the nightly trainer |
-| Talks to | Phones, directly | Postgres; TMDB, Letterboxd RSS, Streaming Availability; object storage. Phones only for Letterboxd and account requests |
+| Talks to | Phones, directly | Postgres; TMDB, Letterboxd RSS; object storage. Phones only for Letterboxd and account requests |
 | If it is down | Nothing works | Games still start and carry on with the SQL baseline deck. Imports and catalog refreshes wait in their queues |
 
 Why the game stays in Postgres: a vote must save, count, check the match rule and broadcast in one transaction, in a few milliseconds, with no race between two last likes. Moving that into a server would add a network hop to every swipe and re-create the old app's two sources of truth. Why ranking goes to a server: the algorithm will grow (Letterboxd ratings, swipe history, global ratings, trained models, experiments), needs real ML libraries and long jobs, and doesn't need to be inside a transaction. Each seat keeps 15 cards of buffer, so a refill can take a second without anyone noticing.
@@ -157,7 +155,6 @@ erDiagram
 | --- | --- | --- |
 | id | integer PK | TMDB watch provider id (8 is Netflix) |
 | name, logo_path | text | |
-| streaming_availability_id | text | Service id for "Open in Netflix" links, null until mapped |
 
 **provider_regions**: which services exist in which country, with TMDB's display order. Replaces the old 64,000-line `countries.json`. Key: (provider_id, country).
 
@@ -186,7 +183,6 @@ erDiagram
   titles ||--o{ title_availability : "where to watch"
   providers ||--o{ title_availability : "offers"
   titles ||--o{ title_watch_links : "JustWatch page"
-  titles ||--o{ title_deep_links : "winner deep links"
   titles ||--|| title_vectors : "embedding"
   titles ||--o| calibration_titles : "lobby calibration"
   titles }o..o{ genres : "genre_ids"
@@ -233,8 +229,6 @@ erDiagram
 Index `(country, provider_id, kind, title_id)` answers "is this film on any of tonight's services here" without touching the titles table.
 
 **title_watch_links**: TMDB's JustWatch-powered watch page per title and country. JustWatch must be credited wherever availability shows.
-
-**title_deep_links**: "Open in Netflix" links from Streaming Availability, fetched only for winners and cached until `expires_at`.
 
 **title_vectors**: one 384-dimension gte-small embedding per title, built from a short text (title, year, genres, top keywords, director, main cast, overview). `model` and `source_hash` say which model made it and when the text changed. Kept out of `titles` so catalog reads never drag 1.5 KB vectors along. An HNSW index serves "films like this one"; the deck query filters first and compares against the few thousand eligible films directly.
 
@@ -691,10 +685,7 @@ Every path to `done` fires a trigger that queues `room_finished`. The pipeline w
 
 1. Writes `rooms.stats` for the recap card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes").
 2. Turns "seen it" swipes into `user_titles` rows with source `app`.
-3. Calls Streaming Availability once for the winner and fills `title_deep_links`, then broadcasts `result`. The phone shows TMDB's watch page until then.
-4. Queues a taste refresh for every seat.
-
-> Step 3 no longer applies: Streaming Availability is dropped from v1, and the winner screen shows the room's services that have the film.
+3. Queues a taste refresh for every seat.
 
 On a later app open, "Did you watch it?" (`api.answer_followup`) saves the seat's answer and, if they watched the pick, a seen row with their reaction, and queues a taste refresh. The reminder itself can be a notification scheduled on the phone when the room ends.
 
@@ -793,7 +784,6 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `match` | room | cast_vote, leave_room, sweeper | title, kind, likes, of, decided | Match screen |
 | `finale_started` | room | start_finale | round, titles, kind, deadline | Final Cut screen |
 | `round_progress` | room | ballot functions | stage, ballots in | Progress dots |
-| `result` | room | the server, after winner links | winner, deep links ready | Winner screen |
 | presence | live | phones | seat, swipe count, done | Progress rings, "Sam is done" |
 | `reaction` | live | phones | emoji | Pops it on screen |
 
@@ -812,7 +802,6 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 | `letterboxd_sync` | join_room when the last sync is over 6 hours old; the hourly job for accounts with no sync in 14 days | linked account, reason | pipeline worker |
 | `catalog_refresh` | cron | TMDB ids or the changes feed | pipeline worker |
 | `embed_titles` | catalog refresh | titles whose text changed | pipeline worker |
-| `winner_links` | end of room | room, title, country | pipeline worker |
 | `room_finished` | trigger on rooms reaching `done` | room | pipeline worker |
 
 > How the server consumes each queue (visibility timeouts, poison messages, why running a message twice is safe) is in [server-structure.md](server-structure.md#consuming-the-queues). It adds a `letterboxd_match` queue, and `app_server` still needs read and delete grants on the queues it consumes.
@@ -867,7 +856,6 @@ The query body is unchanged since that measurement; only its schema moved. The p
 | `letterboxd_entries` | While the link exists. Deleted on disconnect, account deletion, a new export for a different username, and with guest accounts inactive for 90 days |
 | Scheduled Letterboxd syncs | Stop after 12 months without playing; the data stays until one of the above |
 | `import_rows` | Matched rows at once; unmatched after 30 days |
-| `title_deep_links` | Until `expires_at` (7 days) |
 | `rate_limits` | 1 day |
 | Guest accounts with no activity for 90 days | Deleted with their data |
 

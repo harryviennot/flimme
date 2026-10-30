@@ -29,6 +29,9 @@ admin() { psql -X -q -v ON_ERROR_STOP=1 -d "$admin_db" "$@"; }
 lite() { psql -X -q -v ON_ERROR_STOP=1 -d "$db" "$@"; }
 # Query results (such as the 7 rows of `select pgmq.create(...)`) are noise; errors still show.
 run_file() { lite -o /dev/null -f "$1"; }
+# Each migration is one transaction, as the Supabase CLI applies it, so `set local` works
+# and a failing file leaves nothing behind.
+run_migration() { lite -o /dev/null --single-transaction -f "$1"; }
 
 if [[ "$(admin -Atc "select rolsuper from pg_roles where rolname = current_user" 2>/dev/null || true)" != "t" ]]; then
   echo "load.sh: cannot connect to Postgres as a superuser (database '$admin_db')." >&2
@@ -57,7 +60,7 @@ fi
 source_label="${#migrations[@]} migration(s)"
 for f in "${migrations[@]}"; do # the glob expands in sorted order
   echo "load.sh: ${f#"$repo"/}" >&2
-  run_file "$f"
+  run_migration "$f"
 done
 
 echo "load.sh: supabase/seed.sql" >&2

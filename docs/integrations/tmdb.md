@@ -2,7 +2,7 @@
 
 How Flimme builds its film catalog from TMDB and keeps it fresh, including where every film can be watched, which decides what may appear in a deck. Written on 29 October 2026.
 
-It builds on the [data model](../architecture/data-model.md#2-catalog) (the catalog tables), the [recommendation server](../architecture/recommendation-server.md#processes) (its pipeline worker runs everything here) and the [deck engine](../architecture/deck-engine.md) (embeddings and moods). The choice of where-to-watch source and the winner's deep links are in [streaming-availability.md](streaming-availability.md). Facts about TMDB were checked on its live documentation, terms and forum on 29 October 2026; see [Sources checked](#sources-checked). Decisions are in [decisions.md](../decisions.md).
+It builds on the [data model](../architecture/data-model.md#2-catalog) (the catalog tables), the [recommendation server](../architecture/recommendation-server.md#processes) (its pipeline worker runs everything here) and the [deck engine](../architecture/deck-engine.md) (embeddings and moods). TMDB is the only where-to-watch source in v1 ([decisions](../decisions.md)); [streaming-availability.md](streaming-availability.md) keeps the winner's deep links as plan B only. Facts about TMDB were checked on its live documentation, terms and forum on 29 October 2026; see [Sources checked](#sources-checked). Decisions are in [decisions.md](../decisions.md).
 
 Every number marked as a starting value is a placeholder to tune once the first load has run.
 
@@ -268,7 +268,7 @@ None of these are in [data-model.md](../architecture/data-model.md) or [schema.s
 | `titles` | `refresh_tier` becomes 1 = available in an enabled country (weekly fetch), 2 = the rest (monthly fetch). Add `tmdb_missing_since` |
 | `title_certifications` | Add `inferred_from`: the country whose certification was used, null when it's the country's own |
 | `title_availability` | Rent and buy aren't stored at launch |
-| Streaming Availability | Dropped from v1: `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue and the `result` event go |
+| Streaming Availability | Dropped from v1: `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue are gone (migration `remove_v1_dropped`), and the `result` event is never sent |
 | New `api.report_unavailable(room, title, provider)` | A player's "Not there anymore?" on the winner screen; queues a re-fetch of the film |
 | `ingest_runs.kind` | `backfill`, `availability_sweep`, `popularity_daily`, `changes_daily`, `details_weekly`, `details_monthly`, `reference_weekly`, `embeddings`, `moods` |
 
