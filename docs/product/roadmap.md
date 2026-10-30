@@ -198,7 +198,7 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
   Done when: recorded in decisions.md (this roadmap assumes yes).
 - [ ] **M0.9** Update the Figma to the first release: no taste check, no Letterboxd card, no account screens, winner screen with service logos, host menu with Remove player and Lock room, Report, `/join/` links · design · M · needs M0.7, M0.8 · [onboarding](onboarding.md#changes-to-the-figma)
   Done when: the affected frames match this list.
-- [ ] **M0.10** One repository: rename `movie-swipe-backend` to `flimme-app`, archive `movie-swipe-app`, and the shared tools (mise, pnpm workspaces, lefthook) · ops · S · [groundwork](../architecture/groundwork.md#the-repository)
+- [ ] **M0.10** One repository: rename `movie-swipe-backend` to `flimme`, archive `movie-swipe-app`, and the shared tools (mise, pnpm workspaces, lefthook) · ops · S · [groundwork](../architecture/groundwork.md#the-repository)
   Done when: the repository is renamed, the old one archived, and `mise run check:all` passes on main.
 - [ ] **M0.11** The agent setup: CLAUDE.md files, agents, skills, hooks and settings · ops · S · needs M0.10 · [pipeline](../pipeline.md#one-time-setup), [agent-workflow](../agent-workflow.md#the-roster)
   Done when: `.claude/settings.json` is in place and a first small task has gone through `/task` to a merged pull request.
