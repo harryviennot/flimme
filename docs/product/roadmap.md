@@ -293,7 +293,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: a failing test blocks a pull request.
 - [ ] **M3.4** Design tokens from the Figma: `tokens.json`, the generated Uniwind theme and `tokens.ts`, the three fonts, the 38 icons · design · S · needs M3.1 · [groundwork](../architecture/groundwork.md#tokens)
   Done when: `pnpm tokens --check` passes and every type style renders in the gallery.
-- [ ] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · M · needs M3.1, M1.2 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
+- [ ] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · M · needs M3.1 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
   Done when: a fresh install gets a guest user that survives a restart.
 - [ ] **M3.6** Typed API layer: generated types for the `api` schema, one wrapper per function, status answers as values · app · M · needs M3.5, M1.17 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
   Done when: wrappers compile against the generated types and a status answer isn't thrown as an error.
@@ -301,7 +301,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: a persisted store survives a restart.
 - [ ] **M3.8** Translations: i18next with French and English, the device language, English as fallback · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#translations)
   Done when: switching the device language switches the app.
-- [ ] **M3.9** Sentry with no personal data, source maps from EAS · app · M · needs M3.2 · [app-structure](../architecture/app-structure.md#analytics-and-crash-reports)
+- [ ] **M3.9** Sentry with no personal data and no user id, source maps from EAS · app · M · needs M3.2 · [app-structure](../architecture/app-structure.md#analytics-and-crash-reports)
   Done when: a test crash shows in Sentry with readable frames.
 - [ ] **M3.10** `app_config` at launch and the `min_app_version` gate · app · M · needs M3.6, M1.13 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: raising the minimum shows the update screen.
@@ -502,7 +502,7 @@ Done when: the headline metrics, alerts and backups work, and the load test pass
   Done when: each event shows in PostHog from a test device.
 - [ ] **M9.3** SQL views for the headline metrics: time to a pick, rooms ending with a pick, time to finish onboarding, link to first swipe, second game · backend · M · needs M6.8, M4.1 · [analytics](analytics.md#every-metric)
   Done when: the views return sensible numbers on staging test games.
-- [ ] **M9.4** Server logging without personal data, and Sentry on the server · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
+- [ ] **M9.4** Server logging without personal data, and Sentry on the server with no user id · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
   Done when: a server error shows in Sentry with no personal data.
 - [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load · backend · M · needs M2.11, M6.6, M9.4, M2.12 · [operations](../architecture/operations.md#monitoring-and-alerts)
   Done when: a stopped worker raises an alert.
@@ -544,7 +544,7 @@ Done when: listings, ratings, privacy forms and the reviewers' demo room are rea
   Done when: both ratings issued.
 - [ ] **M11.6** App Privacy labels and Play's Data safety form for the first release · publishing · M · needs M8.1, M9.1, M10.1 · [privacy](privacy.md#store-privacy-forms)
   Done when: both submitted.
-- [ ] **M11.7** The reviewers' demo room: a reserved code where two server bots join and swipe · server · L · needs M6.19, M2.12 · [store-listing](store-listing.md#passing-review)
+- [ ] **M11.7** The reviewers' demo room: a reserved code that `api.create_room` never draws and `api.join_room` recognises, where two server bots join and swipe · server · L · needs M6.19, M2.12 · [store-listing](store-listing.md#passing-review)
   Done when: one phone alone reaches a pick with the demo code.
 - [ ] **M11.8** Review notes: how to play alone with the demo room, no account needed, deletion in Settings · publishing · S · needs M11.7 · [store-listing](store-listing.md#passing-review)
   Done when: entered in both consoles.
