@@ -358,7 +358,7 @@ Not applied to [data-model.md](data-model.md) or [schema.sql](schema.sql).
 
 | Where | Change | Why |
 | --- | --- | --- |
-| Queues | Grant `app_server` the right to read, delete, archive and extend messages on the queues it consumes (pgmq's functions and the queue and archive tables). schema.sql only has a comment saying so | Without it, the server can't consume anything |
+| Queues | Grant `app_server` the right to read, delete, archive and extend messages on the queues it consumes (pgmq's functions and the queue and archive tables). schema.sql only has a comment saying so. **Done** (migration `grant_app_server_queues`, M1.12a; `letterboxd_match` gets its grants when its queue is created) | Without it, the server can't consume anything |
 | Queues | Add `letterboxd_match` | The Letterboxd connect flow says the HTTP API "queues matching", but no queue is named for it. A separate queue keeps a player watching their import from waiting behind scheduled syncs |
 | Queues | `winner_links` dropped | Streaming Availability is dropped from v1 |
 | `rec.requests` | Add `queue_ms`: how long the request waited in the queue | Splits slow deals into "waited" and "computed" |
