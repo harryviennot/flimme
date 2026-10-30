@@ -48,7 +48,7 @@ Five rules shape everything below:
 flowchart TD
   inst["Installs from the store"] --> wel["Welcome"] --> name["Name and color"] --> home["Home"]
   home --> host["Open a room:<br/>mode, vibe, services"] --> lobby["Lobby"]
-  home --> code["Enter a code<br/>or scan a QR code"] --> lobby
+  home --> code["Enter a code"] --> lobby
   link["Taps an invite link<br/>or scans the QR with the camera"] --> has{"App installed?"}
   has -->|yes| sheet["Join sheet:<br/>name and color the first time"]
   has -->|no| page["Invite page in the browser:<br/>the code and the store buttons"]
@@ -118,7 +118,7 @@ The link opens the invite page in the browser (that is what universal links do w
 ## Joining with a code or a QR code
 
 - **Code:** Home's **Got a room code?** opens six boxes over a number pad. The app tries to join as soon as the sixth digit is typed; there's no Join button (as in the Figma's screen 05). Errors show under the boxes (see [Empty and error states](#empty-and-error-states)).
-- **QR code in the app:** **Scan QR code** asks for the camera only when tapped. If refused: "Type the code instead", and the phone's normal camera still works.
+- **No QR scanner in the app** (decided on 30 October 2026): guests scan the invite QR code with the phone's normal camera, which opens the link. The app never asks for the camera.
 - **Name first:** a player who comes in by code before naming themselves (they tapped **I have a room code** on Welcome) gets the name and color step after the code, so the code is never lost.
 
 ## Hosting
@@ -262,7 +262,6 @@ The save screen (the Figma's screen 21) offers **Continue with Apple** and **Con
 | Permission | Asked when | If refused |
 | --- | --- | --- |
 | Notifications | Only after **Yes** on the winner screen's "Remind me tomorrow?" | The follow-up card on Home instead. Not asked again for 30 days; after that only from Settings |
-| Camera | Only when **Scan QR code** is tapped in the app | "Type the code instead"; the phone's normal camera still opens invite QR codes |
 | Files | Never: the system file picker for the Letterboxd ZIP needs no permission | |
 | Location | Never: the country comes from the device's region | |
 | Tracking (App Tracking Transparency) | Never: no ad tracking at launch | |
@@ -302,7 +301,6 @@ Every state says what happened and offers a next step, never a raw error.
 | No name yet (`name_required`) | Join | The name and color step | |
 | The host's country has no availability data | Open a room | "We can't show where to watch in your country yet. You can still join friends' rooms." | Choose another country (for people abroad), or join |
 | No services picked | Open a room | **Open the room** stays disabled, with "Pick at least one service" | |
-| Camera refused | Scan QR code | "Type the code instead." | The code boxes |
 | Not a Letterboxd export | Letterboxd import | "This doesn't look like a Letterboxd export. Pick the ZIP Letterboxd sent you." | Pick again |
 | The export doesn't match the public profile (the RSS check) | Letterboxd import | "This export doesn't match the public diary of @harryv. Make sure it's your own export, made recently." | Open Letterboxd again |
 | Upload failed | Letterboxd import | "The import didn't go through." | Retry, keeping the picked file |

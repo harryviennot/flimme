@@ -47,6 +47,11 @@ Everything decided so far, the defaults chosen while designing that still need a
 | The app is called **Flimme**. Bundle id `com.harryviennot.flimme` (with `.dev` and `.preview`), URL scheme `flimme`. On 29 October 2026 neither store had an app with that name (the closest: Flimmer, an IPTV player) and flimme.com, .app, .fr and .io had no registration record. Still to check for M0.1: trademarks in classes 9, 41 and 42, the social handles, and saying it out loud | 29 Oct 2026 | [Choosing the name](product/store-listing.md#choosing-the-name) |
 | Crash reports carry no user, profile or seat id, so deleting an account has nothing to remove from Sentry; deletion clears the analytics person only | 30 Oct 2026 | [Crash reports](product/privacy.md#crash-reports), [Account deletion](architecture/security.md#account-deletion-and-data-export) |
 | The reviewers' demo room is one task (M11.7): the reserved code in `api.create_room` and `api.join_room` and the two bots | 30 Oct 2026 | [Passing review](product/store-listing.md#passing-review) |
+| Quick Match is "Partie rapide" in French | 30 Oct 2026 | [Lobby](design/screens/lobby.md), copy skill glossary |
+| No QR scanner in the app: guests scan the invite QR code with the phone's camera, so the app never asks for the camera | 30 Oct 2026 | [Join with a code](design/screens/join-code.md), [Invites and deep links](architecture/app-structure.md#invites-and-deep-links) |
+| Host setup is one screen: services, time budget (Any length, under 1 h 45, under 2 h) and age cap ("Youngest viewer": Adults by default, 16, 12, 10, All ages) | 30 Oct 2026 | [Host setup](design/screens/host-setup.md) |
+| Players pick one of 6 avatar colors, and two players in a room may share one. Joining another room gives up the old seat | 30 Oct 2026 | [Your name](design/screens/name.md), [Join sheet](design/screens/join-sheet.md) |
+| Every other default in the screen specs for first launch, hosting, joining and the lobby (the splash logo, the Welcome promises, timings): each spec's Questions | 30 Oct 2026 | [Splash](design/screens/splash.md), [Welcome](design/screens/welcome.md), [Lobby](design/screens/lobby.md) |
 
 ## Defaults, not yet confirmed
 
