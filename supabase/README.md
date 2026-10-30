@@ -61,6 +61,12 @@ All in schema `tests`, defined in `000-helpers.sql`. Players have names (`'alice
 | `tests.create_room(players := 2, mode := 'quick_match', country := 'FR', prefix := 'p')` | Creates players `p1` to `pN`, then `p1` creates a room and the others join it, all through `api.create_room` and `api.join_room`. Raises on any answer other than `ok`. Returns `{room_id, code, players, member_ids}` |
 | `tests.room_id()`, `tests.room_code()` | The last room made by `create_room` in this transaction |
 | `tests.member_id(name, room_id := tests.room_id())` | A player's seat id, for functions that take `p_member_id` |
+| `tests.create_title(name)`, `tests.title_id(name)` | A made-up active movie (never TMDB data), and its id by name |
+| `tests.create_provider(id, name, country := 'FR')` | A made-up service available in a country (use ids from 9001 up) |
+| `tests.use_topic(topic)` | Sets the Realtime topic of the request. Call it right before every read or insert on `realtime.messages`, since `realtime.send` overwrites it |
+| `tests.broadcasts(room_id, event)` | The payloads sent on `room:<id>` with that event. Check keys with `->>`, never whole payloads, and do not rely on the order within one transaction |
+
+After `authenticate_as`, call `tests.clear_authentication()` before creating more players or fixtures: setup writes need the superuser.
 
 A rule test is then a few lines:
 
