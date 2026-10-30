@@ -37,6 +37,7 @@ Everything written about Flimme (the revival of MovieMatch): what we're building
 | **Design** | | |
 | [design/components.md](design/components.md) | The Figma library's components as built in code, with the Figma's own description of each | Extracted 29 Oct 2026; the code is the source of truth |
 | [design/figma-map.md](design/figma-map.md) | Node ids of every page, screen, component, poster and icon in the Figma file | Extracted 29 Oct 2026 |
+| design/screens/ | One spec per screen: purpose, layout from the components, every state and status answer, copy in French and English, motion, haptics, accessibility, open questions. First launch: [splash](design/screens/splash.md), [welcome](design/screens/welcome.md), [your name](design/screens/name.md), [home](design/screens/home.md). Joining: [join with a code](design/screens/join-code.md), [join sheet](design/screens/join-sheet.md), [invite page (web)](design/screens/invite-page.md). Hosting: [host setup](design/screens/host-setup.md). The lobby: [lobby](design/screens/lobby.md), [invite sheet](design/screens/invite-sheet.md), [reconnecting](design/screens/reconnecting.md) | Draft for review, 30 Oct 2026. Each ends with its open questions |
 | **Integrations** | | |
 | [letterboxd.md](integrations/letterboxd.md) | What Letterboxd allows, the export file format, connecting, the RSS check, syncing, storage, rules for using the data | Draft for review |
 | [tmdb.md](integrations/tmdb.md) | The catalog from TMDB: terms and the machine-learning clause, which films, one request per film, the daily availability sweep, services and variants, the refresh schedule, the first load, images, certifications, translations, embeddings, failures, countries at launch | Draft for review. Its data model changes aren't applied yet |
@@ -58,7 +59,7 @@ Outside the repo: the [design file in Figma](https://www.figma.com/design/v2ZGLb
 | `product/` | What we build and why: game design, modes, onboarding, pricing, the store listing | `playtests.md` |
 | `architecture/` | How the system works: backend, app structure, the recommendation algorithm, operations | `notifications.md` |
 | `integrations/` | One file per outside service: what it allows, how we call it, its rules | `revenuecat.md` |
-| `design/` | Specs extracted from the Figma and written by the designer agent: components, screens, moments | `screens/lobby.md`, `moments.md` |
+| `design/` | Specs extracted from the Figma and written by the designer agent: components, screens, moments | `moments.md` |
 | `decisions.md` | One line per decision or open question, linking to the doc with the details | |
 | `archive/` | Frozen snapshots. Never edited | |
 
