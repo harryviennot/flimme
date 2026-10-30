@@ -32,13 +32,13 @@ supabase/lite/test.sh    # run the pgTAP tests; non-zero exit on failure
 
 - **`load.sh`** drops and recreates `movie_swipe_lite` (set `LITE_DB` for another name), then loads, with `ON_ERROR_STOP=1`:
   1. [standins.sql](standins.sql),
-  2. every `supabase/migrations/*.sql` in order, or, while there are none (until roadmap task M1.5), [docs/architecture/schema.sql](../../docs/architecture/schema.sql),
+  2. every `supabase/migrations/*.sql` in order (it stops with "no migrations in supabase/migrations" when there are none),
   3. [supabase/seed.sql](../seed.sql).
 
   It ends with a one-line summary, for example `tables public=43 rec=4; views public=1 api=17; functions api=18 internal=27 rec=0; queues=7`, so a change that adds or loses an object shows at a glance.
 - **`test.sh`** runs `supabase/tests/**/*.sql` in alphabetical order with `pg_prove`, the same files and order as `supabase test db`, except the stack-only ones (`*.stack.test.sql`), which it lists and skips. Pass file paths to run only those: `supabase/lite/test.sh supabase/tests/database/010-smoke.test.sql`.
 - Reload before testing after any change to the schema, a migration or a stand-in. Tests roll back their own changes, so repeated `test.sh` runs need no reload.
-- Several lite databases can share a cluster, one per session: set `LITE_DB` (for example `LITE_DB=m14_part2`) for both `load.sh` and `test.sh`. `schema.sql` creates the role `app_server` only if it's missing, and `load.sh` keeps that role while another database still uses it.
+- Several lite databases can share a cluster, one per session: set `LITE_DB` (for example `LITE_DB=m14_part2`) for both `load.sh` and `test.sh`. The baseline migration creates the role `app_server` only if it's missing, and `load.sh` keeps that role while another database still uses it.
 
 Tests, their helpers (`tests.create_room(3)`, `tests.authenticate_as('p2')`, ...) and the naming rules are described in [supabase/README.md](../README.md#tests).
 
@@ -46,9 +46,9 @@ Tests, their helpers (`tests.create_room(3)`, `tests.authenticate_as('p2')`, ...
 
 Only what the schema and the tests touch, behaving as Supabase does for those parts:
 
-| Stand-in | What `schema.sql` and the tests use |
+| Stand-in | What the migrations and the tests use |
 | --- | --- |
-| Roles `anon`, `authenticated`, `service_role` | `NOLOGIN NOINHERIT`, `service_role` bypasses row-level security; the `public` schema's default privileges grant the three roles everything, as in a Supabase project, so `schema.sql`'s revokes are tested for real |
+| Roles `anon`, `authenticated`, `service_role` | `NOLOGIN NOINHERIT`, `service_role` bypasses row-level security; the `public` schema's default privileges grant the three roles everything, as in a Supabase project, so the baseline's revokes are tested for real |
 | `extensions` schema | `vector`, `pg_trgm` and `pgcrypto` live there, and it is on the database's default `search_path`, as in Supabase |
 | `auth.users`, `auth.uid()`, `auth.role()`, `auth.email()`, `auth.jwt()` | The sign-up trigger, the foreign key from `profiles`, and the functions that read `request.jwt.claims` |
 | `realtime.messages`, `realtime.topic()`, `realtime.send()` | The two row-level security policies on `realtime.messages`, and `internal.broadcast_room`. `send` stores the row, so a test can check what the database broadcast |
@@ -62,7 +62,7 @@ Verify these on the Mac (`supabase start`, `supabase test db`) or in CI:
 - **Realtime delivery**: that a broadcast reaches a phone, and that Realtime really evaluates the policies the way the tests simulate by setting `realtime.topic`.
 - **Real sign-in**: a real anonymous sign-in, the `is_anonymous` claim of a real token, token expiry, the Data API's rate limits. The tests fake the claims.
 - **The Data API**: PostgREST's exposed-schema setting, its role switching, `max_rows`. The tests switch roles themselves with `set local role`.
-- **The real pgmq**: the extension has more functions, columns (`headers`) and grants; `app_server`'s access to the queues, which `schema.sql` still lists as a to-do, is not tested.
+- **The real pgmq**: the extension has more functions, columns (`headers`) and grants; `app_server`'s access to the queues, which the baseline still lists as a to-do, is not tested.
 - **pg_cron** running jobs, **Postgres 17** (new projects get 17; this runs on 16), Supabase's own extension versions, Storage, Edge Functions, the pooler, `supabase db reset` and the migration runner itself.
 - **Performance**: there is no catalog data until the seed (M1.14) and no realistic one ever, so timing and index choices need the real thing.
 

@@ -57,11 +57,11 @@ Facts about outside services were checked on their live sites on 29 October 2026
 
 ## From schema.sql to migrations
 
-Today [schema.sql](schema.sql) is one reference file, and the 120 checks described in the data model's [What was tested](data-model.md#what-was-tested) aren't in the repository. Before the first line of product code:
+[schema.sql](schema.sql) was one reference file, and the 120 checks described in the data model's [What was tested](data-model.md#what-was-tested) weren't in the repository. Before the first line of product code:
 
-1. **Apply the pending changes** listed in the data model's Pending note (deck engine, game modes, TMDB, app structure, onboarding) to schema.sql, and drop what's gone (Streaming Availability).
-2. **Write the 120 checks down as pgTAP tests** in `supabase/tests/`, run with `supabase test db`. With the real local stack from `supabase start`, the stand-ins for Supabase's auth, Realtime and Queues are no longer needed.
-3. **Make schema.sql the first migration**: `supabase/migrations/<timestamp>_baseline.sql`. From then on, migrations are the source of truth. `docs/architecture/schema.sql` is retired, with a note pointing to the migrations folder; the data model doc keeps explaining the design.
+1. **Apply the pending changes**, each as its own migration after the baseline (M1.6 on), listed in the data model's Pending note (deck engine, game modes, TMDB, app structure, onboarding) to schema.sql, and drop what's gone (Streaming Availability).
+2. **Write the 120 checks down as pgTAP tests** (done, M1.4) in `supabase/tests/`, run with `supabase test db`. With the real local stack from `supabase start`, the stand-ins for Supabase's auth, Realtime and Queues are no longer needed.
+3. **Make schema.sql the first migration** (done, M1.5): `supabase/migrations/<timestamp>_baseline.sql`. From then on, migrations are the source of truth. `docs/architecture/schema.sql` is retired, now a note pointing to the migrations folder; the data model doc keeps explaining the design.
 4. **Every later change is a new migration**: `supabase migration new <name>`, written by hand (or generated with `supabase db diff -f <name>` after a change made in the local dashboard), checked with `supabase db reset` and the tests, committed.
 
 Rules:

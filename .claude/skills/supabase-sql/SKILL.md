@@ -5,11 +5,11 @@ description: Conventions for SQL in this repo (Supabase migrations, api and inte
 
 # SQL here
 
-The database decides the game. The app only reaches the `api` schema; the server writes through `internal.*` functions. Background: docs/architecture/data-model.md (read by section), and the conventions at the top of docs/architecture/schema.sql (lines 1 to 25).
+The database decides the game. The app only reaches the `api` schema; the server writes through `internal.*` functions. Background: docs/architecture/data-model.md (read by section), and the conventions at the top of the baseline migration (`supabase/migrations/*_baseline.sql`, about 25 lines after its header).
 
 ## Where things are
 
-- `supabase/migrations/`: the source of truth once M1.5 lands. Until then the schema is `docs/architecture/schema.sql`: grep it, never read it whole (124 KB, about 2,800 lines).
+- `supabase/migrations/`: the source of truth, starting with the frozen `*_baseline.sql`: grep the migrations, never read the baseline whole (124 KB, about 2,800 lines). `docs/architecture/schema.sql` is only a pointer.
 - `supabase/tests/database/`: pgTAP tests, with helpers for users, acting as a seat and rooms (see supabase/CLAUDE.md for their names).
 - `supabase/lite/`: plain Postgres 16 with stand-ins for Supabase's `auth`, `realtime` and `pgmq`, for cloud sessions.
 - `supabase/seed.sql`: synthetic data only. **No TMDB data in git, ever** (TMDB's 6-month rule).

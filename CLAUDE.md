@@ -19,7 +19,7 @@ Everything we know is in `docs/` (index: docs/README.md). The plan is docs/produ
 
 - One roadmap task, one branch, one pull request. Run a task with the `task` skill (`/task M4.8`); plan a feature with `/slice`.
 - Agents: `planner`, `designer`, `game-designer`, `backend-dev`, `app-dev`, `reviewer`, `qa`, `scribe` (in .claude/agents/).
-- **Read docs by section, never whole:** `node tools/doc-section.mjs docs/architecture/data-model.md#the-room` (`--toc` lists headings). Never read `docs/architecture/schema.sql` in full: grep it.
+- **Read docs by section, never whole:** `node tools/doc-section.mjs docs/architecture/data-model.md#the-room` (`--toc` lists headings). Never read the baseline migration (`supabase/migrations/*_baseline.sql`) in full: grep it.
 - **A choice nobody made stops the task.** Ask Harry; the answer goes in docs/decisions.md.
 - If a doc turns out wrong, fix it in the same pull request and say so.
 

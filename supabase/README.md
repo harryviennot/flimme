@@ -5,7 +5,7 @@ The Supabase project: local settings, migrations, seed data and pgTAP tests. The
 ```
 supabase/
   config.toml              local development settings for the Supabase CLI
-  migrations/              empty until roadmap task M1.5 (schema.sql becomes the baseline)
+  migrations/              the schema: the baseline migration, then one file per change
   seed.sql                 synthetic seed data: a comment until roadmap task M1.14
   tests/database/          pgTAP tests, run by `supabase test db`
   lite/                    the lite database for cloud sessions (see lite/README.md)
@@ -23,10 +23,15 @@ The CLI's config loader accepts the file (`supabase status` gets past it to the 
 
 ## Migrations
 
-`migrations/` holds only a `.gitkeep`. Turning [schema.sql](../docs/architecture/schema.sql) into `migrations/<timestamp>_baseline.sql` is roadmap task M1.5; until then `lite/load.sh` loads schema.sql directly. Things M1.5 will run into, found while building the lite database:
+`migrations/` is the source of truth. The first file, `20261030154334_baseline.sql`, is the old reference DDL (`docs/architecture/schema.sql`, now a pointer) exactly as the pgTAP tests of M1.4 pin it, plus the extension lines. It is frozen: every later change is a new file from `supabase migration new <what_it_does>`, and a mistake is fixed forward. The pending changes of the data model's Pending note ship as their own migrations (M1.6 on). Squawk lints every migration a pull request adds; the baseline carries `-- squawk-ignore-file`.
 
-- `schema.sql` runs `create role app_server nologin;`. Roles belong to the whole cluster, so loading the file twice into one cluster fails on the second run. The lite loader drops the role itself. `supabase db reset` recreates only the database, so the baseline migration probably needs a guard (`do $$ ... if not exists (select from pg_roles ...) ...`). Verify on the Mac.
-- The file's last section leaves a to-do: give `app_server` access to the queues it consumes (`usage` on schema `pgmq`, and `select, update, delete` on the queue tables or `execute` on the functions). Server-structure.md also reports that enabling pgmq from a normal migration can fail on permissions.
+What the baseline does about the items found while building the lite database:
+
+- **Extensions.** `vector` and `pg_trgm` are created with schema `extensions`. `pgmq` and `pg_cron` are created only where `pg_available_extensions` lists them (Supabase and CI; the lite database has neither and stands in for the `pgmq` schema). `pg_graphql` is dropped, since GraphQL is off. `180-extensions.stack.test.sql` pins all five.
+- **The `app_server` role.** The baseline creates it only if it is missing, so loading twice into one cluster works. The lite loader still drops it when no other lite database uses it.
+- **`set role app_server`.** Since Postgres 16 the creating role gets ADMIN but not SET. `tests.act_as_server()` grants `postgres` SET when it lacks it and says so if that fails. If CI shows the grant failing, the baseline gets `grant app_server to postgres with inherit false, set true;` right after the role guard.
+- **Test setup grants.** The test setup grants `app_server` usage on the `tests` and `extensions` schemas, so a test can call its helpers and pgTAP while acting as the server. That is test setup, not what the real server needs (M1.12).
+- **Queue access.** The last section still lists a to-do: give `app_server` access to the queues it consumes. That is M1.12.
 
 ## Tests
 
@@ -65,6 +70,19 @@ All in schema `tests`, defined in `000-helpers.sql`. Players have names (`'alice
 | `tests.create_provider(id, name, country := 'FR')` | A made-up service available in a country (use ids from 9001 up) |
 | `tests.use_topic(topic)` | Sets the Realtime topic of the request. Call it right before every read or insert on `realtime.messages`, since `realtime.send` overwrites it |
 | `tests.broadcasts(room_id, event)` | The payloads sent on `room:<id>` with that event. Check keys with `->>`, never whole payloads, and do not rely on the order within one transaction |
+| `tests.create_catalog(count := 40, provider := 9001, country := 'FR')` | Made-up films `Catalog Film 001` and up (existing names skipped), each with a falling popularity, a subscription offer from the service in the country and a constant made-up vector, so `internal.deck_candidates` finds them. Returns the ids in number order |
+| `tests.act_as_server()` | Acts as the `app_server` role with no token. On the real stack it grants `postgres` the right to `set role app_server` if it lacks it (rolled back with the test). `tests.clear_authentication()` ends it |
+| `tests.queued(queue)` | The messages of a queue, oldest first, read from the queue table (nothing is consumed). Call it as the superuser and filter by `room_id` (or by `profile_id` or `linked_account_id`) |
+| `tests.deal_game(players := 2, prefix := 'p', until := 'swiping', mode := 'quick_match')` | A room dealt through the real functions: `'lobby'` (seats with service 9001), `'dealing'` (the host has tapped start), `'swiping'` (the server dealt 25 catalog films: a shared opening of 10, then 15 ranked, ascending for odd seats and descending for even). Needs `create_catalog(25)` at least. Returns `{room_id, code, players, member_ids, title_ids, deal}`. `mode` is the room's game mode |
+| `tests.vote_next(name, count, answer := 'nope')` | As that player, votes on the next `count` cards from `my_next_cards`. Raises on any answer but `ok`. Returns the last answer |
+| `tests.film(n)` | The id of `Catalog Film <n>` (numbers from 1) |
+| `tests.vote(name, film, answer := 'like')` | As that player, `api.cast_vote` on catalog film `film` in the last room. Returns the answer whatever its status (`closed`, `dropped`, `duplicate`), so a test can check it. Leaves the session as the superuser |
+| `tests.upcoming(name, room_id := tests.room_id())` | The films still ahead of a seat (dealt, active card, no vote from it), in deck order |
+| `tests.letterboxd_export(username := 'test_viewer')` | The payload of `internal.start_letterboxd_import` for a made-up export: Films 1 to 5 are created in the catalog (never Film 6), 6 films, 3 diary entries, consent `test-1`, share 0.95 (details in `000-helpers.sql`) |
+| `tests.match_letterboxd_import(import_id)` | As the server, marks each pending row whose film is a `create_title` film as matched, the rest as unmatched. Returns the matched count, leaves the session as the superuser |
+| `tests.connect_letterboxd(name, username := 'test_viewer', finish := true)` | Starts the player's import as the server, and unless `finish` is false matches and finishes it. Raises on any answer but `ok`. Returns `{linked_account_id, import_id, start, finish}` |
+| `tests.linked_account_id(name)` | A player's Letterboxd link id, null if none |
+| `tests.feed_item(film, watched_on, rating := null, rewatch := false)` | One item for `internal.apply_letterboxd_feed`, with the catalog film's TMDB id (null if the film is not in the catalog) |
 
 After `authenticate_as`, call `tests.clear_authentication()` before creating more players or fixtures: setup writes need the superuser.
 
