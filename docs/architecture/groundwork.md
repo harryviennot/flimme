@@ -45,14 +45,14 @@ flowchart TD
 
 > **Decided on 29 October 2026: one repository** for the app, the server, Supabase and the docs.
 
-- **Rename** `movie-swipe-backend` (GitHub keeps redirecting the old address) and archive the empty `movie-swipe-app`. The docs and their history stay where they are. Its new name is `flimme`, the app's name.
+- **Rename** `movie-swipe-backend` (GitHub keeps redirecting the old address) and archive the empty `movie-swipe-app`. The docs and their history stay where they are. Its new name is `flimme-app`.
 - **pnpm workspaces** for `mobile/`, `packages/*` and `tools/`, with hoisted `node_modules`, which is what React Native tooling expects. `server/` is its own uv project.
 - **One set of commands**, as mise tasks: `mise run setup`, `dev`, `check`, `test`, `db:reset`, `db:test`, `typegen`, `tokens`, `seed:catalog`, `bots`. Harry, CI and agents all type the same thing, and CLAUDE.md only has to list them once.
 - **Git hooks** with lefthook: format and lint the staged files and run gitleaks on commit; `mise run check` on the touched packages before a push.
 - `.editorconfig` and the recommended editor extensions (ESLint, Prettier, Tailwind IntelliSense, Ruff, Expo Tools).
 
 ```
-flimme/
+flimme-app/
   mobile/              the Expo app; routes in mobile/src/app/
   server/              the Python recommendation server (uv)
   supabase/            config.toml, migrations/, tests/ (pgTAP), seed.sql
