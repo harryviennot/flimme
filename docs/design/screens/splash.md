@@ -69,5 +69,7 @@ Show the brand while the app signs in as a guest and decides where to go. Ready 
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **The Flimme logo.** `mobile/assets/logos/` is empty and the Figma only has the old wordmark. Default: the Figma's marquee frame with "FLIMME" in Staatliches, `marquee.default` on `bg.sunken`, exported as `splash-icon.png` and an SVG for the hand-off view; added to the Figma when it's next updated (M0.9).
 2. **The slow threshold.** Default: 3 seconds (a starting value).

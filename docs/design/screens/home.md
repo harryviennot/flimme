@@ -61,4 +61,6 @@ The greeting follows the phone's local time: morning from 5:00, afternoon from 1
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **The last night's pick on Home.** Default: left out of the first release; it returns with the Home cards in M15 ("Did you watch it?").

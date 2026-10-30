@@ -50,5 +50,7 @@ Nothing here waits on the network: sign-in already happened on the splash. No lo
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **Fictional posters in the app.** The figma map says they are for mockups, the gallery and store screenshots. They are our own art with no TMDB data. Default: use them here as the illustration.
 2. **The third promise.** Default: the copy above. If the first release ends up hiding every seen film, use "Pas de films déjà vus" / "Skips films you've already seen".

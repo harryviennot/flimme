@@ -87,6 +87,8 @@ The messages are shared with the [join sheet](join-sheet.md).
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **An in-app scanner.** Default: none in the first release (one less permission, and the camera app already opens the link). Onboarding's permissions table keeps the camera row for when it comes.
 2. **`full` with the number.** `join_room` doesn't say the room's maximum. Default: M4.1 adds `max_players` to the `full` answer; until then the message drops the brackets ("Cette salle est complète." / "This room is full.").
 3. **Paste on Android.** Default: the ghost Paste button reads the clipboard only when tapped. Android 13 and later shows its own "pasted" notice, which is fine.

@@ -66,5 +66,7 @@ In the share message the code has a space in the middle ("482 913").
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **Screen brightness.** Raising the brightness while the sheet is open would help a QR scanned across a dim room. Default: no (one more dependency); revisit after the first group test.
 2. **The share message.** Default: the copy above, which is the app structure's English; the French is new.

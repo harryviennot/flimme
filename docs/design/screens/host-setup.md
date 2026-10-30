@@ -93,6 +93,8 @@ Sections are 24 points apart (`gap-6`); eyebrow to content 8.
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **The age cap's choices and wording.** Default: "Youngest viewer" with Adults, 16, 12, 10, All ages, mapped onto `max_age` against France's certifications (Tous publics, -10, -12, -16, -18), with Adults as the default. The copy never says "for kids".
 2. **The time budget's choices.** Default: Any length, under 1 h 45, under 2 h.
 3. **Free services.** They count for every room unless the host turns them off ([decisions](../../decisions.md)). Default: not shown as tiles in the first release, only the line saying they're included; turning them off waits.

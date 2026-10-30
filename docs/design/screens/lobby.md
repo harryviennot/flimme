@@ -144,7 +144,9 @@ The away names are listed with `Intl.ListFormat`. The host alone leaving has no 
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **The crown.** Default: the new `crown` icon in a marquee `Tag`. Without a new icon, the tag would be the word alone.
-2. **The Quick Match name in French.** The glossary has none. Default: "Partie rapide" (proposed, needs Harry's yes).
+2. **The Quick Match name in French.** The glossary has none. Default: "Partie rapide".
 3. **Services for the host in the lobby.** M4.11 gives the row to guests. Default: guests only; the host set theirs on the setup screen a minute ago.
 4. **The 20-second "taking longer" line.** Default: 20 seconds after Start (the SQL baseline deals at 8).

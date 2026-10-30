@@ -64,6 +64,8 @@ None: a web page that loads and stays still.
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **How it's built.** M4.14 serves the verification files from the web export. Default: the page is a web-only version of the same route (`app/join/[code].web.tsx`), built from `Text`, `Button` and `RoomTicket` with the same translations, so nothing is styled twice. If the web export turns out heavy, a static page using the generated `theme.css` instead.
 2. **Android's install referrer.** Onboarding lists it as a small upgrade (the store carries the room to the first launch). Default: later; the Copy button and "tap your link again" cover launch.
 3. **Copying on a badge tap.** Copying the link without asking when a badge is tapped would make the iOS Paste button work by itself, but surprises people. Default: only the Copy button copies.

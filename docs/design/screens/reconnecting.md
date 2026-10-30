@@ -48,4 +48,6 @@ A `Banner` (`ui/banner`) tone `warn` directly under the screen's `TopBar`, pushi
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **The grace before showing the banner.** Default: 2 seconds, so a channel that rejoins at once never flashes a banner (a starting value).

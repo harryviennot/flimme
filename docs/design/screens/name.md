@@ -83,6 +83,8 @@ Color names for the picker's labels, in `common` (the `ui/` component reads them
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **How many colors.** Onboarding says 6 (the Figma's blue, green, gold, red, violet, teal); `Avatar` has 10 and its Figma description says colors are "assigned in join order and never repeated in a room". The docs win, so a player picks their own. Default: these 6, and two players in one room may share a color (their initials and names tell them apart).
 2. **The blocklist answer's name.** M4.3 hasn't named it. Default: `name_not_allowed`, added to `packages/contract` with the others.
 3. **Editing from Home.** Nobody decided that the Home avatar opens this screen. Default: yes, with `?edit=1`, since the profile screen waits for M15.

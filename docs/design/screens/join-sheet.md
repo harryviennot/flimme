@@ -72,6 +72,8 @@ The code is shown with a space in the middle ("482 913"), as `RoomTicket` does.
 
 ## Questions
 
+Harry accepted every default below on 30 October 2026.
+
 1. **The host's name before joining.** "Join Harry's movie night" needs the host's first name, which `join_room` doesn't return before a seat exists. Default: M4.1 adds the host's display name to the `name_required` answer (names already show to anyone who joins); until then the title is `join:link.title`.
 2. **Already in another room.** A player whose phone keeps an open room taps a link to a different one. Default: join the new room and leave the old seat (`api.leave_room`) once the new join answers `ok`.
 3. **Sheet or full screen on a cold start.** Default: a sheet over Home or Welcome, as above, so the presentation is the same whether the app was open or not.
