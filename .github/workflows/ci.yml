@@ -33,19 +33,24 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          # A change to CI itself runs every job, so an action update is tested where it's used.
           filters: |
             mobile:
               - 'mobile/**'
               - 'packages/**'
               - 'pnpm-lock.yaml'
               - 'package.json'
+              - '.github/workflows/**'
             server:
               - 'server/**'
+              - '.github/workflows/**'
             database:
               - 'supabase/**'
               - 'docs/architecture/schema.sql'
+              - '.github/workflows/**'
             docs:
               - '**/*.md'
+              - '.github/workflows/**'
 
   title:
     if: github.event_name == 'pull_request'
