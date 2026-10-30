@@ -45,6 +45,8 @@ Everything decided so far, the defaults chosen while designing that still need a
 | Agents build the app as the agent workflow describes: plan by feature, build by layer, eight agents, ceremony by task size. Harry merges everything for the first two weeks, then small backend tasks merge themselves once CI and the review pass | 29 Oct 2026 | [Agent workflow](agent-workflow.md) |
 | The app is styled with Tailwind 4 classes through Uniwind (not NativeWind). The M3.12 spike confirms it on a low-end Android; NativeWind 4.2.7 is the fallback if it fails there | 29 Oct 2026 | [Styling](architecture/groundwork.md#styling-nativewind-or-uniwind) |
 | The app is called **Flimme**. Bundle id `com.harryviennot.flimme` (with `.dev` and `.preview`), URL scheme `flimme`. On 29 October 2026 neither store had an app with that name (the closest: Flimmer, an IPTV player) and flimme.com, .app, .fr and .io had no registration record. Still to check for M0.1: trademarks in classes 9, 41 and 42, the social handles, and saying it out loud | 29 Oct 2026 | [Choosing the name](product/store-listing.md#choosing-the-name) |
+| Crash reports carry no user, profile or seat id, so deleting an account has nothing to remove from Sentry; deletion clears the analytics person only | 30 Oct 2026 | [Crash reports](product/privacy.md#crash-reports), [Account deletion](architecture/security.md#account-deletion-and-data-export) |
+| The reviewers' demo room is one task (M11.7): the reserved code in `api.create_room` and `api.join_room` and the two bots | 30 Oct 2026 | [Passing review](product/store-listing.md#passing-review) |
 
 ## Defaults, not yet confirmed
 

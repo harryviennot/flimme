@@ -33,19 +33,24 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          # A change to CI itself runs every job, so an action update is tested where it's used.
           filters: |
             mobile:
               - 'mobile/**'
               - 'packages/**'
               - 'pnpm-lock.yaml'
               - 'package.json'
+              - '.github/workflows/**'
             server:
               - 'server/**'
+              - '.github/workflows/**'
             database:
               - 'supabase/**'
               - 'docs/architecture/schema.sql'
+              - '.github/workflows/**'
             docs:
               - '**/*.md'
+              - '.github/workflows/**'
 
   title:
     if: github.event_name == 'pull_request'
@@ -113,7 +118,8 @@ jobs:
     # plain Postgres 16 with stand-ins for Supabase's schemas, like cloud sessions do.
     needs: changes
     if: needs.changes.outputs.database == 'true'
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest became 26.04 in October 2026, which doesn't package Postgres 16.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - name: Postgres 16 with pgTAP and pgvector

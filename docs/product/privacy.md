@@ -128,7 +128,7 @@ Most of what we measure doesn't need analytics at all. Time to a pick, swipes pe
 
 ## Crash reports
 
-Sentry in its EU data region (Frankfurt), with personal data off: no IP, no names, room codes or emails in events or breadcrumbs. The basis is legitimate interest: a crashing app can't provide the service. **Lawyer**: whether the French tracker rules require consent for a crash reporting SDK. If they do, server-side errors stay reported and the app asks with nothing else, after the first game.
+Sentry in its EU data region (Frankfurt), with personal data off: no IP, no names, room codes or emails in events or breadcrumbs, and no user, profile or seat id either. So deleting an account has nothing to remove from Sentry. The basis is legitimate interest: a crashing app can't provide the service. **Lawyer**: whether the French tracker rules require consent for a crash reporting SDK. If they do, server-side errors stay reported and the app asks with nothing else, after the first game.
 
 ## Training models across players
 
