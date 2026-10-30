@@ -52,4 +52,4 @@ The database decides the game. The app only reaches the `api` schema; the server
 
 - Mac, CI: `supabase start` once, then `supabase db reset` and `supabase test db` (`mise run db:test`).
 - Cloud sessions: `mise run db:lite` then `mise run db:lite:test`.
-- After a schema change: `mise run typegen` and commit `packages/contract/src/database.types.ts` (CI compares it).
+- After a schema change: `mise run typegen` and commit `packages/contract/src/database.types.ts` (CI compares it). In a cloud session, generate it from the lite database instead: docs/pipeline.md, "Types out of date in CI".
