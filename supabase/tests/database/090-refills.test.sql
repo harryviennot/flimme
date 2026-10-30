@@ -7,7 +7,7 @@
 -- of the finale and no match or propagation happens.
 
 begin;
-select plan(14);
+select plan(17);
 
 select tests.create_catalog(60);
 select tests.deal_game(2);
@@ -95,6 +95,23 @@ select is(
 );
 select is((select count(*) from upcoming where room_member_id = tests.member_id('p2')), 25::bigint,
   'R4 the other seat still has all 25 upcoming cards');
+
+-- R8: the server's refill is logged like a start: the request and every card it ranked.
+select is(
+  (select count(*) from rec.requests q
+   where q.room_id = tests.room_id() and q.kind = 'refill' and q.room_member_id = tests.member_id('p1')
+     and q.model_version = 'test-ranker' and not q.is_fallback),
+  1::bigint,
+  'R8 (beyond the 120) the refill is logged once, for p1''s seat, as the server''s and not a fallback'
+);
+select is(
+  (select array_agg(i.title_id order by i.position) from rec.request_items i join rec.requests q on q.id = i.request_id
+   where q.room_id = tests.room_id() and q.kind = 'refill'),
+  (select array_agg(tests.title_id('Catalog Film ' || lpad(n::text, 3, '0')) order by n) from generate_series(26, 35) n),
+  'R8 (beyond the 120) every card the refill ranked is logged, in its order'
+);
+select is((select state::text from public.rooms where id = tests.room_id()), 'swiping',
+  'R8 (beyond the 120) a refill leaves the room swiping');
 
 -- R5, R6: 13 upcoming, and the flag is cleared.
 select is((select count(*) from upcoming where room_member_id = tests.member_id('p1')), 13::bigint,

@@ -12,7 +12,7 @@
 -- the match_rules numbers (those move in M5.1, M5.2 and M6.1).
 
 begin;
-select plan(38);
+select plan(39);
 
 select tests.create_catalog(40);
 
@@ -106,10 +106,12 @@ select throws_ok(
   '42501', null, 'S5b (beyond the 120) the server cannot change the room''s state'
 );
 select lives_ok(
-  format($q$update public.rooms set stats = '{}' where id = %L$q$, tests.room_id()),
+  format($q$update public.rooms set stats = '{"probe": 1}' where id = %L$q$, tests.room_id()),
   'S5b (beyond the 120) the server can write the room''s stats (the control)'
 );
 select tests.clear_authentication();
+select is((select stats->>'probe' from public.rooms where id = tests.room_id()), '1',
+  'S5b (beyond the 120) the stats write reached the row, so row-level security did not hide it');
 
 -- S6: the server deals through deal_cards, which starts the game.
 select set_config('tests.deal', (tests.deal_game(2, 's'))::text, true);
