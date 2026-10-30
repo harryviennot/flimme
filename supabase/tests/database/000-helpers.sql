@@ -358,13 +358,18 @@ $$;
 --   'swiping'  the server has dealt: 25 catalog films (needs create_catalog(25) at least)
 --              in the pool, and per seat films 1 to 10 as the shared opening, then films
 --              11 to 25 as ranked cards (ascending for odd seats, descending for even)
+-- p_mode is the game mode of the room ('quick_match', 'final_cut', 'date_night').
 -- Raises on any unexpected answer, leaves the session as the superuser, and
 -- returns {room_id, code, players, member_ids (in player order), title_ids, deal} (title_ids are
 -- the 25 films in number order, deal the answer of deal_cards, null before swiping).
+-- Helpers stay on the real stack until `supabase db reset`, so a changed argument list
+-- must drop the old signature, or both would stay and every call would be ambiguous.
+drop function if exists tests.deal_game(integer, text, text);
 create or replace function tests.deal_game(
   p_players integer default 2,
   p_prefix text default 'p',
-  p_until text default 'swiping'
+  p_until text default 'swiping',
+  p_mode text default 'quick_match'
 ) returns jsonb
 language plpgsql
 as $$
@@ -390,7 +395,7 @@ begin
     raise exception 'tests.deal_game: needs a catalog of at least 25 films, call tests.create_catalog first';
   end if;
 
-  v_room := tests.create_room(p_players, 'quick_match', 'FR', p_prefix);
+  v_room := tests.create_room(p_players, p_mode, 'FR', p_prefix);
   v_room_id := (v_room->>'room_id')::uuid;
   -- Seats in player order (create_room's list is not: seats made in one transaction share a joined_at).
   select array_agg(tests.member_id(p_prefix || n, v_room_id) order by n) into v_members
@@ -479,6 +484,54 @@ begin
   perform tests.clear_authentication();
   return v_answer;
 end
+$$;
+
+-- -------------------------------------------------------------------------
+-- Game fixtures
+-- -------------------------------------------------------------------------
+-- Short names for the votes of a game, so a rule test reads in a few lines. They
+-- act on the room tests.create_room (or deal_game) made last.
+
+-- The id of 'Catalog Film <n>' (tests.create_catalog makes them, numbered from 001).
+create or replace function tests.film(p_n integer) returns bigint
+language sql stable
+as $$
+  select tests.title_id('Catalog Film ' || lpad(p_n::text, 3, '0'))
+$$;
+
+-- As this player, api.cast_vote on a catalog film in the last room. Returns the
+-- answer whatever its status (closed, dropped, duplicate and so on), so a test
+-- can check it; only a real error raises. Leaves the session as the superuser.
+create or replace function tests.vote(
+  p_name text,
+  p_film integer,
+  p_answer public.vote_answer default 'like'
+) returns jsonb
+language plpgsql
+as $$
+declare
+  v_answer jsonb;
+begin
+  perform tests.authenticate_as(p_name);
+  v_answer := api.cast_vote(tests.room_id(), tests.film(p_film), p_answer);
+  perform tests.clear_authentication();
+  return v_answer;
+end
+$$;
+
+-- The films still ahead of a seat: dealt to it, on a card that is still active,
+-- with no vote from it, in deck order (sort_key). Security definer, like
+-- tests.member_id, so it also works while a test acts as a player.
+create or replace function tests.upcoming(p_name text, p_room_id uuid default tests.room_id())
+returns bigint[]
+language sql stable security definer set search_path = ''
+as $$
+  select coalesce(array_agg(d.title_id order by d.sort_key), '{}')
+  from public.deck_entries d
+  join public.room_cards c on c.room_id = d.room_id and c.title_id = d.title_id and c.state = 'active'
+  where d.room_member_id = tests.member_id(p_name, p_room_id)
+    and not exists (select 1 from public.votes v
+                    where v.room_member_id = d.room_member_id and v.title_id = d.title_id)
 $$;
 
 select plan(1);
