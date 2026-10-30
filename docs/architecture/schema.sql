@@ -1449,7 +1449,7 @@ $$;
 -- Payload, built on the phone from the export ZIP. Only the username from
 -- profile.csv, watched.csv, watchlist.csv and diary.csv are read; nothing
 -- else leaves the phone:
--- {"username": "hryvnt", "exported_at": "2026-10-29T11:01:00Z", "consent_version": "v1",
+-- {"username": "test_viewer", "exported_at": "2026-10-29T11:01:00Z", "consent_version": "v1",
 --  "rss_match_share": 0.98,
 --  "films": [{"uri": "https://boxd.it/AbC1", "name": "...", "year": 2019,
 --             "watched": true, "on_watchlist": false}],
