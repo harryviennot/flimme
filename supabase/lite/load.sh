@@ -38,7 +38,7 @@ if [[ "$(admin -Atc "select rolsuper from pg_roles where rolname = current_user"
   exit 1
 fi
 
-# Roles belong to the whole cluster and outlive databases. the baseline creates
+# Roles belong to the whole cluster and outlive databases. The baseline creates
 # app_server only if it's missing, so the role from the previous load is dropped
 # when nothing else uses it, and kept while another lite database still does.
 admin -c "drop database if exists $db with (force)"
