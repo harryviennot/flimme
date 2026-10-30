@@ -251,7 +251,7 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 
 - **The link** is `https://<domain>/join/482913`, the same path as the route, so Expo Router handles it whether it arrives as a universal link, an Android app link or the custom scheme. The scheme is `flimme` (`flimme-dev` and `flimme-preview` for the other builds); the domain waits on M0.2.
 - **Verification files.** iOS needs `apple-app-site-association` and Android `assetlinks.json` under `/.well-known/` on that domain. They live in the app repo's `public/.well-known/` and are served by the web export. The app config lists the domain in `ios.associatedDomains` and in Android intent filters with automatic verification. iOS reads the file at install and on updates, so changing its paths needs an app update.
-- **Not installed.** The link opens the web page, which at launch only shows the code in large type and the store buttons; the player types the code after installing. Web guests who swipe in the browser come later, as the revival plan says.
+- **Not installed.** The link opens the web page, which shows the code in large type and the store buttons; the player types the code after installing. There is no browser version of the game: guests download the app (decided on 30 October 2026).
 - **QR code** in the invite sheet, drawn with `react-native-qrcode-svg`, encoding the same link. Guests scan it with their camera app; the app has no scanner of its own.
 - **Sharing** uses the system share sheet: "Join my room: <link> (code 482 913)". The recap card is shared as an image with `expo-sharing`.
 - **Rejoining.** The phone keeps the current room's code. Reopening the app calls `api.join_room` with it and gets the same seat back.
