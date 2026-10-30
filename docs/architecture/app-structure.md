@@ -137,7 +137,7 @@ const supabase = createClient<Database, 'api'>(SUPABASE_URL, SUPABASE_PUBLISHABL
 })
 ```
 
-- Views with `.from('room_seats')`, functions with `.rpc('cast_vote', …)`. The `Database` type is generated from the `api` schema with the Supabase CLI (`supabase gen types` with `--schema api`) into `src/api/database.types.ts`, never edited by hand, and regenerated whenever the schema changes. CI fails if the committed file is out of date.
+- Views with `.from('room_seats')`, functions with `.rpc('cast_vote', …)`. The `Database` type is generated from the `api` schema with the Supabase CLI (`supabase gen types` with `--schema api`) into `packages/contract/src/database.types.ts` (`@flimme/contract`, shared with the bot players), never edited by hand, and regenerated whenever the schema changes. CI fails if the committed file is out of date.
 - Many functions return JSON (`cast_vote`, `my_next_cards`, `join_room`), which the generated types only know as `Json`. The app keeps hand-written types for these payloads in `src/api/payloads.ts`, with a small schema check for each in development and in tests.
 - Each `api` function gets one typed wrapper in `src/api/`. Screens never call `.rpc` directly, so a `_v2` function is a one-file change.
 - On React Native the auth client can't tell when the app goes to the background, so the app calls `startAutoRefresh` and `stopAutoRefresh` from an `AppState` listener registered once.

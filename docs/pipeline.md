@@ -190,7 +190,7 @@ Merge everything yourself for the first two weeks. After that, small backend tas
 | The agent asks about something already decided | decisions.md is missing it: have the scribe record it |
 | A cloud session can't run the database tests | Check the setup script ran (the session's first output); `mise run db:lite` by hand shows the error |
 | The local stack won't start on the Mac | `supabase stop --no-backup`, then `mise run setup` again |
-| Types out of date in CI | `mise run typegen` with the local stack running, and commit the file |
+| Types out of date in CI | `mise run typegen` with the local stack running, and commit the file. In a cloud session (no Docker): `mise run db:lite`, give a Postgres role a password, install the Supabase CLI (`npm i supabase`), then `TYPEGEN_DB_URL=postgresql://user:pass@localhost:5432/movie_swipe_lite node tools/typegen.mjs`. The CLI reads the lite `api` schema directly, which is the stack's. If CI still disagrees, its log prints the diff and the job uploads the generated file as an artifact |
 | A component looks different on one screen | That's a review miss: add a variant to the component, never restyle it on the screen |
 
 ## Looking after the pipeline
