@@ -227,7 +227,7 @@ Rules on kids' data (COPPA, parental consent under 15 in France, kid profiles la
 1. The phone calls the HTTP API with its token.
 2. The server deletes exactly the token's `sub` through Supabase's auth admin API, using the HTTP API's secret key. Nothing in the request names whom to delete.
 3. The database cascades: profile, services, consents, Letterboxd link, diary, film history, taste, card history. Past seats keep their votes, anonymous.
-4. The server also asks analytics and crash reporting to forget the user ([privacy.md](../product/privacy.md)).
+4. The server also asks analytics to forget the user. Crash reports carry no user id, so there is nothing to delete there ([privacy.md](../product/privacy.md#crash-reports)).
 5. The phone signs out and wipes its local data: the session, the vote queue, cached cards.
 
 Deletion is idempotent: a retry after a dropped connection succeeds quietly.
@@ -280,7 +280,7 @@ One developer means one person's laptop and accounts are the whole perimeter.
 - [ ] The session stored encrypted on the phone, outside backups
 - [ ] Guest cleanup after 90 days running, from `auth.users`
 - [ ] Alerts on failed joins and guest sign-ups; Turnstile configured, ready to switch on
-- [ ] Account deletion also clears analytics and crash reports; data export includes everything
+- [ ] Account deletion also clears analytics, and crash reports carry no user id; data export includes everything
 - [ ] Security advisors clean; a written runbook for a leaked key ([operations.md](operations.md))
 - [ ] CI actions pinned to commit SHAs, read-only tokens, dependency updates and audits running
 
@@ -301,7 +301,7 @@ One developer means one person's laptop and accounts are the whole perimeter.
 | [game-modes.md](../product/game-modes.md) | Remove player and Lock room join the host's powers; a removed seat no longer counts as present |
 | [deck-engine.md](deck-engine.md) | The taste check skips films above a room's age cap; labels in capped rooms only name films within the cap |
 | [operations.md](operations.md) | Alerts on failed joins and guest sign-ups; security advisors before each release; a leaked-key runbook |
-| [privacy.md](../product/privacy.md) | Kids' data rules, consent, retention law, deletion from analytics and crash reports |
+| [privacy.md](../product/privacy.md) | Kids' data rules, consent, retention law, deletion from analytics, crash reports without a user id |
 
 ## Starting values
 
