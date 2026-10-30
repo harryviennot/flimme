@@ -15,7 +15,7 @@
 -- while planning, for M20.3 and M20.5).
 
 begin;
-select plan(41);
+select plan(42);
 
 select tests.create_player('lb1');
 select tests.create_player('lb2');
@@ -217,9 +217,23 @@ select is(
   'B22b (beyond the 120) and the account is not flagged'
 );
 
+-- B22c (beyond the 120): a feed shorter than a full one is never a gap, even with nothing known.
+select tests.act_as_server();
+select set_config('tests.short_feed',
+  internal.apply_letterboxd_feed(
+    tests.linked_account_id('lbz'),
+    (select jsonb_agg(tests.feed_item('Feed Film ' || lpad(n::text, 2, '0'), date '2027-01-01' + n) order by n)
+     from generate_series(1, 49) n))::text,
+  true);
+select tests.clear_authentication();
+select is(
+  (current_setting('tests.short_feed')::jsonb->>'gap') || '/' || (current_setting('tests.short_feed')::jsonb->>'known')
+    || '/' || (current_setting('tests.short_feed')::jsonb->>'new'),
+  'false/0/49',
+  'B22c (beyond the 120) 49 new items and nothing known answer no gap: only a full feed can be one'
+);
+
 -- B23: the app is asked for a new export, which clears the gap.
-select set_config('tests.lb1_count_before',
-  (select count(*) from public.letterboxd_entries e where e.linked_account_id = tests.linked_account_id('lb1'))::text, true);
 select tests.act_as_server();
 select set_config('tests.reexport',
   internal.start_letterboxd_import(tests.uid('lb1'), tests.letterboxd_export('test_viewer'))::text, true);
