@@ -75,7 +75,7 @@ The design file's 26 screens are the reference for what exists, not the final wo
 | `/home` | 04 | Host or join, Letterboxd nudge, last night's pick |
 | `/join` | 05 | Code keypad |
 | `/join/[code]` | | Invite link target. Calls `join_room`, then replaces itself with the room |
-| `/host/mode`, `/host/vibe` | 06, 07 | Mode, then moods, services and the seen rule. "Open the room" calls `create_room` then `update_room_settings` |
+| `/host` | 06, 07 | One setup screen in the first release: services, time budget and age cap ([spec](../design/screens/host-setup.md)). "Open the room" calls `create_room` with the settings (M4.4). Mode and moods come back with M17 and M18 |
 | `/room/[id]` | | Layout for every room screen: subscribes to Realtime, keeps the room fresh, redirects by state |
 | `/room/[id]/lobby` | 08 | With the "Shuffling" overlay while the room is `dealing` |
 | `/room/[id]/invite` | 09 | Sheet over the lobby |

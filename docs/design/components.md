@@ -109,3 +109,17 @@ TMDB and Letterboxd only (IMDb and Rotten Tomatoes are in the Figma from the ori
 ## Built from the tokens, not in the Figma's library
 
 `Text`, `Icon`, `Pressable`, `Screen`, `Banner`, `Countdown`, `Skeleton`, `EmptyState`, `MarqueeBulbs`, `Spotlight`, `GradientFill`. The designer should add them to the Figma library, or confirm them in the gallery.
+
+## Proposed for slices 4 to 7
+
+Specified in the screen specs (`docs/design/screens/`) of 30 October 2026, not built yet. App-dev builds each with its gallery entry.
+
+| Component | Tier | What changes | Spec |
+| --- | --- | --- | --- |
+| `AvatarPicker` | ui | New: a row of `Avatar` M swatches, one per color, with the typed initial and a selection ring | [Your name](screens/name.md#new-components) |
+| `NameForm` | shared | New: the color picker and the name `Input`, used by the name screen and the join sheet | [Your name](screens/name.md#new-components) |
+| `ServiceGrid` | shared | New: `ServiceTile`s in rows of three, with a loading state, used by host setup and the lobby's services sheet | [Host setup](screens/host-setup.md#new-component) |
+| `PinBox` | ui | Gains an `error` state: a 2-point `nope.default` border | [Join with a code](screens/join-code.md#design-system-change) |
+| `Icon` | ui | Gains `crown` (24 points, 2-point stroke) for the host's tag | [Lobby](screens/lobby.md#design-system-change) |
+
+Single-use pieces, in `components/screens/`: `splash/splash-view`, `welcome/hero`, `home/host-card`, `home/join-card`, `join/code-field`, `lobby/seat-row`, `lobby/shuffling-overlay`, `invite/qr-panel`. The QR panel adds the `react-native-qrcode-svg` dependency named in [app structure](../architecture/app-structure.md#invites-and-deep-links).
