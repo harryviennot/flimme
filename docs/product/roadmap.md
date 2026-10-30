@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 4 of 245 tasks done.
+Progress: 6 of 243 tasks done.
 
 ```mermaid
 flowchart LR
@@ -192,9 +192,9 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
   Done when: the email is sent; the answer, when it comes, goes in decisions.md.
 - [ ] **M0.6** Open the service accounts with 2FA: Supabase (Pro organization), Fly.io, Sentry (EU), PostHog (EU), Expo, GitHub secret scanning · ops · S · [operations](../architecture/operations.md#environments), [security](../architecture/security.md#dependencies-and-accounts)
   Done when: every account exists in Harry's name with 2FA on.
-- [ ] **M0.7** Confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards) · decision · M · [game-modes](game-modes.md#time-to-a-pick)
+- [x] **M0.7** Confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards) · decision · M · [game-modes](game-modes.md#time-to-a-pick)
   Done when: recorded in decisions.md.
-- [ ] **M0.8** Confirm web guests wait until after launch · decision · S · [onboarding](onboarding.md#joining-from-an-invite-link)
+- [x] **M0.8** Confirm web guests wait until after launch · decision · S · [onboarding](onboarding.md#joining-from-an-invite-link)
   Done when: recorded in decisions.md (this roadmap assumes yes).
 - [ ] **M0.9** Update the Figma to the first release: no taste check, no Letterboxd card, no account screens, winner screen with service logos, host menu with Remove player and Lock room, Report, `/join/` links · design · M · needs M0.7, M0.8 · [onboarding](onboarding.md#changes-to-the-figma)
   Done when: the affected frames match this list.
