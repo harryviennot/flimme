@@ -64,6 +64,6 @@ Verify these on the Mac (`supabase start`, `supabase test db`) or in CI:
 - **The Data API**: PostgREST's exposed-schema setting, its role switching, `max_rows`. The tests switch roles themselves with `set local role`.
 - **The real pgmq**: the extension has more functions, columns (`headers`) and grants; `app_server`'s access to the queues, which the baseline still lists as a to-do, is not tested.
 - **pg_cron** running jobs, **Postgres 17** (new projects get 17; this runs on 16), Supabase's own extension versions, Storage, Edge Functions, the pooler, `supabase db reset` and the migration runner itself.
-- **Performance**: there is no catalog data until the seed (M1.14) and no realistic one ever, so timing and index choices need the real thing.
+- **Performance**: the only catalog is the synthetic seed (500 invented films) and never a realistic one, so timing and index choices need the real thing.
 
 When the real stack disagrees with a stand-in, fix the stand-in, and say so in its comment.

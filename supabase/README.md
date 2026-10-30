@@ -6,7 +6,7 @@ The Supabase project: local settings, migrations, seed data and pgTAP tests. The
 supabase/
   config.toml              local development settings for the Supabase CLI
   migrations/              the schema: the baseline migration, then one file per change
-  seed.sql                 synthetic seed data: a comment until roadmap task M1.14
+  seed.sql                 synthetic seed: France, 10 services, 500 invented films (tests: 270-seed)
   tests/database/          pgTAP tests, run by `supabase test db`
   lite/                    the lite database for cloud sessions (see lite/README.md)
 ```
