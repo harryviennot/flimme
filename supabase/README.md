@@ -31,7 +31,7 @@ What the baseline does about the items found while building the lite database:
 - **The `app_server` role.** The baseline creates it only if it is missing, so loading twice into one cluster works. The lite loader still drops it when no other lite database uses it.
 - **`set role app_server`.** Since Postgres 16 the creating role gets ADMIN but not SET. `tests.act_as_server()` grants `postgres` SET when it lacks it and says so if that fails. If CI shows the grant failing, the baseline gets `grant app_server to postgres with inherit false, set true;` right after the role guard.
 - **Test setup grants.** The test setup grants `app_server` usage on the `tests` and `extensions` schemas, so a test can call its helpers and pgTAP while acting as the server. That is test setup, not what the real server needs (M1.12).
-- **Queue access.** The last section still lists a to-do: give `app_server` access to the queues it consumes. That is M1.12.
+- **Queue access.** The baseline's last section still lists a to-do (frozen, like the rest of that file). Migration `grant_app_server_queues` (M1.12a) did it: `app_server` can read, extend, archive and delete on the six queues it consumes, and can't send, purge, drop or create. `250-queue-grants.test.sql` pins it. Execute on pgmq's functions is open to everyone in the lite database, so the lite tests prove the table and schema grants but not the function grants; M1.7 (default privileges) is what makes those bite.
 
 ## Tests
 
