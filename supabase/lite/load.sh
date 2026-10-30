@@ -39,14 +39,11 @@ if [[ "$(admin -Atc "select rolsuper from pg_roles where rolname = current_user"
   exit 1
 fi
 
-# schema.sql does `create role app_server`, and roles outlive the database, so
-# the role from the previous load has to go too (it only exists in this database).
+# Roles belong to the whole cluster and outlive databases. schema.sql creates
+# app_server only if it's missing, so the role from the previous load is dropped
+# when nothing else uses it, and kept while another lite database still does.
 admin -c "drop database if exists $db with (force)"
-if ! admin -c "drop role if exists app_server" 2>/dev/null; then
-  echo "load.sh: role app_server is still used by another database in this cluster." >&2
-  echo "         The lite scripts support one lite database per cluster; drop the other one first." >&2
-  exit 1
-fi
+admin -c "drop role if exists app_server" >/dev/null 2>&1 || true
 admin -c "create database $db"
 
 echo "load.sh: stand-ins" >&2

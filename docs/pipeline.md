@@ -27,7 +27,7 @@ The design behind it is in [agent-workflow.md](agent-workflow.md) (the roster, s
 | Agents | `.claude/agents/` | `planner`, `designer`, `game-designer` (Opus), `backend-dev`, `app-dev`, `reviewer`, `qa` (Sonnet), `scribe` (Haiku) |
 | Skills | `.claude/skills/` | Procedures (`task`, `slice`, `brief`, `review`, `playtest`, `feel-check`) and conventions (`supabase-sql`, `realtime-contract`, `python-server`, `expo-app`, `design-system`, `motion`, `copy`, `figma`, `privacy-and-kids`, `ops`) |
 | Hooks | `.claude/hooks/` | Format every edited file; refuse edits to generated files, merged migrations, `.env` files and `docs/archive/`; run the checks before an agent stops with unpushed work |
-| Settings | `.claude/settings.proposed.json` | Permissions, the hooks and the Expo plugin. **Not active yet**: see step 3 below |
+| Settings | `.claude/settings.json` | Permissions, the hooks and the Expo plugin (turned on in step 3 below) |
 | CLAUDE.md | Root, `mobile/`, `server/`, `supabase/` | What every session reads; the folder ones load only when an agent works there |
 | Tools | `tools/` | `next` (what can start), `doc-section` (one section of a doc), `check` (the checks for what changed), `typegen`, `roadmap-tick`, `check-links`, `cloud-setup.sh` |
 | CI | `.github/workflows/` | `ci.yml` checks only what a pull request changed; `roadmap.yml` ticks the task after a merge |
