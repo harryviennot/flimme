@@ -52,7 +52,7 @@ A typical three-player Quick Match:
 | 0:00 to 0:35 | The shared warm-up: the same 10 cards for everyone, in the same order |
 | 0:35 to 2:20 | Personal decks. Likes jump into the others' next cards; "2 of 3 of you liked this" pops up |
 | About 2:00 | Everyone likes the same film: "It's a match" on every phone at once, and the game is over |
-| If no match by the card count (40 proposed) | The Final Cut: one 45-second vote between 4 finalists, then the winner |
+| If no match by the card count (40, or 30 for 5 to 10 players) | The Final Cut: one 60-second vote between 3 or 4 finalists, then the winner |
 
 ## The modes
 
@@ -99,7 +99,7 @@ Today the data model makes "Seen it" an abstention under these rules: the film c
 - A like that already moved the film up in other decks leaves it there. That's harmless.
 - Undoing a "Seen it" that dropped the film under `hide_seen` brings the film back for the room, unless another player also said "Seen it". Other players get it again at their next refill. Today the function refuses this undo; a mis-swipe would otherwise remove a film for good.
 
-**Super nope: dropped (decided on 29 October 2026).** The revival plan's 5-to-10-player rule said "and nobody used a super nope", but super nope isn't one of the four answers, and the design has none. It's dropped because every player has a veto in the Final Cut. Also, the deck's misery rule already keeps films anyone is predicted to hate out of the deck; every player has a veto in the Final Cut; and a fifth gesture costs every new player something to learn. Playtests should count majority matches that included a nope and how those players answered "Did you watch it?". If that shows a problem, the fix is a tighter majority rule (for example at most one nope), not a new answer.
+**Super nope: dropped (decided on 29 October 2026).** The revival plan's 5-to-10-player rule said "and nobody used a super nope", but super nope isn't one of the four answers, and the design has none. It's dropped because a fifth gesture costs every new player something to learn, and the deck's misery rule already keeps films anyone is predicted to hate out of the deck. A veto doesn't stand in for it in big groups: Quick Match with 5 to 10 players ends in a ranked vote with no veto, on purpose, so one person can't block a film most of the group wants (reason corrected on 30 October 2026). Playtests should count majority matches that included a nope and how those players answered "Did you watch it?". If that shows a problem, the fix is a tighter majority rule (for example at most one nope), not a new answer.
 
 ## When it's a match
 
@@ -111,10 +111,11 @@ A like (or super like, or "Watch it again tonight? Yes") makes a match when the 
 | Quick Match | 3 to 4 | Everyone likes it | Final Cut of 4 |
 | Quick Match | 5 to 10 | At least 70% like it (4 of 5, 5 of 7, 7 of 10) | Ranked vote of 4 |
 | Date Night | 2 | Both like it | Final Cut of 3 |
-| Final Cut | 2 to 4 | Everyone likes it: it joins the shortlist | Final Cut of 4 |
+| Final Cut | 2 | Both like it: it joins the shortlist | Final Cut of 3 |
+| Final Cut | 3 to 4 | Everyone likes it: it joins the shortlist | Final Cut of 4 |
 | Final Cut | 5 to 10 | At least 70% like it: it joins the shortlist | Final Cut of 4 |
 
-When the finale starts is in [The finale](#the-finale); the card counts and time limits are reviewed in [Time to a pick](#time-to-a-pick).
+When the finale starts is in [The finale](#the-finale); the card counts and time limits are in [Time to a pick](#time-to-a-pick).
 
 - **At least 2 voters.** A room with one player present can't match (solo play is a later mode).
 - **The rule follows who is present.** It's chosen for the current number of present players, so the 70% rule applies only while 5 or more are present.
@@ -167,12 +168,14 @@ The first of these:
 | Trigger | Rule |
 | --- | --- |
 | Card count | Every present player seated at the start has answered the rule's number of cards |
-| Time limit | The rule's time since swiping started. Every rule has one (proposed in [Time to a pick](#time-to-a-pick)) |
+| Time limit | 6 minutes since swiping started, for every rule ([Time to a pick](#time-to-a-pick)) |
 | Everyone out of cards | Every present player has run out and no refill brings more (see [How a game ends](#how-a-game-ends)) |
 | A full shortlist | Final Cut mode only: as many matches as finalists |
 | The host taps **Vote now** | **Default to confirm:** once every present player has answered at least 10 cards and at least 2 films have a like. The same button appears on the "Nothing left" screen, as in the current design |
 
 The card count and Vote now are checked after every vote; the time limit by the minute sweeper as well.
+
+**A player who reaches the card count keeps swiping** (decided on 30 October 2026). The card count waits for every present player seated at the start, so the faster players carry on, and their extra answers can still make a match. In the [simulation](simulations.md), making them wait added up to 10 points of Final Cuts.
 
 ### The finalists
 
@@ -180,7 +183,7 @@ The card count and Vote now are checked after every vote; the time limit by the 
 
 1. Shortlisted films (matches), most liked first.
 2. Films with at least one like, by likes + 2 × super likes - nopes, then by the deck's group score.
-3. If that gives fewer than 2: films nobody has noped yet, by group score.
+3. If that gives fewer than the finalist count: films nobody has noped yet, by group score, until the list is full (decided on 30 October 2026: a full list gives a real choice).
 
 Today `start_finale` fills the list by group score among every film in play, so it can pick a film everyone noped. Rule 2 needs at least one like, and rule 3 never takes a noped film.
 
@@ -188,14 +191,14 @@ If only one film qualifies, it's the pick without a vote ("The only film anyone 
 
 ### The vote: "Pick one. Veto one."
 
-**Default to confirm:** one round of 45 seconds, as in the current design, rather than the data model's veto stage (45 seconds) followed by a ranking stage (60 seconds). Everyone does both at once:
+**Decided on 30 October 2026:** one round of 60 seconds, rather than the data model's veto stage (45 seconds) followed by a ranking stage (60 seconds). The current design has 45 seconds; in the [simulation](simulations.md), up to 7% of ballots missed a 45-second close and up to 2% a 60-second one, for at most 5 more seconds, since the round closes as soon as everyone locks in. The first playtest measures lock-in times. Everyone does both at once:
 
 - **Order the finalists.** Tap the posters in order. The first gets as many points as there are films, the last gets 1.
 - **Veto one** (Final Cut only, one per game). Long-press a poster. A vetoed film can't be in that player's order.
 - **Lock in.** A ballot can't be changed afterwards. Locking in without reordering keeps the order shown, which is the seed order.
 - **Ranked vote** (Quick Match with 5 to 10 players) is the same screen without the veto.
 
-The round closes when every present player has locked in, or when the 45 seconds are up. A player who doesn't lock in simply doesn't count.
+The round closes when every present player has locked in, or when the 60 seconds are up. A player who doesn't lock in simply doesn't count.
 
 ### Counting
 
@@ -205,13 +208,13 @@ The round closes when every present player has locked in, or when the 45 seconds
    - If every finalist got a veto, the 2 with the fewest vetoes stay in (ties go to the better seed).
 
    This replaces the data model's "a veto can't remove the last two films standing", which could ignore a veto even when one film nobody vetoed was left.
-2. **Points** among the films still in: each ballot's order is read over those films only (the first of them gets as many points as there are films still in, down to 1), and the points are added up.
+2. **Points** among the films still in: each ballot's order is read over those films only (the first of them gets as many points as there are films still in, down to 1), and the points are added up. A film still in that this ballot vetoed comes last in its order, with the fewest points (decided on 30 October 2026).
 3. **Ties** go to the film with more super likes in the room, then more likes, then the higher group score, then the better seed.
 4. **Nobody voted:** the best seed still in wins.
 
 A ballot locked in before its player left still counts. The result is broadcast as a match of kind `finale`, and the room is done.
 
-**What it costs:** the finale takes at most 45 seconds plus the reveal, and usually closes early once everyone has locked in.
+**What it costs:** the finale takes at most 60 seconds plus the reveal, and usually closes early once everyone has locked in.
 
 ## How a game ends
 
@@ -274,22 +277,23 @@ Each one changes a recipe, a rule or a seed row, as the data model's [Later](../
 
 ## Time to a pick
 
-Assumptions (placeholders): a swipe takes about 3 seconds with 2 players, 3.5 with 3 or 4, 4 with 5 to 10, since bigger groups talk more. The slowest present player decides when the card count is reached. "Typical" is a game with no instant match, which is the slow case.
+Decided on 30 October 2026, from the [simulation](simulations.md) (its bot tastes, swipe speeds and voting times are made up; playtests replace them). The slowest present player decides when the card count is reached.
 
-| Rule | Today | Typical | Worst case today | Proposed | Worst case proposed |
-| --- | --- | --- | --- | --- | --- |
-| Quick Match, 2 | 40 cards, no time limit | 2:00 + finale | No limit | 40 cards or 6 minutes | About 7 minutes |
-| Quick Match, 3 to 4 | 50 cards or 8 minutes | 2:55 + finale | About 9:45 | 40 cards or 6 minutes | About 7 minutes |
-| Quick Match, 5 to 10 | 50 cards or 10 minutes | 3:20 + finale | About 11:00 | 40 cards or 7 minutes | About 8 minutes |
-| Date Night | 40 cards, no time limit | 2:00 + finale | No limit | 40 cards or 6 minutes | About 7 minutes |
-| Final Cut, 2 to 10 | 30 cards or 10 minutes | 1:45 + finale | About 11:45 | Full shortlist, 30 cards or 6 minutes | About 7 minutes |
-| The finale | Veto 45 s, then rank 60 s (ranked vote: 60 s) | Under 1 minute | 1:45 | One round of 45 s | 45 s |
+| Rule | Before | Decided | Worst case |
+| --- | --- | --- | --- |
+| Quick Match, 2 | 40 cards, no time limit | 40 cards or 6 minutes | About 7 minutes |
+| Quick Match, 3 to 4 | 50 cards or 8 minutes | 40 cards or 6 minutes | About 7 minutes |
+| Quick Match, 5 to 10 | 50 cards or 10 minutes | 30 cards or 6 minutes | About 7 minutes |
+| Date Night | 40 cards, no time limit | 40 cards or 6 minutes | About 7 minutes |
+| Final Cut, 2 to 10 | 30 cards or 10 minutes | Full shortlist, 30 cards or 6 minutes | About 7 minutes |
+| The finale | Veto 45 s, then rank 60 s (ranked vote: 60 s) | One round of 60 s | 60 s |
 
-What this says:
+What the simulation says:
 
-- **The typical game already fits 5 minutes.** Like propagation and the deck's narrowing should bring most matches well before the card count; the finale is the safety net.
-- **The worst cases don't.** Two rules have no time limit at all, so one slow or distracted player can stall a 2-player game indefinitely, and the 8- and 10-minute limits plus a two-stage finale go past the ceiling of 10 minutes to choose a film. **Default to confirm:** every rule gets a time limit of 6 minutes (7 for 5 to 10 players), the card count becomes 40 for every Quick Match size, and the finale becomes one 45-second round. The worst case is then about 7 minutes for up to 4 players and 8 for bigger groups.
-- **The deck engine's phases follow automatically**, since they're a share of the card count: the narrowing phase ends at card 24 of 40.
+- **Every size picks in time.** With these values, groups of 2 to 10 pick at a median under 5 minutes and a 90th percentile under 7, at every level of agreement.
+- **The card count is the lever.** It waits for the slowest player, so with 40 cards, groups of 8 to 10 who disagree picked within 5 minutes in only 61 to 70% of games; with 30 cards, in 92 to 94%, for 2 to 7 points more Final Cuts.
+- **The time limit is a safety net,** not a pace-setter: it fired in at most 1% of games, and 7 minutes for big groups changed nothing compared with 6. One limit for every rule is simpler.
+- **The deck engine's phases follow automatically**, since they're a share of the card count: the narrowing phase ends at card 24 of 40, or 18 of 30.
 
 ## Functions still to write
 
@@ -352,7 +356,7 @@ Runs every minute. Each room is handled in its own short transaction, skipping r
 
 | Function | Change |
 | --- | --- |
-| `internal.start_finale` | Finalists as in [The finalists](#the-finalists); one combined round of 45 seconds; a single qualifying film is the pick |
+| `internal.start_finale` | Finalists as in [The finalists](#the-finalists); one combined round of 60 seconds; a single qualifying film is the pick |
 | `internal.maybe_start_finale` | Card count over seats seated at the start only; every rule's time limit; also starts on a full shortlist (Final Cut mode) and when every present seat is done |
 | `internal.check_card_match` | Counts "Watch it again tonight? Yes" as a like; no more abstentions |
 | `api.cast_vote` | Accepts the rewatch answer in rooms that allow rewatches |
@@ -394,9 +398,9 @@ All placeholders until playtests.
 | Near-miss teaser | From 2 likes, Party mode only |
 | Majority rule, 5 to 10 players | 70% of voters |
 | Finalists | 3 for 2 players, 4 otherwise |
-| Finale card count (proposed) | 40 for Quick Match and Date Night, 30 for Final Cut |
-| Finale time limit (proposed) | 6 minutes; 7 for 5 to 10 players |
-| The vote | One round of 45 seconds; 2 seconds of grace for late ballots |
+| Finale card count | 40 for Quick Match with 2 to 4 players and Date Night; 30 for Quick Match with 5 to 10 and for Final Cut |
+| Finale time limit | 6 minutes for every rule |
+| The vote | One round of 60 seconds; 2 seconds of grace for late ballots |
 | Vote now | After 10 cards each and 2 liked films |
 | Keep swiping window | 60 seconds after the match |
 | Too few films to start | Fewer than 20 eligible |
@@ -422,8 +426,6 @@ Each needs a yes; they're listed in [decisions.md](../decisions.md) once reviewe
 | Late joiners don't hold up the finale's card count | [Who counts](#who-counts-presence-joining-and-leaving) |
 | A silence creates a match only after 3 minutes | [Who counts](#who-counts-presence-joining-and-leaving) |
 | Party mode shows who liked the runners-up after the pick | [What players see](#what-players-see-party-and-blind) |
-| One 45-second "Pick one, veto one" round; secret vetoes; the only film nobody vetoed wins | [The finale](#the-finale) |
 | The host's Vote now, after 10 cards each | [The finale](#the-finale) |
 | The host can change filters while swiping | [How a game ends](#how-a-game-ends) |
-| Every rule gets a time limit (6 minutes, 7 for 5 to 10), 40 cards for every Quick Match size | [Time to a pick](#time-to-a-pick) |
 | Play again opens a new room and invites everyone | [After the pick](#after-the-pick) |

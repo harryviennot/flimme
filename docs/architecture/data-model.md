@@ -410,7 +410,7 @@ erDiagram
 
 The 10-minute limits are my starting values; the plan only gives 8 minutes for 3 to 4 players.
 
-> Proposed changes to these values (a time limit on every rule, 40 cards for every Quick Match size) are in [Time to a pick](../product/game-modes.md#time-to-a-pick).
+> The values were decided on 30 October 2026 and M6.1 puts them in the seed: 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for Quick Match with 5 to 10, a 6-minute limit on every rule, and a Final Cut of 3 for Final Cut mode with 2 players ([Time to a pick](../product/game-modes.md#time-to-a-pick)).
 
 ### The room
 
@@ -683,7 +683,7 @@ sequenceDiagram
 
 The veto, rank and stage-closing functions are described here but not yet in schema.sql.
 
-> The finale's rules change in [game-modes.md](../product/game-modes.md#the-finale): one 45-second round where players rank and veto at once, with secret vetoes, and the only film nobody vetoed wins. The functions still to write are specified in [Functions still to write](../product/game-modes.md#functions-still-to-write).
+> The finale's rules change in [game-modes.md](../product/game-modes.md#the-finale): one 60-second round where players rank and veto at once, with secret vetoes, and the only film nobody vetoed wins. The functions still to write are specified in [Functions still to write](../product/game-modes.md#functions-still-to-write).
 
 ### After the match
 

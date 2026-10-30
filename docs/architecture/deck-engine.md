@@ -29,7 +29,7 @@ Every number here is a starting value to tune in playtests. They are all in [Sta
 
 **Everyone in the room says yes to a film within about 5 minutes, and every game feels new.** The engine isn't looking for the perfect film for each person. It's looking for a film the whole group accepts, fast.
 
-- **Fast.** A swipe takes about 3 seconds, so 40 cards is about 2 minutes, and the Final Cut about 2 more. For 2 to 4 players, the median time to a pick should stay under 5 minutes.
+- **Fast.** A swipe takes about 3 seconds, so 40 cards is about 2 minutes, and the Final Cut at most 1 more. For 2 to 4 players, the median time to a pick should stay under 5 minutes.
 - **Fresh.** Under 10% of the cards a player sees should be cards they were shown in the last 30 days, Rematch cards aside.
 
 Six rules shape everything below:
@@ -358,7 +358,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | Warm-up | 1 to 10 (8 in Date Night) | Learn the room fast and create early overlap | The same cards for everyone, in the same order: strong, safe films spread across the group's tastes, 2 in 10 exploration |
 | Narrow | Up to 60% of the mode's finale card count (24 of 40, 30 of 50, 18 of 30) | Lean on what the room likes | Personal order. Each refill uses tonight's swipes: every seat's tonight leanings, the room's live taste, the genres it rejected. Exploration falls from 15% to 5%. The Rematch lands here |
-| Close | The rest, until a match or the finale | Land a match | Films liked by every present player but one go to the top of the remaining players' decks. Exploration 5%, temperature 0.2 |
+| Close | The rest, until a match or the finale | Land a match | Films one like short of a match go to the top of the remaining players' decks. Exploration 5%, temperature 0.2 |
 
 Then the Final Cut starts at the mode's card count or time limit, as in the [data model](data-model.md#finale).
 
