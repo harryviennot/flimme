@@ -5,7 +5,7 @@ The Supabase project: local settings, migrations, seed data and pgTAP tests. The
 ```
 supabase/
   config.toml              local development settings for the Supabase CLI
-  migrations/              empty until roadmap task M1.5 (schema.sql becomes the baseline)
+  migrations/              the schema: the baseline migration, then one file per change
   seed.sql                 synthetic seed data: a comment until roadmap task M1.14
   tests/database/          pgTAP tests, run by `supabase test db`
   lite/                    the lite database for cloud sessions (see lite/README.md)
@@ -23,12 +23,15 @@ The CLI's config loader accepts the file (`supabase status` gets past it to the 
 
 ## Migrations
 
-`migrations/` holds only a `.gitkeep`. Turning [schema.sql](../docs/architecture/schema.sql) into `migrations/<timestamp>_baseline.sql` is roadmap task M1.5; until then `lite/load.sh` loads schema.sql directly. Things M1.5 will run into, found while building the lite database:
+`migrations/` is the source of truth. The first file, `20261030154334_baseline.sql`, is the old reference DDL (`docs/architecture/schema.sql`, now a pointer) exactly as the pgTAP tests of M1.4 pin it, plus the extension lines. It is frozen: every later change is a new file from `supabase migration new <what_it_does>`, and a mistake is fixed forward. The pending changes of the data model's Pending note ship as their own migrations (M1.6 on). Squawk lints every migration a pull request adds; the baseline carries `-- squawk-ignore-file`.
 
-- `schema.sql` runs `create role app_server nologin;`. Roles belong to the whole cluster, so loading the file twice into one cluster fails on the second run. The lite loader drops the role itself. `supabase db reset` recreates only the database, so the baseline migration probably needs a guard (`do $$ ... if not exists (select from pg_roles ...) ...`). Verify on the Mac.
-- Since Postgres 16 the role that creates `app_server` gets ADMIN on it but not SET. The tests act as the server with `set role app_server` (`tests.act_as_server()`), which on the stack runs as `postgres`. The helper grants `postgres` SET when it lacks it and says so clearly if that fails; only the Mac run proves it. If the grant fails there, the baseline migration (or M1.12, which sets the server's grants) must give `postgres` SET on `app_server`.
-- The test setup also grants `app_server` usage on the `tests` and `extensions` schemas, so a test can call its helpers and pgTAP while acting as the server. That is test setup, not what the real server needs (M1.12).
-- The file's last section leaves a to-do: give `app_server` access to the queues it consumes (`usage` on schema `pgmq`, and `select, update, delete` on the queue tables or `execute` on the functions). Server-structure.md also reports that enabling pgmq from a normal migration can fail on permissions.
+What the baseline does about the items found while building the lite database:
+
+- **Extensions.** `vector` and `pg_trgm` are created with schema `extensions`. `pgmq` and `pg_cron` are created only where `pg_available_extensions` lists them (Supabase and CI; the lite database has neither and stands in for the `pgmq` schema). `pg_graphql` is dropped, since GraphQL is off. `180-extensions.stack.test.sql` pins all five.
+- **The `app_server` role.** The baseline creates it only if it is missing, so loading twice into one cluster works. The lite loader still drops it when no other lite database uses it.
+- **`set role app_server`.** Since Postgres 16 the creating role gets ADMIN but not SET. `tests.act_as_server()` grants `postgres` SET when it lacks it and says so if that fails. If CI shows the grant failing, the baseline gets `grant app_server to postgres with inherit false, set true;` right after the role guard.
+- **Test setup grants.** The test setup grants `app_server` usage on the `tests` and `extensions` schemas, so a test can call its helpers and pgTAP while acting as the server. That is test setup, not what the real server needs (M1.12).
+- **Queue access.** The last section still lists a to-do: give `app_server` access to the queues it consumes. That is M1.12.
 
 ## Tests
 

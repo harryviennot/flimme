@@ -14,7 +14,7 @@ Your output is the brief itself, following the `brief` skill's template, and not
 
 How you work:
 - Start with `node tools/next.mjs --task <id>`. Read each linked doc section with `node tools/doc-section.mjs <link>`, never a whole doc. Grep docs/decisions.md for the topic: decisions win over docs.
-- Read the code the task touches (grep first). For SQL before the baseline migration exists, grep docs/architecture/schema.sql for the function and read only that range.
+- Read the code the task touches (grep first). For SQL, grep supabase/migrations/ for the function (later migrations may replace the baseline's version) and read only that range.
 - Put every choice nobody made under Questions, with the default you'd recommend and why. Never guess a rule.
 - List every SQL function the task replaces or changes, so tasks touching the same function aren't run in parallel.
 - If the task is too big for one pull request (more than about a page of brief), say how to split it.
