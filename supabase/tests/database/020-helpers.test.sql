@@ -2,7 +2,7 @@
 -- Runs on the lite database and on the real stack.
 
 begin;
-select plan(48);
+select plan(53);
 
 select tests.create_room(3);
 select is(tests.room_code() ~ '^[0-9]{6}$', true, 'create_room remembers the room code');
@@ -140,6 +140,25 @@ select is(
   (select m.swipe_count from public.room_members m where m.id = tests.member_id('d1')),
   3,
   'vote_next cast three votes for the player'
+);
+
+-- Game fixtures. Each makes or uses a room of its own, so they come last.
+select tests.deal_game(3, 'fc', 'swiping', 'final_cut');
+select is(
+  (select r.mode || '/' || r.state::text || '/' || (jsonb_array_length(r.rule) = (select count(*) from public.match_rules mr where mr.mode = 'final_cut'))::text
+   from public.rooms r where r.id = tests.room_id()),
+  'final_cut/swiping/true',
+  'deal_game(3, fc, swiping, final_cut) gives a Final Cut room in swiping whose rule has one element per final_cut match rule'
+);
+
+select is(tests.film(7), tests.title_id('Catalog Film 007'), 'film(7) is the id of Catalog Film 007');
+
+select is(tests.vote('fc1', 1)->>'status', 'ok', 'vote answers ok for a first like');
+select is(tests.vote('fc1', 1)->>'status', 'duplicate', 'vote returns a duplicate answer instead of raising');
+select is(
+  (select array_agg(x) from unnest((tests.upcoming('fc1'))[1:3]) x),
+  array[tests.film(2), tests.film(3), tests.film(4)],
+  'upcoming lists the seat''s dealt films without a vote, in deck order (film 1 is voted, so it is left out)'
 );
 
 -- Letterboxd fixtures.

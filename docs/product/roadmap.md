@@ -388,13 +388,13 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 **Backend**
 
-- [ ] **M6.1** Match rules with the confirmed values: a time limit on every rule, 40 cards for every Quick Match size · backend · L · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
+- [ ] **M6.1** Match rules with the confirmed values: a time limit of 6 minutes on every rule, 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for 5 to 10 players and Final Cut, 3 finalists for 2 players in every mode · backend · L · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
   Done when: seeded and tested.
 - [ ] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: the match check is tested with both answers.
 - [ ] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: tested.
-- [ ] **M6.4** Starting the finale: finalists need at least one like; one 45-second round; card counts use seats seated at the start; every time limit; everyone done · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
+- [ ] **M6.4** Starting the finale: finalists need at least one like; one 60-second round; card counts use seats seated at the start; every time limit; everyone done · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: each trigger and the finalist rule are tested.
 - [ ] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · L · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tests cover vetoes, ties, missing ballots and phones closing at once.
@@ -419,7 +419,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: shown on the right phones, never naming anyone.
 - [ ] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
   Done when: it appears on every phone together.
-- [ ] **M6.15** The Final Cut screen: rank by dragging, veto one, a 45-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
+- [ ] **M6.15** The Final Cut screen: rank by dragging, veto one, a 60-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
   Done when: a round with a missing ballot still closes on time.
 - [ ] **M6.16** The winner screen: the poster, the logos of the room's services that have it, the JustWatch credit, "More details" to TMDB's watch page · app · L · needs M6.14, M6.15 · [game-modes](game-modes.md#after-the-pick), [tmdb](../integrations/tmdb.md#the-watch-link)
   Done when: shown after a match and after the Final Cut.
