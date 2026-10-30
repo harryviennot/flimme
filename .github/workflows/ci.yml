@@ -46,6 +46,7 @@ jobs:
               - '.github/workflows/**'
             database:
               - 'supabase/**'
+              - 'packages/contract/**'
               - '.github/workflows/**'
             docs:
               - '**/*.md'
@@ -161,12 +162,21 @@ jobs:
           cache: pnpm
       - name: Generated types are up to date
         run: |
-          # packages/contract holds a placeholder until M1.17 generates the real types.
-          if grep -q "Placeholder until the baseline migration exists" packages/contract/src/database.types.ts; then
-            echo "::warning::Typegen check skipped: packages/contract still holds the placeholder until M1.17."
-            exit 0
-          fi
-          pnpm install --frozen-lockfile && node tools/typegen.mjs --check
+          pnpm install --frozen-lockfile
+          node tools/typegen.mjs --check
+      - name: Show the generated types when they are stale
+        if: failure()
+        run: |
+          node tools/typegen.mjs || true
+          git diff --stat -- packages/contract/src/database.types.ts
+          git diff -- packages/contract/src/database.types.ts | head -400
+      - name: Upload the generated types when they are stale
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: database.types.ts
+          path: packages/contract/src/database.types.ts
+          if-no-files-found: ignore
 
   docs:
     needs: changes
