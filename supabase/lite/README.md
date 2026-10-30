@@ -52,7 +52,7 @@ Only what the schema and the tests touch, behaving as Supabase does for those pa
 | `extensions` schema | `vector`, `pg_trgm` and `pgcrypto` live there, and it is on the database's default `search_path`, as in Supabase |
 | `auth.users`, `auth.uid()`, `auth.role()`, `auth.email()`, `auth.jwt()` | The sign-up trigger, the foreign key from `profiles`, and the functions that read `request.jwt.claims` |
 | `realtime.messages`, `realtime.topic()`, `realtime.send()` | The two row-level security policies on `realtime.messages`, and `internal.broadcast_room`. `send` stores the row, so a test can check what the database broadcast |
-| `pgmq.create`, `send`, `read`, `delete`, `archive`, `set_vt`, `purge_queue`, `drop_queue`, tables `q_<name>` and `a_<name>` | `internal.enqueue`, the seven queues, and the server's queue loop later |
+| `pgmq.create`, `send`, `read`, `read_with_poll`, `delete` and `archive` (one id or an array), `set_vt`, `purge_queue`, `drop_queue`, tables `q_<name>` and `a_<name>` | `internal.enqueue`, the seven queues, and the server's queue loop later |
 | `cron.job`, `cron.schedule`, `cron.unschedule` | Nothing yet; later migrations can schedule jobs. Jobs are recorded, never run |
 
 ## What it doesn't cover
