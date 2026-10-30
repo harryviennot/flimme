@@ -29,8 +29,8 @@ jobs:
       database: ${{ steps.filter.outputs.database }}
       docs: ${{ steps.filter.outputs.docs }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           # A change to CI itself runs every job, so an action update is tested where it's used.
@@ -72,10 +72,10 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -84,9 +84,9 @@ jobs:
     if: needs.changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -106,8 +106,8 @@ jobs:
       run:
         working-directory: server
     steps:
-      - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
       - run: uv sync --frozen
       - run: uv run ruff check . && uv run ruff format --check .
       - run: uv run pyright
@@ -121,7 +121,7 @@ jobs:
     # Pinned: ubuntu-latest became 26.04 in October 2026, which doesn't package Postgres 16.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Postgres 16 with pgTAP and pgvector
         run: |
           sudo apt-get update -qq
@@ -140,13 +140,13 @@ jobs:
     if: needs.changes.outputs.database == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: migrations
         run: echo "count=$(ls supabase/migrations/*.sql 2>/dev/null | wc -l)" >> "$GITHUB_OUTPUT"
       - if: steps.migrations.outputs.count != '0'
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@v3
         with:
           version: latest
       - if: steps.migrations.outputs.count != '0'
@@ -162,9 +162,9 @@ jobs:
           changed=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref || 'main' }}... -- 'supabase/migrations/*.sql')
           if [ -n "$changed" ]; then npx --yes squawk-cli $changed; fi
       - if: steps.migrations.outputs.count != '0'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
       - if: steps.migrations.outputs.count != '0'
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -177,8 +177,8 @@ jobs:
     if: needs.changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           # Nothing to install, and pnpm isn't set up in this job.
