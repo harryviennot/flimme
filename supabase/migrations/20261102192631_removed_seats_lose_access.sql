@@ -16,7 +16,7 @@
 set local lock_timeout = '5s';
 set local statement_timeout = '30s';
 
-alter table public.room_members add column removed_at timestamptz;
+alter table public.room_members add column if not exists removed_at timestamptz;
 
 -- A seat in the room that one of my profiles controls, and that was not removed.
 create or replace function internal.is_room_member(p_room_id uuid) returns boolean
