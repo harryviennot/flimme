@@ -635,9 +635,9 @@ end
 $$;
 
 -- Connects a player's Letterboxd account the way the server does: builds the
--- export (as the superuser), calls internal.start_letterboxd_import as the
--- HTTP API, finish as the server, and unless p_finish is false matches the films and calls
--- internal.finish_letterboxd_import. Raises on any answer but 'ok'. Leaves the
+-- export (as the superuser), starts the import as the HTTP API, and unless
+-- p_finish is false matches the films and calls internal.finish_letterboxd_import
+-- as the server. Raises on any answer but 'ok'. Leaves the
 -- session as the superuser. Returns {linked_account_id, import_id, start, finish}
 -- (finish is null when not finished).
 create or replace function tests.connect_letterboxd(
