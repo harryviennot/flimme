@@ -136,6 +136,17 @@ describe('arguments', () => {
     expect(calls[0]?.fn).toBe('touch_room');
   });
 
+  it('touch_room rejects as denied on 42501', async () => {
+    const { client } = fake(() => ({
+      data: null,
+      error: { message: 'no profile', code: '42501' },
+      status: 403,
+    }));
+    await expect(createApi(client).touchRoom({ room_id: ROOM })).rejects.toMatchObject({
+      kind: 'denied',
+    });
+  });
+
   it('a wrong argument type is a compile error', () => {
     const { client } = fake(() => ok({ status: 'ok' }));
     const api = createApi(client);

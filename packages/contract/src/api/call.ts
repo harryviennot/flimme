@@ -15,6 +15,7 @@ type RpcError = { message?: string; code?: string };
 type RpcResponse = { data: unknown; error: RpcError | null; status?: number };
 type RawClient = { rpc(fn: string, args: unknown): PromiseLike<RpcResponse> };
 
+// 401 and 403 mean an expired or missing session: a bug or an attack, so `denied`.
 function classify(error: RpcError, status: number | undefined): ApiErrorKind {
   if (error.code === '42501' || error.code === 'PGRST301' || status === 401 || status === 403) {
     return 'denied';

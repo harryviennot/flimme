@@ -27,6 +27,7 @@ The database decides the game. The app only reaches the `api` schema; the server
 
 - `security definer` with `set search_path = ''`, every name schema-qualified (`public.rooms`, `internal.my_profile_id()`).
 - **Expected outcomes are answers:** `return jsonb_build_object('status', 'full')`. The app shows a message per status. Only real errors raise, and access errors use `errcode = '42501'`.
+- **A wrapped function changes its wrapper too:** a PR that changes the answers or the JSON shape of an `api` function also updates its list in `packages/contract/src/answers.ts`, its schema in `payloads.ts` and its wrapper and tests in `packages/contract/src/api/`. `pnpm --filter @flimme/contract test` walks every answer.
 - **The room lock:** anything that changes a room's game state starts with `select * into v_room from public.rooms where id = p_room_id for no key update;` so votes, the finale and the sweeper never race.
 - The caller is `internal.my_profile_id()` (or `internal.my_profile_ids()` for seats a player controls); never trust a profile id passed in.
 - Realtime goes through `internal.broadcast_room(room_id, event, payload)`. Event names and payloads: the `realtime-contract` skill.
