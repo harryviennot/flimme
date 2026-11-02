@@ -19,7 +19,9 @@ The CLI's config loader accepts the file (`supabase status` gets past it to the 
 
 - the stack starts with Postgres 17, and `supabase db reset` loads an empty `migrations/` and `seed.sql` without errors;
 - a guest sign-in works (anonymous sign-ins on);
-- Supabase's docs say the CLI adds `public` and `storage` to the exposed schemas whatever `schemas` says. Check that, and that a request to a `public` table is refused (schema.sql revokes the grants; roadmap task M1.7 tests it). On the hosted project, set Settings, Data API, Exposed schemas to `api` only.
+- Supabase's docs say the CLI adds `public` and `storage` to the exposed schemas whatever `schemas` says. Check that, and that a request to a `public` table is refused (M1.15's smoke step checks that the Data API refuses `public` tables; `tests/database/280-exposure.test.sql` checks the grants). On the hosted project, set Settings, Data API, Exposed schemas to `api` only.
+
+The allowlist of what phones may reach (every `api` function, four `internal` helpers, select on 18 tables) lives in `tests/database/280-exposure.test.sql`; a task that opens something on purpose edits it there.
 
 ## Migrations
 
@@ -31,7 +33,7 @@ What the baseline does about the items found while building the lite database:
 - **The `app_server` role.** The baseline creates it only if it is missing, so loading twice into one cluster works. The lite loader still drops it when no other lite database uses it.
 - **`set role app_server`.** Since Postgres 16 the creating role gets ADMIN but not SET. `tests.act_as_server()` grants `postgres` SET when it lacks it and says so if that fails. If CI shows the grant failing, the baseline gets `grant app_server to postgres with inherit false, set true;` right after the role guard.
 - **Test setup grants.** The test setup grants `app_server` usage on the `tests` and `extensions` schemas, so a test can call its helpers and pgTAP while acting as the server. That is test setup, not what the real server needs (M1.12).
-- **Queue access.** The baseline's last section still lists a to-do (frozen, like the rest of that file). Migration `grant_app_server_queues` (M1.12a) did it: `app_server` can read, extend, archive and delete on the six queues it consumes, and can't send, purge, drop or create. `250-queue-grants.test.sql` pins it. Execute on pgmq's functions is open to everyone in the lite database (and on the stack until M1.7), so calling them as `app_server` passes either way; the test's D part checks the functions' access lists instead, which proves the grants on lite and on the stack.
+- **Queue access.** The baseline's last section still lists a to-do (frozen, like the rest of that file). Migration `grant_app_server_queues` (M1.12a) did it: `app_server` can read, extend, archive and delete on the six queues it consumes, and can't send, purge, drop or create. `250-queue-grants.test.sql` pins it. Execute on pgmq's functions is open to everyone in the lite database (and on the stack too: M1.7 only changes what new objects get), so calling them as `app_server` passes either way; the test's D part checks the functions' access lists instead, which proves the grants on lite and on the stack.
 
 ## Tests
 
