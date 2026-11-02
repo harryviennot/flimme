@@ -257,7 +257,7 @@ That's about 10,000 requests a day, roughly 10 minutes at 20 a second. The money
 
 ## Changes to the data model
 
-None of these are in [data-model.md](../architecture/data-model.md) or [schema.sql](../architecture/schema.sql) yet.
+Done in M2.4 (migration `catalog_from_tmdb`) and described in [data-model.md](../architecture/data-model.md). `api.country_providers` now returns only listed services, and the server may insert and update `countries`.
 
 | Where | Change |
 | --- | --- |
