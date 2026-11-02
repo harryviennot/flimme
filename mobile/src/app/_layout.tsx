@@ -13,14 +13,16 @@ import { ToastHost } from '@/components/ui/toast';
 import { startSession } from '@/features/session';
 import { watchDeviceLanguage } from '@/i18n';
 import { queryClient } from '@/lib/query-client';
+import { initSentry, reportError, wrapRoot } from '@/lib/sentry';
 import { fonts } from '@/theme/fonts';
 import { tokens } from '@/theme/generated/tokens';
 
 export { ErrorScreen as ErrorBoundary } from '@/components/shared/error-screen';
 
+initSentry();
 void SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(fonts);
   const ready = fontsLoaded || fontError !== null;
 
@@ -29,9 +31,9 @@ export default function RootLayout() {
   }, [ready]);
 
   useEffect(() => {
-    // Not awaited: the `/` route (M4.6) waits for the answer. A real error reaches Sentry
-    // once M3.9 lands; the splash then shows its own error state.
-    startSession().catch(() => {});
+    // Not awaited: the `/` route (M4.6) waits for the answer. A real error reaches Sentry;
+    // the splash then shows its own error state.
+    startSession().catch(reportError);
   }, []);
 
   useEffect(() => {
@@ -58,3 +60,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default wrapRoot(RootLayout);
