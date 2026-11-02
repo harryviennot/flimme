@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Reviews one task's diff against its brief and the layer's checklist, in one pass, from a fresh context. Reports blocking findings and at most three nits; never edits code. Use for every medium or large task before its pull request; ask for high effort on access rules, security definer functions and game rules.
+description: Reviews one task's diff against its brief and the layer's checklist, in one pass, from a fresh context. Reports blocking findings and at most three nits; never edits code. Use for every medium or large task before its pull request, in the foreground; for access rules, security definer functions and game rules, spawn it with effort high (the effort setting, not words in the prompt).
 tools: Read, Grep, Glob, Bash
 model: sonnet
 effort: medium

@@ -19,8 +19,9 @@ The database decides the game. The app only reaches the `api` schema; the server
 - New file each change: `supabase migration new <what_it_does>`. Never edit one that's on main.
 - **Expand, then contract.** Add tables, columns with defaults, functions, `_v2` versions. Dropping or renaming waits for a separate contract release once no shipped app or server uses the old thing.
 - **`create or replace` collisions:** if your migration replaces a function another open branch also changes, the later merge silently undoes the earlier one. The brief lists the functions touched; replace the whole function from main's latest version.
+- **Sort last before you push.** If main gained a migration after yours was created, `git mv` yours to a fresh timestamp (`date -u +%Y%m%d%H%M%S`) so the files sort in merge order. `supabase db push` refuses a migration older than the last one applied, so an out-of-order file stops the staging deploy.
 - No down migrations: fix forward.
-- Squawk lints new migrations in CI (locks, unsafe changes). Timeouts it asks for are `set local lock_timeout` and `set local statement_timeout`: a plain `set` outlives the file's transaction and applies to every later migration on the same connection.
+- Squawk lints new migrations (locks, unsafe changes) in `mise run check`, so the pre-push hook catches them before CI does. It doesn't check access: the exposure test (`280-exposure.test.sql`) does. Timeouts it asks for are `set local lock_timeout` and `set local statement_timeout`: a plain `set` outlives the file's transaction and applies to every later migration on the same connection.
 
 ## Functions
 
@@ -29,7 +30,7 @@ The database decides the game. The app only reaches the `api` schema; the server
 - **The room lock:** anything that changes a room's game state starts with `select * into v_room from public.rooms where id = p_room_id for no key update;` so votes, the finale and the sweeper never race.
 - The caller is `internal.my_profile_id()` (or `internal.my_profile_ids()` for seats a player controls); never trust a profile id passed in.
 - Realtime goes through `internal.broadcast_room(room_id, event, payload)`. Event names and payloads: the `realtime-contract` skill.
-- Every write function goes through `internal.rate_limit` (per profile and per IP) once M1.9 adds it.
+- A function that needs a limit calls `internal.rate_limit(key, max, window, p_count)` (keys `<action>:p:<profile id>` and `<action>:ip:<internal.request_ip_key()>`, skip the IP key when it is null) and answers `rate_limited`, never raises. M1.9 wired `join_room`, `submit_calibration` and `export_my_data`; later functions with a limit in security.md#starting-values call it when written. A function that counts is `volatile`, not `stable`. The helpers have no grant.
 - Settings and ranges are validated in the function (the app is never trusted), e.g. `api.update_room_settings` (M1.10).
 - An incompatible change to an `api` function or view ships as `<name>_v2` next to it. Adding an optional argument or a column to a view is compatible.
 

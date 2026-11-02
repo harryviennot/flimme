@@ -94,7 +94,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | --- | --- | --- | --- | --- |
 | **First release** | | | | |
 | [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | In progress |
-| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | In progress |
+| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | Not started |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 16 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 22 of 244 tasks done.
+Progress: 26 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -225,19 +225,19 @@ Done when: migrations and the test suite run from CI on staging and production.
   Done when: the check fails on purpose-built bad examples and passes on the schema.
 - [x] **M1.8** Removed players lose room access, and players who left can't send: `room_members.removed_at`, `is_room_member` and `can_use_room_topic` updated (gap 3, access part) · backend · L · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: tests show a removed seat reads nothing and can't send on the room's topics.
-- [ ] **M1.9** One `internal.rate_limit` helper, per profile and per IP, stricter on failed joins, used by `join_room`, `submit_calibration` and `export_my_data` (gaps 6 and 7) · backend · L · needs M1.5 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [x] **M1.9** One `internal.rate_limit` helper, per profile and per IP, stricter on failed joins, used by `join_room`, `submit_calibration` and `export_my_data` (gaps 6 and 7) · backend · L · needs M1.5 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: tests show the limits per profile and per IP.
-- [ ] **M1.10** `api.update_room_settings` checks ranges and broadcasts the saved values (gap 5) · backend · M · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
+- [x] **M1.10** `api.update_room_settings` checks ranges and broadcasts the saved values (gap 5) · backend · M · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: out-of-range settings are refused in tests.
 - [x] **M1.11** Clamp dwell and client times, cap array sizes, draw room codes from `pgcrypto` (gaps 8 to 10) · backend · M · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: tests cover each.
 - [x] **M1.12** Database roles: `app_server` grants on the queues it consumes, one login per server process, a narrower role for the HTTP API (gap 11) · backend · L · needs M1.5 · [security](../architecture/security.md#secrets-and-the-servers-database-logins), [server-structure](../architecture/server-structure.md#the-database-layer)
   Done when: each role can do exactly its job in tests.
-- [ ] **M1.13** `app_config` keys: `deck_engine` set to `sql`, `tmdb_image_base`. With `sql`, starting a game and refills deal the SQL baseline at once, without the 8-second wait · backend · L · needs M1.5 · [deck-engine](../architecture/deck-engine.md#the-sql-fallback), [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
+- [x] **M1.13** `app_config` keys: `deck_engine` set to `sql`, `tmdb_image_base`. With `sql`, starting a game and refills deal the SQL baseline at once, without the 8-second wait · backend · L · needs M1.5 · [deck-engine](../architecture/deck-engine.md#the-sql-fallback), [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
   Done when: a test game starts swiping straight after `start_game`.
 - [x] **M1.14** A synthetic seed for local work and CI: a few hundred made-up films with French availability, no TMDB data · backend · M · needs M1.5 · [operations](../architecture/operations.md#seed-and-test-data)
   Done when: a local game can be played on the seed.
-- [ ] **M1.15** Backend CI: the test suite on every pull request, migrations to staging on merge, to production by a manual workflow, actions pinned to commit SHAs · ops · M · needs M1.2, M1.5 · [operations](../architecture/operations.md#continuous-integration)
+- [x] **M1.15** Backend CI: the test suite on every pull request, migrations to staging on merge, to production by a manual workflow, actions pinned to commit SHAs · ops · M · needs M1.2, M1.5 · [operations](../architecture/operations.md#continuous-integration)
   Done when: a merged migration reaches staging without hands. Once the baseline migration is on each project, only `api` is exposed (Data API settings), a table in `public` doesn't answer through `/rest/v1/`, and `/graphql/v1` doesn't answer.
 - [x] **M1.16** The lite database for cloud sessions and the pgTAP helpers: stand-ins for Supabase's `auth`, `realtime` and `pgmq`, the `tests` helpers, a smoke test · test · S · needs M1.3 · [groundwork](../architecture/groundwork.md#cloud-sessions)
   Done when: the smoke test passes on the lite database and with `supabase test db`.
@@ -250,7 +250,7 @@ The films a French room can watch tonight, from TMDB, refreshed every night by t
 
 Done when: production holds France's watchable films, and the daily sweep has run for a week without help.
 
-- [ ] **M2.1** Server repo skeleton: Python with uv, the folder layout, settings and secrets, one Docker image, tests in CI · server · S · [server-structure](../architecture/server-structure.md#folder-layout)
+- [ ] **M2.1** Server skeleton: Python with uv, the folder layout, settings and secrets, one Docker image, tests in CI · server · S · [server-structure](../architecture/server-structure.md#folder-layout)
   Done when: the image builds and an empty test passes in CI.
 - [ ] **M2.2** Database layer and queue consumer: psycopg, typed wrappers for contract functions, the pgmq loop with visibility timeouts and poison messages · server · L · needs M2.1, M1.5, M1.12 · [server-structure](../architecture/server-structure.md#consuming-the-queues)
   Done when: a test message is consumed once, a failing one ends up archived as poison.
@@ -262,13 +262,13 @@ Done when: production holds France's watchable films, and the daily sweep has ru
   Done when: the tables fill from TMDB on staging.
 - [ ] **M2.6** Curate France's services: listed services, variants under their main service, free services, display order; check the ids for Canal+, TF1+, M6+ and Arte · content · M · needs M2.5 · [tmdb](../integrations/tmdb.md#services-variants-and-channels)
   Done when: France's picker list is set in `provider_regions`.
-- [ ] **M2.7** Film fetch, one request per film: details, French and English text, credits, certifications with the US fallback, trailer, watch providers, watch link, quality score · server · L · needs M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#one-request-per-film)
+- [ ] **M2.7** Film fetch, one request per film: details, French and English text, credits, certifications with the US fallback, trailer, watch providers, watch link, quality score · server · L · needs M2.2, M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#one-request-per-film)
   Done when: a fetched film fills every table it should, in tests and on staging.
 - [ ] **M2.8** Poster placeholders computed at ingest · server · S · needs M2.7 · [tmdb](../integrations/tmdb.md#images)
   Done when: every film with a poster has a placeholder.
 - [ ] **M2.9** Which films: popularity from the daily export file, the floor, and the `backfill` command · server · M · needs M2.7, M1.15 · [tmdb](../integrations/tmdb.md#which-films-are-in-the-catalog)
   Done when: `backfill` loads the top films on staging.
-- [ ] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · M · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
+- [ ] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · L · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
   Done when: a sweep updates `title_availability`, and a simulated glitch is refused by the guard.
 - [ ] **M2.11** The refresh schedule: the changes feed, weekly and monthly fetches, the 6-month rule, enqueued by Supabase Cron · server · M · needs M2.9, M2.10 · [tmdb](../integrations/tmdb.md#keeping-it-fresh)
   Done when: each job runs on schedule on staging.

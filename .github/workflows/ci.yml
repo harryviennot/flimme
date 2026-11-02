@@ -1,7 +1,7 @@
 # Every pull request: only the parts that changed are checked, so a docs-only or app-only
 # change doesn't start the database. See docs/architecture/groundwork.md#ci-and-repository-settings.
-# Actions are on version tags for now; roadmap M1.15 pins them to commit SHAs
-# (Dependabot keeps them current).
+# Every action is pinned to a commit SHA with a version comment (the `workflows` job checks it);
+# Dependabot keeps them current.
 name: CI
 
 on:
@@ -29,8 +29,8 @@ jobs:
       database: ${{ steps.filter.outputs.database }}
       docs: ${{ steps.filter.outputs.docs }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: dorny/paths-filter@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           # A change to CI itself runs every job, so an action update is tested where it's used.
@@ -65,6 +65,37 @@ jobs:
             exit 1
           fi
 
+  workflows:
+    # Cheap, so it always runs: the CI tools' own tests, and every action pinned to a commit SHA.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: node --test tools/*.test.mjs
+      - name: Every action is pinned to a commit SHA
+        run: node tools/check-ci.mjs pins
+
+  migration-order:
+    # supabase db push refuses a local migration older than one already applied, so an
+    # out-of-order file would stop the staging deploy. Catch it here instead.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: New migrations sort after every migration on main
+        env:
+          BASE: origin/${{ github.base_ref }}
+        run: node tools/check-ci.mjs migration-order "$BASE"
+
   secrets:
     runs-on: ubuntu-latest
     # gitleaks lists the pull request's commits through the API.
@@ -72,10 +103,10 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v3
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -84,9 +115,9 @@ jobs:
     if: needs.changes.outputs.mobile == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: pnpm
@@ -106,8 +137,8 @@ jobs:
       run:
         working-directory: server
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - run: uv sync --frozen
       - run: uv run ruff check . && uv run ruff format --check .
       - run: uv run pyright
@@ -121,7 +152,7 @@ jobs:
     # Pinned: ubuntu-latest became 26.04 in October 2026, which doesn't package Postgres 16.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Postgres 16 with pgTAP and pgvector
         run: |
           sudo apt-get update -qq
@@ -136,15 +167,15 @@ jobs:
   database:
     # The real local stack: supabase db reset builds from supabase/migrations alone
     # (the baseline migration, M1.5) and supabase test db runs every pgTAP file,
-    # stack-only ones included. M1.15 adds the deploy workflows.
+    # stack-only ones included. The deploy workflows are staging.yml and production.yml.
     needs: changes
     if: needs.changes.outputs.database == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: supabase/setup-cli@v3
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
           # Pinned with mise.toml: the generated api types depend on the CLI version.
           version: 2.122.0
@@ -153,11 +184,12 @@ jobs:
       - run: supabase db reset
       - run: supabase test db
       - name: New migrations are safe (Squawk)
+        # Pinned with tools/check.mjs, so the pre-push hook and CI lint the same way.
         run: |
           changed=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref || 'main' }}... -- 'supabase/migrations/*.sql')
-          if [ -n "$changed" ]; then npx --yes squawk-cli $changed; fi
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+          if [ -n "$changed" ]; then npx --yes squawk-cli@2.70.0 $changed; fi
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: pnpm
@@ -174,7 +206,7 @@ jobs:
           git diff -- packages/contract/src/database.types.ts | head -400
       - name: Upload the generated types when they are stale
         if: failure() && steps.typegen.outcome == 'failure'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: database.types.ts
           path: packages/contract/src/database.types.ts
@@ -185,8 +217,8 @@ jobs:
     if: needs.changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           # Nothing to install, and pnpm isn't set up in this job.
