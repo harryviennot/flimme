@@ -7,9 +7,10 @@ import pytest
 from PIL import Image
 
 from server.catalog.placeholders import IMAGE_BASE, Posters, thumbhash
+from server.catalog.thumbhash import image_to_thumbhash
 
 pytestmark = pytest.mark.anyio
-PINNED = "HQgOFRRhaHB4V4eId4aXZxePAPS4"  # for the gradient below, with the locked Pillow
+PINNED = "HQgOFRRhaHB4V4eId4aXZxePAPS4"  # for the gradient below, from thumbhash-python 1.0.1
 
 
 def poster_bytes(width: int = 92, height: int = 138, shift: int = 0) -> bytes:
@@ -69,3 +70,21 @@ async def test_a_failed_download_gives_none(reply: httpx.Response | Exception):
     posters = Posters(transport=httpx.MockTransport(handler))
     assert await posters.placeholder("/fixture-1.jpg") is None
     await posters.aclose()
+
+
+def test_the_vendored_encoder_matches_the_reference_on_alpha_and_portrait_images():
+    # Expected values computed once with thumbhash-python 1.0.1 (the reference port).
+    alpha = Image.new("RGBA", (60, 40))
+    for x in range(60):
+        for y in range(40):
+            alpha.putpixel((x, y), ((x * 4) % 256, (y * 6) % 256, (x * y) % 256, (x * 5) % 256))
+    assert image_to_thumbhash(alpha) == "HyiGE4onk2mQaYejoDr5hgEseHeIiIc="
+    portrait = Image.new("RGB", (40, 90))
+    for x in range(40):
+        for y in range(90):
+            portrait.putpixel((x, y), ((x * 6) % 256, (y * 2) % 256, 200))
+    assert image_to_thumbhash(portrait) == "ITUKMxhwgniHh4iHgHII14g="
+
+
+def test_a_fully_transparent_image_still_hashes():
+    assert image_to_thumbhash(Image.new("RGBA", (10, 10), (0, 0, 0, 0)))

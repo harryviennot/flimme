@@ -17,8 +17,8 @@ from dataclasses import dataclass
 
 import httpx
 from PIL import Image, UnidentifiedImageError
-from thumbhash import image_to_thumbhash
 
+from server.catalog.thumbhash import image_to_thumbhash
 from server.db import queries
 from server.db.pool import Database
 
