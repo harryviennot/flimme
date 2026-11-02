@@ -68,3 +68,51 @@ def test_pipeline_worker_without_its_url_exits_1_and_names_the_variable(
     message = capsys.readouterr().err
     assert "PIPELINE_DATABASE_URL" in message
     assert "other-login" not in message  # another process's login is never used
+
+
+def test_backfill_is_built_and_no_longer_planned():
+    assert "backfill" not in [planned.name for planned in PLANNED]
+
+
+@pytest.mark.parametrize("limit", ["0", "-5", "many"])
+def test_backfill_refuses_a_limit_that_is_not_a_positive_number(
+    limit: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with pytest.raises(SystemExit) as stopped:
+        main(["backfill", "--limit", limit])
+
+    assert stopped.value.code == 2
+    assert "--limit" in capsys.readouterr().err
+
+
+def test_backfill_without_its_url_exits_1_and_names_the_variable(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pytest.TempPathFactory,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("PIPELINE_DATABASE_URL", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "local")
+    monkeypatch.chdir(tmp_path)  # type: ignore[arg-type]
+
+    assert main(["backfill"]) == 1
+
+    assert "PIPELINE_DATABASE_URL" in capsys.readouterr().err
+
+
+def test_backfill_without_a_tmdb_token_exits_1_and_says_so(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pytest.TempPathFactory,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.delenv("TMDB_READ_TOKEN", raising=False)
+    monkeypatch.delenv("TMDB_TOKEN", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "local")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:secret-password@127.0.0.1:1/db")
+    monkeypatch.chdir(tmp_path)  # type: ignore[arg-type]
+
+    assert main(["backfill"]) == 1
+
+    message = capsys.readouterr().err
+    assert "TMDB_READ_TOKEN" in message
+    assert "secret-password" not in message

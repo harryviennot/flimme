@@ -41,19 +41,22 @@ from public.providers where id between 8001 and 8010;
 insert into public.certification_ages (country, certification, min_age) values
   ('FR', 'U', 0), ('FR', '10', 10), ('FR', '12', 12), ('FR', '16', 16), ('FR', '18', 18);
 
+-- Slugs carry a `seed_` prefix: `genres.slug` is unique and the reference job adds TMDB's
+-- genres with a slug from their English name (music, family...), so a plain slug here would
+-- make it fail on a seeded database, and with it `server backfill` (M2.9).
 insert into public.genres (id, slug, names) values
-  (7001, 'laugh',     '{"en": "Laughs", "fr": "Rires"}'),
-  (7002, 'tears',     '{"en": "Tears", "fr": "Larmes"}'),
-  (7003, 'chase',     '{"en": "Chase", "fr": "Course-poursuite"}'),
-  (7004, 'mystery',   '{"en": "Mystery", "fr": "Mystère"}'),
-  (7005, 'journey',   '{"en": "Journey", "fr": "Voyage"}'),
-  (7006, 'family',    '{"en": "Family", "fr": "Famille"}'),
-  (7007, 'stars',     '{"en": "Stars", "fr": "Étoiles"}'),
-  (7008, 'chills',    '{"en": "Chills", "fr": "Frissons"}'),
-  (7009, 'romance',   '{"en": "Romance", "fr": "Romance"}'),
-  (7010, 'true_tale', '{"en": "True tale", "fr": "Histoire vraie"}'),
-  (7011, 'animated',  '{"en": "Animated", "fr": "Animation"}'),
-  (7012, 'music',     '{"en": "Music", "fr": "Musique"}');
+  (7001, 'seed_laugh', '{"en": "Laughs", "fr": "Rires"}'),
+  (7002, 'seed_tears', '{"en": "Tears", "fr": "Larmes"}'),
+  (7003, 'seed_chase', '{"en": "Chase", "fr": "Course-poursuite"}'),
+  (7004, 'seed_mystery', '{"en": "Mystery", "fr": "Mystère"}'),
+  (7005, 'seed_journey', '{"en": "Journey", "fr": "Voyage"}'),
+  (7006, 'seed_family', '{"en": "Family", "fr": "Famille"}'),
+  (7007, 'seed_stars', '{"en": "Stars", "fr": "Étoiles"}'),
+  (7008, 'seed_chills', '{"en": "Chills", "fr": "Frissons"}'),
+  (7009, 'seed_romance', '{"en": "Romance", "fr": "Romance"}'),
+  (7010, 'seed_true_tale', '{"en": "True tale", "fr": "Histoire vraie"}'),
+  (7011, 'seed_animated', '{"en": "Animated", "fr": "Animation"}'),
+  (7012, 'seed_music', '{"en": "Music", "fr": "Musique"}');
 
 -- One row per film with every invented value, shared by the inserts below.
 create temp table seed_films as

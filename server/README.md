@@ -24,8 +24,8 @@ curl http://127.0.0.1:8000/healthz  # {"status":"ok"}
 | Command | Status |
 | --- | --- |
 | `server api` | Runs the FastAPI app. Refuses to start if the settings are invalid, naming the variable |
-| `server pipeline-worker` | Consumes `catalog_refresh` (needs `PIPELINE_DATABASE_URL`). Handlers join from M2.5 on; until then every message is archived as unhandled |
-| `server backfill` | Not built yet: M2.9 |
+| `server pipeline-worker` | Consumes `catalog_refresh` (needs `PIPELINE_DATABASE_URL`). Handles `fetch` messages and the `reference_weekly` and `popularity_daily` jobs so far; any other message is archived as unhandled |
+| `server backfill [--limit N]` | The first catalog load (needs `PIPELINE_DATABASE_URL` and `TMDB_READ_TOKEN`): reference data, the top films of TMDB's daily export file, a fetch of each one that passes the floor, then C and every `quality_score`. `--limit N` caps the candidates: `--limit 2000` seeds a local or staging catalog. An interrupted run stays open; run the command again to resume it from `ingest_runs.cursor` |
 | `server deck-worker` | Not built yet: M17.4 |
 | `server replay` | Not built yet: M17.5 |
 | `server moods-review` | Not built yet: M17.12 |

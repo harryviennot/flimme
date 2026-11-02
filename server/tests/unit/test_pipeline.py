@@ -61,3 +61,9 @@ async def test_a_job_goes_to_its_runner_and_an_unknown_job_is_rejected():
     assert await dispatch(delivery({"kind": "job", "job": "reference_weekly"})) == Done()
     assert seen == ["reference_weekly"]
     assert isinstance(await dispatch(delivery({"kind": "job", "job": "changes_daily"})), Reject)
+
+
+async def test_the_popularity_job_has_a_runner():
+    from server.workers.pipeline import JOBS
+
+    assert "popularity_daily" in JOBS
