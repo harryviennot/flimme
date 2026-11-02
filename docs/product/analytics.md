@@ -271,6 +271,8 @@ Checked on PostHog's site on 29 October 2026.
 
 **Settings to make when creating the project:** EU Cloud; IP data capture off; session replay off; touch autocapture off (screens are named by the wrapper); the Supabase source limited to the `analytics` schema, through the session pooler, with a dedicated read-only role and PostHog's EU addresses allowed (details for [security.md](../architecture/security.md)).
 
+**One project, production builds only** ([decided on 2 November 2026](../decisions.md)). The free plan allows one project per organization, so Flimme has its own PostHog organization. Only EAS production has `EXPO_PUBLIC_POSTHOG_KEY`; preview and development builds have no key and send nothing, so staging and playtests never mix with real players' numbers. An empty key turns analytics off: the app's configuration check must not treat it as a missing value.
+
 ## Changes this asks elsewhere
 
 None of these are applied yet.
