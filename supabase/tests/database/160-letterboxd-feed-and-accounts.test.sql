@@ -337,17 +337,19 @@ select is(
 );
 
 -- B33: the data export includes the username.
+-- One export per hour per profile (M1.9, security.md#starting-values), so B33 and B33b read one export.
 select tests.authenticate_as('lb1');
+create temp table b33_export as select api.export_my_data() as d;
 select is(
   (select jsonb_array_length(d->'linked_accounts') || '/' || (d->'linked_accounts'->0->>'provider')
           || '/' || (d->'linked_accounts'->0->>'username')
-   from (select api.export_my_data() as d) x),
+   from b33_export),
   '1/letterboxd/test_viewer',
   'B33 the data export lists the Letterboxd link with its username'
 );
 -- B33b (beyond the 120): and the whole diary.
 select is(
-  (select jsonb_array_length(api.export_my_data()->'letterboxd_diary')),
+  (select jsonb_array_length(d->'letterboxd_diary') from b33_export),
   56,
   'B33b (beyond the 120) the data export holds the 56 diary entries'
 );

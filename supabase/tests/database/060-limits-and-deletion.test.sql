@@ -7,13 +7,16 @@ begin;
 select plan(12);
 
 -- D2: the 11th join attempt in 10 minutes is refused, even with the real code.
+-- Ten attempts with a wrong code no longer fit: security.md#room-codes-joining-and-the-host
+-- layer 2 refuses the 6th (5 not_found per profile per 10 minutes, tested in 300). So dana,
+-- who has no name yet, makes ten attempts with the real code and gets name_required each time.
 select tests.create_room(2);
-select tests.create_player('dana');
+select tests.create_user('dana');
 select tests.authenticate_as('dana');
 select is(
-  (select count(*) filter (where api.join_room('000000')->>'status' = 'not_found') from generate_series(1, 10)),
+  (select count(*) filter (where api.join_room(tests.room_code())->>'status' = 'name_required') from generate_series(1, 10)),
   10::bigint,
-  'D2 ten attempts with a wrong code each answer not_found'
+  'D2 ten attempts with the real code each answer name_required'
 );
 select is((select api.join_room(tests.room_code())->>'status'), 'rate_limited',
   'D2 the 11th attempt, with the real code, answers rate_limited');

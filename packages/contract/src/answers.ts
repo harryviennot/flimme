@@ -74,8 +74,12 @@ export const DISCONNECT_LETTERBOXD_ANSWERS = ['ok', 'not_linked'] as const;
 export type DisconnectLetterboxdAnswer = (typeof DISCONNECT_LETTERBOXD_ANSWERS)[number];
 
 /** `api.submit_calibration` answers. */
-export const SUBMIT_CALIBRATION_ANSWERS = ['ok'] as const;
+export const SUBMIT_CALIBRATION_ANSWERS = ['ok', 'rate_limited'] as const;
 export type SubmitCalibrationAnswer = (typeof SUBMIT_CALIBRATION_ANSWERS)[number];
+
+/** `api.export_my_data` answers: `ok` comes with the data, `rate_limited` is one export per hour. */
+export const EXPORT_MY_DATA_ANSWERS = ['ok', 'rate_limited'] as const;
+export type ExportMyDataAnswer = (typeof EXPORT_MY_DATA_ANSWERS)[number];
 
 /** `api.answer_followup` answers. */
 export const ANSWER_FOLLOWUP_ANSWERS = ['ok', 'not_found'] as const;
