@@ -32,19 +32,26 @@ export const LEAVE_ROOM_ANSWERS = ['ok', 'not_in_room'] as const;
 export type LeaveRoomAnswer = (typeof LEAVE_ROOM_ANSWERS)[number];
 
 /** `api.update_room_settings` answers. */
-export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed'] as const;
+export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed', 'invalid_settings'] as const;
 export type UpdateRoomSettingsAnswer = (typeof UPDATE_ROOM_SETTINGS_ANSWERS)[number];
 
 /** `api.set_seat_prefs` answers. */
-export const SET_SEAT_PREFS_ANSWERS = ['ok', 'closed'] as const;
+export const SET_SEAT_PREFS_ANSWERS = ['ok', 'closed', 'too_many'] as const;
 export type SetSeatPrefsAnswer = (typeof SET_SEAT_PREFS_ANSWERS)[number];
 
-/** `api.start_game` answers. */
-export const START_GAME_ANSWERS = ['dealing', 'closed', 'not_enough_players'] as const;
+/**
+ * `api.start_game` answers. `ok` means the SQL baseline dealt and the game started:
+ * at once under `deck_engine` `sql` (M1.13), or the 8-second fallback (with `fallback`).
+ * The app treats it like `dealing` and follows `state_changed`.
+ */
+export const START_GAME_ANSWERS = ['ok', 'dealing', 'closed', 'not_enough_players'] as const;
 export type StartGameAnswer = (typeof START_GAME_ANSWERS)[number];
 
-/** `api.request_cards` answers. */
-export const REQUEST_CARDS_ANSWERS = ['queued', 'enough', 'closed'] as const;
+/**
+ * `api.request_cards` answers. `ok` means cards were dealt now: under `deck_engine`
+ * `sql` (M1.13), or the 8-second fallback (with `fallback`).
+ */
+export const REQUEST_CARDS_ANSWERS = ['ok', 'queued', 'enough', 'closed'] as const;
 export type RequestCardsAnswer = (typeof REQUEST_CARDS_ANSWERS)[number];
 
 /** `api.cast_vote` answers. */
@@ -66,7 +73,7 @@ export const UPDATE_PROFILE_ANSWERS = ['ok', 'invalid_name'] as const;
 export type UpdateProfileAnswer = (typeof UPDATE_PROFILE_ANSWERS)[number];
 
 /** `api.set_my_providers` answers. */
-export const SET_MY_PROVIDERS_ANSWERS = ['ok'] as const;
+export const SET_MY_PROVIDERS_ANSWERS = ['ok', 'too_many'] as const;
 export type SetMyProvidersAnswer = (typeof SET_MY_PROVIDERS_ANSWERS)[number];
 
 /** `api.disconnect_letterboxd` answers. */
@@ -74,8 +81,12 @@ export const DISCONNECT_LETTERBOXD_ANSWERS = ['ok', 'not_linked'] as const;
 export type DisconnectLetterboxdAnswer = (typeof DISCONNECT_LETTERBOXD_ANSWERS)[number];
 
 /** `api.submit_calibration` answers. */
-export const SUBMIT_CALIBRATION_ANSWERS = ['ok'] as const;
+export const SUBMIT_CALIBRATION_ANSWERS = ['ok', 'rate_limited'] as const;
 export type SubmitCalibrationAnswer = (typeof SUBMIT_CALIBRATION_ANSWERS)[number];
+
+/** `api.export_my_data` answers: `ok` comes with the data, `rate_limited` is one export per hour. */
+export const EXPORT_MY_DATA_ANSWERS = ['ok', 'rate_limited'] as const;
+export type ExportMyDataAnswer = (typeof EXPORT_MY_DATA_ANSWERS)[number];
 
 /** `api.answer_followup` answers. */
 export const ANSWER_FOLLOWUP_ANSWERS = ['ok', 'not_found'] as const;

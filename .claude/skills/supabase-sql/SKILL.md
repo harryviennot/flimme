@@ -29,7 +29,7 @@ The database decides the game. The app only reaches the `api` schema; the server
 - **The room lock:** anything that changes a room's game state starts with `select * into v_room from public.rooms where id = p_room_id for no key update;` so votes, the finale and the sweeper never race.
 - The caller is `internal.my_profile_id()` (or `internal.my_profile_ids()` for seats a player controls); never trust a profile id passed in.
 - Realtime goes through `internal.broadcast_room(room_id, event, payload)`. Event names and payloads: the `realtime-contract` skill.
-- Every write function goes through `internal.rate_limit` (per profile and per IP) once M1.9 adds it.
+- A function that needs a limit calls `internal.rate_limit(key, max, window, p_count)` (keys `<action>:p:<profile id>` and `<action>:ip:<internal.request_ip_key()>`, skip the IP key when it is null) and answers `rate_limited`, never raises. M1.9 wired `join_room`, `submit_calibration` and `export_my_data`; later functions with a limit in security.md#starting-values call it when written. A function that counts is `volatile`, not `stable`. The helpers have no grant.
 - Settings and ranges are validated in the function (the app is never trusted), e.g. `api.update_room_settings` (M1.10).
 - An incompatible change to an `api` function or view ships as `<name>_v2` next to it. Adding an optional argument or a column to a view is compatible.
 
@@ -37,7 +37,7 @@ The database decides the game. The app only reaches the `api` schema; the server
 
 - Row-level security on every table; `api` views run with the caller's rights.
 - Grants are explicit; default privileges are revoked (M1.7). The CI check fails on a table without row-level security or a function open to phones by mistake.
-- Players who left or were removed read nothing of the room (`room_members.removed_at`, M1.8).
+- Seats that left (`left_at`) keep reading the room and both Realtime topics but can't send on `:live`. Removed seats (`room_members.removed_at`, M1.8) read nothing of the room, except their own votes. Both go through `internal.is_room_member` and `internal.can_use_room_topic`.
 - Nobody ever reads who noped a film, and swipes never reach other phones during a game: counts only.
 
 ## Tests (pgTAP)

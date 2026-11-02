@@ -450,6 +450,7 @@ The 10-minute limits are my starting values; the plan only gives 8 minutes for 3
 | provider_ids | integer[] | This player's services tonight, prefilled from their profile |
 | mood_slugs, genre_ids | | "Tonight I want", a soft boost in their fit |
 | joined_at, left_at | timestamptz | Rejoining clears left_at and keeps the same seat |
+| removed_at | timestamptz | Set when the host removes the player (M4.2). A removed seat is not a member: it reads nothing of the room, has no Realtime topic and gets no cards, except its own votes. Null otherwise, and a removed player can't rejoin |
 | last_active_at | timestamptz | Heartbeat. Only seats active in the last 90 seconds count for match rules |
 | calibrated_at, done_at | timestamptz | |
 | swipe_count | integer | Progress ring |
@@ -540,11 +541,11 @@ erDiagram
 
 ## 7. Operations
 
-**rate_limits**: counters per key and 10-minute window. `join:<profile id>` allows 10 join attempts per window, so the million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
+**rate_limits**: counters per key and fixed window, written only by `internal.rate_limit(key, max, window)`. Keys: `join:p:<profile id>` (10 per 10 minutes), `join:ip:<address hash>` (30 per 10 minutes), `join_failed:p:<profile id>` (5 `not_found` per 10 minutes), `calibration:p:<profile id>` (10 per hour), `export:p:<profile id>` (1 per hour). The address is read by `internal.request_ip_key()` (`cf-connecting-ip`, else the last `x-forwarded-for` entry) and only its hash is stored, IPv6 by its /64. The million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
 
 **ingest_runs**: one row per catalog job run, with counts, errors and a resume cursor.
 
-**app_config**: key and value pairs the app reads at launch through `api.app_config`, starting with `min_app_version` per platform, so an old build can be asked to update before an incompatible change.
+**app_config**: key and value pairs the app reads at launch through `api.app_config`, starting with `min_app_version` per platform, so an old build can be asked to update before an incompatible change. Also `tmdb_image_base` (`"https://image.tmdb.org/t/p/"`, so no build hard-codes the image host) and `deck_engine`: `"sql"` (the first release, no deck worker) deals the SQL baseline at once on start and refills, `"server"` (from M17.4) waits for the deck worker. A missing key means `server`; the database reads it through `internal.deck_engine()`. `invite_base_url` comes with the domain (M0.2).
 
 ## How it fits together
 
@@ -621,6 +622,8 @@ sequenceDiagram
 
 If nothing has arrived 8 seconds after the tap, the host's phone calls `api.start_game` again and the database deals the SQL baseline itself (`internal.deal_baseline`): the same candidates, the same order for every seat, logged as `sql-baseline` with `is_fallback`.
 
+That is with `deck_engine` set to `server`. With `sql` (the first release, see [app_config](#7-operations)), nothing is queued: `api.start_game` sends `state_changed` `dealing`, deals the SQL baseline in the same call and answers its `ok` (`started`, no `fallback` field), so `state_changed` `swiping` follows from the same commit. Refills work the same way: the vote at 15 cards left, a late joiner and `api.request_cards` deal the baseline at once. These deals are still logged with `is_fallback` true.
+
 ### A swipe
 
 ```mermaid
@@ -661,6 +664,7 @@ sequenceDiagram
 - At 15 cards left the vote queues a refill for that seat. The deck worker updates `room_models` from the votes, retrieves again (now with the live room signal), and calls `deal_cards` with `keep: 3`: the 3 mounted cards and any propagated card stay, the rest is replaced by the new ranking, and new cards are appended.
 - If the phone gets down to 5 cards with nothing new, it calls `api.request_cards`. After 8 seconds without an answer from the server, that deals the SQL baseline for the seat.
 - Late joiners get the active opening cards at join time and a queued refill.
+- With `deck_engine` set to `sql`, each of these refills is the SQL baseline, dealt in the same call ([Start](#start-dealing-the-deck)).
 
 ### Leaving and coming back
 
@@ -725,8 +729,8 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `leave_room(room)` | Leave, hand over host, re-check matches |
 | `update_room_settings(room, settings)` | Host, lobby only |
 | `set_seat_prefs(room, services, moods, genres)` | Your settings for tonight |
-| `start_game(room)` | Host: queue the deal; on a second tap after 8 seconds, deal the baseline |
-| `request_cards(room)` | Running low with no refill: queue one, or deal the baseline after 8 seconds |
+| `start_game(room)` | Host: queue the deal; on a second tap after 8 seconds, deal the baseline. Under `deck_engine` `sql`, deal the baseline at once |
+| `request_cards(room)` | Running low with no refill: queue one, or deal the baseline after 8 seconds. Under `deck_engine` `sql`, deal at once |
 | `cast_vote(room, title, answer, seat, dwell_ms, client_at)` | The vote |
 | `undo_last_vote(room, seat)` | Undo |
 | `my_next_cards(room, limit, seat, language)` | Your next cards, ready to render: title and overview in your language, poster and placeholder, year, runtime, genres, TMDB score, director, cast, trailer, tonight's services for it, watch link, reason label, members' ratings |
@@ -756,13 +760,13 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | Reference data, game modes, calibration films, app config | Through api views | Read; writes reference data |
 | Your profile, services | Through api views and functions | Read |
 | Consents, linked accounts, imports, diary entries, film history, taste profiles | Your own Letterboxd status through api views; the rest never | Read and write |
-| Rooms, seats, matches, rounds | Rooms you have a seat in, through api views | Read; writes `rooms.stats` only |
+| Rooms, seats, matches, rounds | Rooms you have a seat in, through api views. Seats that left still read (history, rejoining); removed seats read nothing | Read; writes `rooms.stats` only |
 | Room cards, decks | Only through `api.my_next_cards`, for your own seat. Counters, scores and fits never | Read; writes only through `deal_cards` |
-| Votes | Your own seat's, through `api.my_votes` | Read |
+| Votes | Your own seat's, through `api.my_votes`, removed seats included (your own data) | Read |
 | `swipe_log`, `room_models`, `rate_limits`, `ingest_runs`, `letterboxd_film_map`, title vectors | Never | Read; writes the ones it owns |
 | `rec` schema | Never | Read and write |
-| Realtime `room:<id>` | Seated players read | The database sends |
-| Realtime `room:<id>:live` | Seated players read and send | |
+| Realtime `room:<id>` | Seated players read, including seats that left. Removed seats don't | The database sends |
+| Realtime `room:<id>:live` | Seated players read and send. Seats that left read but can't send; removed seats do neither | |
 
 - Nobody can list rooms. A room is found only by its code, through `join_room`.
 - Other players' answers never reach a phone as rows. In Party mode they arrive as counts; in Blind mode not at all.
@@ -777,7 +781,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `member_joined` | room | join_room | seat, name, avatar | Adds the avatar |
 | `member_left` | room | leave_room | seat, new host seat | Removes it, moves the crown |
 | `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
-| `settings_changed` | room | update_room_settings | changed fields | Refetches the room |
+| `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state | Moves to the next screen ("Shuffling" while dealing) |
 | `deck_updated` | room | cast_vote, deal_cards | seat ids | Those seats refetch behind their mounted cards |
 | `near_miss` | room | cast_vote, Party mode only | title, likes, of | "2 of 3 of you liked this" |
