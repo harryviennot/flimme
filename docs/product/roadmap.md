@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 43 of 244 tasks done.
+Progress: 44 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -299,7 +299,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: a fresh install gets a guest user that survives a restart.
 - [x] **M3.6** Typed API layer in `packages/contract`: the wrapper pattern and the profile, room and lobby functions, status answers as values. Card, vote and export wrappers come with M5.6, M6.9, M6.11 and M8.6 · app · M · needs M3.5, M1.17 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
   Done when: wrappers compile against the generated types and a status answer isn't thrown as an error.
-- [ ] **M3.7** State: TanStack Query for server data, Zustand stores, persistence with expo-sqlite · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#where-state-lives)
+- [x] **M3.7** State: TanStack Query for server data, Zustand stores, persistence with expo-sqlite · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#where-state-lives)
   Done when: a persisted store survives a restart.
 - [x] **M3.8** Translations: i18next with French and English, the device language, English as fallback · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#translations)
   Done when: switching the device language switches the app.

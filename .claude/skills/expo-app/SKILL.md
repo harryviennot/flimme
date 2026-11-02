@@ -35,6 +35,7 @@ Expo SDK 58 (React Native 0.88, React 19.3), Expo Router with routes in `mobile/
 - Server data: TanStack Query, one query per `api` view or read function, kept fresh by Realtime events.
 - The card stack and the vote queue: Zustand stores (the queue persisted to expo-sqlite).
 - Never put cards in TanStack Query: the deck changes under the phone.
+- Zustand stores live in `src/features/<feature>/store.ts`. A persisted one uses `persistOptions({ name, version, migrate, partialize })` from `src/lib/persisted-store.ts` (name `flimme.<store>`, synchronous reads over `lib/storage.ts`, so the first render has the values). Export a `create...Store(kv?)` factory so tests can recreate the store over the same kv store. See `features/settings/`.
 
 ## Answers and errors
 

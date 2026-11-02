@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ToastHost } from '@/components/ui/toast';
+import '@/features/settings';
 import { startSession } from '@/features/session';
 import { watchDeviceLanguage } from '@/i18n';
 import { queryClient } from '@/lib/query-client';
