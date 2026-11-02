@@ -1,0 +1,25 @@
+# Our curation of the reference tables (see curation.py for the format). Ids and flags only.
+# The reference job applies it every week, in every environment.
+
+[countries.FR]
+enabled = true
+language = "fr"
+
+# France: U is 0, the numbers are themselves.
+[certification_ages.FR]
+U = 0
+"10" = 10
+"12" = 12
+"16" = 16
+"18" = 18
+
+# United States: PG at 7 is the doc's placeholder (tmdb.md#certifications-and-age). Used for
+# films with no certification in an enabled country. Anything else has no age.
+[certification_ages.US]
+G = 0
+PG = 7
+PG-13 = 13
+R = 17
+NC-17 = 18
+
+# France's services (listed, free, variants, order) are added by M2.6 as [services.FR].
