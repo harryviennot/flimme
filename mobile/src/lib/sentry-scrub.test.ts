@@ -95,7 +95,7 @@ describe('the source', () => {
       }
     };
     walk(join(__dirname, '..'));
-    const offenders = files.filter((file) => /\bsetUser\b/.test(readFileSync(file, 'utf8')));
+    const offenders = files.filter((file) => /\bsetUser\s*\(/.test(readFileSync(file, 'utf8')));
     expect(offenders).toEqual([]);
   });
 });

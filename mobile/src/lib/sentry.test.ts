@@ -35,7 +35,10 @@ describe('sentryOptions', () => {
 
   it('removes the user from an event on the way out', async () => {
     const options = sentryOptions(DSN, 'preview');
-    const sent = await options.beforeSend?.({ user: { ip_address: '1.2.3.4' } }, {});
+    const sent = await options.beforeSend?.(
+      { type: undefined, user: { ip_address: '1.2.3.4' } },
+      {},
+    );
     expect(sent).not.toHaveProperty('user');
   });
 });
