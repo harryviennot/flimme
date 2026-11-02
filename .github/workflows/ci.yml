@@ -128,6 +128,8 @@ jobs:
         run: pnpm --filter mobile run check
       - name: Contract types
         run: pnpm --filter @flimme/contract run typecheck
+      - name: Contract tests
+        run: pnpm --filter @flimme/contract run test
 
   server:
     needs: changes
