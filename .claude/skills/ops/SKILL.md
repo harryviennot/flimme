@@ -35,6 +35,9 @@ Order: **database, then server, then app.** Each must work with the one before a
 
 - EAS profiles: development, preview, production; the runtime version uses the fingerprint policy, so an update never reaches a build it doesn't fit.
 - JavaScript-only changes ship as EAS Updates; a changed fingerprint needs a build. The free plan has 15 builds per platform a month: daily development builds are made on the Mac (`npx expo run:ios`).
+- `mobile/eas.json`: each profile's `channel` and `environment` equal its name (a test checks it); `appVersionSource` is `remote` and only production auto-increments. The marketing version stays in `app.config.ts`.
+- `APP_VARIANT` is an EAS environment variable per environment (`development`, `preview`, `production`). `app.config.ts` throws on any other value. A build and its updates must see the same value, because the app config counts in the fingerprint: always `eas update --channel <name> --environment <name>`.
+- Variant icons (`icon-dev.png`, `icon-preview.png` and the Android foregrounds) are placeholders drawn by `mobile/scripts/make-variant-icons.swift` until M11.2.
 - `min_app_version` in `api.app_config` blocks builds below it.
 
 ## Secrets
