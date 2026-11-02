@@ -7,7 +7,9 @@ description: How to use the Figma file without wasting tokens (the file key, the
 
 File key `v2ZGLbGmzZ7032V9AI5vWM` (https://www.figma.com/design/v2ZGLbGmzZ7032V9AI5vWM). The node map is in **docs/design/figma-map.md**; component specs already extracted are in **docs/design/components.md**. Read those first: most tasks never need to open Figma.
 
-The Figma predates the docs. **Where they differ, the docs and decisions.md win** (onboarding.md#changes-to-the-figma lists the known differences). For components and tokens, **the code is the source of truth** now: `mobile/src/theme/tokens.json` and the gallery.
+Pages: Cover `0:1`, Release screens `2:2` (the original design, never edited), **First release `99:3537`** (copies changed to the first release on 30 October 2026, plus the join sheet `107:1747`, the refused join sheet `107:2042`, the invite page `108:1818`, the host menu `110:1846` and Report `110:2119`), Design tokens `2:3`. For a first-release screen, open its frame on First release, not the original; every frame id is in the map.
+
+The Figma predates the docs. **Where they differ, the docs and decisions.md win** (onboarding.md#changes-to-the-figma lists the known differences; the First release page already applies the first release's). For components and tokens, **the code is the source of truth** now: `mobile/src/theme/tokens.json` and the gallery.
 
 ## Cheap first, expensive last
 

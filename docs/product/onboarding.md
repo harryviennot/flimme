@@ -327,6 +327,8 @@ A deck that runs out mid-game (the Figma's screen 26) is a game state, in `produ
 | 20 Import history | Merge into the new 19 | One flow |
 | New: Home cards | "Did you watch it?" and "They picked X while you were away" | Coming back |
 
+M0.9 (30 October 2026) drew these changes for the first release on the Figma's **First release** page, from the screen specs in [design/screens](../design/screens/): the join sheet, the invite page, Join with code, the lobby, the invite sheet, Welcome's new third promise, and the permanent Swipe up line gone. Rows for features the first release doesn't have wait for their milestones: Sign in on Welcome and the Home cards (M15), moods (M17), the taste check (M19), Letterboxd on the winner screen and in 19 and 20 (M20). Frame ids: [figma-map.md](../design/figma-map.md#first-release-page-993537).
+
 ## What this needs elsewhere
 
 Notes for other docs, not applied there:
