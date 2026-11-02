@@ -130,7 +130,7 @@ GitHub Actions in the one repository (`.github/workflows/`). Builds run on Expo'
 
 The end-to-end flows run on EAS Workflows (the Maestro flows, nightly and before a release, against staging), and the app's preview and production updates are EAS's own workflows ([app-structure.md](app-structure.md)).
 
-The two Supabase deploy workflows follow Supabase's own guide (`supabase/setup-cli`, `SUPABASE_ACCESS_TOKEN`, the database password and project ref per environment). Each GitHub environment holds three secrets, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_REF`, and two variables, `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (neither is secret: the app ships with them).
+The two Supabase deploy workflows follow Supabase's own guide (`supabase/setup-cli`, `SUPABASE_ACCESS_TOKEN`, the database password and project ref per environment). Each GitHub environment holds three secrets, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_ID` (the project ref, which the dashboard calls the project ID), and two variables, `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (neither is secret: the app ships with them).
 
 **Data API settings stay by hand.** Exposed schemas set to `api` only and "Automatically expose new tables" off are set once on each project in the dashboard, which keeps the access token's use to `db push`. The smoke step checks them on every deploy (`tools/smoke-data-api.mjs`): `public` is refused, `/graphql/v1` gives no data, and `api` answers.
 
