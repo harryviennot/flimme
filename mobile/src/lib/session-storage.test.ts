@@ -4,6 +4,7 @@ import { sessionStorage } from './session-storage';
 
 const mockKv = new Map<string, string>();
 const mockSecure = new Map<string, string>();
+let mockSecureFails = false;
 const mockSecureCalls: { op: string; key: string; options?: unknown }[] = [];
 
 jest.mock('./storage', () => ({
@@ -17,6 +18,7 @@ jest.mock('./storage', () => ({
 jest.mock('expo-secure-store', () => ({
   WHEN_UNLOCKED_THIS_DEVICE_ONLY: 6,
   getItemAsync: async (key: string, options?: unknown) => {
+    if (mockSecureFails) throw new Error('keychain locked');
     mockSecureCalls.push({ op: 'get', key, options });
     return mockSecure.get(key) ?? null;
   },
@@ -82,6 +84,7 @@ beforeEach(() => {
   mockKv.clear();
   mockSecure.clear();
   mockSecureCalls.length = 0;
+  mockSecureFails = false;
 });
 
 describe('encrypted session storage', () => {
@@ -155,5 +158,15 @@ describe('encrypted session storage', () => {
     await sessionStorage.setItem('auth', session);
     await sessionStorage.removeItem('auth');
     expect(await sessionStorage.getItem('auth')).toBeNull();
+  });
+});
+
+describe('encrypted session storage, edge cases', () => {
+  it('keeps the session when the keychain cannot be read', async () => {
+    await sessionStorage.setItem('auth', session);
+    mockSecureFails = true;
+    expect(await sessionStorage.getItem('auth')).toBeNull();
+    mockSecureFails = false;
+    expect(await sessionStorage.getItem('auth')).toBe(session);
   });
 });

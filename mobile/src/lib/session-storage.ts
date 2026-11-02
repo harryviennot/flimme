@@ -21,7 +21,13 @@ let keyPromise: Promise<AESEncryptionKey | null> | undefined;
 
 async function loadKey(create: boolean): Promise<AESEncryptionKey | null> {
   const stored = await SecureStore.getItemAsync(KEY_NAME, secureOptions);
-  if (stored) return AESEncryptionKey.import(stored, 'base64');
+  if (stored) {
+    try {
+      return await AESEncryptionKey.import(stored, 'base64');
+    } catch {
+      // A damaged key is as good as none: what it sealed is unreadable.
+    }
+  }
   if (!create) return null;
   const key = await AESEncryptionKey.generate();
   await SecureStore.setItemAsync(KEY_NAME, await key.encoded('base64'), secureOptions);
@@ -47,8 +53,14 @@ export const sessionStorage = {
   async getItem(name: string): Promise<string | null> {
     const stored = await storage.getItem(VALUE_PREFIX + name);
     if (stored === null) return null;
+    let key: AESEncryptionKey | null;
     try {
-      const key = await getKey(false);
+      key = await getKey(false);
+    } catch {
+      // The keychain could not be read (locked, a passing error): the session may be fine.
+      return null;
+    }
+    try {
       if (!key) throw new Error('no key');
       const sealed = AESSealedData.fromCombined(stored);
       return decoder.decode(await aesDecryptAsync(sealed, key));
