@@ -7,7 +7,7 @@
 -- tests only check that cards arrive, in the same call, with nothing queued.
 
 begin;
-select plan(31);
+select plan(34);
 
 select tests.create_catalog(100);
 
@@ -118,17 +118,33 @@ select is(
   'T4 nothing is queued for the late joiner'
 );
 
--- T3b (beyond the brief): with no films left to deal, the vote at 15 cards still
--- answers ok. The room's services are swapped for one with no films, so the
+-- T3b (beyond the brief): with no films left to deal, the votes at 15 cards and
+-- below still answer ok, and an empty deal leaves no trace: no request logged,
+-- no deck_updated, and the refill flag set so the next votes do not retry for
+-- 30 seconds. The room's services are swapped for one with no films, so the
 -- baseline finds nothing; before M1.13's fix deal_baseline raised 22023 here.
 select tests.deal_game(2, 'e');
 select tests.use_deck_engine('sql');
 update public.rooms set provider_ids = '{9999}' where id = tests.room_id();
 select tests.vote_next('e1', 9);
-select lives_ok($$select tests.vote_next('e1', 1)$$,
-  'T3b with no films left to deal, the vote that leaves 15 cards still answers ok');
-select is(cardinality(tests.upcoming('e1')), 15,
-  'T3b nothing was dealt: the seat has its 15 cards');
+select lives_ok($$select tests.vote_next('e1', 2)$$,
+  'T3b with no films left to deal, the votes at 15 and 14 cards left still answer ok');
+select is(cardinality(tests.upcoming('e1')), 14,
+  'T3b nothing was dealt: the seat has its 14 cards');
+select is(
+  (select count(*) from rec.requests r where r.room_id = tests.room_id() and r.room_member_id = tests.member_id('e1')),
+  0::bigint,
+  'T3b an empty deal logs no rec.requests row'
+);
+select tests.use_topic('room:' || tests.room_id());
+select is(
+  (select count(*) from tests.broadcasts(tests.room_id(), 'deck_updated') b
+   where b->'member_ids' ? tests.member_id('e1')::text),
+  0::bigint,
+  'T3b an empty deal broadcasts no deck_updated'
+);
+select is((select m.refill_requested_at is not null from public.room_members m where m.id = tests.member_id('e1')), true,
+  'T3b an empty deal sets the refill flag, so the next votes wait 30 seconds before trying again');
 
 -- T5: under sql, request_cards at 5 cards left deals at once.
 select tests.deal_game(2, 'b');

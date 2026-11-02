@@ -266,7 +266,11 @@ begin
     if v_remaining <= 15
        and (v_member.refill_requested_at is null or v_member.refill_requested_at < now() - interval '30 seconds') then
       if internal.deck_engine() = 'sql' then
-        perform internal.deal_baseline(p_room_id, v_member.id);
+        -- Nothing left to deal: set the flag, so the 30-second guard above
+        -- stops every later vote from searching again.
+        if (internal.deal_baseline(p_room_id, v_member.id)->>'seats')::int = 0 then
+          update public.room_members set refill_requested_at = now() where id = v_member.id;
+        end if;
       else
         update public.room_members set refill_requested_at = now() where id = v_member.id;
         perform internal.enqueue('deck_requests', jsonb_build_object(
@@ -404,7 +408,8 @@ $$;
 -- M1.13 fix: with no films left to deal, each seat's cards were JSON null and
 -- deal_cards raised 22023. Under deck_engine 'sql' that made every vote at 15
 -- cards left raise once the catalog ran out, so an empty deal is now an empty
--- list. Everything else is as the baseline wrote it (is_fallback stays true, Q13.3).
+-- list, and a refill with nothing to deal returns before deal_cards. Everything
+-- else is as the baseline wrote it (is_fallback stays true, Q13.3).
 create or replace function internal.deal_baseline(p_room_id uuid, p_seat uuid default null) returns jsonb
 language plpgsql security definer set search_path = ''
 as $$
@@ -423,6 +428,13 @@ begin
              'title_id', c.title_id, 'group_score', c.group_score, 'min_fit', c.min_fit,
              'fits', c.fits, 'score', c.group_score) order by c.group_score desc), '[]')
     into v_cards from internal.deck_candidates(p_room_id, 30, 0) c;
+  end if;
+
+  -- M1.13: a refill with nothing to deal changes nothing, so it logs no request
+  -- and broadcasts no deck_updated. A start still goes through deal_cards, which
+  -- moves the room to swiping (too few films is M5.5's to handle).
+  if jsonb_array_length(v_cards) = 0 and v_state = 'swiping' then
+    return jsonb_build_object('status', 'ok', 'request_id', null, 'started', false, 'seats', 0);
   end if;
 
   return internal.deal_cards(p_room_id, jsonb_build_object(
