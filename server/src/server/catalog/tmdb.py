@@ -115,6 +115,23 @@ class TmdbClient:
         await self._http.aclose()
 
     async def get(self, path: str, params: Params | None = None) -> dict[str, Any] | NotFound:
+        body = await self._get_json(path, params)
+        if isinstance(body, NotFound):
+            return body
+        if not isinstance(body, dict):
+            raise TmdbError(f"unexpected body for {path}")
+        return body
+
+    async def get_list(self, path: str, params: Params | None = None) -> list[Any] | NotFound:
+        """For the few endpoints that answer with a JSON array (`/configuration/countries`)."""
+        body = await self._get_json(path, params)
+        if isinstance(body, NotFound):
+            return body
+        if not isinstance(body, list):
+            raise TmdbError(f"unexpected body for {path}")
+        return body
+
+    async def _get_json(self, path: str, params: Params | None) -> Any | NotFound:
         server_failures = 0
         rate_limits = 0
         while True:
@@ -124,8 +141,6 @@ class TmdbClient:
                     body = response.json()
                 except ValueError:
                     raise TmdbError(f"unreadable body for {path}") from None
-                if not isinstance(body, dict):
-                    raise TmdbError(f"unexpected body for {path}")
                 return body
             if status == 404:
                 return NotFound()
