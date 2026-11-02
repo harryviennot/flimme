@@ -103,7 +103,7 @@ Nothing secret is committed. Local values live in an ignored `.env.local`.
 | PostHog project key, Sentry DSN for the app | EAS environment variables (`EXPO_PUBLIC_`) | The app |
 | Sentry auth token (source map upload) | EAS secret | EAS Build and EAS Update |
 | App Store Connect API key, Google Play service account | EAS credentials | EAS Submit |
-| One database password per process login: `flimme_deck`, `flimme_pipeline`, `flimme_trainer` (role `app_server`) and `flimme_http` (role `app_http`), each as its connection string | The server host's secrets: `flimme-api-<env>` holds `flimme_http`'s, `flimme-workers-<env>` the other three. Set by hand per project with `alter role ... password` in the SQL editor, never in a migration | Each server process ([contract](recommendation-server.md#the-contract-with-the-database)) |
+| One database password per process login: `flimme_deck`, `flimme_pipeline`, `flimme_trainer` (role `app_server`) and `flimme_http` (role `app_http`), each as its connection string | The server host's secrets: `flimme-api-<env>` holds `flimme_http`'s as `API_DATABASE_URL`, `flimme-workers-<env>` the others as `PIPELINE_DATABASE_URL`, `DECK_DATABASE_URL` and `TRAINER_DATABASE_URL` (session-mode pooler URL, port 5432, user `<role>.<project ref>`). Set by hand per project with `alter role ... password` in the SQL editor, never in a migration | Each server process ([contract](recommendation-server.md#the-contract-with-the-database)) |
 | A Supabase secret key for account deletion only | The server host's secrets | The server's HTTP API |
 | TMDB API token | The server host's secrets; your own key in `.env.local` | The pipeline worker, `tools/seed-local-catalog` |
 | Sentry DSN for the server | The server host's secrets | The server |
@@ -123,8 +123,8 @@ GitHub Actions in the one repository (`.github/workflows/`). Builds run on Expo'
 | Workflow | When | Does |
 | --- | --- | --- |
 | `ci.yml` | Every pull request, and pushes to `main` | Only the parts that changed. Mobile: lint, types, Jest ([app-structure.md](app-structure.md#testing)). Server: ruff, pyright, pytest ([server-structure.md](server-structure.md)). Database: `supabase start`, `supabase db reset`, `supabase test db` (pgTAP), Squawk on new migrations, the `api` types regenerated and compared. Always: the pull request title, gitleaks, every action pinned to a SHA, the CI tools' tests, and the docs' link check. On pull requests: new migrations sort after every migration on `main` |
-| `staging.yml` | Merge to `main` that touches `supabase/migrations/**`, or by hand | In the `staging` environment: `supabase link`, `supabase db push`, then a smoke test of the Data API. The server deploy joins it with M2.12 |
-| `production.yml` | By hand (`workflow_dispatch`), after checking staging | In the `production` environment, which holds the job until Harry approves: the same steps against production, from `main` only. The server deploy joins it with M2.12 |
+| `staging.yml` | Merge to `main` that touches `supabase/migrations/**` or `server/**`, or by hand | In the `staging` environment: `supabase link`, `supabase db push`, then a smoke test of the Data API. Then the `server` job deploys the pipeline worker to `flimme-workers-staging` (`server/fly.workers.staging.toml`), unless the app has no `PIPELINE_DATABASE_URL` secret yet |
+| `production.yml` | By hand (`workflow_dispatch`), after checking staging | In the `production` environment, which holds the job until Harry approves: the same steps against production, from `main` only, then the `server` job deploys the pipeline worker to `flimme-workers-production`, with the same secrets check |
 | `roadmap.yml` | A pull request merges | Ticks the roadmap task named in the title |
 | `backup.yml` | Weekly | A logical dump of production to private storage (see [Backups and restore](#backups-and-restore)) |
 
