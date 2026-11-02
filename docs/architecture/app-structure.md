@@ -261,7 +261,7 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 
 ## Translations
 
-- `i18next` with `react-i18next`, one JSON file per feature in `src/i18n/locales/en` and `fr`, plurals through i18next. The device language (`expo-localization`) sets the profile's language at first launch, and it can be changed in settings.
+- `i18next` with `react-i18next`, one JSON file per feature in `src/i18n/locales/en` and `fr`, plurals through i18next. The app speaks the device's language (`expo-localization`), or Flimme's own language from the system settings (iOS, and Android 13 and later, through `supportedLocales`): the first of French or English in the preferred languages, English otherwise. Android changes it without restarting the app, so the app checks again each time it returns to the foreground. The profile's language mirrors the app's, so server text matches (decision of 2 Nov 2026).
 - **Server text arrives translated.** Titles and overviews come in the profile's language from `my_next_cards` and `title_cards`. Mood, genre and game mode names come from their `api` views, which hold every language. The app ships none of these strings.
 - **Reason labels are rendered on the phone** from `reason_code` and `reason_params`: seat ids become display names from `room_seats` ("you" for `is_me`), title ids become titles from `title_cards`. One template per code per language, so a new code needs an app update; until the app knows a code, the card shows no label.
 - Numbers, dates and runtimes ("1 h 43") are formatted with `Intl` in the profile's language.
