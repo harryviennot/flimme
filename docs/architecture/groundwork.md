@@ -172,6 +172,7 @@ Every secret starts in the password manager; the places below hold copies. Nothi
 | Sentry DSN for the app, PostHog project key | M3.9, M9.1 | EAS environment variables | No |
 | Sentry auth token for source maps | M3.9 | EAS secret | Yes |
 | `EXPO_TOKEN` | M3.3 | GitHub Actions | Yes |
+| `ROADMAP_DEPLOY_KEY`, the private half of a write deploy key | Now | GitHub Actions, repository secret; the main ruleset lets deploy keys bypass it | Yes |
 | `SUPABASE_ACCESS_TOKEN`, each project's database password and ref | M1.15 | GitHub's `staging` and `production` environments | Yes |
 | The server's database logins, one per process | M2.12 | Fly secrets; the local login in `server/.env.local` | Yes |
 | TMDB API token | M2.3 | Fly secrets (pipeline worker); your own key in `server/.env.local` | Yes |

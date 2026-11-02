@@ -46,7 +46,16 @@ Two branches are waiting: `claude/agent-workflow` (the docs) and `claude/groundw
 1. Rename `movie-swipe-backend` to `flimme` (Settings, General, Repository name). GitHub keeps redirecting the old address. Locally: `git remote set-url origin git@github.com:harryviennot/flimme.git`.
 2. Archive `movie-swipe-app` (Settings, Danger zone, Archive).
 3. Turn on: Dependabot alerts and security updates (Settings, Code security); "Allow auto-merge" and "Automatically delete head branches" (Settings, General); squash merging only.
-4. A ruleset for `main` (Settings, Rules, Rulesets): require a pull request, require the CI checks to pass (`changes`, `title`, `secrets`, and `mobile`, `server`, `database-lite`, `database`, `docs`: a job skipped by its path filter counts as passed), require branches to be up to date before merging, block force pushes. Add **GitHub Actions** to the bypass list so `roadmap.yml` can push the tick; without it, tick boxes by hand with `node tools/roadmap-tick.mjs M4.8` in the next pull request.
+4. A ruleset for `main` (Settings, Rules, Rulesets): require a pull request, require the CI checks to pass (`changes`, `title`, `secrets`, and `mobile`, `server`, `database-lite`, `database`, `docs`: a job skipped by its path filter counts as passed), require branches to be up to date before merging, block force pushes. Add **Deploy keys** to the bypass list (Always allow) so `roadmap.yml` can push the tick: a personal repository can't add GitHub Actions there, so the workflow pushes with a deploy key instead. Create it once, from the repository's root, and delete the local copy:
+
+   ```bash
+   ssh-keygen -t ed25519 -N "" -C "roadmap tick" -f ~/roadmap_key
+   gh repo deploy-key add ~/roadmap_key.pub --allow-write --title "roadmap tick"
+   gh secret set ROADMAP_DEPLOY_KEY < ~/roadmap_key
+   rm ~/roadmap_key ~/roadmap_key.pub
+   ```
+
+   Without it, tick boxes by hand with `node tools/roadmap-tick.mjs M4.8` in the next pull request.
 5. Environments `staging` and `production` (Settings, Environments), with "Required reviewers: Harry" on `production`. Their secrets come with M1.15.
 
 ### 3. Turn the settings on

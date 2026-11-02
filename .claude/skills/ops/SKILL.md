@@ -24,7 +24,7 @@ Order: **database, then server, then app.** Each must work with the one before a
 ## CI (.github/workflows/)
 
 - `ci.yml`: path filters, then only the changed parts: mobile (`expo install --check`, tokens, translations, gallery, lint, types, Jest), server (ruff, pyright, pytest), database (lite Postgres now; the full local stack, Squawk and the types check once migrations exist), docs (links), the title, gitleaks.
-- `roadmap.yml`: ticks the task in the merged pull request's title.
+- `roadmap.yml`: ticks the task in the merged pull request's title, pushing to main with the `ROADMAP_DEPLOY_KEY` deploy key (the main ruleset lets deploy keys bypass it).
 - To add (roadmap tasks): `staging.yml` and `production.yml` (M1.15, M2.12), `nightly.yml` (Maestro, bot game), `backup.yml` (M9.6).
 - Actions get pinned to commit SHAs in M1.15; Dependabot keeps them current.
 - Never put a secret in a workflow file. Pass untrusted text (titles, branch names) through `env:`, never inline `${{ }}` in `run:`.
