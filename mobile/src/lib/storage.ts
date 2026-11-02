@@ -7,6 +7,10 @@ export type KeyValueStore = {
   getItem(key: string): Promise<string | null>;
   setItem(key: string, value: string): Promise<void>;
   removeItem(key: string): Promise<void>;
+  // Synchronous twins, so a persisted store has its values on the first render.
+  getItemSync(key: string): string | null;
+  setItemSync(key: string, value: string): void;
+  removeItemSync(key: string): void;
 };
 
 export const storage: KeyValueStore = {
@@ -14,5 +18,10 @@ export const storage: KeyValueStore = {
   setItem: (key, value) => Storage.setItemAsync(key, value),
   removeItem: async (key) => {
     await Storage.removeItemAsync(key);
+  },
+  getItemSync: (key) => Storage.getItemSync(key),
+  setItemSync: (key, value) => Storage.setItemSync(key, value),
+  removeItemSync: (key) => {
+    Storage.removeItemSync(key);
   },
 };
