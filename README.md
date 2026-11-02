@@ -24,7 +24,7 @@ A group movie-picking game: friends join a room on their phones, swipe on films 
 On a Mac with Xcode, Android Studio, a Docker runtime and [mise](https://mise.jdx.dev):
 
 ```bash
-mise install        # Node, pnpm, Python, uv, the Supabase CLI, flyctl, gitleaks
+mise install        # Node, pnpm, Python, uv, the Supabase CLI, flyctl, gitleaks, lefthook
 mise run setup      # dependencies, .env.local files, the local Supabase stack, types
 mise run check:all  # lint, types and tests for everything
 mise run dev        # the local stack and Metro for the development builds

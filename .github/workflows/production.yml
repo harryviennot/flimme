@@ -1,6 +1,6 @@
 # Production by hand, after checking staging (roadmap M1.15). Harry runs this workflow, and the
 # `production` environment's required approval holds the job until he approves it.
-# The server joins this workflow with M2.12: the order is database, server, app.
+# The pipeline worker joins with M2.12, the API and app later: the order is database, server, app.
 # Needs the `production` GitHub environment: docs/architecture/operations.md#continuous-integration.
 name: Production
 
@@ -51,3 +51,32 @@ jobs:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
         run: node tools/smoke-data-api.mjs
+
+  server:
+    needs: database
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_WORKERS }}
+      FLY_APP: flimme-workers-production
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be # v1.5
+      # The worker cannot start without its database login. Until Harry has set the Fly secrets,
+      # skip the deploy (the job stays green; the app itself must exist) instead of shipping a worker that crashes in a loop.
+      - name: Check the app has its secrets
+        id: ready
+        run: |
+          secrets="$(flyctl secrets list --app "$FLY_APP")"
+          if grep -qw PIPELINE_DATABASE_URL <<< "$secrets"; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::$FLY_APP has no PIPELINE_DATABASE_URL secret yet, so the deploy is skipped"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Deploy the pipeline worker
+        if: steps.ready.outputs.ready == 'true'
+        working-directory: server
+        # One machine, never two (a second pipeline worker would only double the TMDB traffic).
+        run: flyctl deploy --config fly.workers.production.toml --remote-only --ha=false --image-label "sha-$GITHUB_SHA"

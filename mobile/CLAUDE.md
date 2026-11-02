@@ -8,4 +8,5 @@ The Expo SDK 58 app. Load the `expo-app` skill before changing anything here, `d
 - Styles are Uniwind (Tailwind 4) classes from the theme only. The theme is generated from `src/theme/tokens.json` by `pnpm tokens`; never edit `src/theme/generated/`.
 - Every component in `ui/` and `shared/` has a `<name>.gallery.tsx` next to it, listed in `src/components/gallery-registry.ts`; the gallery is at `/dev/gallery` in development builds.
 - Strings through `t()`, in `src/i18n/locales/fr` and `en`.
+- A dependency bug we can't wait for gets a `pnpm patch` in `patches/` (listed in `pnpm-workspace.yaml`), pinned to one exact version, with a comment naming the upstream issue. pnpm reports it unused once the version moves: then delete it.
 - `pnpm check` runs everything CI runs for the app: tokens, translations, gallery entries, ESLint, TypeScript, Jest.

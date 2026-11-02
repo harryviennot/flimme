@@ -11,6 +11,9 @@ uv = "0.11"
 supabase = "2.122.0"
 flyctl = "latest"
 gitleaks = "latest"
+# The git hooks find lefthook here, so they also run in a worktree without node_modules.
+# The same version as package.json's lefthook: change both together.
+lefthook = "2.2.2"
 
 [tasks.setup]
 description = "Install every dependency, create .env.local files, start the local stack and generate types"
