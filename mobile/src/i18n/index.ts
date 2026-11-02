@@ -1,6 +1,7 @@
 import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { AppState, type NativeEventSubscription } from 'react-native';
 
 import { resources } from './resources';
 
@@ -23,5 +24,23 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
   returnNull: false,
 });
+
+/** Switches the app to the device's language when it changed, and answers the language. */
+export function applyDeviceLanguage(): Language {
+  const language = deviceLanguage();
+  if (i18n.language !== language) void i18n.changeLanguage(language);
+  return language;
+}
+
+/**
+ * iOS restarts the app when its language changes; Android doesn't, so the language is checked
+ * again on every return to the foreground (Expo's localization guide). The root layout calls
+ * this once.
+ */
+export function watchDeviceLanguage(): NativeEventSubscription {
+  return AppState.addEventListener('change', (state) => {
+    if (state === 'active') applyDeviceLanguage();
+  });
+}
 
 export default i18n;

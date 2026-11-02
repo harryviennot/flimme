@@ -65,7 +65,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     // Sounds only play; the app never records.
     ['expo-audio', { microphonePermission: false }],
-    'expo-localization',
+    // Lists Flimme in the system's per-app language setting (iOS, and Android 13 and later).
+    ['expo-localization', { supportedLocales: ['fr', 'en'] }],
     'expo-sqlite',
     // Keeps the session key out of Android Auto Backup (security.md#the-app). The app never asks
     // for biometrics, so no Face ID text (see the blocked Android permissions too).
