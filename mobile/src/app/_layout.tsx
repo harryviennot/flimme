@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ToastHost } from '@/components/ui/toast';
+import { startSession } from '@/features/session';
 import { watchDeviceLanguage } from '@/i18n';
 import { queryClient } from '@/lib/query-client';
 import { fonts } from '@/theme/fonts';
@@ -26,6 +27,12 @@ export default function RootLayout() {
   useEffect(() => {
     if (ready) void SplashScreen.hideAsync();
   }, [ready]);
+
+  useEffect(() => {
+    // Not awaited: the `/` route (M4.6) waits for the answer. A real error reaches Sentry
+    // once M3.9 lands; the splash then shows its own error state.
+    startSession().catch(() => {});
+  }, []);
 
   useEffect(() => {
     const subscription = watchDeviceLanguage();
