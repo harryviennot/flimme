@@ -35,6 +35,9 @@ export function checkWorkflow(name, text) {
   return problems;
 }
 
+/** Added or renamed: a migration renamed to an older timestamp is new to the push too. */
+export const NEW_FILE_FILTER = 'AR';
+
 const fileName = (path) => path.replace(/^.*\//, '');
 const stamp = (path) => fileName(path).split('_')[0];
 
@@ -78,7 +81,7 @@ function runMigrationOrder(base) {
   const added = lines(
     'diff',
     '--name-only',
-    '--diff-filter=A',
+    `--diff-filter=${NEW_FILE_FILTER}`,
     `${base}...HEAD`,
     '--',
     'supabase/migrations',

@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { checkMigrationOrder, checkWorkflow } from './check-ci.mjs';
+import { NEW_FILE_FILTER, checkMigrationOrder, checkWorkflow } from './check-ci.mjs';
 import { judgeApiAnswers, judgeGraphqlSilent, judgePublicRefused } from './smoke-data-api.mjs';
 
 const SHA = '3d3c42e5aac5ba805825da76410c181273ba90b1';
@@ -61,6 +61,12 @@ test("order: migrations after main's latest pass", () => {
     'supabase/migrations/20261102091500_b.sql',
   ];
   assert.deepEqual(checkMigrationOrder(onMain, added), []);
+});
+
+test('order: a migration renamed to an older timestamp fails, and the diff counts renames', () => {
+  assert.match(NEW_FILE_FILTER, /R/);
+  const renamed = ['supabase/migrations/20261029000000_renamed.sql'];
+  assert.equal(checkMigrationOrder(onMain, renamed).length, 1);
 });
 
 test('order: no new migration passes', () => {
