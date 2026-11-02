@@ -1,6 +1,6 @@
 # Figma map
 
-Where everything is in the [design file](https://www.figma.com/design/v2ZGLbGmzZ7032V9AI5vWM), by node id, so agents can open one frame instead of a page. Extracted on 29 October 2026. How to use the Figma without wasting tokens is in the `figma` skill (.claude/skills/figma/SKILL.md).
+Where everything is in the [design file](https://www.figma.com/design/v2ZGLbGmzZ7032V9AI5vWM), by node id, so agents can open one frame instead of a page. Extracted on 29 October 2026; the First release page was added on 30 October 2026 (M0.9). How to use the Figma without wasting tokens is in the `figma` skill (.claude/skills/figma/SKILL.md).
 
 File key: `v2ZGLbGmzZ7032V9AI5vWM`. In node URLs the colon becomes a hyphen (`node-id=19-599`).
 
@@ -10,6 +10,7 @@ File key: `v2ZGLbGmzZ7032V9AI5vWM`. In node URLs the colon becomes a hyphen (`no
 | --- | --- |
 | Cover | `0:1` |
 | Release screens | `2:2` |
+| First release | `99:3537` |
 | Design tokens | `2:3` |
 
 ## Release screens (page `2:2`)
@@ -51,6 +52,41 @@ Each section has a "Screens" frame holding its screens.
 | | | | Alt E, mid-swipe | `71:3550` |
 
 The app builds the new card (section 04); section 07 only compares it with the original app's card.
+
+## First release (page `99:3537`)
+
+Copies of the Release screens frames, changed on 30 October 2026 (M0.9) to match the docs and the first release, plus the screens the first release adds. The originals on page `2:2` are untouched. Where this page and the docs differ, the docs win. Each section has a "Screens" frame; each screen's caption says what changed.
+
+| Section | Section id | Screens frame | Screen | Id | Copied from | Spec |
+| --- | --- | --- | --- | --- | --- | --- |
+| 01 First launch | `99:3538` | `99:3542` | 01 Splash | `99:3543` | `9:83` | [splash](screens/splash.md) |
+| | | | 02 Welcome | `99:3582` | `9:134` | [welcome](screens/welcome.md) |
+| | | | 03 Your name | `99:3614` | `9:362` | [name](screens/name.md) |
+| 02 Host or join | `99:3643` | `99:3647` | 04 Home | `99:3648` | `15:168` | [home](screens/home.md) |
+| | | | 05 Join with code | `99:3702` | `15:312` | [join-code](screens/join-code.md) |
+| | | | 05b Join, room full | `104:1662` | `15:312` | [join-code](screens/join-code.md) |
+| | | | 06-07 Host setup | `99:3779` | `15:492`, `15:404` | [host-setup](screens/host-setup.md) |
+| | | | 08 Lobby | `99:3814` | `15:607` | [lobby](screens/lobby.md) |
+| | | | 08b Lobby, guest | `104:1762` | `15:607` | [lobby](screens/lobby.md) |
+| | | | 09 Invite sheet | `99:3851` | `15:722` | [invite-sheet](screens/invite-sheet.md) |
+| 02b New in the first release | `107:1742` | `107:1746` | N1 Join sheet | `107:1747` | New | [join-sheet](screens/join-sheet.md) |
+| | | | N2 Join sheet, refused | `107:2042` | New | [join-sheet](screens/join-sheet.md) |
+| | | | N3 Invite page (web) | `108:1818` | New | [invite-page](screens/invite-page.md) |
+| | | | N4 Host menu | `110:1846` | New | Draft for M4.13, no spec yet |
+| | | | N5 Report | `110:2119` | New | Draft for M7.2, no spec yet |
+| 04 The game | `99:4060` | `99:4064` | 11 Swipe | `99:4065` | `19:599` | No spec yet |
+| | | | 12 Mid-swipe | `99:4093` | `19:938` | No spec yet |
+| | | | 13 Card flipped | `99:4122` | `19:1332` | No spec yet |
+| | | | 14 It's a match | `99:4149` | `22:921` | No spec yet |
+| | | | 15 Final cut | `99:4187` | `22:1051` | No spec yet |
+| | | | 16 Winner | `99:4232` | `22:1304` | No spec yet |
+| | | | 17 Recap card | `99:4268` | `22:1578` | No spec yet |
+| 05-06 Settings and edge states | `114:2022` | `114:2026` | 22 Settings | `99:4309` | `26:2113` | No spec yet |
+| | | | 25 Room closed | `99:4337` | `30:1950` | No spec yet |
+
+Not copied, because the first release doesn't have them: 06 Game mode and 07 Set the vibe as separate steps (merged into Host setup), 10 Taste check (M19), 18 Profile, 19 Connect Letterboxd, 20 Import history and 21 Save account (M15, M20), 23 Delete account (its account and Letterboxd wording waits for the Settings spec), and section 07. Not copied because nothing changed for the first release: 24 Reconnecting (the lobby's banner is in [reconnecting](screens/reconnecting.md); the swipe screen's version is slice 10's) and 26 Nothing left (it needs a decision first: its Vote on our likes and Change filters wait for M18).
+
+Drawn as overrides until the components catch up: the `PinBox` error border on 05b (the component has no `Error` variant yet) and the host `Tag` without the `crown` icon (the icon set has none yet). Service logos on 16 Winner are placeholder tiles: the app shows TMDB's provider logos. The invite domain `flimme.app` is a placeholder until M0.2.
 
 ## Design tokens (page `2:3`)
 

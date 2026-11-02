@@ -81,7 +81,7 @@ The design file's 26 screens are the reference for what exists, not the final wo
 | `/room/[id]/invite` | 09 | Sheet over the lobby |
 | `/room/[id]/taste-check` | 10 | Local to the lobby: the room is still `lobby` |
 | `/room/[id]/swipe` | 11 to 13, 26 | Flipping is an animation, not a route. "Nothing left" is a state of this screen |
-| `/room/[id]/final-cut` | 15 | Veto, then ranking |
+| `/room/[id]/final-cut` | 15 | One 60-second round: order the finalists and veto one at once ([the finale](../product/game-modes.md#the-finale)) |
 | `/room/[id]/winner` | 16 | Then `/room/[id]/recap` (17), a sheet with the share card |
 | `/room/[id]/closed` | 25 | Room abandoned or expired |
 | `/profile`, `/profile/letterboxd`, `/profile/import` | 18 to 20 | Import status and the unmatched-films list |
