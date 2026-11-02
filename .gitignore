@@ -40,3 +40,6 @@ npm-debug.*
 .claude/settings.local.json
 .claude/state/
 .claude/worktrees/
+
+# Raw TMDB recordings, never committed (TMDB data stays out of git)
+server/tests/fixtures/.recorded/

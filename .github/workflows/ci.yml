@@ -143,6 +143,10 @@ jobs:
       - run: uv run ruff check . && uv run ruff format --check .
       - run: uv run pyright
       - run: uv run pytest -q
+      - name: The image builds and prints its help
+        run: |
+          docker build --tag flimme-server .
+          docker run --rm flimme-server --help
 
   database-lite:
     # The migrations tested on plain Postgres 16 with stand-ins for Supabase's schemas,

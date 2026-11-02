@@ -5,8 +5,10 @@ A missing or malformed value stops the process with a message naming the setting
 `.env.local` from the working directory; in staging and production the host sets
 real environment variables and the file does not exist.
 
-The variable names are the ones in docs/architecture/server-structure.md:
-ENVIRONMENT, DATABASE_URL, TMDB_READ_TOKEN and SENTRY_DSN.
+Each process has its own database login (M1.12), so each has its own URL variable:
+PIPELINE_DATABASE_URL, DECK_DATABASE_URL, TRAINER_DATABASE_URL and API_DATABASE_URL. Locally
+only, DATABASE_URL stands in for any of them. A command asks for the one URL it needs with
+`Settings.database_url_for`, so a process never needs another process's login.
 """
 
 from enum import StrEnum
@@ -23,6 +25,27 @@ class Environment(StrEnum):
     PRODUCTION = "production"
 
 
+class Process(StrEnum):
+    """A process with its own database login. The value names its URL variable."""
+
+    PIPELINE = "pipeline"
+    DECK = "deck"
+    TRAINER = "trainer"
+    API = "api"
+
+    @property
+    def variable(self) -> str:
+        return f"{self.value.upper()}_DATABASE_URL"
+
+
+class MissingSetting(Exception):
+    """A required setting is not set. Names the variable, never a value."""
+
+    def __init__(self, variable: str) -> None:
+        super().__init__(f"{variable} is not set")
+        self.variable = variable
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env.local",
@@ -37,8 +60,13 @@ class Settings(BaseSettings):
 
     environment: Environment
 
-    # The app_server login, through the shared pooler in session mode.
-    database_url: SecretStr
+    # Each process's own login, through the shared pooler in session mode. `database_url` is
+    # the local stand-in for all of them.
+    database_url: SecretStr | None = None
+    pipeline_database_url: SecretStr | None = None
+    deck_database_url: SecretStr | None = None
+    trainer_database_url: SecretStr | None = None
+    api_database_url: SecretStr | None = None
 
     # TMDB's read access token. Only the pipeline worker and the API need it.
     tmdb_token: SecretStr | None = Field(
@@ -54,9 +82,26 @@ class Settings(BaseSettings):
         # cannot know.
         return cls()  # pyright: ignore[reportCallIssue]
 
-    @field_validator("database_url")
+    def database_url_for(self, process: Process) -> SecretStr:
+        """The login URL of one process. Raises MissingSetting naming the variable."""
+        own: SecretStr | None = getattr(self, f"{process.value}_database_url")
+        if own is not None:
+            return own
+        if self.environment is Environment.LOCAL and self.database_url is not None:
+            return self.database_url
+        raise MissingSetting(process.variable)
+
+    @field_validator(
+        "database_url",
+        "pipeline_database_url",
+        "deck_database_url",
+        "trainer_database_url",
+        "api_database_url",
+    )
     @classmethod
-    def _database_url_is_a_connection_url(cls, value: SecretStr) -> SecretStr:
+    def _database_url_is_a_connection_url(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is None:
+            return None
         url = value.get_secret_value()
         if not url.startswith(("postgresql://", "postgres://")):
             raise ValueError("must be a postgresql:// or postgres:// URL")

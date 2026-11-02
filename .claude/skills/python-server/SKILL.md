@@ -22,7 +22,7 @@ Postgres decides the game; the server decides the deck, learns, and makes every 
 
 - Python 3.13, uv. Add a dependency with `uv add <pkg>` (never edit `uv.lock` by hand).
 - Types everywhere; pyright must pass. Pydantic models for payloads crossing the database or HTTP.
-- **No network in tests.** TMDB and Letterboxd responses are recorded once into `tests/fixtures/` and replayed.
+- **No network in tests.** TMDB and Letterboxd responses are replayed from `tests/fixtures/`, which holds synthetic files only (TMDB's response shape, movie ids from 60,000,001; a test fails on any other id). Record a real one into the git-ignored `tests/fixtures/.recorded/` and run `tools/scrub_fixture.py` before committing. The TMDB client is `catalog/tmdb.py`: one per process, it owns the rate limiter.
 - **TMDB:** a polite request rate, retries with backoff, 429 handling (tmdb.md#failures-and-retries). Its data never goes into git.
 - **No personal data in logs**: ids only, never names, room codes or emails.
 - The HTTP API checks the Supabase token (ES256, against the project's signing keys) on every route but `/healthz`.
