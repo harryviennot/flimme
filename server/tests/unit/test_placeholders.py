@@ -79,11 +79,13 @@ def test_the_vendored_encoder_matches_the_reference_on_alpha_and_portrait_images
         for y in range(40):
             alpha.putpixel((x, y), ((x * 4) % 256, (y * 6) % 256, (x * y) % 256, (x * 5) % 256))
     assert image_to_thumbhash(alpha) == "HyiGE4onk2mQaYejoDr5hgEseHeIiIc="
+    # Not a flat or too regular picture: a coefficient that lands exactly on a rounding tie
+    # comes out one unit apart on glibc and Apple's libm (cos differs in the last bit).
     portrait = Image.new("RGB", (40, 90))
     for x in range(40):
         for y in range(90):
-            portrait.putpixel((x, y), ((x * 6) % 256, (y * 2) % 256, 200))
-    assert image_to_thumbhash(portrait) == "ITUKMxhwgniHh4iHgHII14g="
+            portrait.putpixel((x, y), ((x * 6 + 39) % 256, (y * 2 + 21) % 256, (x * y + 3) % 256))
+    assert image_to_thumbhash(portrait) == "HjgKGxIxcHd3dnd3U5Ab9Ig="
 
 
 def test_a_fully_transparent_image_still_hashes():
