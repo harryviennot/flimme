@@ -46,6 +46,8 @@ It builds on the [roadmap](product/roadmap.md) (its tasks, rules and milestones)
 | Guessing | A wrong guess costs a rewrite and a second review | Stop and ask (the roadmap's rule 6). Open questions are part of the brief |
 | Permission prompts | The agent sits waiting for a click | An allowlist of read-only and test commands |
 | Figma reads | This file's screens page alone returns about 125,000 characters of metadata | Each frame is read once and kept as a short screen spec |
+| A plan returned as one long answer | Slice 1's planner spent 21 of its 31 minutes writing a single 60 KB answer, and the main session then carried it through every later step | The planner writes the brief files itself and answers with a summary. A slice is planned in two passes, so the first wave starts while the rest are written |
+| Waiting on a reviewer in the background | M1.7 polled its background reviewer with a loop and waited 9 minutes for a 3-minute review; M1.15 handed back before its review, so the main session had to relay the findings | The implementer runs the reviewer in the foreground and waits for its report |
 
 If the other project was slow for a reason that isn't in this table, it gets a rule too.
 
@@ -87,7 +89,7 @@ Each agent is a file in `.claude/agents/` with its own instructions, tools, mode
 | Agent | Job | Model, effort | Runs | Reads | Writes |
 | --- | --- | --- | --- | --- | --- |
 | **Harry** (lead) | Picks the next slice, approves large briefs, merges, runs device checks, answers questions. Owns accounts, legal and the stores | | Daily | Briefs, pull requests | Answers in decisions.md |
-| **planner** | Turns a task or a slice into a brief: the contract, the rules quoted, the tests to write, the files touched, open questions. Sizes every task once | Opus 5.5, high | Each medium or large task, and once per slice | The linked doc sections, decisions.md, the code it touches | The brief, in the pull request |
+| **planner** | Turns a task or a slice into a brief: the contract, the rules quoted, the tests to write, the files touched, open questions. Sizes every task once | Opus 5.5, high | Each medium or large task, and once per slice | The linked doc sections, decisions.md, the code it touches | Briefs, in `.claude/state/briefs/` |
 | **designer** | UX, UI and motion: screen specs, the design system and motion tokens in code, Figma updates, visual review of UI pull requests | Opus 5.5, high | Each UI slice and UI pull request | Figma (once per frame), screen specs | Screen specs, tokens, the feel checklist |
 | **game-designer** | Rules, pacing and the beats of the signature moments; simulating the match rules; the playtest protocol and its analysis; tuning the starting values | Opus 5.5, high | At gates: M0.7, the M6 kickoff, after each playtest, the beta reviews | game-modes.md, deck-engine.md, playtest notes, metrics | Moment beats, tuning proposals |
 | **backend-dev** | SQL migrations, `api` functions and pgTAP tests; the Python server | Sonnet 5.5, medium. Opus 5.5 for large game-logic tasks | Each backend or server task | The brief, the code | Code, tests, the pull request |
@@ -153,9 +155,9 @@ The planner sizes all 141 first-release tasks in one pass at the start. A rough 
 
 | Size | Typical tasks | What happens |
 | --- | --- | --- |
-| **S** | One function or one component, rules in one doc section: M1.10, M1.11, M3.8, M4.3, M5.4, M6.7, M8.6 | No planner. The session reads the roadmap line and its one linked section. `/code-review` reviews. Harry merges |
-| **M** | A function with several rules, or a screen with its states: M1.8, M1.9, M2.7, M4.8, M4.11, M6.12 | A planner brief, a design spec for UI, the reviewer agent |
-| **L** | Game logic, concurrency, the signature screens: M1.4, M4.10, M6.4 to M6.6, M6.9, M6.11, M6.14, M6.15 | The brief is approved by Harry first. A design or game spec. The reviewer on Opus. A device check |
+| **S** | One function or one component, rules in one doc section: M3.8, M6.7 | No planner. The session reads the roadmap line and its one linked section. `/code-review` reviews. Harry merges |
+| **M** | A function with several rules, or a screen with its states: M1.10, M1.11, M4.3, M4.8, M4.11, M5.4, M6.12, M8.6 | A planner brief, a design spec for UI, the reviewer agent |
+| **L** | Game logic, concurrency, the signature screens: M1.4, M1.8, M1.9, M2.7, M4.10, M6.4 to M6.6, M6.9, M6.11, M6.14, M6.15 | The brief is approved by Harry first. A design or game spec. The reviewer on Opus. A device check |
 
 ### The loop
 
@@ -173,14 +175,14 @@ flowchart LR
 ```
 
 1. **Pick.** `tools/next` lists the tasks whose "needs" are merged, with their size and lane. It's a script reading roadmap.md, so it costs no tokens.
-2. **Brief** (M and L). The planner writes it into a draft pull request. Open questions stop the task here.
+2. **Brief** (M and L). The planner writes it to `.claude/state/briefs/<id>.md` and answers with the size and the open questions, not the brief, so the session running the task stays small. Open questions stop the task here.
 3. **Spec** (UI tasks). The designer adds the screen spec, or links the one already in `docs/design/screens/`.
 4. **Approve** (L). Harry reads the brief: two minutes that save a rewrite.
 5. **Build.** A fresh session on the task's branch writes the brief's tests first, then the code. A hook formats every edited file.
 6. **Self-check.** When the agent tries to stop, a hook runs lint, types and the affected tests. It can't finish red.
 7. **Pull request.** The title starts with the task id. The body is the brief plus "How it was tested", with each command and its result.
 8. **CI** confirms: the full suites, pgTAP, the generated-types check.
-9. **Review.** One reviewer run on the diff and the brief, ticking each test from the brief's list. Blocking findings get fixed; nits ride along or are dropped.
+9. **Review.** One reviewer run on the diff and the brief, ticking each test from the brief's list. The implementer runs it in the foreground and waits for its report. Blocking findings get fixed; nits ride along or are dropped.
 10. **Merge.** Harry. On merge, a GitHub Action ticks the roadmap box.
 11. **Verify**, at the end of a slice: qa runs a bot game on staging; for UI slices, Harry runs the feel check on a phone.
 
@@ -339,7 +341,7 @@ EAS's free plan allows 15 builds per platform a month, so JavaScript changes go 
 ## Tracking work
 
 - **roadmap.md stays the source of truth.** Its task lines are regular enough to parse (`- [ ] **M4.8** … · needs …`), which is all `tools/next` needs.
-- **One task, one branch, one pull request**, as the roadmap says. The brief lives in the pull request body, so the plan, the code, the review and the test evidence sit together. For M and L tasks, the planner opens the draft pull request.
+- **One task, one branch, one pull request**, as the roadmap says. While the task runs, its brief is in `.claude/state/briefs/<id>.md`; the pull request body is filled from it, so the plan, the code, the review and the test evidence sit together.
 - **On merge**, an Action ticks the box and updates the "Progress" line.
 - **Questions** from briefs go to Harry; the scribe writes the answers into decisions.md.
 - **A board** (GitHub Projects) can be generated from the roadmap later if a visual board helps. Linear is connected here too, but it would be a second source of truth.

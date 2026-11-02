@@ -37,7 +37,7 @@ The database decides the game. The app only reaches the `api` schema; the server
 
 - Row-level security on every table; `api` views run with the caller's rights.
 - Grants are explicit; default privileges are revoked (M1.7). The CI check fails on a table without row-level security or a function open to phones by mistake.
-- Players who left or were removed read nothing of the room (`room_members.removed_at`, M1.8).
+- Seats that left (`left_at`) keep reading the room and both Realtime topics but can't send on `:live`. Removed seats (`room_members.removed_at`, M1.8) read nothing of the room, except their own votes. Both go through `internal.is_room_member` and `internal.can_use_room_topic`.
 - Nobody ever reads who noped a film, and swipes never reach other phones during a game: counts only.
 
 ## Tests (pgTAP)

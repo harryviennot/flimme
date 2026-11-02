@@ -41,11 +41,15 @@ if [[ "$(admin -Atc "select rolsuper from pg_roles where rolname = current_user"
   exit 1
 fi
 
-# Roles belong to the whole cluster and outlive databases. The baseline creates
-# app_server only if it's missing, so the role from the previous load is dropped
-# when nothing else uses it, and kept while another lite database still does.
+# Roles belong to the whole cluster and outlive databases. The migrations create
+# app_server, app_http and the four server logins only if they're missing, so the
+# roles from the previous load are dropped when nothing else uses them, and kept
+# while another lite database still does. The logins go first: they are members
+# of the groups.
 admin -c "drop database if exists $db with (force)"
-admin -c "drop role if exists app_server" >/dev/null 2>&1 || true
+for role in flimme_deck flimme_pipeline flimme_trainer flimme_http app_http app_server; do
+  admin -c "drop role if exists $role" >/dev/null 2>&1 || true
+done
 admin -c "create database $db"
 
 echo "load.sh: stand-ins" >&2

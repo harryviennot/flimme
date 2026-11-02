@@ -28,12 +28,17 @@
 create extension if not exists pgtap with schema extensions;
 
 create schema if not exists tests;
+-- Test setup only, never in a migration. M1.7's migration revokes execute on new
+-- functions from PUBLIC (a global default for the role that creates them), which
+-- would make these helpers uncallable by the roles the tests act as.
+alter default privileges in schema tests grant execute on functions to public;
 -- app_server is there so a test acting as the recommendation server can call
--- the helpers (tests.room_id() and tests.member_id() in a query's arguments).
-grant usage on schema tests to anon, authenticated, service_role, app_server;
+-- the helpers (tests.room_id() and tests.member_id() in a query's arguments);
+-- so is app_http (M1.12), which calls start_letterboxd_import with tests.uid().
+grant usage on schema tests to anon, authenticated, service_role, app_server, app_http;
 -- The same test needs pgTAP's functions (is, throws_ok), which live in `extensions`.
 -- Test setup only: it says nothing about what the real server needs.
-grant usage on schema extensions to app_server;
+grant usage on schema extensions to app_server, app_http;
 
 -- The id of the user with this name. Same name, same id, in every test.
 create or replace function tests.uid(p_name text) returns uuid
@@ -340,6 +345,20 @@ begin
 end
 $$;
 
+-- The HTTP API's login, the only caller of internal.start_letterboxd_import
+-- (M1.12). Like act_as_server: ends with tests.clear_authentication().
+create or replace function tests.act_as_http() returns void
+language plpgsql
+as $$
+begin
+  perform tests.clear_authentication();
+  if not pg_has_role(current_user, 'app_http', 'SET') then
+    execute format('grant app_http to %I with inherit false, set true', current_user);
+  end if;
+  set local role app_http;
+end
+$$;
+
 -- The messages in a queue, oldest first. Call it as the session's own user, not
 -- as a player or as app_server, and filter by room_id: other rooms of the same
 -- transaction share the queue. Reads the queue table, never pgmq.read, so
@@ -616,9 +635,9 @@ end
 $$;
 
 -- Connects a player's Letterboxd account the way the server does: builds the
--- export (as the superuser), calls internal.start_letterboxd_import as the
--- server, and unless p_finish is false matches the films and calls
--- internal.finish_letterboxd_import. Raises on any answer but 'ok'. Leaves the
+-- export (as the superuser), starts the import as the HTTP API, and unless
+-- p_finish is false matches the films and calls internal.finish_letterboxd_import
+-- as the server. Raises on any answer but 'ok'. Leaves the
 -- session as the superuser. Returns {linked_account_id, import_id, start, finish}
 -- (finish is null when not finished).
 create or replace function tests.connect_letterboxd(
@@ -633,7 +652,7 @@ declare
   v_start jsonb;
   v_finish jsonb;
 begin
-  perform tests.act_as_server();
+  perform tests.act_as_http();
   v_start := internal.start_letterboxd_import(tests.uid(p_name), v_payload);
   perform tests.clear_authentication();
   if v_start->>'status' <> 'ok' then

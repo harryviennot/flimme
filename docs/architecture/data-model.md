@@ -450,6 +450,7 @@ The 10-minute limits are my starting values; the plan only gives 8 minutes for 3
 | provider_ids | integer[] | This player's services tonight, prefilled from their profile |
 | mood_slugs, genre_ids | | "Tonight I want", a soft boost in their fit |
 | joined_at, left_at | timestamptz | Rejoining clears left_at and keeps the same seat |
+| removed_at | timestamptz | Set when the host removes the player (M4.2). A removed seat is not a member: it reads nothing of the room, has no Realtime topic and gets no cards, except its own votes. Null otherwise, and a removed player can't rejoin |
 | last_active_at | timestamptz | Heartbeat. Only seats active in the last 90 seconds count for match rules |
 | calibrated_at, done_at | timestamptz | |
 | swipe_count | integer | Progress ring |
@@ -756,13 +757,13 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | Reference data, game modes, calibration films, app config | Through api views | Read; writes reference data |
 | Your profile, services | Through api views and functions | Read |
 | Consents, linked accounts, imports, diary entries, film history, taste profiles | Your own Letterboxd status through api views; the rest never | Read and write |
-| Rooms, seats, matches, rounds | Rooms you have a seat in, through api views | Read; writes `rooms.stats` only |
+| Rooms, seats, matches, rounds | Rooms you have a seat in, through api views. Seats that left still read (history, rejoining); removed seats read nothing | Read; writes `rooms.stats` only |
 | Room cards, decks | Only through `api.my_next_cards`, for your own seat. Counters, scores and fits never | Read; writes only through `deal_cards` |
-| Votes | Your own seat's, through `api.my_votes` | Read |
+| Votes | Your own seat's, through `api.my_votes`, removed seats included (your own data) | Read |
 | `swipe_log`, `room_models`, `rate_limits`, `ingest_runs`, `letterboxd_film_map`, title vectors | Never | Read; writes the ones it owns |
 | `rec` schema | Never | Read and write |
-| Realtime `room:<id>` | Seated players read | The database sends |
-| Realtime `room:<id>:live` | Seated players read and send | |
+| Realtime `room:<id>` | Seated players read, including seats that left. Removed seats don't | The database sends |
+| Realtime `room:<id>:live` | Seated players read and send. Seats that left read but can't send; removed seats do neither | |
 
 - Nobody can list rooms. A room is found only by its code, through `join_room`.
 - Other players' answers never reach a phone as rows. In Party mode they arrive as counts; in Blind mode not at all.
@@ -777,7 +778,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `member_joined` | room | join_room | seat, name, avatar | Adds the avatar |
 | `member_left` | room | leave_room | seat, new host seat | Removes it, moves the crown |
 | `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
-| `settings_changed` | room | update_room_settings | changed fields | Refetches the room |
+| `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state | Moves to the next screen ("Shuffling" while dealing) |
 | `deck_updated` | room | cast_vote, deal_cards | seat ids | Those seats refetch behind their mounted cards |
 | `near_miss` | room | cast_vote, Party mode only | title, likes, of | "2 of 3 of you liked this" |

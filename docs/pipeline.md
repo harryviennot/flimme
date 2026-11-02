@@ -129,7 +129,7 @@ In a fresh session (cloud, or `claude` on the Mac). The `task` skill then:
 /slice joining
 ```
 
-or with ids: `/slice M4.1 M4.8 M4.14 M4.15`. The planner writes one plan for the whole feature (the shared contract, then a short brief per task), the designer and game designer write the specs it needs, and you get back the order, what can run in parallel, and the open questions. Then run its tasks with `/task` in that order: backend first, app on the merged contract.
+or with ids: `/slice M4.1 M4.8 M4.14 M4.15`. The planner reads for every task, then writes the shared plan and the first wave's briefs into `.claude/state/briefs/`. The designer and game designer write the specs it needs. You get back the order, what can run in parallel, and every open question with its default. Once you answer, the first wave starts and the planner writes the other briefs in the background. Tasks run in that order: backend first, app on the merged contract.
 
 ## Several tasks at once
 

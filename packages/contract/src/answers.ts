@@ -32,11 +32,11 @@ export const LEAVE_ROOM_ANSWERS = ['ok', 'not_in_room'] as const;
 export type LeaveRoomAnswer = (typeof LEAVE_ROOM_ANSWERS)[number];
 
 /** `api.update_room_settings` answers. */
-export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed'] as const;
+export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed', 'invalid_settings'] as const;
 export type UpdateRoomSettingsAnswer = (typeof UPDATE_ROOM_SETTINGS_ANSWERS)[number];
 
 /** `api.set_seat_prefs` answers. */
-export const SET_SEAT_PREFS_ANSWERS = ['ok', 'closed'] as const;
+export const SET_SEAT_PREFS_ANSWERS = ['ok', 'closed', 'too_many'] as const;
 export type SetSeatPrefsAnswer = (typeof SET_SEAT_PREFS_ANSWERS)[number];
 
 /** `api.start_game` answers. */
@@ -66,7 +66,7 @@ export const UPDATE_PROFILE_ANSWERS = ['ok', 'invalid_name'] as const;
 export type UpdateProfileAnswer = (typeof UPDATE_PROFILE_ANSWERS)[number];
 
 /** `api.set_my_providers` answers. */
-export const SET_MY_PROVIDERS_ANSWERS = ['ok'] as const;
+export const SET_MY_PROVIDERS_ANSWERS = ['ok', 'too_many'] as const;
 export type SetMyProvidersAnswer = (typeof SET_MY_PROVIDERS_ANSWERS)[number];
 
 /** `api.disconnect_letterboxd` answers. */
