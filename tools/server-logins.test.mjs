@@ -1,5 +1,5 @@
 // tools/server-logins.mjs: the hash Postgres stores is right, nothing secret can reach the
-// output, and the URL has the pooler's shape. Run with `node --test tools/`.
+// output, and the URL has the pooler's shape. Run with `node --test tools/*.test.mjs`.
 import assert from 'node:assert/strict';
 import { createHash, createHmac } from 'node:crypto';
 import { test } from 'node:test';
