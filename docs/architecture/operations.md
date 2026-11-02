@@ -80,7 +80,7 @@ Set on both staging and production, by hand once, then checked against this list
 | Setting | Value | Where | Why |
 | --- | --- | --- | --- |
 | Region | Staging: West EU (Ireland), `eu-west-1`. Production: Central EU (Frankfurt), `eu-central-1` | At project creation | Players' data stays in the EU |
-| Exposed schemas | `api` only | Project settings, Data API, "Exposed schemas" | The app reaches nothing but `api` ([data model](data-model.md#the-apps-api)). After setting it, check that a table in `public` doesn't answer through `/rest/v1/` |
+| Exposed schemas | `api` only | Project settings, Data API, "Exposed schemas", once the baseline migration has created `api` on the project (M1.15) | The app reaches nothing but `api` ([data model](data-model.md#the-apps-api)). After setting it, check that a table in `public` doesn't answer through `/rest/v1/` |
 | Automatically expose new tables | Off | Data API settings | A new table is never reachable by accident |
 | GraphQL | Off: drop the `pg_graphql` extension in the baseline migration | Migration, or Database, Extensions | Unused surface. Supabase's docs don't spell out the switch; check that `/graphql/v1` no longer answers |
 | Realtime "Allow public access" | Off | Realtime settings | Private channels only; phones open them with `private: true` ([app-structure.md](app-structure.md#realtime)) |

@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 12 of 244 tasks done.
+Progress: 16 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -190,7 +190,7 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
   Done when: the account is verified.
 - [ ] **M0.5** Email TMDB about the licence: catalog only at launch, embeddings and trained models later · legal · S · [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
   Done when: the email is sent; the answer, when it comes, goes in decisions.md.
-- [ ] **M0.6** Open the service accounts with 2FA: Supabase (Free until M2.15), Fly.io, Sentry (EU), PostHog (EU), Expo, GitHub secret scanning · ops · S · [operations](../architecture/operations.md#environments), [security](../architecture/security.md#dependencies-and-accounts)
+- [x] **M0.6** Open the service accounts with 2FA: Supabase (Free until M2.15), Fly.io, Sentry (EU), PostHog (EU), Expo, GitHub secret scanning · ops · S · [operations](../architecture/operations.md#environments), [security](../architecture/security.md#dependencies-and-accounts)
   Done when: every account exists in Harry's name with 2FA on.
 - [x] **M0.7** Confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards) · decision · M · [game-modes](game-modes.md#time-to-a-pick)
   Done when: recorded in decisions.md.
@@ -200,7 +200,7 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
   Done when: the affected frames match this list.
 - [x] **M0.10** One repository: rename `movie-swipe-backend` to `flimme`, archive `movie-swipe-app`, and the shared tools (mise, pnpm workspaces, lefthook) · ops · S · [groundwork](../architecture/groundwork.md#the-repository)
   Done when: the repository is renamed, the old one archived, and `mise run check:all` passes on main.
-- [ ] **M0.11** The agent setup: CLAUDE.md files, agents, skills, hooks and settings · ops · S · needs M0.10 · [pipeline](../pipeline.md#one-time-setup), [agent-workflow](../agent-workflow.md#the-roster)
+- [x] **M0.11** The agent setup: CLAUDE.md files, agents, skills, hooks and settings · ops · S · needs M0.10 · [pipeline](../pipeline.md#one-time-setup), [agent-workflow](../agent-workflow.md#the-roster)
   Done when: `.claude/settings.json` is in place and a first small task has gone through `/task` to a merged pull request.
 
 ## M1 Backend foundation
@@ -211,13 +211,13 @@ Done when: migrations and the test suite run from CI on staging and production.
 
 - [ ] **M1.1** Create the staging and production Supabase projects: staging in Ireland, production in Frankfurt · ops · S · needs M0.6 · [operations](../architecture/operations.md#environments)
   Done when: both projects exist, on the Free plan until M2.15.
-- [ ] **M1.2** Apply the Supabase settings checklist to both projects · ops · M · needs M1.1 · [operations](../architecture/operations.md#supabase-settings), [security](../architecture/security.md#supabase-settings)
-  Done when: only `api` is exposed, Realtime public access is off, ES256 signing keys and the new API keys are in use.
+- [x] **M1.2** Apply the Supabase settings checklist to both projects · ops · M · needs M1.1 · [operations](../architecture/operations.md#supabase-settings), [security](../architecture/security.md#supabase-settings)
+  Done when: Realtime public access is off, anonymous sign-ins are on, ES256 signing keys and the new API keys are in use. Exposing only `api` waits for the first migration to reach the projects, in M1.15.
 - [x] **M1.3** Set up the Supabase CLI in the backend repo: `supabase/` folder and the local stack · backend · S · [operations](../architecture/operations.md#from-schemasql-to-migrations)
   Done when: `supabase start` runs the local stack from the repo.
 - [x] **M1.4** Rewrite the 120 checks as pgTAP tests against `schema.sql` as it stands · test · L · needs M1.3 · [data-model](../architecture/data-model.md#what-was-tested)
   Done when: the suite runs locally and passes.
-- [ ] **M1.5** Turn `schema.sql` into the baseline migration · backend · M · needs M1.4 · [operations](../architecture/operations.md#from-schemasql-to-migrations)
+- [x] **M1.5** Turn `schema.sql` into the baseline migration · backend · M · needs M1.4 · [operations](../architecture/operations.md#from-schemasql-to-migrations)
   Done when: the migration builds a fresh database and the suite passes on it.
 - [x] **M1.6** Remove what v1 dropped: `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue, the `result` event · backend · M · needs M1.5 · [decisions](../decisions.md)
   Done when: none of them exist and the tests are updated.
@@ -238,7 +238,7 @@ Done when: migrations and the test suite run from CI on staging and production.
 - [x] **M1.14** A synthetic seed for local work and CI: a few hundred made-up films with French availability, no TMDB data · backend · M · needs M1.5 · [operations](../architecture/operations.md#seed-and-test-data)
   Done when: a local game can be played on the seed.
 - [ ] **M1.15** Backend CI: the test suite on every pull request, migrations to staging on merge, to production by a manual workflow, actions pinned to commit SHAs · ops · M · needs M1.2, M1.5 · [operations](../architecture/operations.md#continuous-integration)
-  Done when: a merged migration reaches staging without hands.
+  Done when: a merged migration reaches staging without hands. Once the baseline migration is on each project, only `api` is exposed (Data API settings), a table in `public` doesn't answer through `/rest/v1/`, and `/graphql/v1` doesn't answer.
 - [x] **M1.16** The lite database for cloud sessions and the pgTAP helpers: stand-ins for Supabase's `auth`, `realtime` and `pgmq`, the `tests` helpers, a smoke test · test · S · needs M1.3 · [groundwork](../architecture/groundwork.md#cloud-sessions)
   Done when: the smoke test passes on the lite database and with `supabase test db`.
 - [x] **M1.17** `packages/contract` and `mise run typegen`: the generated `api` types, the answers, the Realtime events · backend · M · needs M1.5 · [groundwork](../architecture/groundwork.md#the-backends-foundations)
