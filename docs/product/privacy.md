@@ -71,7 +71,7 @@ Guests and accounts store the same things; a guest simply has no email. Retentio
 | Deal logs (`rec`) | Each card dealt with its score, features, model and experiment | Train and compare models | Legitimate interest | Nobody | Ranked cards 90 days, requests 13 months |
 | Training exports | Deal logs joined to votes, with seat ids only | Train models | Legitimate interest, with an opt-out | Nobody | **New**: 24 months (the data model sets none) |
 | Room taste | The room's live taste and dropped genres | The deck during the game | Contract | Nobody | With the room |
-| Rate limits | Counters keyed by player id | Stop room codes being guessed | Legitimate interest (security) | Nobody | 1 day |
+| Rate limits | Counters keyed by player id, and by a client address stored as a sha256 hash (IPv6 keyed by its /64) | Stop room codes being guessed | Legitimate interest (security) | Nobody | 1 day |
 | Analytics (PostHog) | Anonymous events: screens, taps, timings; device model, OS, app version. No player id, no IP | Measure and fix the app | Exempt audience measurement, with an opt-out | Nobody | 25 months at most |
 | Crash reports (Sentry) | Stack traces, device model, OS, app version. No names, codes, emails or IP | Fix crashes | Legitimate interest (**Lawyer**) | Nobody | Sentry's retention, set in [operations.md](../architecture/operations.md) |
 | Server and database logs | Requests, errors, IP addresses | Security and operations | Legitimate interest | Nobody | Set in [security.md](../architecture/security.md) and [operations.md](../architecture/operations.md) |
