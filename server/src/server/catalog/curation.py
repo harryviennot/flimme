@@ -3,7 +3,8 @@
 `curation.toml` is applied by the reference job in every environment (decision Q12), because a
 migration can't do it: the provider rows only exist once TMDB has filled them. Sections:
 
-- `[countries.XX]`: `enabled` and `language`. The only way a country is ever enabled.
+- `[countries.XX]`: `enabled` and `language`. The only way a country is ever enabled. It is
+  applied every run, so a country switched off by hand while still in the file comes back on.
 - `[certification_ages.XX]`: certification -> minimum age (decision Q13). A certification left
   out has no age, so a room with an age cap leaves the film out.
 - `[services.XX]`: for one country, the ids of the `listed` services (shown in the picker), the
