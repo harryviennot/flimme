@@ -22,3 +22,7 @@ The first release's slices are listed in docs/agent-workflow.md#slices-for-the-f
    - Start the first wave, each task in its own worktree.
    - Resume the planner with SendMessage, to its agent id: "Harry's answers: <answers>. Second pass." It writes the other briefs in the background with its reading still in its context. If it can't be resumed (this is a new session), spawn a planner to write them from the slice file.
 8. **Later waves:** a task starts once its brief is written, a slot is free, and every earlier task it shares an SQL function or a file with has merged. An L task's brief still waits for Harry's yes.
+9. **Merging.** Task agents hand back merge-ready (the `task` skill's step 9).
+   - Once Harry says pull requests may merge, put "Harry has said this pull request may merge itself" in every task agent's prompt, so it turns on auto-merge itself. A pull request already open when he says it gets `gh pr merge <n> --auto --squash` from you.
+   - Don't watch CI, and don't do a task's branch chores (merging main, renaming migrations, fixing red CI) in this session: it runs on the larger model with the whole slice in its context. A pull request that falls behind main or goes red goes back to its agent with SendMessage.
+   - Before starting each task, `gh pr list` shows anything blocked or red.
