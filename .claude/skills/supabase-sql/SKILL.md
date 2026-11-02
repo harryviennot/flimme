@@ -29,7 +29,7 @@ The database decides the game. The app only reaches the `api` schema; the server
 - **The room lock:** anything that changes a room's game state starts with `select * into v_room from public.rooms where id = p_room_id for no key update;` so votes, the finale and the sweeper never race.
 - The caller is `internal.my_profile_id()` (or `internal.my_profile_ids()` for seats a player controls); never trust a profile id passed in.
 - Realtime goes through `internal.broadcast_room(room_id, event, payload)`. Event names and payloads: the `realtime-contract` skill.
-- Every write function goes through `internal.rate_limit` (per profile and per IP) once M1.9 adds it.
+- A function that needs a limit calls `internal.rate_limit(key, max, window, p_count)` (keys `<action>:p:<profile id>` and `<action>:ip:<internal.request_ip_key()>`, skip the IP key when it is null) and answers `rate_limited`, never raises. M1.9 wired `join_room`, `submit_calibration` and `export_my_data`; later functions with a limit in security.md#starting-values call it when written. A function that counts is `volatile`, not `stable`. The helpers have no grant.
 - Settings and ranges are validated in the function (the app is never trusted), e.g. `api.update_room_settings` (M1.10).
 - An incompatible change to an `api` function or view ships as `<name>_v2` next to it. Adding an optional argument or a column to a view is compatible.
 

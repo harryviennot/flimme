@@ -540,7 +540,7 @@ erDiagram
 
 ## 7. Operations
 
-**rate_limits**: counters per key and 10-minute window. `join:<profile id>` allows 10 join attempts per window, so the million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
+**rate_limits**: counters per key and fixed window, written only by `internal.rate_limit(key, max, window)`. Keys: `join:p:<profile id>` (10 per 10 minutes), `join:ip:<address hash>` (30 per 10 minutes), `join_failed:p:<profile id>` (5 `not_found` per 10 minutes), `calibration:p:<profile id>` (10 per hour), `export:p:<profile id>` (1 per hour). The address is read by `internal.request_ip_key()` (`cf-connecting-ip`, else the last `x-forwarded-for` entry) and only its hash is stored, IPv6 by its /64. The million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
 
 **ingest_runs**: one row per catalog job run, with counts, errors and a resume cursor.
 
