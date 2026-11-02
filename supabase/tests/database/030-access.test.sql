@@ -16,6 +16,8 @@ select tests.create_provider(9001, 'Test Service A');
 insert into public.genres (id, slug, names) values (9001, 'test-genre', '{"en": "Test", "fr": "Essai"}');
 insert into public.title_availability (title_id, country, provider_id, kind)
 values (tests.title_id('Test Film One'), 'FR', 9001, 'subscription');
+-- The picker lists listed services only (M2.4, tmdb.md#services-variants-and-channels).
+update public.provider_regions set is_listed = true where provider_id = 9001 and country = 'FR';
 insert into public.room_cards (room_id, title_id, group_score)
 values (tests.room_id(), tests.title_id('Test Film One'), 1);
 insert into public.deck_entries (room_id, room_member_id, title_id, sort_key, source)

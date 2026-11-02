@@ -39,7 +39,7 @@ It builds on the [roadmap](product/roadmap.md) (its tasks, rules and milestones)
 | Every agent reads the docs in full | The docs are about 885 KB, roughly 220,000 tokens. `schema.sql` alone is 124 KB and `data-model.md` 65 KB | Only the planner reads docs, and only the sections a task links to (a script prints one section by its anchor). The brief quotes the rules it needs |
 | Long chains of handoffs | Each agent rebuilds the context the last one had | At most: brief, build, one review |
 | Several reviewers per pull request | Each one reads the same diff and context | One reviewer, one round; a second look only at the fix |
-| CI ping-pong | Push, wait for CI, fix, push again, each round a new wake-up | A hook runs the same checks before the agent may stop. CI only confirms |
+| CI ping-pong | Push, wait for CI, fix, push again, each round a new wake-up | A hook runs the same checks before the agent may stop, Squawk included. CI only confirms |
 | Screenshot loops on UI | Images are heavy, and nobody can judge a swipe's feel from a still | Screenshots once, small, at the end. Feel is judged on a phone |
 | One long session per milestone | The context fills up, gets compacted and loses detail | A fresh session per task |
 | The most capable model at maximum effort everywhere | Up to 100 times the cheapest model's price per token | Model and effort per role ([Models, effort and budgets](#models-effort-and-budgets)) |
@@ -48,6 +48,8 @@ It builds on the [roadmap](product/roadmap.md) (its tasks, rules and milestones)
 | Figma reads | This file's screens page alone returns about 125,000 characters of metadata | Each frame is read once and kept as a short screen spec |
 | A plan returned as one long answer | Slice 1's planner spent 21 of its 31 minutes writing a single 60 KB answer, and the main session then carried it through every later step | The planner writes the brief files itself and answers with a summary. A slice is planned in two passes, so the first wave starts while the rest are written |
 | Waiting on a reviewer in the background | M1.7 polled its background reviewer with a loop and waited 9 minutes for a 3-minute review; M1.15 handed back before its review, so the main session had to relay the findings | The implementer runs the reviewer in the foreground and waits for its report |
+| The main session doing each task's branch chores | In slice 1, once merges were allowed, the Opus main session spent 53 minutes and 183 turns merging main into branches, renaming migrations, fixing red CI and watching CI, each turn re-reading a context of up to 290,000 tokens. That cost more than the five builds of the same hour. Most pull requests also ran CI twice, being behind main when ready | Each task agent merges main in and re-checks before it pushes, then turns on auto-merge when Harry allows it. The main session never watches CI and sends a stuck pull request back to its agent |
+| Effort asked for in words | "Review at high effort" in a prompt changes nothing: three of slice 1's five high-effort reviews ran at medium | The effort setting on the Agent call |
 
 If the other project was slow for a reason that isn't in this table, it gets a rule too.
 
@@ -223,7 +225,7 @@ The first release's tasks, grouped into features. Each slice gets one brief; the
 | --- | --- | --- | --- |
 | 1 | Backend foundation | M1.3 to M1.15 | None |
 | 2 | Catalog | M2.1 to M2.14 | None |
-| 3 | App shell | M3.1 to M3.12 | Design system and motion tokens (M3.4) |
+| 3 | App shell | M3.1 to M3.15 | Design system and motion tokens (M3.4) |
 | 4 | First launch | M4.3, M4.6, M4.7 | Screens 01 to 04 |
 | 5 | Hosting | M4.4, M4.9 | Screens 06 and 07 |
 | 6 | Joining | M4.1, M4.8, M4.14, M4.15 | Screen 05 and the join sheet |

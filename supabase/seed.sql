@@ -32,8 +32,11 @@ insert into public.providers (id, name) values
   (8001, 'Lumo'), (8002, 'Orbite'), (8003, 'Kinobay'), (8004, 'Reelwave'), (8005, 'Nuvola'),
   (8006, 'Bobine'), (8007, 'Cinefaro'), (8008, 'Gratuito'), (8009, 'Pubscreen'), (8010, 'Écranlibre');
 
-insert into public.provider_regions (provider_id, country, display_priority)
-select id, 'FR', (id - 8000)::smallint from public.providers where id between 8001 and 8010;
+-- 8001 to 8007 are listed in the picker; 8008 to 8010 carry only free or ad
+-- offers, so they are free services (counted for every room, not listed).
+insert into public.provider_regions (provider_id, country, display_priority, is_listed, free_for_all)
+select id, 'FR', (id - 8000)::smallint, id <= 8007, id >= 8008
+from public.providers where id between 8001 and 8010;
 
 insert into public.certification_ages (country, certification, min_age) values
   ('FR', 'U', 0), ('FR', '10', 10), ('FR', '12', 12), ('FR', '16', 16), ('FR', '18', 18);

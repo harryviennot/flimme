@@ -1,0 +1,20 @@
+{
+  "adult": false,
+  "backdrop_path": "/fixture-1.jpg",
+  "genres": [
+    { "id": 18, "name": "Invented genre A" },
+    { "id": 35, "name": "Invented genre B" }
+  ],
+  "id": 60000001,
+  "imdb_id": "tt9000001",
+  "original_language": "fr",
+  "original_title": "Film invente un",
+  "overview": "An invented overview for a film that does not exist.",
+  "popularity": 12.5,
+  "poster_path": "/fixture-2.jpg",
+  "release_date": "2000-01-01",
+  "runtime": 98,
+  "title": "Invented film one",
+  "vote_average": 7.1,
+  "vote_count": 412
+}

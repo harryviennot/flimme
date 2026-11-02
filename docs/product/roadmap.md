@@ -95,7 +95,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | **First release** | | | | |
 | [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | In progress |
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
-| [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | Not started |
+| [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 16 | Not started |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 26 of 244 tasks done.
+Progress: 28 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -250,25 +250,25 @@ The films a French room can watch tonight, from TMDB, refreshed every night by t
 
 Done when: production holds France's watchable films, and the daily sweep has run for a week without help.
 
-- [ ] **M2.1** Server repo skeleton: Python with uv, the folder layout, settings and secrets, one Docker image, tests in CI · server · S · [server-structure](../architecture/server-structure.md#folder-layout)
+- [ ] **M2.1** Server skeleton: Python with uv, the folder layout, settings and secrets, one Docker image, tests in CI · server · S · [server-structure](../architecture/server-structure.md#folder-layout)
   Done when: the image builds and an empty test passes in CI.
 - [ ] **M2.2** Database layer and queue consumer: psycopg, typed wrappers for contract functions, the pgmq loop with visibility timeouts and poison messages · server · L · needs M2.1, M1.5, M1.12 · [server-structure](../architecture/server-structure.md#consuming-the-queues)
   Done when: a test message is consumed once, a failing one ends up archived as poison.
-- [ ] **M2.3** TMDB client: polite request rate, retries, 429 handling, failure logging · server · M · needs M2.1 · [tmdb](../integrations/tmdb.md#failures-and-retries)
+- [x] **M2.3** TMDB client: polite request rate, retries, 429 handling, failure logging · server · M · needs M2.1 · [tmdb](../integrations/tmdb.md#failures-and-retries)
   Done when: tests with recorded responses cover success, 429 and errors.
-- [ ] **M2.4** Catalog migration from tmdb.md: `providers.parent_id`, `provider_regions.is_listed` and `free_for_all`, `rooms.include_free_services`, refresh tiers, `title_certifications.inferred_from`, `titles.tmdb_missing_since`, `ingest_runs` kinds · backend · L · needs M1.5 · [tmdb](../integrations/tmdb.md#changes-to-the-data-model)
+- [x] **M2.4** Catalog migration from tmdb.md: `providers.parent_id`, `provider_regions.is_listed` and `free_for_all`, `rooms.include_free_services`, refresh tiers, `title_certifications.inferred_from`, `titles.tmdb_missing_since`, `ingest_runs` kinds · backend · L · needs M1.5 · [tmdb](../integrations/tmdb.md#changes-to-the-data-model)
   Done when: migrated and tested; free services count for rooms when the switch is on.
 - [ ] **M2.5** Reference data job: genres, countries, services and their regions, certification ages, image configuration · server · M · needs M2.2, M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#what-we-use-tmdb-for)
   Done when: the tables fill from TMDB on staging.
 - [ ] **M2.6** Curate France's services: listed services, variants under their main service, free services, display order; check the ids for Canal+, TF1+, M6+ and Arte · content · M · needs M2.5 · [tmdb](../integrations/tmdb.md#services-variants-and-channels)
   Done when: France's picker list is set in `provider_regions`.
-- [ ] **M2.7** Film fetch, one request per film: details, French and English text, credits, certifications with the US fallback, trailer, watch providers, watch link, quality score · server · L · needs M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#one-request-per-film)
+- [ ] **M2.7** Film fetch, one request per film: details, French and English text, credits, certifications with the US fallback, trailer, watch providers, watch link, quality score · server · L · needs M2.2, M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#one-request-per-film)
   Done when: a fetched film fills every table it should, in tests and on staging.
 - [ ] **M2.8** Poster placeholders computed at ingest · server · S · needs M2.7 · [tmdb](../integrations/tmdb.md#images)
   Done when: every film with a poster has a placeholder.
 - [ ] **M2.9** Which films: popularity from the daily export file, the floor, and the `backfill` command · server · M · needs M2.7, M1.15 · [tmdb](../integrations/tmdb.md#which-films-are-in-the-catalog)
   Done when: `backfill` loads the top films on staging.
-- [ ] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · M · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
+- [ ] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · L · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
   Done when: a sweep updates `title_availability`, and a simulated glitch is refused by the guard.
 - [ ] **M2.11** The refresh schedule: the changes feed, weekly and monthly fetches, the 6-month rule, enqueued by Supabase Cron · server · M · needs M2.9, M2.10 · [tmdb](../integrations/tmdb.md#keeping-it-fresh)
   Done when: each job runs on schedule on staging.
@@ -287,7 +287,7 @@ An empty app that builds for both platforms, signs in as a guest and talks to th
 
 Done when: a development build on iOS and Android signs in as a guest and reads the API.
 
-- [ ] **M3.1** Create the Expo SDK 58 project: Expo Router, TypeScript, development builds, lint, format, tests, folder layout · app · S · needs M0.1 · [app-structure](../architecture/app-structure.md#project-setup)
+- [ ] **M3.1** Create the Expo SDK 58 project: Expo Router, TypeScript, development builds, lint, format, tests, folder layout · app · S · [app-structure](../architecture/app-structure.md#project-setup)
   Done when: the project runs in a development build on both platforms.
 - [ ] **M3.2** EAS: build profiles (development, preview, production), fingerprint runtime versions, update channels · ops · M · needs M3.1, M0.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: each profile builds.
@@ -297,15 +297,15 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: `pnpm tokens --check` passes and every type style renders in the gallery.
 - [ ] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · M · needs M3.1 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
   Done when: a fresh install gets a guest user that survives a restart.
-- [ ] **M3.6** Typed API layer: generated types for the `api` schema, one wrapper per function, status answers as values · app · M · needs M3.5, M1.17 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
+- [ ] **M3.6** Typed API layer in `packages/contract`: the wrapper pattern and the profile, room and lobby functions, status answers as values. Card, vote and export wrappers come with M5.6, M6.9, M6.11 and M8.6 · app · M · needs M3.5, M1.17 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
   Done when: wrappers compile against the generated types and a status answer isn't thrown as an error.
-- [ ] **M3.7** State: TanStack Query for server data, Zustand stores, persistence with expo-sqlite · app · M · needs M3.1 · [app-structure](../architecture/app-structure.md#where-state-lives)
+- [ ] **M3.7** State: TanStack Query for server data, Zustand stores, persistence with expo-sqlite · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#where-state-lives)
   Done when: a persisted store survives a restart.
 - [ ] **M3.8** Translations: i18next with French and English, the device language, English as fallback · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#translations)
   Done when: switching the device language switches the app.
 - [ ] **M3.9** Sentry with no personal data and no user id, source maps from EAS · app · M · needs M3.2 · [app-structure](../architecture/app-structure.md#analytics-and-crash-reports)
   Done when: a test crash shows in Sentry with readable frames.
-- [ ] **M3.10** `app_config` at launch and the `min_app_version` gate · app · M · needs M3.6, M1.13 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
+- [ ] **M3.10** `app_config` at launch and the `min_app_version` gate · app · M · needs M3.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: raising the minimum shows the update screen.
 - [ ] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · M · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
   Done when: the findings are written in app-structure.md.
@@ -315,8 +315,8 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
 - [ ] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: the gallery's motion section plays each spring and haptic on a phone.
-- [ ] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
-  Done when: every route in app-structure.md opens, and the dev menu switches between local and staging.
+- [ ] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · M · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
+  Done when: every first-release route and `/room/[id]/services` opens, and the dev menu switches between the local and staging backends.
 - [x] **M3.16** The consistency checks: theme classes only, no arbitrary values or raw colors, primitives only from `ui/`, the component tiers, strings through `t()`, a gallery entry per component · app · S · needs M3.13 · [groundwork](../architecture/groundwork.md#keeping-every-screen-consistent)
   Done when: each check fails on a purpose-built bad example and passes on the app.
 
