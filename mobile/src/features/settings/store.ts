@@ -41,6 +41,7 @@ export function createSettingsStore(kv?: KeyValueStore, version = SETTINGS_VERSI
         name: 'settings',
         version,
         migrate: migrateSettings,
+        sanitize: migrateSettings,
         partialize: ({ hapticsEnabled, soundEnabled }) => ({ hapticsEnabled, soundEnabled }),
         kv,
       }),

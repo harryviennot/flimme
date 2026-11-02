@@ -57,6 +57,27 @@ describe('settings store', () => {
     expect(createSettingsStore(kv).getState().hapticsEnabled).toBe(true);
   });
 
+  it('ignores a saved value of the wrong type, even at the current version', () => {
+    const kv = memoryKv();
+    kv.setItemSync('flimme.settings', '{"state":{"hapticsEnabled":"false"},"version":1}');
+    expect(createSettingsStore(kv).getState().hapticsEnabled).toBe(true);
+  });
+
+  it('works in memory when the kv store throws', () => {
+    const broken: KeyValueStore = {
+      ...memoryKv(),
+      getItemSync: () => {
+        throw new Error('disk');
+      },
+      setItemSync: () => {
+        throw new Error('disk');
+      },
+    };
+    const store = createSettingsStore(broken);
+    expect(() => store.getState().setHapticsEnabled(false)).not.toThrow();
+    expect(store.getState().hapticsEnabled).toBe(false);
+  });
+
   it('pushes the saved values and every change to the setters', () => {
     const kv = memoryKv();
     createSettingsStore(kv).getState().setSoundEnabled(false);

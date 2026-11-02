@@ -12,8 +12,10 @@ export type PersistedStoreConfig<State, Saved = State> = {
   version: number;
   /** Turns what an older version saved into the current shape. */
   migrate: (saved: unknown, fromVersion: number) => Saved;
-  /** Which part of the state is saved. Defaults to all of it. */
-  partialize?: (state: State) => Saved;
+  /** Which part of the state is saved: never the actions. */
+  partialize: (state: State) => Saved;
+  /** Reads saved values into the state on every start, so a wrong value never gets in. */
+  sanitize?: (saved: unknown) => Partial<State>;
   /** Tests pass their own; the app uses the SQLite store. */
   kv?: KeyValueStore;
 };
@@ -23,17 +25,31 @@ export function persistOptions<State, Saved = State>({
   version,
   migrate,
   partialize,
+  sanitize,
   kv = storage,
 }: PersistedStoreConfig<State, Saved>): PersistOptions<State, Saved> {
   return {
     name: `flimme.${name}`,
     version,
+    // A storage failure (a full disk, private browsing) must not crash the app or a tap:
+    // the store then works in memory for this run.
     storage: createJSONStorage<Saved>(() => ({
-      getItem: (key) => kv.getItemSync(key),
-      setItem: (key, value) => kv.setItemSync(key, value),
-      removeItem: (key) => kv.removeItemSync(key),
+      getItem: (key) => attempt(() => kv.getItemSync(key), null),
+      setItem: (key, value) => attempt(() => kv.setItemSync(key, value), undefined),
+      removeItem: (key) => attempt(() => kv.removeItemSync(key), undefined),
     })),
-    partialize: partialize ?? ((state) => state as unknown as Saved),
+    partialize,
+    ...(sanitize && {
+      merge: (saved, current) => ({ ...current, ...sanitize(saved) }),
+    }),
     migrate: (saved, fromVersion) => migrate(saved, fromVersion),
   };
+}
+
+function attempt<T>(run: () => T, fallback: T): T {
+  try {
+    return run();
+  } catch {
+    return fallback;
+  }
 }
