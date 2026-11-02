@@ -302,7 +302,7 @@ All from environment variables, validated at start: the process refuses to start
 | `STORAGE_BUCKET` | Trainer, deck worker | Models and training exports |
 | `TMDB_READ_TOKEN` | Pipeline worker, API | TMDB's read access token |
 | `LETTERBOXD_USER_AGENT` | Pipeline worker, API | The app's name and contact, for feed requests |
-| `SENTRY_DSN` | All | Error reports ([operations.md](operations.md)) |
+| `SENTRY_DSN` | All | Error reports, to the Sentry project `flimme-server` in the `flimme` organization ([operations.md](operations.md)) |
 | `ENVIRONMENT` | All | `local`, `staging` or `production` |
 
 No Streaming Availability key: it's dropped from v1. How secrets are stored per environment and rotated is in [operations.md](operations.md).

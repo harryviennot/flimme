@@ -267,7 +267,7 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 
 ## Analytics and crash reports
 
-- **Crashes: Sentry**, with its Expo config plugin, its Metro config wrapper, `Sentry.wrap` around the root layout, and source maps uploaded by EAS Build and EAS Update. No names, codes or emails in events.
+- **Crashes: Sentry**, with its Expo config plugin, its Metro config wrapper, `Sentry.wrap` around the root layout, and source maps uploaded by EAS Build and EAS Update. No names, codes or emails in events. The Sentry organization is `flimme`, in the EU region, and the app's project is `flimme-app`: the plugin needs both. EAS holds `EXPO_PUBLIC_SENTRY_DSN` and the `SENTRY_AUTH_TOKEN` secret for preview and production; development builds send nothing.
 - **Product analytics: PostHog**, wrapped in `src/lib/analytics.ts` so screens call `track(event, props)` and never the vendor. Off by default (`defaultOptIn: false`) until the player accepts analytics, recorded as an `analytics` consent. Screens are tracked from the router's path. The person is the profile id, never a name. Per the monetization doc, kid profiles are never tracked individually.
 - The event list belongs in a future analytics doc; the funnel the revival plan asks for (room created, first card, match) is the minimum.
 
