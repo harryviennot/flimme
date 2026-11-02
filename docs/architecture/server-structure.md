@@ -200,11 +200,11 @@ The server calls these pgmq functions directly with SQL. No client library is ne
 
 ## The database layer
 
-**Connecting.** The server logs in as its own user, granted the `app_server` role ([data model](data-model.md#who-sees-what)), never with the project's secret key. Supabase documents the direct connection (port 5432) for persistent servers, but it's IPv6 unless the project buys the IPv4 add-on. The shared pooler's session mode (also port 5432) works over IPv4 from any host and supports prepared statements. **Default: the shared pooler in session mode**, which works on every host below. Transaction mode (port 6543) is for serverless functions and doesn't keep session state, so it isn't used.
+**Connecting.** Each process logs in as its own user, never with the project's secret key and never as the Postgres owner. The deck worker is `flimme_deck`, the pipeline worker `flimme_pipeline` and the trainer `flimme_trainer`, all in the `app_server` role ([data model](data-model.md#who-sees-what)). The HTTP API is `flimme_http`, in the narrower `app_http` role: it executes `internal.start_letterboxd_import` and `internal.enqueue` and reads no table (each route that needs a read adds it, with a test). The logins have no password in the repo: the passwords are set by hand per project ([secrets](operations.md#secrets)). The logins carry the statement timeouts below, except the trainer's. Supabase documents the direct connection (port 5432) for persistent servers, but it's IPv6 unless the project buys the IPv4 add-on. The shared pooler's session mode (also port 5432) works over IPv4 from any host and supports prepared statements. **Default: the shared pooler in session mode**, which works on every host below. Transaction mode (port 6543) is for serverless functions and doesn't keep session state, so it isn't used.
 
 **Connections**, starting values: 4 for each deck worker, 4 for the pipeline worker, 4 for each API instance, 2 for the trainer: about 22 in all. `read_with_poll` holds a connection while it waits, which is why each worker keeps one connection just for reading. Check against the project's limits on its database settings page.
 
-**Timeouts.** Every connection sets a statement timeout: 2 seconds for the deck worker, 60 seconds for the pipeline worker, 5 seconds for the API, longer for the trainer's batch queries.
+**Timeouts.** Every connection sets a statement timeout: 2 seconds for the deck worker, 60 seconds for the pipeline worker, 5 seconds for the API, longer for the trainer's batch queries. The migration also sets the first three on the logins, as a floor if a connection forgets (the trainer's has no number yet, so none is set).
 
 **Contract functions.** `db/contract.py` has one typed wrapper per function the server may call:
 
@@ -212,7 +212,7 @@ The server calls these pgmq functions directly with SQL. No client library is ne
 | --- | --- | --- |
 | `internal.deck_candidates(room, limit, misery_line)` | Deck worker | `Candidates` |
 | `internal.deal_cards(room, payload)` | Deck worker | `DealPayload` |
-| `internal.start_letterboxd_import(profile, payload)` | HTTP API | `LetterboxdUpload` |
+| `internal.start_letterboxd_import(profile, payload)` | HTTP API (`app_server` cannot call it) | `LetterboxdUpload` |
 | `internal.finish_letterboxd_import(import)` | Pipeline worker | |
 | `internal.apply_letterboxd_feed(account, feed, etag, last_modified)` | Pipeline worker | `FeedItems` |
 | `internal.broadcast_room(room, event, payload)` | Pipeline worker | |
@@ -296,7 +296,7 @@ All from environment variables, validated at start: the process refuses to start
 
 | Variable | Used by | What |
 | --- | --- | --- |
-| `DATABASE_URL` | All | The `app_server` login, through the shared pooler in session mode |
+| `DATABASE_URL` | All | The process's own login (`flimme_deck`, `flimme_pipeline`, `flimme_trainer` in role `app_server`; `flimme_http` in role `app_http` for the API), through the shared pooler in session mode |
 | `SUPABASE_URL` | API, trainer | For the signing keys, the admin API and Storage |
 | `SUPABASE_SECRET_KEY` | API | Only for deleting accounts |
 | `STORAGE_BUCKET` | Trainer, deck worker | Models and training exports |
