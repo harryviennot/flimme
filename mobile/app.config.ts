@@ -124,6 +124,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     extra: {
       variant,
+      // The App Store id of the app, for the update screen's link. Empty until the app exists
+      // in the store (roadmap M10.1).
+      appStoreId: '',
       eas: { projectId: '2aeaa454-cf9d-400f-a840-b8f100e0061e' },
     },
   };
