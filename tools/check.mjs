@@ -61,6 +61,14 @@ const steps = [];
 const add = (name, cmd, cwd = ROOT) => steps.push({ name, cmd, cwd });
 
 if (touched('mobile/', 'packages/contract/', 'pnpm-lock.yaml')) {
+  // A fresh worktree has no node_modules: install them from the lockfile, as the pre-commit
+  // hook does. --ignore-scripts skips the postinstall, which would rewrite the shared hooks.
+  if (!existsSync(`${ROOT}node_modules`)) {
+    add(
+      'dependencies: pnpm install (none in this worktree yet)',
+      'pnpm install --frozen-lockfile --ignore-scripts --loglevel=error',
+    );
+  }
   if (testsOnly) add('mobile: tests', 'pnpm --filter mobile exec jest --ci');
   else
     add(

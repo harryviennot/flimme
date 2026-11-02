@@ -1,14 +1,20 @@
 # Git hooks, installed by `pnpm install` (postinstall).
+# Each command finds its own tools, so the hooks also work in a fresh worktree (no node_modules,
+# no server/.venv) without skipping anything.
 pre-commit:
   parallel: true
   commands:
     prettier:
       glob: '*.{ts,tsx,js,mjs,cjs,json,css,yml,yaml}'
-      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      # Installs node_modules from the lockfile when they are missing. --ignore-scripts skips the
+      # postinstall, which would point the hooks every worktree shares at this worktree.
+      run: (test -x node_modules/.bin/prettier || pnpm install --frozen-lockfile --ignore-scripts --loglevel=error) && pnpm exec prettier --write --ignore-unknown {staged_files}
       stage_fixed: true
     ruff:
       glob: 'server/**/*.py'
-      run: ruff format {staged_files} && ruff check --fix {staged_files}
+      # The ruff in server/uv.lock, as in CI; uv creates server/.venv when it is missing.
+      # Ruff reads server/pyproject.toml, the closest config to each file.
+      run: uv run --project server --frozen ruff format {staged_files} && uv run --project server --frozen ruff check --fix {staged_files}
       stage_fixed: true
     gitleaks:
       run: command -v gitleaks >/dev/null 2>&1 && gitleaks git --staged --redact --no-banner || echo "gitleaks not installed, skipped (CI still scans)"
