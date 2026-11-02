@@ -28,6 +28,12 @@ Postgres decides the game; the server decides the deck, learns, and makes every 
 - The HTTP API checks the Supabase token (ES256, against the project's signing keys) on every route but `/healthz`.
 - Each process has its own database login; only the HTTP API holds the Supabase secret key.
 
+## Queue workers
+
+- A handler is `async def (Delivery) -> Done | Reject` (`workers/runner.py`). Return `Done` to delete, `Reject` for bad input that will never succeed (archived at once), and let an exception escape for a failure worth retrying. The runner extends the visibility timeout while a handler runs, so a handler never calls `set_vt` itself.
+- A pipeline queue's handlers register by message kind in `workers/pipeline.py` (`HANDLERS`); the message shapes are pydantic models in `db/payloads.py`. Send with `db.contract.enqueue`, never `pgmq.send`.
+- Tests: the loop's logic against `tests/unit/fakes.py` (an in-memory queue); the real queue and login in `tests/contract` (needs a database, see server/README.md). Async tests use `pytestmark = pytest.mark.anyio`.
+
 ## Commands (from server/)
 
 `uv sync`, `uv run pytest -q`, `uv run ruff check .`, `uv run ruff format .`, `uv run pyright`, `uv run server api`. `mise run check` runs them for a changed server.

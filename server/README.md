@@ -24,7 +24,7 @@ curl http://127.0.0.1:8000/healthz  # {"status":"ok"}
 | Command | Status |
 | --- | --- |
 | `server api` | Runs the FastAPI app. Refuses to start if the settings are invalid, naming the variable |
-| `server pipeline-worker` | Not built yet: M2.2, handlers from M2.5 on |
+| `server pipeline-worker` | Consumes `catalog_refresh` (needs `PIPELINE_DATABASE_URL`). Handlers join from M2.5 on; until then every message is archived as unhandled |
 | `server backfill` | Not built yet: M2.9 |
 | `server deck-worker` | Not built yet: M17.4 |
 | `server replay` | Not built yet: M17.5 |
@@ -55,13 +55,13 @@ For a database to run against without Docker, use the lite database of cloud ses
 ## Test and check
 
 ```sh
-uv run pytest -q             # unit tests; no database or network needed so far
+uv run pytest -q             # unit tests, plus the contract tests when a database is running
 uv run ruff check            # lint (rules E, F, I, UP, B, SIM; line length 100)
 uv run ruff format --check   # formatting (drop --check to apply it)
 uv run pyright               # types, standard mode
 ```
 
-Tests are in `tests/`: `unit/` (pure code and the app through FastAPI's test client), and `contract/` (against a database with the real schema), `replay/` (simulation and recorded games) and `fixtures/` (recorded outside calls and small data), which are empty until the tasks that need them. The test client needs `httpx2`, so it is in the dev group next to `httpx`, which the server itself uses for outside calls.
+Tests are in `tests/`: `unit/` (pure code and the app through FastAPI's test client), `contract/` (against a database with the real schema, logged in as the real server login), `replay/` (simulation and recorded games) and `fixtures/` (recorded outside calls and small data), the last two empty until the tasks that need them. The contract tests need `supabase start` (port 54322) or the lite database: point `CONTRACT_ADMIN_DATABASE_URL` at a superuser connection to it (the default is the local stack). They set no password (the stack is shared by every worktree): they connect as the superuser and `set role flimme_pipeline`, and empty the `catalog_refresh` queue around each test, and skip with a reason when there is no database; CI sets `REQUIRE_DATABASE=1`, so there a missing database fails them (the `server-contract` job). Async tests carry `pytestmark = pytest.mark.anyio`. The test client needs `httpx2`, so it is in the dev group next to `httpx`, which the server itself uses for outside calls.
 
 ## Layout
 

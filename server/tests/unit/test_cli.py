@@ -50,3 +50,21 @@ def test_api_without_a_url_exits_1_and_names_the_variable_not_a_value(
     message = capsys.readouterr().err
     assert "API_DATABASE_URL" in message
     assert "tmdb-secret-value" not in message
+
+
+def test_pipeline_worker_without_its_url_exits_1_and_names_the_variable(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: pytest.TempPathFactory,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("PIPELINE_DATABASE_URL", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "staging")
+    monkeypatch.setenv("API_DATABASE_URL", "postgresql://flimme_http:other-login@db/postgres")
+    monkeypatch.chdir(tmp_path)  # type: ignore[arg-type]
+
+    assert main(["pipeline-worker"]) == 1
+
+    message = capsys.readouterr().err
+    assert "PIPELINE_DATABASE_URL" in message
+    assert "other-login" not in message  # another process's login is never used

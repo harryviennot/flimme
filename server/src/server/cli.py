@@ -1,10 +1,11 @@
 """The `server` command: one entry point for every process and one-off job.
 
-Only `api` does something so far. The other commands name the roadmap milestone
+`api` and `pipeline-worker` do something so far. The other commands name the roadmap milestone
 that builds them and exit with code 2.
 """
 
 import argparse
+import logging
 import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -32,12 +33,6 @@ PLANNED = (
         "consume the deck_requests queue and deal decks",
         "M17.4",
         "the deck worker without taste",
-    ),
-    Planned(
-        "pipeline-worker",
-        "consume the other queues: catalog, Letterboxd, taste, end of room",
-        "M2.2",
-        "database layer and queue consumer, with the handlers from M2.5 on",
     ),
     Planned(
         "trainer", "nightly title stats, training exports and evaluation", "M22.1", "the trainer"
@@ -75,6 +70,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--port", type=int, default=8000, help="port to listen on (default: %(default)s)"
     )
 
+    commands.add_parser(
+        "pipeline-worker",
+        help="consume the catalog_refresh queue (the other queues join with their tasks)",
+    )
+
     for planned in PLANNED:
         command = commands.add_parser(
             planned.name, help=f"{planned.help} (not built yet: {planned.milestone})"
@@ -85,20 +85,41 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def run_api(host: str, port: int) -> int:
+def load_settings(command: str, process: Process) -> Settings | None:
+    """The settings, or None after printing what is wrong (never a value)."""
     try:
         settings = Settings.load()
-        settings.database_url_for(Process.API)
+        settings.database_url_for(process)
     except MissingSetting as error:
-        print(f"server api: {error.variable} is not set.", file=sys.stderr)
+        print(f"server {command}: {error.variable} is not set.", file=sys.stderr)
         print("Copy .env.example to .env.local, or set the variable.", file=sys.stderr)
-        return 1
+        return None
     except ValidationError as error:
-        print("server api: the settings are not valid:", file=sys.stderr)
+        print(f"server {command}: the settings are not valid:", file=sys.stderr)
         for problem in error.errors():
             setting = ".".join(str(part) for part in problem["loc"]).upper()
             print(f"  {setting}: {problem['msg']}", file=sys.stderr)
         print("Copy .env.example to .env.local, or set the variables.", file=sys.stderr)
+        return None
+    return settings
+
+
+def run_pipeline_worker() -> int:
+    settings = load_settings("pipeline-worker", Process.PIPELINE)
+    if settings is None:
+        return 1
+
+    import asyncio
+
+    from server.workers.pipeline import run_pipeline_worker as serve
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    asyncio.run(serve(settings))
+    return 0
+
+
+def run_api(host: str, port: int) -> int:
+    if load_settings("api", Process.API) is None:
         return 1
 
     import uvicorn
@@ -114,6 +135,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == "api":
         return run_api(args.host, args.port)
+    if args.command == "pipeline-worker":
+        return run_pipeline_worker()
 
     planned = next(p for p in PLANNED if p.name == args.command)
     print(
