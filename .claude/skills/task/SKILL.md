@@ -16,7 +16,7 @@ The loop is in docs/agent-workflow.md#how-a-task-flows. Follow these steps in or
 - **Blocked** (a need is open): stop and say which.
 - **Harry's types** (decision, legal, publishing, product, or a Figma edit): draft what helps (a comparison, an email, a checklist), then stop. Don't decide for him.
 - Branch from an up-to-date main: `git fetch origin main && git switch -c m4-8-join-with-a-code origin/main` (task id with dashes, then a few words).
-- If `.claude/state/briefs/<id>.md` exists, a previous session started this task: read it and continue from where it stopped.
+- If `.claude/state/briefs/<id>.md` exists, a slice plan or a previous session wrote it: read it and continue from there, with no new planner.
 
 ## 2. Size it, if the roadmap line has no size
 
@@ -31,8 +31,8 @@ When unsure, size up.
 ## 3. The brief
 
 - **S:** write it yourself from the roadmap line and its one linked section (`node tools/doc-section.mjs <link>`), using the template in the `brief` skill. Five lines is fine.
-- **M and L:** spawn the `planner` agent: "Brief roadmap task <id>." It returns the brief.
-- Save it to `.claude/state/briefs/<id>.md` (git-ignored) so a later session can pick the task up.
+- **M and L:** spawn the `planner` agent: "Brief roadmap task <id>." It writes the brief itself and answers with the path, the size and any questions.
+- Either way the brief lives in `.claude/state/briefs/<id>.md` (git-ignored), so a later session can pick the task up.
 - **Questions in the brief stop the task.** Ask Harry, write the answers into docs/decisions.md, then continue.
 
 ## 4. The screen spec (tasks that change a screen)
@@ -59,7 +59,8 @@ Show Harry the brief and the spec, and wait for a yes before writing code.
 ## 8. Review
 
 - **S:** `/code-review` at medium effort.
-- **M and L:** spawn the `reviewer` agent: "Review roadmap task <id>; the brief is in .claude/state/briefs/<id>.md." For access rules, security definer functions or game rules, add "at high effort".
+- **M and L:** spawn the `reviewer` agent in the foreground (`run_in_background: false`), since the next step needs its report: "Review roadmap task <id>; the brief is in .claude/state/briefs/<id>.md." For access rules, security definer functions or game rules, add "at high effort".
+- Never start the reviewer in the background and poll for it, and never hand back before it has reported.
 - Fix blocking findings. Take a nit only if it's trivial. One round; after fixing, re-check only the fixes.
 
 ## 9. Pull request
