@@ -19,7 +19,9 @@ The CLI's config loader accepts the file (`supabase status` gets past it to the 
 
 - the stack starts with Postgres 17, and `supabase db reset` loads an empty `migrations/` and `seed.sql` without errors;
 - a guest sign-in works (anonymous sign-ins on);
-- Supabase's docs say the CLI adds `public` and `storage` to the exposed schemas whatever `schemas` says. Check that, and that a request to a `public` table is refused (schema.sql revokes the grants; roadmap task M1.7 tests it). On the hosted project, set Settings, Data API, Exposed schemas to `api` only.
+- Supabase's docs say the CLI adds `public` and `storage` to the exposed schemas whatever `schemas` says. Check that, and that a request to a `public` table is refused (M1.15's smoke step checks that the Data API refuses `public` tables; `tests/database/280-exposure.test.sql` checks the grants). On the hosted project, set Settings, Data API, Exposed schemas to `api` only.
+
+The allowlist of what phones may reach (every `api` function, four `internal` helpers, select on 18 tables) lives in `tests/database/280-exposure.test.sql`; a task that opens something on purpose edits it there.
 
 ## Migrations
 
