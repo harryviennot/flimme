@@ -57,7 +57,7 @@ flimme/
   server/              the Python recommendation server (uv)
   supabase/            config.toml, migrations/, tests/ (pgTAP), seed.sql
   packages/contract/   the api client, generated types, payload types, Realtime events
-  tools/               next, doc-section, typegen, bot players, seed-local-catalog, checks
+  tools/               next, doc-section, typegen, bot players, checks
   docs/
   .claude/             agents, skills, hooks, settings
   .github/             workflows, the pull request template

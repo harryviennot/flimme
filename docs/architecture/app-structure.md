@@ -123,7 +123,7 @@ stateDiagram-v2
 | The card stack | A Zustand store, not persisted: the 3 mounted cards, the buffer behind them, the swipe in progress, the flip state | |
 | The vote queue | A Zustand store persisted to `expo-sqlite`'s key-value store, so it survives a restart | Swipes not yet confirmed by the server |
 | Session and UI | Zustand: connection status, the current room id and code, the last answered taste check card | |
-| Auth session | Supabase's auth storage, on `expo-sqlite`'s `localStorage` as in Supabase's Expo quickstart | |
+| Auth session | Supabase's auth storage: encrypted (AES-256-GCM) into `expo-sqlite`'s key-value store, with the key in SecureStore (`lib/session-storage.ts`) | |
 
 Cards are not TanStack queries: the deck changes under the phone (refills, propagated likes) and the stack needs to replace only what's behind the mounted cards. Everything else is a query, so screens get loading and error states for free.
 
@@ -134,15 +134,15 @@ Cards are not TanStack queries: the deck changes under the phone (refills, propa
 ```ts
 const supabase = createClient<Database, 'api'>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   db: { schema: 'api' },
-  auth: { storage: localStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false },
+  auth: { storage: sessionStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false },
 })
 ```
 
 - Views with `.from('room_seats')`, functions with `.rpc('cast_vote', …)`. The `Database` type is generated from the `api` schema with the Supabase CLI (`supabase gen types` with `--schema api`) into `packages/contract/src/database.types.ts` (`@flimme/contract`, shared with the bot players), never edited by hand, and regenerated whenever the schema changes. CI fails if the committed file is out of date.
-- Many functions return JSON (`cast_vote`, `my_next_cards`, `join_room`), which the generated types only know as `Json`. The app keeps hand-written types for these payloads in `src/api/payloads.ts`, with a small schema check for each in development and in tests.
-- Each `api` function gets one typed wrapper in `src/api/`. Screens never call `.rpc` directly, so a `_v2` function is a one-file change.
+- Many functions return JSON (`cast_vote`, `my_next_cards`, `join_room`), which the generated types only know as `Json`. The contract keeps hand-written types for these payloads in `packages/contract/src/payloads.ts`, each with a small Zod schema (`zod/mini`) that checks real responses in development and in tests, never in production.
+- Each `api` function gets one typed wrapper in `packages/contract/src/api/` (`createApi(client)`, shared with the bot players). `mobile/src/api/index.ts` only binds the app's client. Names are camelCase, the one object argument keeps the SQL parameter names without `p_`, and results keep the SQL's snake_case fields. Screens never call `.rpc` directly, so a `_v2` function is a one-file change. A pull request that changes a wrapped function also changes its answer list, its payload schema and its wrapper.
 - On React Native the auth client can't tell when the app goes to the background, so the app calls `startAutoRefresh` and `stopAutoRefresh` from an `AppState` listener registered once.
-- **Statuses are answers, not errors.** `join_room` answers `ok`, `not_found`, `full`, `starting`, `in_finale`, `name_required` or `rate_limited`; `cast_vote` answers `ok`, `duplicate`, `closed`, `dropped` or `no_super_likes`. Each has a message or a behaviour in the app. Real errors (permissions, a card not dealt to the seat) go to Sentry.
+- **Statuses are answers, not errors.** `join_room` answers `ok`, `not_found`, `full`, `starting`, `in_finale`, `name_required` or `rate_limited`; `cast_vote` answers `ok`, `duplicate`, `closed`, `dropped` or `no_super_likes`. Each has a message or a behaviour in the app. Statuses resolve as values; only real errors reject, as an `ApiError` of kind `network` (not reported), `denied` or `unexpected` (an answer outside the function's list, a payload of the wrong shape). Real errors (permissions, a card not dealt to the seat) go to Sentry.
 
 **The recommendation server's HTTP API** is called with `fetch` and the player's Supabase access token, for two things only: the Letterboxd upload and account deletion.
 
@@ -261,7 +261,7 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 
 ## Translations
 
-- `i18next` with `react-i18next`, one JSON file per feature in `src/i18n/locales/en` and `fr`, plurals through i18next. The device language (`expo-localization`) sets the profile's language at first launch, and it can be changed in settings.
+- `i18next` with `react-i18next`, one JSON file per feature in `src/i18n/locales/en` and `fr`, plurals through i18next. The app speaks the device's language (`expo-localization`), or Flimme's own language from the system settings (iOS, and Android 13 and later, through `supportedLocales`): the first of French or English in the preferred languages, English otherwise. Android changes it without restarting the app, so the app checks again each time it returns to the foreground. The profile's language mirrors the app's, so server text matches (decision of 2 Nov 2026).
 - **Server text arrives translated.** Titles and overviews come in the profile's language from `my_next_cards` and `title_cards`. Mood, genre and game mode names come from their `api` views, which hold every language. The app ships none of these strings.
 - **Reason labels are rendered on the phone** from `reason_code` and `reason_params`: seat ids become display names from `room_seats` ("you" for `is_me`), title ids become titles from `title_cards`. One template per code per language, so a new code needs an app update; until the app knows a code, the card shows no label.
 - Numbers, dates and runtimes ("1 h 43") are formatted with `Intl` in the profile's language.

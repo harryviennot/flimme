@@ -6,6 +6,8 @@ Each test changes the part it is about.
 
 import copy
 import math
+from dataclasses import replace
+from datetime import date
 from typing import Any
 
 from tests.conftest import fixture_json
@@ -343,3 +345,56 @@ def test_a_missing_part_leaves_its_rows_empty():
     assert rows.keywords == () and rows.credits == () and rows.certifications == ()
     assert rows.offers == () and rows.watch_links == ()
     assert rows.title.trailer_key is None
+
+
+# --- The floor (tmdb.md#which-films-are-in-the-catalog): released, 40 minutes, 30 votes, not adult.
+
+TODAY = date(2026, 11, 2)
+WITH_TODAY = replace(CONTEXT, today=TODAY)
+
+
+def failures(**changes: Any) -> tuple[str, ...]:
+    body = response()
+    body.update(changes)
+    return build(body, WITH_TODAY).floor_failures
+
+
+def test_a_film_that_passes_every_rule_has_no_failure():
+    assert failures() == ()
+
+
+def test_the_floor_rejects_a_status_that_is_not_released():
+    assert failures(status="Post Production") == ("not_released",)
+    assert failures(status=None) == ("not_released",)
+
+
+def test_the_floor_rejects_a_release_date_that_is_not_past():
+    assert failures(release_date="2026-11-03") == ("not_released",)
+    assert failures(release_date="") == ("not_released",)
+    assert failures(release_date="2026-11-02") == ()  # today counts as released
+
+
+def test_the_floor_rejects_a_film_under_40_minutes():
+    assert failures(runtime=39) == ("too_short",)
+    assert failures(runtime=40) == ()
+    assert failures(runtime=None) == ("too_short",)
+    assert failures(runtime=0) == ("too_short",)
+
+
+def test_the_floor_rejects_a_film_under_30_votes():
+    assert failures(vote_count=29) == ("too_few_votes",)
+    assert failures(vote_count=30) == ()
+    assert failures(vote_count=None) == ("too_few_votes",)
+
+
+def test_the_floor_rejects_an_adult_film():
+    assert failures(adult=True) == ("adult",)
+
+
+def test_every_rule_that_fails_is_named():
+    assert failures(status="Rumored", runtime=10, vote_count=1, adult=True) == (
+        "not_released",
+        "too_short",
+        "too_few_votes",
+        "adult",
+    )

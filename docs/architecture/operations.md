@@ -53,7 +53,7 @@ Facts about outside services were checked on their live sites on 29 October 2026
 ### Seed and test data
 
 - **`supabase/seed.sql`, committed: synthetic only.** France, ten made-up services (ids 8001 to 8010), French age ratings, twelve invented genres and 500 invented films, each with French and English text, a certification, two or three offers and one deterministic placeholder vector (the SQL deal ranks only films that have one). The rows are generated in SQL from the film number, so every load is the same, and the spread guarantees that every quality preset, age cap and the 105-minute budget finds 40 films or more. No moods, taste check films or test profiles: the first release has none, guests sign in anonymously. Loaded by `supabase db reset` locally and in CI. No TMDB content goes into git: TMDB's terms allow keeping its data for 6 months at most ([tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution)), and a seed file in a repository is a copy kept forever. The same goes for the server's test fixtures: they are synthetic, in TMDB's response shape, with movie ids from 60,000,001 (a test fails on any other id). A developer may record a real response into the git-ignored `server/tests/fixtures/.recorded/` and scrub it with `server/tools/scrub_fixture.py` first.
-- **`tools/seed-local-catalog`, never committed.** Runs the real ingest code against TMDB with the developer's own key and fills the local database with about 2,000 popular films available in France, so decks look real while building the app. Re-run it to refresh.
+- **`server backfill --limit 2000` seeds a local catalog** (decision of 2 Nov 2026: it replaces the planned `tools/seed-local-catalog`). It runs the real ingest code against TMDB with the developer's own key and fills the local database with the 2,000 most popular films above the floor, so decks look real while building the app. The synthetic seed can stay in the database: its genre slugs start with `seed_` so TMDB's genres never collide with them. Offers arrive with the availability sweep (M2.10). Re-run it to carry on or refresh; an interrupted run resumes.
 - **Staging** ingests the full France catalog itself, on the same schedule as production, so the sweeps, the 20% guard and the alerts are exercised before they matter.
 - **Test accounts** on staging: a set of email and password users for bots and the load test, since anonymous sign-ins are limited per IP address (see [Supabase settings](#supabase-settings)).
 
@@ -105,7 +105,7 @@ Nothing secret is committed. Local values live in an ignored `.env.local`.
 | App Store Connect API key, Google Play service account | EAS credentials | EAS Submit |
 | One database password per process login: `flimme_deck`, `flimme_pipeline`, `flimme_trainer` (role `app_server`) and `flimme_http` (role `app_http`), each as its connection string | The server host's secrets: `flimme-api-<env>` holds `flimme_http`'s as `API_DATABASE_URL`, `flimme-workers-<env>` the others as `PIPELINE_DATABASE_URL`, `DECK_DATABASE_URL` and `TRAINER_DATABASE_URL` (session-mode pooler URL, port 5432, user `<role>.<project ref>`). Set by Harry with `node tools/server-logins.mjs <env>`: it generates each password, sends Postgres only its SCRAM hash, tests the login through the pooler and stages the URL on Fly. The passwords exist only on Fly; to replace them, run it again. Never in a migration | Each server process ([contract](recommendation-server.md#the-contract-with-the-database)) |
 | A Supabase secret key for account deletion only | The server host's secrets | The server's HTTP API |
-| TMDB API token | The server host's secrets; your own key in `.env.local` | The pipeline worker, `tools/seed-local-catalog` |
+| TMDB API token | The server host's secrets; your own key in `.env.local` | The pipeline worker, `server backfill` |
 | Sentry DSN for the server | The server host's secrets | The server |
 | Apple and Google sign-in keys | Supabase Auth settings | Supabase |
 | `SUPABASE_ACCESS_TOKEN`, each project's database password and project ref | GitHub Actions secrets, in `staging` and `production` environments | CI deploys |
@@ -289,7 +289,7 @@ A short checklist for when something is wrong:
 
 ## Changes this asks elsewhere
 
-**Repository layout (backend):** `supabase/` with `config.toml`, `migrations/`, `seed.sql` (synthetic) and `tests/` (pgTAP); `tools/seed-local-catalog`; `.github/workflows/` with the four workflows above. The server's own folders are in [server-structure.md](server-structure.md).
+**Repository layout (backend):** `supabase/` with `config.toml`, `migrations/`, `seed.sql` (synthetic) and `tests/` (pgTAP); `server backfill --limit` for a local catalog; `.github/workflows/` with the four workflows above. The server's own folders are in [server-structure.md](server-structure.md).
 
 **Data model** (not yet in [data-model.md](data-model.md) or [schema.sql](schema.sql)):
 

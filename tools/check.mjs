@@ -79,6 +79,9 @@ if (touched('mobile/', 'packages/contract/', 'pnpm-lock.yaml')) {
 if (touched('packages/contract/') && !testsOnly) {
   add('contract: types', 'pnpm --filter @flimme/contract run typecheck');
 }
+if (touched('packages/contract/')) {
+  add('contract: tests', 'pnpm --filter @flimme/contract run test');
+}
 if (touched('server/')) {
   if (has('uv')) {
     if (!testsOnly) {

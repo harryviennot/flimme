@@ -178,13 +178,13 @@ The queues are Supabase Queues, which is the pgmq extension. Reading a message h
 
 1. `pgmq.read_with_poll(queue, vt, qty, max_poll_seconds, poll_interval_ms)`: waits for messages without busy-looping. For `deck_requests` it polls every 100 ms, so a request waits at most a tenth of a second to be picked up.
 2. If `read_ct` is over the queue's limit, the message is **poisoned**: `pgmq.archive` moves it to the queue's archive table, the error is logged, and an alert goes out ([operations.md](operations.md)). It's never retried silently forever.
-3. Otherwise the handler runs. A long job extends its own timeout with `pgmq.set_vt` before it runs out.
+3. Otherwise the handler runs. A long job extends its own timeout with `pgmq.set_vt` before it runs out, but a handler runs at most 30 minutes (`max_run_s`, one default, settable per queue). Past that the runner cancels it, stops extending the timeout, logs an error with the queue, message id and handler (never the payload), and leaves the message for its timeout like any retryable failure.
 4. On success, `pgmq.delete`. On a failure worth retrying, nothing: the timeout brings it back. On a failure that will never succeed (bad input), `pgmq.archive` straight away.
 5. On shutdown, the loop stops reading, lets the handlers in progress finish, and exits. Anything unfinished comes back after its timeout.
 
 The server calls these pgmq functions directly with SQL. No client library is needed, and it keeps one database driver.
 
-**Per queue** (starting values):
+**Per queue** (starting values; every handler is also capped at 30 minutes of running):
 
 | Queue | Visibility timeout | Poisoned after | Handler | Why running it twice is safe |
 | --- | --- | --- | --- | --- |

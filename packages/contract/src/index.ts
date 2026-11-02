@@ -1,6 +1,8 @@
 // The contract between the app (and the bot players) and the backend: generated database
-// types, the answers each function gives, and the Realtime events. One wrapper per `api`
-// function lands here with roadmap M3.6.
+// types, the answers each function gives, the Realtime events, and one typed wrapper per
+// `api` function (`createApi`, roadmap M3.6).
 export * from './answers';
+export * from './api';
 export type { Database, Json } from './database.types';
+export * from './payloads';
 export * from './realtime';
