@@ -234,7 +234,7 @@ select is(
 );
 
 -- B23: the app is asked for a new export, which clears the gap.
-select tests.act_as_server();
+select tests.act_as_http();
 select set_config('tests.reexport',
   internal.start_letterboxd_import(tests.uid('lb1'), tests.letterboxd_export('test_viewer'))::text, true);
 select tests.clear_authentication();
@@ -354,7 +354,7 @@ select is(
 select tests.clear_authentication();
 
 -- B27 (last): a different username replaces the old link and everything that came with it.
-select tests.act_as_server();
+select tests.act_as_http();
 select set_config('tests.replaced',
   internal.start_letterboxd_import(tests.uid('lb1'), tests.letterboxd_export('test_viewer_new'))::text, true);
 select tests.clear_authentication();
