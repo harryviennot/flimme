@@ -1,0 +1,6 @@
+{
+  "genres": [
+    { "id": 99000001, "name": "Comédie inventée" },
+    { "id": 99000002, "name": "Science-fiction inventée" }
+  ]
+}

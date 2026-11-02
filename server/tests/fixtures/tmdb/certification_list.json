@@ -1,0 +1,13 @@
+{
+  "certifications": {
+    "FR": [
+      { "certification": "U", "meaning": "Invented meaning", "order": 1 },
+      { "certification": "12", "meaning": "Invented meaning", "order": 3 },
+      { "certification": "TP", "meaning": "Invented meaning", "order": 9 }
+    ],
+    "US": [
+      { "certification": "PG", "meaning": "Invented meaning", "order": 2 },
+      { "certification": "NR", "meaning": "Invented meaning", "order": 0 }
+    ]
+  }
+}
