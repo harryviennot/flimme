@@ -28,6 +28,10 @@
 create extension if not exists pgtap with schema extensions;
 
 create schema if not exists tests;
+-- Test setup only, never in a migration. M1.7's migration revokes execute on new
+-- functions from PUBLIC (a global default for the role that creates them), which
+-- would make these helpers uncallable by the roles the tests act as.
+alter default privileges in schema tests grant execute on functions to public;
 -- app_server is there so a test acting as the recommendation server can call
 -- the helpers (tests.room_id() and tests.member_id() in a query's arguments).
 grant usage on schema tests to anon, authenticated, service_role, app_server;

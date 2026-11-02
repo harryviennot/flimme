@@ -41,6 +41,11 @@ grant usage on schema extensions to anon, authenticated, service_role;
 create extension vector with schema extensions;
 create extension pg_trgm with schema extensions;
 create extension pgcrypto with schema extensions;
+-- pgTAP too, before any migration: on the real stack a platform role installs
+-- extensions, so M1.7's global revoke of execute from PUBLIC never reaches
+-- them. Created after the migrations (by 000-helpers.sql), its functions would
+-- be closed to the roles the tests act as.
+create extension pgtap with schema extensions;
 
 do $$
 begin

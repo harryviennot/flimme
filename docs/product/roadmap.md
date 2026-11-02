@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 18 of 244 tasks done.
+Progress: 19 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -221,7 +221,7 @@ Done when: migrations and the test suite run from CI on staging and production.
   Done when: the migration builds a fresh database and the suite passes on it.
 - [x] **M1.6** Remove what v1 dropped: `title_deep_links`, `providers.streaming_availability_id`, the `winner_links` queue, the `result` event · backend · M · needs M1.5 · [decisions](../decisions.md)
   Done when: none of them exist and the tests are updated.
-- [ ] **M1.7** Revoke default privileges and add a CI check for tables without row-level security and functions open to phones (security gap 1) · backend · L · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
+- [x] **M1.7** Revoke default privileges and add a CI check for tables without row-level security and functions open to phones (security gap 1) · backend · L · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: the check fails on purpose-built bad examples and passes on the schema.
 - [ ] **M1.8** Removed players lose room access, and players who left can't send: `room_members.removed_at`, `is_room_member` and `can_use_room_topic` updated (gap 3, access part) · backend · L · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: tests show a removed seat reads nothing and can't send on the room's topics.
