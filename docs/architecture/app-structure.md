@@ -42,7 +42,7 @@ Facts about Expo, Supabase and the libraries were checked against their live doc
 | Choice | Detail | Checked |
 | --- | --- | --- |
 | Expo SDK 58 | React Native 0.88. Released 15 October 2026. `create-expo-app` still creates SDK 57 projects until the new Expo Go ships "within a few weeks", so the project starts with `npx create-expo-app --template default@sdk-58`, as the revival plan says | SDK 58 changelog |
-| Development builds, not Expo Go | Native sign-in with Google needs native code, and the new Expo Go only supports SDK 58 anyway. Everyone runs a development build from EAS | Supabase Google guide, SDK 58 changelog |
+| Development builds, not Expo Go | Native sign-in with Google needs native code, and the new Expo Go only supports SDK 58 anyway. Everyone runs a development build (`expo-dev-client`), built locally with `npx expo run:ios` and `run:android`, or from EAS | Supabase Google guide, SDK 58 changelog |
 | TypeScript, strict | SDK 58 makes React Native's strict TypeScript API the default; deep imports from `react-native/Libraries` are type errors | SDK 58 changelog |
 | Expo Router | File-based routes give invite links for free. SDK 58 reworked its navigation core so navigation state is deterministic, and moved or removed some imports that came from React Navigation | SDK 58 changelog |
 | Node | 22.13 or newer on 22, 24.3 or newer on 24, or 26 and later; odd versions are unsupported | SDK 58 changelog |
@@ -53,7 +53,8 @@ Facts about Expo, Supabase and the libraries were checked against their live doc
 
 | Need | Package |
 | --- | --- |
-| Backend | `@supabase/supabase-js`, `react-native-url-polyfill`, `expo-sqlite` (auth storage and the local key-value store) |
+| Backend | `@supabase/supabase-js`, `react-native-url-polyfill`, `expo-sqlite` (auth storage and the local key-value store), `expo-secure-store` and `expo-crypto` (the key that encrypts the stored session) |
+| Builds and updates | `expo-dev-client`, `expo-updates`, `expo-application` (the native version the `min_app_version` gate compares) |
 | Server data | `@tanstack/react-query` |
 | Local state | `zustand` |
 | Card stack | `react-native-reanimated` 4 with `react-native-worklets`, `react-native-gesture-handler`, `expo-haptics`, `expo-image` |
