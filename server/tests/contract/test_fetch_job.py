@@ -450,3 +450,98 @@ async def test_a_missing_french_certification_uses_the_us_one(
     await run_fetch(database, tmdb, message(await new_run(restore), MOVIE))
 
     assert (await snapshot(restore))[3] == [("FR", "PG-13", 13, "US")]
+
+
+# --- The floor (M2.9): a candidate or sweep fetch below it is not stored (decision Q19).
+
+
+def candidate(run_id: int, *ids: int, reason: str = "candidate") -> FetchMessage:
+    return FetchMessage(run_id=run_id, tmdb_ids=list(ids), reason=reason)  # type: ignore[arg-type]
+
+
+def too_short(body: dict[str, Any]) -> None:
+    body["runtime"] = 39
+
+
+async def stored(conn: AsyncConnection, tmdb_id: int) -> list[tuple[Any, ...]]:
+    return await rows(
+        conn, "select is_active, vote_count from public.titles where tmdb_id = %s", tmdb_id
+    )
+
+
+@pytest.mark.parametrize("reason", ["candidate", "sweep"])
+async def test_a_candidate_under_the_floor_is_not_stored(
+    reason: str, database: Database, restore: AsyncConnection, transport_class, fake_time
+):
+    run_id = await new_run(restore)
+    tmdb, _ = serve(transport_class, fake_time, {MOVIE: full(too_short)})
+
+    await run_fetch(database, tmdb, candidate(run_id, MOVIE, reason=reason))
+
+    assert await stored(restore, MOVIE) == []
+    assert await rows(
+        restore,
+        "select count(*) from public.title_translations where title_id"
+        " in (select id from public.titles where tmdb_id = %s)",
+        MOVIE,
+    ) == [(0,)]
+    (stats,) = await rows(
+        restore,
+        "select stats, titles_touched, errors from public.ingest_runs where id = %s",
+        run_id,
+    )
+    assert stats[0]["films_below_floor"] == 1 and stats[0]["floor_too_short"] == 1
+    assert "films_written" not in stats[0] and stats[1] == 0 and stats[2] == 0
+
+
+@pytest.mark.parametrize("reason", ["changes", "weekly", "monthly"])
+async def test_the_floor_only_judges_new_candidates_not_refreshes(
+    reason: str, database: Database, restore: AsyncConnection, transport_class, fake_time
+):
+    run_id = await new_run(restore)
+    tmdb, _ = serve(transport_class, fake_time, {MOVIE: full(too_short)})
+
+    await run_fetch(database, tmdb, candidate(run_id, MOVIE, reason=reason))
+
+    assert await stored(restore, MOVIE) == [(True, 1250)]
+
+
+async def test_a_film_already_stored_is_never_removed_by_the_floor(
+    database: Database, restore: AsyncConnection, transport_class, fake_time
+):
+    run_id = await new_run(restore)
+    tmdb, _ = serve(transport_class, fake_time, {MOVIE: full()})
+    await run_fetch(database, tmdb, candidate(run_id, MOVIE))
+    assert await stored(restore, MOVIE) == [(True, 1250)]
+
+    # Its votes fall under the floor; the film stays, refreshed, and stays active.
+    def few_votes(body: dict[str, Any]) -> None:
+        body["vote_count"] = 3
+
+    tmdb, _ = serve(transport_class, fake_time, {MOVIE: full(few_votes)})
+    await run_fetch(database, tmdb, candidate(run_id, MOVIE))
+
+    assert await stored(restore, MOVIE) == [(True, 3)]
+    (stats,) = await rows(restore, "select stats from public.ingest_runs where id = %s", run_id)
+    assert "films_below_floor" not in stats[0]
+
+
+async def test_a_message_keeps_the_films_that_pass_and_drops_the_ones_that_do_not(
+    database: Database, restore: AsyncConnection, transport_class, fake_time
+):
+    other = MOVIE + 1
+
+    def renumber(body: dict[str, Any]) -> None:
+        body["id"] = other
+
+    run_id = await new_run(restore)
+    tmdb, _ = serve(
+        transport_class,
+        fake_time,
+        {MOVIE: full(), other: full(lambda b: (renumber(b), too_short(b)))},
+    )
+
+    await run_fetch(database, tmdb, candidate(run_id, MOVIE, other))
+
+    assert await stored(restore, MOVIE) == [(True, 1250)]
+    assert await stored(restore, other) == []

@@ -1,19 +1,20 @@
 """The pipeline worker: it consumes `catalog_refresh` and nothing else yet (decision Q33).
 
 Handlers register by message kind. M2.5, M2.7, M2.9, M2.10 and M2.11 each add one line to
-`HANDLERS`. A valid message whose kind has no handler is rejected (archived and logged), and
-so is a body that fails validation: both are bad input that will never succeed.
+`HANDLERS` or `JOBS`. A valid message whose kind has no handler is rejected (archived and
+logged), and so is a body that fails validation: both are bad input that will never succeed.
 """
 
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pydantic import ValidationError
 
 from server.catalog.curation import Curation, load_curation
 from server.catalog.fetch import run_fetch
+from server.catalog.popularity import ExportLoader, ExportSource, run_popularity_daily
 from server.catalog.reference import run_reference_weekly
 from server.catalog.tmdb import TmdbClient
 from server.config import Process, Settings
@@ -53,6 +54,7 @@ class Context:
     database: Database
     tmdb: TmdbClient | None
     curation: Curation
+    exports: ExportLoader = field(default_factory=ExportSource)
 
 
 JobRunner = Callable[[Context], Awaitable[Outcome]]
@@ -64,8 +66,16 @@ async def _reference_weekly(context: Context) -> Outcome:
     return await run_reference_weekly(context.database, context.tmdb, context.curation)
 
 
-# job name -> runner. M2.9, M2.10 and M2.11 add their jobs here.
-JOBS: dict[str, JobRunner] = {"reference_weekly": _reference_weekly}
+async def _popularity_daily(context: Context) -> Outcome:
+    # The export file needs no key, so this job runs without a TMDB token.
+    return await run_popularity_daily(context.database, context.exports)
+
+
+# job name -> runner. M2.10 and M2.11 add their jobs here.
+JOBS: dict[str, JobRunner] = {
+    "reference_weekly": _reference_weekly,
+    "popularity_daily": _popularity_daily,
+}
 
 
 def make_job_handler(context: Context, jobs: Mapping[str, JobRunner] = JOBS) -> KindHandler:

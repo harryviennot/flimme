@@ -12,6 +12,10 @@ offer or a language TMDB dropped disappears, and running the message again chang
   what the sweep stored, the film's answer wins and the difference is counted.
 - `quality_score` needs C, the catalog's average vote (Q18). It is computed in SQL once per
   message and never stored; without a first C the score stays null.
+- The floor (tmdb.md#which-films-are-in-the-catalog): a `candidate` or `sweep` fetch stores a
+  film only if it is released, at least 40 minutes long, has at least 30 votes and is not
+  adult (decision Q19: the others are not stored). A film already stored is never removed by
+  it, and refreshes (`changes`, `weekly`, `monthly`) are not judged by it.
 - Nothing goes to `embed_titles` and no placeholder is made here (M2.8, M19.2).
 
 A film whose response cannot be read is counted as an error and skipped; the others in the
@@ -22,8 +26,8 @@ import asyncio
 import logging
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
-from datetime import date
+from dataclasses import dataclass, field
+from datetime import UTC, date, datetime
 from typing import Any, Literal
 
 from psycopg import AsyncConnection
@@ -57,10 +61,19 @@ FALLBACK_COUNTRY = "US"
 # Films of one message in flight at once (the TMDB client has its own limit as well).
 CONCURRENCY = 8
 
+# The floor, the lowest any deck uses (tmdb.md#which-films-are-in-the-catalog).
+MIN_RUNTIME_MIN = 40
+MIN_VOTES = 30
+FLOOR_REASONS = frozenset({"candidate", "sweep"})
+
 OfferKind = Literal["subscription", "free", "ads"]
 # TMDB's name -> ours. Rent and buy are not stored at launch.
 OFFER_KINDS: dict[str, OfferKind] = {"flatrate": "subscription", "free": "free", "ads": "ads"}
 CreditRole = Literal["director", "writer", "cast"]
+
+
+def _today() -> date:
+    return datetime.now(UTC).date()
 
 
 @dataclass(frozen=True)
@@ -71,6 +84,7 @@ class FetchContext:
     swept: Mapping[str, frozenset[int]]  # country -> provider ids whose offers we store
     ages: Mapping[tuple[str, str], int | None]  # (country, certification) -> min_age
     catalog_average: float | None  # C; None until a first one exists
+    today: date = field(default_factory=_today)  # "a past release date" is judged against it
 
 
 @dataclass(frozen=True)
@@ -157,6 +171,8 @@ class FilmRows:
     certifications: tuple[CertificationRow, ...]
     offers: tuple[OfferRow, ...]
     watch_links: tuple[WatchLinkRow, ...]
+    # The floor rules this film fails, by name; empty when it passes. Judged by the caller.
+    floor_failures: tuple[str, ...] = ()
 
 
 # --- TMDB's response, read loosely: only what we keep, everything else ignored.
@@ -278,6 +294,7 @@ class _Response(_Loose):
     original_title: str | None = None
     original_language: str | None = None
     release_date: str | None = None
+    status: str | None = None
     runtime: int | None = None
     genres: list[_Id] = []
     belongs_to_collection: _Id | None = None
@@ -360,7 +377,21 @@ def build_film_rows(response: Mapping[str, Any], context: FetchContext) -> FilmR
             for country, found in sorted(film.watch_providers.results.items())
             if country in context.enabled_countries and found.link
         ),
+        floor_failures=_floor_failures(film, context.today),
     )
+
+
+def _floor_failures(film: _Response, today: date) -> tuple[str, ...]:
+    """The floor rules the film fails: released (status and a past date), 40 minutes, 30 votes,
+    not adult. A missing runtime or date fails: we cannot show what we do not know."""
+    released = _release_date(film.release_date)
+    failed = {
+        "not_released": film.status != "Released" or released is None or released > today,
+        "too_short": film.runtime is None or film.runtime < MIN_RUNTIME_MIN,
+        "too_few_votes": (film.vote_count or 0) < MIN_VOTES,
+        "adult": film.adult,
+    }
+    return tuple(rule for rule, fails in failed.items() if fails)
 
 
 def _text(value: str | None) -> str | None:
@@ -538,11 +569,12 @@ async def run_fetch(database: Database, tmdb: TmdbClient, message: FetchMessage)
     counts: Counter[str] = Counter()
     errors = 0
     gate = asyncio.Semaphore(CONCURRENCY)
+    floor = message.reason in FLOOR_REASONS
 
     async def one(tmdb_id: int) -> None:
         nonlocal errors
         async with gate:
-            failed = await _fetch_one(database, tmdb, context, tmdb_id, counts)
+            failed = await _fetch_one(database, tmdb, context, tmdb_id, counts, floor)
         errors += failed
 
     try:
@@ -562,6 +594,7 @@ async def _fetch_one(
     context: FetchContext,
     tmdb_id: int,
     counts: Counter[str],
+    floor: bool,
 ) -> int:
     """Returns 1 if the film could not be read, else 0."""
     body = await tmdb.get(f"/movie/{tmdb_id}", REQUEST_PARAMS)
@@ -580,12 +613,23 @@ async def _fetch_one(
         log.warning("film response unreadable tmdb_id=%s problems=%s", tmdb_id, problems)
         counts["films_failed"] += 1
         return 1
+    if floor and rows.floor_failures and not await _is_stored(database, tmdb_id):
+        counts["films_below_floor"] += 1
+        for rule in rows.floor_failures:
+            counts[f"floor_{rule}"] += 1
+        return 0
     async with database.connection() as conn, conn.transaction():
         compared, disagreements = await _write(conn, rows)
     counts["films_written"] += 1
     counts["offers_compared"] += compared
     counts["availability_disagreements"] += disagreements
     return 0
+
+
+async def _is_stored(database: Database, tmdb_id: int) -> bool:
+    async with database.connection() as conn:
+        cur = await conn.execute(queries.load("title_is_stored"), (tmdb_id,))
+        return await cur.fetchone() is not None
 
 
 async def _write(conn: AsyncConnection, rows: FilmRows) -> tuple[int, int]:
