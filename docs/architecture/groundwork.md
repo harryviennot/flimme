@@ -151,9 +151,9 @@ The three environments are operations.md's: local, staging and production.
 | Google Play (personal) | Day 1 | Identity check. The 14-day testing count starts later |
 | TMDB | Day 1 | A developer key for local and staging, and the licence email (M0.5) |
 | GitHub | Week 0 | The monorepo, its environments and settings |
-| Supabase | Week 0 | Pro organization, staging and production in Paris, the settings checklist (M1.1, M1.2) |
+| Supabase | Week 0 | An organization on the Free plan (Pro from M2.15), staging in Ireland and production in Frankfurt, the settings checklist (M1.1, M1.2) |
 | Expo (EAS) | Week 0 | One project, Free plan until launch |
-| Fly.io | Week 1 | One organization, staging and production apps in Paris |
+| Fly.io | Week 1 | Two apps per environment, `flimme-api-<env>` and `flimme-workers-<env>`: staging in London, production in Frankfurt |
 | Sentry (EU) | Week 1 | Two projects (app and server), environments as tags |
 | PostHog (EU) | Before M9 | The free plan has one project, so staging and production share it: every event carries its environment, and development builds send nothing |
 | Domain and support email | After the name (M0.1, M0.2) | Blocks invite links (M4.14), not the start |
@@ -172,10 +172,11 @@ Every secret starts in the password manager; the places below hold copies. Nothi
 | Sentry DSN for the app, PostHog project key | M3.9, M9.1 | EAS environment variables | No |
 | Sentry auth token for source maps | M3.9 | EAS secret | Yes |
 | `EXPO_TOKEN` | M3.3 | GitHub Actions | Yes |
+| `ROADMAP_DEPLOY_KEY`, the private half of a write deploy key | Now | GitHub Actions, repository secret; the main ruleset lets deploy keys bypass it | Yes |
 | `SUPABASE_ACCESS_TOKEN`, each project's database password and ref | M1.15 | GitHub's `staging` and `production` environments | Yes |
 | The server's database logins, one per process | M2.12 | Fly secrets; the local login in `server/.env.local` | Yes |
 | TMDB API token | M2.3 | Fly secrets (pipeline worker); your own key in `server/.env.local` | Yes |
-| Fly deploy token | M2.12 | GitHub Actions | Yes |
+| Fly deploy tokens, one per app (`FLY_API_TOKEN_API`, `FLY_API_TOKEN_WORKERS`) | M2.12 | GitHub's `staging` and `production` environments | Yes |
 | A Supabase secret key, for account deletion only | M8.5 | Fly secrets, the HTTP API process only | Yes |
 | Sentry DSN for the server | M9.4 | Fly secrets | No |
 | App Store Connect API key, Google Play service account | M10.2 | EAS credentials | Yes |

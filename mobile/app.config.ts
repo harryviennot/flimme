@@ -21,6 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: current.name,
   slug: 'flimme',
+  owner: 'hryvnt',
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -68,5 +69,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     typedRoutes: true,
     reactCompiler: true,
   },
-  extra: { variant },
+  extra: {
+    variant,
+    eas: { projectId: '2aeaa454-cf9d-400f-a840-b8f100e0061e' },
+  },
 });

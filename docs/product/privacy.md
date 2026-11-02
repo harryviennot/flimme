@@ -32,7 +32,7 @@ It builds on the data model's [retention](../architecture/data-model.md#retentio
 
 ## The short version
 
-- **Data lives in the EU**: the database in Supabase's Paris region, the recommendation server with an EU host. The one exception is Expo's update service, in the US under the EU-US Data Privacy Framework.
+- **Data lives in the EU**: the database in Supabase's Frankfurt region (Ireland for staging, which holds test accounts and playtesters), the recommendation server with an EU host. The one exception is Expo's update service, in the US under the EU-US Data Privacy Framework.
 - **No ads, no tracking, nothing sold.** No SDK in the app builds profiles across apps.
 - **Only one consent at launch**: the Letterboxd import. Analytics are set up as anonymous audience measurement, which the CNIL exempts from consent, so nothing is asked before the first game, as [onboarding](onboarding.md#goals) requires.
 - **Every player, guest or account, can export and delete their data from the app**, and can switch off analytics and the use of their games for training.
@@ -201,7 +201,7 @@ Obligations from [tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution
 
 | Service | Role | Gets | Where | Transfer basis |
 | --- | --- | --- | --- | --- |
-| Supabase | Processor | The database, sign-in, realtime: everything in the data map | An EU region we choose: Paris (`eu-west-3`) recommended. Supabase notes a region is "a data-location control, not proof of regulatory compliance" | DPA with the EU standard contractual clauses (Supabase is a US company) |
+| Supabase | Processor | The database, sign-in, realtime: everything in the data map | EU regions: Frankfurt (`eu-central-1`) for production, Ireland (`eu-west-1`) for staging. Supabase notes a region is "a data-location control, not proof of regulatory compliance" | DPA with the EU standard contractual clauses (Supabase is a US company) |
 | Recommendation server host | Processor | Database access, Letterboxd feeds | EU, chosen in [server-structure.md](../architecture/server-structure.md) | Its DPA |
 | Object storage | Processor | Models and training exports (seat ids) | EU | Its DPA |
 | Sentry | Processor | Crash reports | EU data region, Frankfurt. Sentry says some data types may still be stored in the US | Its DPA |
@@ -305,7 +305,7 @@ Bring this list, the data map and the draft policy and terms to one meeting:
 | [analytics.md](analytics.md) | Events designed for anonymous mode; game metrics from the database |
 | [security.md](../architecture/security.md) | Log retention, IP handling, breach process, how Apple tokens are obtained for revocation |
 | [store-listing.md](store-listing.md) | The privacy forms above, the policy and deletion URLs, no "for kids" wording |
-| [operations.md](../architecture/operations.md) | Supabase in Paris, Sentry and PostHog EU projects, retention settings |
+| [operations.md](../architecture/operations.md) | Supabase in Frankfurt and Ireland, Sentry and PostHog EU projects, retention settings |
 | [monetization.md](monetization.md#kids-safety-and-privacy) | Family profiles wait on a lawyer's read and a DPIA update |
 
 ## Starting values
