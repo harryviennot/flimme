@@ -92,3 +92,22 @@ as $$
          order by u.sort_key), '[]')
   from upcoming u join cards c on c.title_id = u.title_id
 $$;
+
+-- A removed seat still reads its own votes (Q8.3, they are the player's own
+-- data). The own_seat policy used to look the seats up in public.room_members
+-- under the caller's rights, where member_read now hides a removed seat's row,
+-- so it found nothing. This helper reads the caller's own seats without row-level
+-- security. No removed_at or left_at filter: they are the caller's own seats.
+-- Policies run with the querying user's privileges, so phones need execute.
+create function internal.my_seat_ids() returns setof uuid
+language sql stable security definer set search_path = ''
+as $$
+  select m.id from public.room_members m
+  where m.controlled_by in (select internal.my_profile_ids())
+$$;
+revoke execute on function internal.my_seat_ids() from public, anon, authenticated;
+grant execute on function internal.my_seat_ids() to authenticated;
+
+drop policy own_seat on public.votes;
+create policy own_seat on public.votes for select to authenticated
+  using (room_member_id in (select internal.my_seat_ids()));

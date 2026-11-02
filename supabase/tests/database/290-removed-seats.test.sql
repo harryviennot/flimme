@@ -7,7 +7,7 @@
 -- preceded by tests.use_topic.
 
 begin;
-select plan(27);
+select plan(29);
 
 select tests.create_catalog(40);
 -- p1 stays present, p2 is removed later, p3 leaves later; one match and one round to read.
@@ -48,6 +48,9 @@ select ok(
   'control: a present seat reads the room, seats, matches, rounds and candidates'
 );
 
+-- p2 votes once before the removal (T9 below).
+select tests.vote_next('p2', 1);
+
 -- Remove p2, p3 leaves.
 select tests.clear_authentication();
 update public.room_members set removed_at = now() where id = tests.member_id('p2', (select id from room_a));
@@ -81,6 +84,15 @@ select throws_ok(
   $$insert into realtime.messages (topic, extension, payload, event, private)
     values ('room:' || (select id from room_a) || ':live', 'broadcast', '{}', 'reaction', true)$$,
   '42501', null, 'T3 a removed seat cannot send on the live topic');
+
+-- T9 (Q8.3): a removed seat still reads its own votes.
+select is((select count(*) from api.my_votes where room_id = (select id from room_a)), 1::bigint,
+  'T9 a removed seat still reads its own votes');
+
+-- A phone with no account of its own (anon) cannot call the helper.
+select tests.authenticate_as_anon();
+select throws_ok($$select internal.my_seat_ids()$$, '42501', null, 'anon cannot execute internal.my_seat_ids');
+select tests.authenticate_as('p2');
 
 -- T7: the removed player's other room is unaffected.
 select is((select count(*) from api.rooms where id = (select id from room_b)), 1::bigint,
