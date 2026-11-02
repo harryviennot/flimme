@@ -287,7 +287,7 @@ An empty app that builds for both platforms, signs in as a guest and talks to th
 
 Done when: a development build on iOS and Android signs in as a guest and reads the API.
 
-- [ ] **M3.1** Create the Expo SDK 58 project: Expo Router, TypeScript, development builds, lint, format, tests, folder layout · app · S · needs M0.1 · [app-structure](../architecture/app-structure.md#project-setup)
+- [ ] **M3.1** Create the Expo SDK 58 project: Expo Router, TypeScript, development builds, lint, format, tests, folder layout · app · S · [app-structure](../architecture/app-structure.md#project-setup)
   Done when: the project runs in a development build on both platforms.
 - [ ] **M3.2** EAS: build profiles (development, preview, production), fingerprint runtime versions, update channels · ops · M · needs M3.1, M0.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: each profile builds.
@@ -297,15 +297,15 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: `pnpm tokens --check` passes and every type style renders in the gallery.
 - [ ] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · M · needs M3.1 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
   Done when: a fresh install gets a guest user that survives a restart.
-- [ ] **M3.6** Typed API layer: generated types for the `api` schema, one wrapper per function, status answers as values · app · M · needs M3.5, M1.17 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
+- [ ] **M3.6** Typed API layer in `packages/contract`: the wrapper pattern and the profile, room and lobby functions, status answers as values. Card, vote and export wrappers come with M5.6, M6.9, M6.11 and M8.6 · app · M · needs M3.5, M1.17 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
   Done when: wrappers compile against the generated types and a status answer isn't thrown as an error.
-- [ ] **M3.7** State: TanStack Query for server data, Zustand stores, persistence with expo-sqlite · app · M · needs M3.1 · [app-structure](../architecture/app-structure.md#where-state-lives)
+- [ ] **M3.7** State: TanStack Query for server data, Zustand stores, persistence with expo-sqlite · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#where-state-lives)
   Done when: a persisted store survives a restart.
 - [ ] **M3.8** Translations: i18next with French and English, the device language, English as fallback · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#translations)
   Done when: switching the device language switches the app.
 - [ ] **M3.9** Sentry with no personal data and no user id, source maps from EAS · app · M · needs M3.2 · [app-structure](../architecture/app-structure.md#analytics-and-crash-reports)
   Done when: a test crash shows in Sentry with readable frames.
-- [ ] **M3.10** `app_config` at launch and the `min_app_version` gate · app · M · needs M3.6, M1.13 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
+- [ ] **M3.10** `app_config` at launch and the `min_app_version` gate · app · M · needs M3.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: raising the minimum shows the update screen.
 - [ ] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · M · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
   Done when: the findings are written in app-structure.md.
@@ -315,8 +315,8 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
 - [ ] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: the gallery's motion section plays each spring and haptic on a phone.
-- [ ] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
-  Done when: every route in app-structure.md opens, and the dev menu switches between local and staging.
+- [ ] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · M · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
+  Done when: every first-release route and `/room/[id]/services` opens, and the dev menu switches between the local and staging backends.
 - [x] **M3.16** The consistency checks: theme classes only, no arbitrary values or raw colors, primitives only from `ui/`, the component tiers, strings through `t()`, a gallery entry per component · app · S · needs M3.13 · [groundwork](../architecture/groundwork.md#keeping-every-screen-consistent)
   Done when: each check fails on a purpose-built bad example and passes on the app.
 
