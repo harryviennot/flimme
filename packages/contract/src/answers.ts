@@ -39,12 +39,19 @@ export type UpdateRoomSettingsAnswer = (typeof UPDATE_ROOM_SETTINGS_ANSWERS)[num
 export const SET_SEAT_PREFS_ANSWERS = ['ok', 'closed', 'too_many'] as const;
 export type SetSeatPrefsAnswer = (typeof SET_SEAT_PREFS_ANSWERS)[number];
 
-/** `api.start_game` answers. */
-export const START_GAME_ANSWERS = ['dealing', 'closed', 'not_enough_players'] as const;
+/**
+ * `api.start_game` answers. `ok` means the SQL baseline dealt and the game started:
+ * at once under `deck_engine` `sql` (M1.13), or the 8-second fallback (with `fallback`).
+ * The app treats it like `dealing` and follows `state_changed`.
+ */
+export const START_GAME_ANSWERS = ['ok', 'dealing', 'closed', 'not_enough_players'] as const;
 export type StartGameAnswer = (typeof START_GAME_ANSWERS)[number];
 
-/** `api.request_cards` answers. */
-export const REQUEST_CARDS_ANSWERS = ['queued', 'enough', 'closed'] as const;
+/**
+ * `api.request_cards` answers. `ok` means cards were dealt now: under `deck_engine`
+ * `sql` (M1.13), or the 8-second fallback (with `fallback`).
+ */
+export const REQUEST_CARDS_ANSWERS = ['ok', 'queued', 'enough', 'closed'] as const;
 export type RequestCardsAnswer = (typeof REQUEST_CARDS_ANSWERS)[number];
 
 /** `api.cast_vote` answers. */
