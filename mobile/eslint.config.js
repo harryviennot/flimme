@@ -33,6 +33,14 @@ module.exports = defineConfig([
     ],
   },
 
+  // Config plugin tests are plain JavaScript run by Jest.
+  {
+    files: ['plugins/*.test.js'],
+    languageOptions: {
+      globals: { describe: 'readonly', it: 'readonly', expect: 'readonly' },
+    },
+  },
+
   // Tailwind classes: only the ones the theme defines, no arbitrary values.
   {
     files: ['src/**/*.{ts,tsx}'],
