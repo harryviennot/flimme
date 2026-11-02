@@ -11,7 +11,7 @@
 --   a  tables in public and rec without row-level security
 --   b  functions in api, internal, rec, public that anon can execute
 --   c  functions authenticated can execute that are not in api and not one of
---      the four allowlisted internal helpers
+--      the five allowlisted internal helpers
 --   d  any privilege of anon on a table, view or sequence in those schemas
 --   e  any privilege of authenticated beyond select on the 18 baseline tables
 --      and the api views (sequences: none at all)
@@ -53,7 +53,8 @@ as $$
           'internal.my_profile_id()'::regprocedure,
           'internal.my_profile_ids()'::regprocedure,
           'internal.is_room_member(uuid)'::regprocedure,
-          'internal.can_use_room_topic(text, boolean)'::regprocedure
+          'internal.can_use_room_topic(text, boolean)'::regprocedure,
+          'internal.my_seat_ids()'::regprocedure  -- M1.8: the own_seat policy on votes calls it
         ]::oid[])
     union all
     select 'd', name from rels
