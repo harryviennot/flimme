@@ -3,7 +3,7 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 import appConfig from './app.config';
 
 function load(): ExpoConfig {
-  return appConfig({ config: {}, projectRoot: __dirname } as ConfigContext);
+  return appConfig({ config: {}, projectRoot: '.' } as ConfigContext);
 }
 
 function pluginOptions(config: ExpoConfig, name: string): unknown {

@@ -28,6 +28,8 @@ void i18n.use(initReactI18next).init({
 /** Switches the app to the device's language when it changed, and answers the language. */
 export function applyDeviceLanguage(): Language {
   const language = deviceLanguage();
+  // The instance's own method, so a test can spy on it (the named export is bound at import).
+  // eslint-disable-next-line import/no-named-as-default-member
   if (i18n.language !== language) void i18n.changeLanguage(language);
   return language;
 }

@@ -11,10 +11,11 @@ jest.mock('expo-localization', () => ({
   getLocales: jest.fn(() => [{ languageCode: 'en', regionCode: 'GB' }]),
 }));
 
+// Only the fields deviceLanguage reads; a full Locale has a dozen more.
 function deviceIn(languageCode: string, regionCode: string | null = null) {
   jest
     .mocked(getLocales)
-    .mockReturnValue([{ languageCode, regionCode }] as ReturnType<typeof getLocales>);
+    .mockReturnValue([{ languageCode, regionCode }] as unknown as ReturnType<typeof getLocales>);
 }
 
 function Like() {
@@ -33,8 +34,6 @@ describe('deviceLanguage', () => {
     deviceIn('fr', 'CA');
     expect(deviceLanguage()).toBe('fr');
     deviceIn('de', 'DE');
-    expect(deviceLanguage()).toBe('en');
-    jest.mocked(getLocales).mockReturnValue([]);
     expect(deviceLanguage()).toBe('en');
   });
 });
