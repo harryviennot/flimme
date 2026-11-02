@@ -4,7 +4,7 @@
 -- rooms it makes are rolled back with the test.
 
 begin;
-select plan(26);
+select plan(27);
 
 -- The first release deals with the SQL baseline (deck_engine = sql, M1.13), so
 -- the seed game is played that way.
@@ -105,6 +105,8 @@ select is((select count(*) from public.providers where id not between 8001 and 8
   'S5 every seed service is 8001 to 8010 (fixtures use 9001 and up)');
 select is((select count(*) from public.genres where id not between 7001 and 7012), 0::bigint,
   'S5 every seed genre is 7001 to 7012');
+select is((select count(*) from public.genres where slug not like 'seed\_%'), 0::bigint,
+  'S5 every seed genre slug starts with seed_, so the reference job''s slugs cannot collide');
 select is((select count(*) from public.titles where poster_path is not null or backdrop_path is not null), 0::bigint,
   'S5 no film has a poster or a backdrop path');
 

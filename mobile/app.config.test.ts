@@ -28,6 +28,10 @@ function pluginOptions(config: ExpoConfig, name: string): unknown {
 }
 
 describe('app config', () => {
+  it.each(variants)('%s turns off the iOS disk URL cache', (variant) => {
+    expect(load(variant).plugins).toContain('./plugins/with-no-disk-url-cache');
+  });
+
   it('lists French and English for the system per-app language setting', () => {
     expect(pluginOptions(load(), 'expo-localization')).toEqual({ supportedLocales: ['fr', 'en'] });
   });
