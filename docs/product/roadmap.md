@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 35 of 244 tasks done.
+Progress: 36 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -289,7 +289,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
 
 - [x] **M3.1** Create the Expo SDK 58 project: Expo Router, TypeScript, development builds, lint, format, tests, folder layout · app · S · [app-structure](../architecture/app-structure.md#project-setup)
   Done when: the project runs in a development build on both platforms.
-- [ ] **M3.2** EAS: build profiles (development, preview, production), fingerprint runtime versions, update channels · ops · M · needs M3.1, M0.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
+- [x] **M3.2** EAS: build profiles (development, preview, production), fingerprint runtime versions, update channels · ops · M · needs M3.1, M0.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: each profile builds.
 - [ ] **M3.3** App CI: lint and tests on every pull request, preview builds on demand · ops · S · needs M3.1 · [operations](../architecture/operations.md#continuous-integration)
   Done when: a failing test blocks a pull request.
