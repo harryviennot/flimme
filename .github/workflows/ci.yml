@@ -148,6 +148,32 @@ jobs:
           docker build --tag flimme-server .
           docker run --rm flimme-server --help
 
+  server-contract:
+    # The server's contract tests (server/tests/contract) against the real schema on the local
+    # stack, logged in as the real server logins. They run when the server or the database
+    # changes, because either can break the other. Cloud sessions run them on the lite database.
+    needs: changes
+    if: needs.changes.outputs.server == 'true' || needs.changes.outputs.database == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+        with:
+          # Pinned with mise.toml: the same version as the database job.
+          version: 2.122.0
+      - name: Start only the services the tests need
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
+      - run: supabase db reset
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+      - run: uv sync --frozen
+        working-directory: server
+      - name: Contract tests (a missing database fails them instead of skipping)
+        run: uv run pytest tests/contract -q
+        working-directory: server
+        env:
+          REQUIRE_DATABASE: '1'
+          CONTRACT_ADMIN_DATABASE_URL: postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres
+
   database-lite:
     # The migrations tested on plain Postgres 16 with stand-ins for Supabase's schemas,
     # like cloud sessions do. The real stack is the `database` job below.

@@ -102,3 +102,9 @@ def transport_class() -> type[FixtureTransport]:
 @pytest.fixture
 def fixtures_dir() -> Path:
     return FIXTURES
+
+
+@pytest.fixture(scope="session")
+def anyio_backend() -> str:
+    # anyio's pytest plugin (already installed with FastAPI) runs the async tests on asyncio.
+    return "asyncio"
