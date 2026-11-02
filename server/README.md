@@ -1,6 +1,6 @@
 # server/
 
-The Flimme recommendation server: one Python codebase that runs as the deck worker, the pipeline worker, the HTTP API and the trainer. The design is in [server-structure.md](../docs/architecture/server-structure.md); this folder is the skeleton from roadmap task M2.1. Only `server api` and its `GET /health` route exist so far.
+The Flimme recommendation server: one Python codebase that runs as the deck worker, the pipeline worker, the HTTP API and the trainer. The design is in [server-structure.md](../docs/architecture/server-structure.md); this folder is the skeleton from roadmap task M2.1. Only `server api` and its `GET /healthz` route exist so far.
 
 ## Install
 
@@ -18,12 +18,12 @@ Every process is a subcommand of one `server` command:
 ```sh
 uv run server --help
 uv run server api                  # the HTTP API on 127.0.0.1:8000 (--host and --port to change)
-curl http://127.0.0.1:8000/health  # {"status":"ok"}
+curl http://127.0.0.1:8000/healthz  # {"status":"ok"}
 ```
 
 | Command | Status |
 | --- | --- |
-| `server api` | Runs the FastAPI app. Refuses to start if the settings are invalid |
+| `server api` | Runs the FastAPI app. Refuses to start if the settings are invalid, naming the variable |
 | `server pipeline-worker` | Not built yet: M2.2, handlers from M2.5 on |
 | `server backfill` | Not built yet: M2.9 |
 | `server deck-worker` | Not built yet: M17.4 |
@@ -44,7 +44,9 @@ cp .env.example .env.local
 | Variable | Required | What |
 | --- | --- | --- |
 | `ENVIRONMENT` | yes | `local`, `staging` or `production` |
-| `DATABASE_URL` | yes | The `app_server` login's `postgresql://` URL |
+| `PIPELINE_DATABASE_URL`, `DECK_DATABASE_URL`, `TRAINER_DATABASE_URL` | for that process | The process's own `app_server` login, a `postgresql://` URL |
+| `API_DATABASE_URL` | for `server api` | The API's `app_http` login |
+| `DATABASE_URL` | local only | Stands in for any of the four above when `ENVIRONMENT=local` |
 | `TMDB_READ_TOKEN` | no | TMDB's read access token |
 | `SENTRY_DSN` | no | Error reports |
 
@@ -85,4 +87,4 @@ docker run --rm -p 8000:8000 --env-file .env.local flimme-server               #
 docker run --rm --env-file .env.local flimme-server pipeline-worker             # another process
 ```
 
-The image has Python 3.13 (slim), the locked dependencies without the dev group, and a non-root user. It has not been built yet: Docker Hub throttles image pulls in cloud sessions, so the first build is on a machine with Docker.
+The image has Python 3.13 (slim), the locked dependencies without the dev group, and a non-root user. CI builds it on every server change and runs `server --help` in it. Docker Hub throttles image pulls in cloud sessions, so build it on a machine with Docker.

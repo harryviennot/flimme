@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from pydantic import ValidationError
 
-from server.config import Settings
+from server.config import MissingSetting, Process, Settings
 
 EXIT_USAGE = 2
 
@@ -87,7 +87,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run_api(host: str, port: int) -> int:
     try:
-        Settings.load()
+        settings = Settings.load()
+        settings.database_url_for(Process.API)
+    except MissingSetting as error:
+        print(f"server api: {error.variable} is not set.", file=sys.stderr)
+        print("Copy .env.example to .env.local, or set the variable.", file=sys.stderr)
+        return 1
     except ValidationError as error:
         print("server api: the settings are not valid:", file=sys.stderr)
         for problem in error.errors():
