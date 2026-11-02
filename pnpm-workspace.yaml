@@ -2,8 +2,10 @@ packages:
   - mobile
   - packages/*
 
-# pnpm 10 skips install scripts unless a package is listed here.
 onlyBuiltDependencies:
   - lefthook
   - '@parcel/watcher'
   - unrs-resolver
+
+patchedDependencies:
+  expo-modules-jsi@58.0.21: patches/expo-modules-jsi@58.0.21.patch
