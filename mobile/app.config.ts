@@ -65,7 +65,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     // Sounds only play; the app never records.
     ['expo-audio', { microphonePermission: false }],
-    // Lists Flimme in the system's per-app language setting (iOS, and Android 13 and later).
+    // Lists Flimme in the system's per-app language setting (iOS, and Android 13 and later). On
+    // Android it also keeps only these languages' resources in native libraries, so system text
+    // inside the app matches the app: English on a device in any other language.
     ['expo-localization', { supportedLocales: ['fr', 'en'] }],
     'expo-sqlite',
     // Keeps the session key out of Android Auto Backup (security.md#the-app). The app never asks

@@ -8,9 +8,20 @@ import { resources } from './resources';
 export const languages = ['fr', 'en'] as const;
 export type Language = (typeof languages)[number];
 
-/** French or English from the device; anything else falls back to English. */
+function isLanguage(code: string | null): code is Language {
+  return (languages as readonly (string | null)[]).includes(code);
+}
+
+/**
+ * The first of French or English in the device's preferred languages, as the system picks for
+ * the app since both are declared in `supportedLocales`; English when neither is there.
+ */
 export function deviceLanguage(): Language {
-  return getLocales()[0]?.languageCode === 'fr' ? 'fr' : 'en';
+  return (
+    getLocales()
+      .map((locale) => locale.languageCode)
+      .find(isLanguage) ?? 'en'
+  );
 }
 
 // i18next's default export is the instance; `use` registers the React binding.
@@ -36,10 +47,11 @@ export function applyDeviceLanguage(): Language {
 
 /**
  * iOS restarts the app when its language changes; Android doesn't, so the language is checked
- * again on every return to the foreground (Expo's localization guide). The root layout calls
- * this once.
+ * again on every return to the foreground (Expo's localization guide), and once now, in case it
+ * changed while the app was starting. The root layout calls this once.
  */
 export function watchDeviceLanguage(): NativeEventSubscription {
+  applyDeviceLanguage();
   return AppState.addEventListener('change', (state) => {
     if (state === 'active') applyDeviceLanguage();
   });
