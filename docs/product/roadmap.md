@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 36 of 244 tasks done.
+Progress: 37 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -295,7 +295,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: a failing test blocks a pull request.
 - [ ] **M3.4** Design tokens from the Figma: `tokens.json`, the generated Uniwind theme and `tokens.ts`, the three fonts, the 38 icons · design · S · needs M3.1 · [groundwork](../architecture/groundwork.md#tokens)
   Done when: `pnpm tokens --check` passes and every type style renders in the gallery.
-- [ ] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · M · needs M3.1 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
+- [x] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · M · needs M3.1 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
   Done when: a fresh install gets a guest user that survives a restart.
 - [ ] **M3.6** Typed API layer in `packages/contract`: the wrapper pattern and the profile, room and lobby functions, status answers as values. Card, vote and export wrappers come with M5.6, M6.9, M6.11 and M8.6 · app · M · needs M3.5, M1.17 · [app-structure](../architecture/app-structure.md#talking-to-the-backend)
   Done when: wrappers compile against the generated types and a status answer isn't thrown as an error.

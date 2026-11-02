@@ -123,7 +123,7 @@ stateDiagram-v2
 | The card stack | A Zustand store, not persisted: the 3 mounted cards, the buffer behind them, the swipe in progress, the flip state | |
 | The vote queue | A Zustand store persisted to `expo-sqlite`'s key-value store, so it survives a restart | Swipes not yet confirmed by the server |
 | Session and UI | Zustand: connection status, the current room id and code, the last answered taste check card | |
-| Auth session | Supabase's auth storage, on `expo-sqlite`'s `localStorage` as in Supabase's Expo quickstart | |
+| Auth session | Supabase's auth storage: encrypted (AES-256-GCM) into `expo-sqlite`'s key-value store, with the key in SecureStore (`lib/session-storage.ts`) | |
 
 Cards are not TanStack queries: the deck changes under the phone (refills, propagated likes) and the stack needs to replace only what's behind the mounted cards. Everything else is a query, so screens get loading and error states for free.
 
@@ -134,7 +134,7 @@ Cards are not TanStack queries: the deck changes under the phone (refills, propa
 ```ts
 const supabase = createClient<Database, 'api'>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   db: { schema: 'api' },
-  auth: { storage: localStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false },
+  auth: { storage: sessionStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false },
 })
 ```
 
