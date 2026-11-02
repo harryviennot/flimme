@@ -7,7 +7,8 @@
 -- are beyond the 120 (CLAUDE.md rule 4): B1b, B2b, B3b, B6b, B7b and B13b.
 -- Every name here is made up (test_viewer, Letterboxd Film 1, example.test links).
 --
--- The server's calls go through tests.act_as_server(). Queues are read only
+-- The server's calls go through tests.act_as_server(), except starting an import,
+-- which only the HTTP API does (tests.act_as_http(), M1.12). Queues are read only
 -- through tests.queued, filtered by profile id and reason, so other rows of the
 -- same queue never matter. Nothing here pins the 80% refusal or the matching
 -- rules of the server (M20.3, M20.4): the database only stores the share.
@@ -40,7 +41,7 @@ select is(
 );
 
 -- B2b (beyond the 120): a username that is not letters, digits and underscores is an answer.
-select tests.act_as_server();
+select tests.act_as_http();
 select is(
   internal.start_letterboxd_import(tests.uid('lb1'),
     jsonb_set(current_setting('tests.payload')::jsonb, '{username}', to_jsonb('not a name!'::text)))->>'status',
@@ -66,7 +67,7 @@ select is(
 );
 
 -- The real start. Its answer is kept for the checks below.
-select tests.act_as_server();
+select tests.act_as_http();
 select set_config('tests.start',
   internal.start_letterboxd_import(tests.uid('lb1'), current_setting('tests.payload')::jsonb)::text, true);
 select tests.clear_authentication();
