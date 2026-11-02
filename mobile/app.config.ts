@@ -64,6 +64,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Sounds only play; the app never records.
     ['expo-audio', { microphonePermission: false }],
     'expo-localization',
+    'expo-sqlite',
+    // Keeps the session key out of Android Auto Backup (security.md#the-app).
+    ['expo-secure-store', { configureAndroidBackup: true }],
   ],
   experiments: {
     typedRoutes: true,
