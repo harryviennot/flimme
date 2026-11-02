@@ -34,8 +34,15 @@ export type RoomEventPayloads = {
   member_joined: { member_id: string; display_name: string; avatar_key: string };
   member_left: { member_id: string; new_host_member_id: string | null };
   seat_updated: { member_id: string };
-  /** The settings object the host saved (api.update_room_settings, M1.10 fixes its six values). */
-  settings_changed: Record<string, unknown>;
+  /** The six settings as saved, read back from the room (api.update_room_settings, M1.10). */
+  settings_changed: {
+    service_rule: 'any_member' | 'every_member';
+    runtime_max: number | null;
+    seen_rule: 'hide_seen' | 'allow_rewatch' | 'show_all';
+    quality: 'standard' | 'hidden_gems' | 'guilty_pleasures';
+    max_age: number | null;
+    reveal: 'party' | 'blind';
+  };
   state_changed: { state: RoomState };
   deck_updated: { member_ids: string[] };
   near_miss: { title_id: number; likes: number; of: number };

@@ -32,7 +32,7 @@ export const LEAVE_ROOM_ANSWERS = ['ok', 'not_in_room'] as const;
 export type LeaveRoomAnswer = (typeof LEAVE_ROOM_ANSWERS)[number];
 
 /** `api.update_room_settings` answers. */
-export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed'] as const;
+export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed', 'invalid_settings'] as const;
 export type UpdateRoomSettingsAnswer = (typeof UPDATE_ROOM_SETTINGS_ANSWERS)[number];
 
 /** `api.set_seat_prefs` answers. */
