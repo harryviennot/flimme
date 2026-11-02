@@ -137,6 +137,7 @@ or with ids: `/slice M4.1 M4.8 M4.14 M4.15`. The planner reads for every task, t
 - **Never two tasks that touch the same SQL function or the same screen.** Each brief lists its SQL functions; a second migration replacing the same function would silently undo the first. The ruleset's "up to date before merging" makes CI run on what will actually land.
 - **Cloud sessions** run in parallel by default: one per task.
 - **On the Mac**, one worktree per task so sessions don't share a working copy: `git worktree add ../flimme-m4-8 -b m4-8-join-with-a-code origin/main`, then `claude` in that folder.
+- **Git hooks in a new worktree** need no setup: lefthook comes from mise, and the first commit installs `node_modules` and `server/.venv` from the lockfiles. Never commit with `LEFTHOOK=0`: it skips gitleaks too.
 
 ## Calling an agent directly
 
