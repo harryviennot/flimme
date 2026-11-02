@@ -8,11 +8,15 @@ so is a body that fails validation: both are bad input that will never succeed.
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable, Mapping
+from dataclasses import dataclass
 
 from pydantic import ValidationError
 
+from server.catalog.curation import Curation, load_curation
+from server.catalog.reference import run_reference_weekly
+from server.catalog.tmdb import TmdbClient
 from server.config import Process, Settings
-from server.db.payloads import CatalogRefreshAdapter, CatalogRefreshMessage
+from server.db.payloads import CatalogRefreshAdapter, CatalogRefreshMessage, JobMessage
 from server.db.pool import Database
 from server.db.queues import PgmqClient
 from server.workers.runner import (
@@ -31,8 +35,42 @@ CATALOG_REFRESH = QueueSpec("catalog_refresh", vt_s=300, poison_after=5, concurr
 
 KindHandler = Callable[[CatalogRefreshMessage, Delivery], Awaitable[Outcome]]
 
-# kind ("job", "fetch", "sweep") -> handler. Empty until M2.5.
+# kind ("job", "fetch", "sweep") -> handler. `job` is added in run_pipeline_worker; M2.7 adds
+# `fetch`, M2.10 `sweep`.
 HANDLERS: dict[str, KindHandler] = {}
+
+
+@dataclass(frozen=True)
+class Context:
+    """What the jobs share: the database, the one TMDB client (None without a token), curation."""
+
+    database: Database
+    tmdb: TmdbClient | None
+    curation: Curation
+
+
+JobRunner = Callable[[Context], Awaitable[Outcome]]
+
+
+async def _reference_weekly(context: Context) -> Outcome:
+    if context.tmdb is None:
+        raise RuntimeError("TMDB_READ_TOKEN is not set")
+    return await run_reference_weekly(context.database, context.tmdb, context.curation)
+
+
+# job name -> runner. M2.9, M2.10 and M2.11 add their jobs here.
+JOBS: dict[str, JobRunner] = {"reference_weekly": _reference_weekly}
+
+
+def make_job_handler(context: Context, jobs: Mapping[str, JobRunner] = JOBS) -> KindHandler:
+    async def handle(message: CatalogRefreshMessage, delivery: Delivery) -> Outcome:
+        assert isinstance(message, JobMessage)
+        job = jobs.get(message.job)
+        if job is None:
+            return Reject(f"no runner for job {message.job!r}")
+        return await job(context)
+
+    return handle
 
 
 def make_dispatcher(handlers: Mapping[str, KindHandler]) -> Handler:
@@ -58,12 +96,16 @@ async def run_pipeline_worker(settings: Settings) -> None:
     """Consume until SIGTERM or SIGINT, then let the handlers in progress finish."""
     database = await Database.open(settings.database_url_for(Process.PIPELINE))
     client = PgmqClient(database)
+    tmdb = TmdbClient(settings.tmdb_token.get_secret_value()) if settings.tmdb_token else None
+    handlers = {**HANDLERS, "job": make_job_handler(Context(database, tmdb, load_curation()))}
     stop = asyncio.Event()
     remove_signal_handlers = install_signal_handlers(stop)
     try:
-        runner = QueueRunner(CATALOG_REFRESH, make_dispatcher(HANDLERS), client)
+        runner = QueueRunner(CATALOG_REFRESH, make_dispatcher(handlers), client)
         await runner.run(stop)
     finally:
         remove_signal_handlers()
         await client.close()
+        if tmdb is not None:
+            await tmdb.aclose()
         await database.close()

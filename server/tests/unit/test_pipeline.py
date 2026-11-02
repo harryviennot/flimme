@@ -1,7 +1,8 @@
 import pytest
 
+from server.catalog.curation import Curation
 from server.db.payloads import JobMessage
-from server.workers.pipeline import CATALOG_REFRESH, make_dispatcher
+from server.workers.pipeline import CATALOG_REFRESH, Context, make_dispatcher, make_job_handler
 from server.workers.runner import Delivery, Done, Outcome, Reject
 
 pytestmark = pytest.mark.anyio
@@ -45,3 +46,18 @@ async def test_a_body_that_fails_validation_is_rejected(body: dict[str, object])
 
     dispatch = make_dispatcher({"job": never, "fetch": never, "sweep": never})
     assert isinstance(await dispatch(delivery(body)), Reject)
+
+
+async def test_a_job_goes_to_its_runner_and_an_unknown_job_is_rejected():
+    seen: list[str] = []
+
+    async def reference(_: Context) -> Outcome:
+        seen.append("reference_weekly")
+        return Done()
+
+    context = Context(database=None, tmdb=None, curation=Curation())  # type: ignore[arg-type]
+    dispatch = make_dispatcher({"job": make_job_handler(context, {"reference_weekly": reference})})
+
+    assert await dispatch(delivery({"kind": "job", "job": "reference_weekly"})) == Done()
+    assert seen == ["reference_weekly"]
+    assert isinstance(await dispatch(delivery({"kind": "job", "job": "changes_daily"})), Reject)

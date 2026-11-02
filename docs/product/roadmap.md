@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 30 of 244 tasks done.
+Progress: 31 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -258,7 +258,7 @@ Done when: production holds France's watchable films, and the daily sweep has ru
   Done when: tests with recorded responses cover success, 429 and errors.
 - [x] **M2.4** Catalog migration from tmdb.md: `providers.parent_id`, `provider_regions.is_listed` and `free_for_all`, `rooms.include_free_services`, refresh tiers, `title_certifications.inferred_from`, `titles.tmdb_missing_since`, `ingest_runs` kinds · backend · L · needs M1.5 · [tmdb](../integrations/tmdb.md#changes-to-the-data-model)
   Done when: migrated and tested; free services count for rooms when the switch is on.
-- [ ] **M2.5** Reference data job: genres, countries, services and their regions, certification ages, image configuration · server · M · needs M2.2, M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#what-we-use-tmdb-for)
+- [x] **M2.5** Reference data job: genres, countries, services and their regions, certification ages, image configuration · server · M · needs M2.2, M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#what-we-use-tmdb-for)
   Done when: the tables fill from TMDB on staging.
 - [ ] **M2.6** Curate France's services: listed services, variants under their main service, free services, display order; check the ids for Canal+, TF1+, M6+ and Arte · content · M · needs M2.5 · [tmdb](../integrations/tmdb.md#services-variants-and-channels)
   Done when: France's picker list is set in `provider_regions`.

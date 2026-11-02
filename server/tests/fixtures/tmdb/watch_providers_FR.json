@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "provider_id": 60000101,
+      "provider_name": "Invented Service One",
+      "logo_path": "/fixture-p1.png",
+      "display_priority": 2,
+      "display_priorities": { "FR": 2, "US": 7 }
+    },
+    {
+      "provider_id": 60000102,
+      "provider_name": "Invented Service Two",
+      "logo_path": "/fixture-p2.png",
+      "display_priority": 9,
+      "display_priorities": { "FR": 9 }
+    }
+  ]
+}
