@@ -59,15 +59,17 @@ Show Harry the brief and the spec, and wait for a yes before writing code.
 ## 8. Review
 
 - **S:** `/code-review` at medium effort.
-- **M and L:** spawn the `reviewer` agent in the foreground (`run_in_background: false`), since the next step needs its report: "Review roadmap task <id>; the brief is in .claude/state/briefs/<id>.md." For access rules, security definer functions or game rules, add "at high effort".
+- **M and L:** spawn the `reviewer` agent in the foreground (`run_in_background: false`), since the next step needs its report: "Review roadmap task <id>; the brief is in .claude/state/briefs/<id>.md." For access rules, security definer functions or game rules, pass `effort: "high"` in the Agent call: writing "at high effort" in the prompt changes nothing.
 - Never start the reviewer in the background and poll for it, and never hand back before it has reported.
 - Fix blocking findings. Take a nit only if it's trivial. One round; after fixing, re-check only the fixes.
 
 ## 9. Pull request
 
+- **Merge-ready first.** Main must be merged in before GitHub will merge the pull request, and a branch that's behind costs a second CI run and someone else's time. So, last thing before pushing: `git fetch origin main && git merge origin/main`, give your migration a fresh timestamp if main gained one after it (`supabase-sql`, "Sort last before you push"), then run `mise run check` again on the merged result (for SQL, after a fresh `supabase db reset`).
 - Commits say why, not what. Push with `git push -u origin <branch>`.
 - Title: `<id> <roadmap title>` (CI checks it). Body: the pull request template, filled from the brief, plus "How it was tested" with each command and its result.
 - UI tasks: attach the screenshots and the feel checklist, and tell Harry a feel check is waiting.
+- **If you were told the pull request may merge itself** (Harry said so to the session that started you), turn on auto-merge with `gh pr merge <n> --auto --squash` and finish. Don't wait for CI: GitHub merges once it passes. Otherwise leave the merge to Harry.
 - Don't tick the roadmap: an Action does it after the merge.
 
 ## 10. Before you finish
