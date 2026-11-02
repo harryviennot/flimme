@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 21 of 244 tasks done.
+Progress: 22 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -231,7 +231,7 @@ Done when: migrations and the test suite run from CI on staging and production.
   Done when: out-of-range settings are refused in tests.
 - [x] **M1.11** Clamp dwell and client times, cap array sizes, draw room codes from `pgcrypto` (gaps 8 to 10) · backend · M · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: tests cover each.
-- [ ] **M1.12** Database roles: `app_server` grants on the queues it consumes, one login per server process, a narrower role for the HTTP API (gap 11) · backend · L · needs M1.5 · [security](../architecture/security.md#secrets-and-the-servers-database-logins), [server-structure](../architecture/server-structure.md#the-database-layer)
+- [x] **M1.12** Database roles: `app_server` grants on the queues it consumes, one login per server process, a narrower role for the HTTP API (gap 11) · backend · L · needs M1.5 · [security](../architecture/security.md#secrets-and-the-servers-database-logins), [server-structure](../architecture/server-structure.md#the-database-layer)
   Done when: each role can do exactly its job in tests.
 - [ ] **M1.13** `app_config` keys: `deck_engine` set to `sql`, `tmdb_image_base`. With `sql`, starting a game and refills deal the SQL baseline at once, without the 8-second wait · backend · L · needs M1.5 · [deck-engine](../architecture/deck-engine.md#the-sql-fallback), [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
   Done when: a test game starts swiping straight after `start_game`.
