@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { UpdateGate } from '@/components/screens/update/update-gate';
 import { ToastHost } from '@/components/ui/toast';
+import '@/features/settings';
 import { startSession } from '@/features/session';
 import { watchDeviceLanguage } from '@/i18n';
 import { queryClient } from '@/lib/query-client';

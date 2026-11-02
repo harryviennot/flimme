@@ -14,6 +14,7 @@ from pydantic import ValidationError
 
 from server.catalog.curation import Curation, load_curation
 from server.catalog.fetch import run_fetch
+from server.catalog.placeholders import Posters
 from server.catalog.popularity import ExportLoader, ExportSource, run_popularity_daily
 from server.catalog.reference import run_reference_weekly
 from server.catalog.tmdb import TmdbClient
@@ -55,6 +56,7 @@ class Context:
     tmdb: TmdbClient | None
     curation: Curation
     exports: ExportLoader = field(default_factory=ExportSource)
+    posters: Posters | None = None  # makes poster placeholders; None makes none
 
 
 JobRunner = Callable[[Context], Awaitable[Outcome]]
@@ -94,7 +96,7 @@ def make_fetch_handler(context: Context) -> KindHandler:
         assert isinstance(message, FetchMessage)
         if context.tmdb is None:
             raise RuntimeError("TMDB_READ_TOKEN is not set")
-        return await run_fetch(context.database, context.tmdb, message)
+        return await run_fetch(context.database, context.tmdb, message, context.posters)
 
     return handle
 
@@ -123,7 +125,8 @@ async def run_pipeline_worker(settings: Settings) -> None:
     database = await Database.open(settings.database_url_for(Process.PIPELINE))
     client = PgmqClient(database)
     tmdb = TmdbClient(settings.tmdb_token.get_secret_value()) if settings.tmdb_token else None
-    context = Context(database, tmdb, load_curation())
+    posters = Posters()
+    context = Context(database, tmdb, load_curation(), posters=posters)
     handlers = {
         **HANDLERS,
         "job": make_job_handler(context),
@@ -137,6 +140,7 @@ async def run_pipeline_worker(settings: Settings) -> None:
     finally:
         remove_signal_handlers()
         await client.close()
+        await posters.aclose()
         if tmdb is not None:
             await tmdb.aclose()
         await database.close()
