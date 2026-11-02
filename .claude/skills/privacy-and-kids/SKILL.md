@@ -34,6 +34,7 @@ Background: docs/product/privacy.md, docs/product/analytics.md#consent-and-kids 
 - `EXPO_PUBLIC_` values end up inside the app: never put a secret there.
 - The Supabase secret key lives only in the server's HTTP API process.
 - Agents get read-only access to staging at most, never production.
+- On the phone, the session is stored encrypted and HTTP responses are never cached on disk on iOS (`mobile/plugins/with-no-disk-url-cache.js`): never add a plain-text copy of a token or an Auth response anywhere.
 
 ## Kids and the stores
 

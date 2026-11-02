@@ -115,6 +115,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // Keeps the session key out of Android Auto Backup (security.md#the-app). The app never asks
       // for biometrics, so no Face ID text (see the blocked Android permissions too).
       ['expo-secure-store', { configureAndroidBackup: true, faceIDPermission: false }],
+      // iOS would keep Auth responses (with the session in plain text) in its disk URL cache.
+      './plugins/with-no-disk-url-cache',
     ],
     experiments: {
       typedRoutes: true,
