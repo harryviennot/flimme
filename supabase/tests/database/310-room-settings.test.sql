@@ -3,7 +3,7 @@
 -- refusal is the status invalid_settings with the field.
 
 begin;
-select plan(44);
+select plan(46);
 
 select tests.create_room(2, 'quick_match', 'FR', 'r');
 
@@ -110,6 +110,14 @@ select is(pg_temp.age_saved('10'), 'ok/10', 'T5 max_age 10 is saved');
 select is(pg_temp.age_saved('0'), 'ok/0', 'T5 max_age 0 is saved');
 select is(pg_temp.age_saved('18'), 'ok/18', 'T5 max_age 18 is saved');
 select is(pg_temp.age_saved('null'), 'ok/null', 'T5 max_age null is saved');
+select is(pg_temp.age_saved('16.0'), 'ok/16', 'T5 a whole max_age written 16.0 is saved, with no cast error');
+select tests.authenticate_as('r1');
+select is(
+  (select api.update_room_settings(tests.room_id(), '{"runtime_max":105.0}')->>'status'),
+  'ok',
+  'T5 a whole runtime_max written 105.0 answers ok, with no cast error'
+);
+select tests.clear_authentication();
 
 -- T6: the broadcast carries the six saved values, untouched ones included.
 select tests.create_room(2, 'quick_match', 'FR', 'b');

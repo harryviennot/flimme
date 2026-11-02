@@ -102,10 +102,10 @@ begin
 
   update public.rooms
   set service_rule = coalesce((p_settings->>'service_rule')::public.service_rule, service_rule),
-      runtime_max = case when p_settings ? 'runtime_max' then (p_settings->>'runtime_max')::smallint else runtime_max end,
+      runtime_max = case when p_settings ? 'runtime_max' then trunc((p_settings->>'runtime_max')::numeric)::smallint else runtime_max end,
       seen_rule = coalesce((p_settings->>'seen_rule')::public.seen_rule, seen_rule),
       quality = coalesce((p_settings->>'quality')::public.quality_preset, quality),
-      max_age = case when p_settings ? 'max_age' then (p_settings->>'max_age')::smallint else max_age end,
+      max_age = case when p_settings ? 'max_age' then trunc((p_settings->>'max_age')::numeric)::smallint else max_age end,
       reveal = coalesce((p_settings->>'reveal')::public.reveal_mode, reveal)
   where id = p_room_id
   returning * into v_room;
