@@ -296,7 +296,7 @@ All from environment variables, validated at start: the process refuses to start
 
 | Variable | Used by | What |
 | --- | --- | --- |
-| `DATABASE_URL` | All | The `app_server` login, through the shared pooler in session mode |
+| `DATABASE_URL` | All | The process's own login (`flimme_deck`, `flimme_pipeline`, `flimme_trainer` in role `app_server`; `flimme_http` in role `app_http` for the API), through the shared pooler in session mode |
 | `SUPABASE_URL` | API, trainer | For the signing keys, the admin API and Storage |
 | `SUPABASE_SECRET_KEY` | API | Only for deleting accounts |
 | `STORAGE_BUCKET` | Trainer, deck worker | Models and training exports |
