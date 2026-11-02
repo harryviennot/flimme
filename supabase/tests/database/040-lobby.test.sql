@@ -6,6 +6,11 @@
 begin;
 select plan(41);
 
+-- The seed's free services (8008 to 8010) would join every FR room since M2.4;
+-- this file is about the seats' services, so switch them off here (rolled back
+-- with the test). The free-service rule is tested in 350-catalog-from-tmdb.test.sql.
+update public.provider_regions set free_for_all = false;
+
 select tests.create_provider(9001, 'Test Service A');
 select tests.create_provider(9002, 'Test Service B');
 

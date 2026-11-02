@@ -25,7 +25,7 @@ select cmp_ok(
 select is((select catalog_enabled from public.countries where code = 'FR'), true,
   'S1 France is a catalog country');
 select cmp_ok((select count(*) from public.provider_regions where country = 'FR' and provider_id between 8001 and 8010),
-  '=', 10::bigint, 'S1 the 10 seed services are listed in FR');
+  '=', 10::bigint, 'S1 the 10 seed services are in FR');
 
 -- S2: a 4-seat room on two seed services is dealt 30 cards to every seat.
 select tests.create_room(4, 'quick_match', 'FR', 's');
@@ -52,9 +52,12 @@ select is(
   'S2 every seat has 30 cards');
 select ok(
   (select bool_and(exists (select 1 from public.title_availability a
-                           where a.title_id = c.title_id and a.country = 'FR' and a.provider_id in (8001, 8002)))
+                           where a.title_id = c.title_id and a.country = 'FR'
+                             and (a.provider_id in (8001, 8002)
+                                  or a.provider_id in (select pr.provider_id from public.provider_regions pr
+                                                       where pr.country = 'FR' and pr.free_for_all))))
    from public.room_cards c where c.room_id = tests.room_id()),
-  'S2 every dealt film is on one of the two services');
+  'S2 every dealt film is on one of the two services or on a free service');
 
 -- S3: every filter finds 40 films or more. Deck candidates are read the way the
 -- deal reads them, on a room that has every seed service, the default offer kinds

@@ -155,8 +155,9 @@ erDiagram
 | --- | --- | --- |
 | id | integer PK | TMDB watch provider id (8 is Netflix) |
 | name, logo_path | text | |
+| parent_id | integer | A variant points at its main service (null for a main service). Never itself; one level only |
 
-**provider_regions**: which services exist in which country, with TMDB's display order. Replaces the old 64,000-line `countries.json`. Key: (provider_id, country).
+**provider_regions**: which services exist in which country, with TMDB's display order. Replaces the old 64,000-line `countries.json`. Key: (provider_id, country). `is_listed` (default false) puts the service in that country's picker (`api.country_providers`); `free_for_all` (default false) marks a service with only free or ad-supported offers, which counts for every room in the country while the host keeps free services on.
 
 **certification_ages**: maps each country's ratings to a minimum age (`US PG-13` is 13, `FR 12` is 12, `FR U` is 0). Key: (country, certification).
 
@@ -210,14 +211,15 @@ erDiagram
 | trailer_key | text | YouTube key for the card back |
 | is_adult | boolean | Always excluded |
 | is_active | boolean | Titles are deactivated, never deleted, because votes point at them |
-| refresh_tier | smallint | 1 refreshed daily (popular), 2 weekly (long tail) |
+| refresh_tier | smallint | 1 = available in an enabled country (weekly fetch), 2 = the rest (monthly fetch) |
+| tmdb_missing_since | timestamptz | Set when TMDB stops listing the film; the film is cleared and inactive, never deleted. `original_title` can then be null |
 | tmdb_changed_at, refreshed_at | timestamptz | For the changes feed and refresh scheduling |
 
 **title_translations**: title, overview, tagline and an optional localized poster per language. Key: (title_id, language). A trigram index on `title` serves search.
 
 **title_credits**: directors, writers and the top 8 cast. Key: (title_id, person_id, role).
 
-**title_certifications**: the rating in each country and its `min_age`. Key: (title_id, country).
+**title_certifications**: the rating in each country and its `min_age`. Key: (title_id, country). `inferred_from` is the country whose certification was used (null when it is the country's own).
 
 **title_availability**: the heart of the deck filter.
 
@@ -426,7 +428,8 @@ The 10-minute limits are my starting values; the plan only gives 8 minutes for 3
 | max_age | smallint | Age cap from certifications |
 | reveal | reveal_mode | `party` (near-miss teasers) or `blind` |
 | max_players | smallint | 10 at launch |
-| provider_ids | integer[] | Tonight's services, recomputed from the seats on every change |
+| provider_ids | integer[] | Tonight's services, recomputed from the seats on every change, plus the country's free services while `include_free_services` is on |
+| include_free_services | boolean | Default true: the country's `free_for_all` services count for the room. The host's switch comes with M4.4 |
 | rule | jsonb | The mode's match_rules rows, frozen at start |
 | seed | integer | Random seed for reproducible openings and wildcards |
 | stats | jsonb | Written by the server when the room ends: duration, swipes, players. Feeds the recap card |
@@ -543,7 +546,7 @@ erDiagram
 
 **rate_limits**: counters per key and fixed window, written only by `internal.rate_limit(key, max, window)`. Keys: `join:p:<profile id>` (10 per 10 minutes), `join:ip:<address hash>` (30 per 10 minutes), `join_failed:p:<profile id>` (5 `not_found` per 10 minutes), `calibration:p:<profile id>` (10 per hour), `export:p:<profile id>` (1 per hour). The address is read by `internal.request_ip_key()` (`cf-connecting-ip`, else the last `x-forwarded-for` entry) and only its hash is stored, IPv6 by its /64. The million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
 
-**ingest_runs**: one row per catalog job run, with counts, errors and a resume cursor.
+**ingest_runs**: one row per catalog job run, with counts, errors, a resume cursor and `stats` (requests, 429s, guard trips and agreement, read by the alerts). Kinds: `backfill`, `availability_sweep`, `popularity_daily`, `changes_daily`, `details_weekly`, `details_monthly`, `reference_weekly`, `embeddings`, `moods`.
 
 **app_config**: key and value pairs the app reads at launch through `api.app_config`, starting with `min_app_version` per platform, so an old build can be asked to update before an incompatible change. Also `tmdb_image_base` (`"https://image.tmdb.org/t/p/"`, so no build hard-codes the image host) and `deck_engine`: `"sql"` (the first release, no deck worker) deals the SQL baseline at once on start and refills, `"server"` (from M17.4) waits for the deck worker. A missing key means `server`; the database reads it through `internal.deck_engine()`. `invite_base_url` comes with the domain (M0.2).
 
