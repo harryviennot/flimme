@@ -35,6 +35,9 @@ begin
   if v_me is null then
     raise exception 'no profile for this user' using errcode = '42501';
   end if;
+  if p_provider_ids is null then
+    return jsonb_build_object('status', 'ok');   -- nothing to change
+  end if;
   if cardinality(p_provider_ids) > 50 then
     return jsonb_build_object('status', 'too_many', 'max', 50);
   end if;
@@ -213,7 +216,7 @@ begin
 
   -- Phones are not trusted: a dwell outside 0 to 120,000 ms and a client time
   -- outside the room's start and now would only pollute the training data.
-  v_dwell_ms := least(greatest(p_dwell_ms, 0), 120000);
+  v_dwell_ms := case when p_dwell_ms is null then null else least(greatest(p_dwell_ms, 0), 120000) end;
   v_client_at := case when p_client_at is null then null
                       else greatest(least(p_client_at, now()), v_room.started_at) end;
 

@@ -4,7 +4,7 @@
 -- 3 moods and 20 genres, and a refusal (too_many) over a cap.
 
 begin;
-select plan(19);
+select plan(24);
 
 select tests.create_catalog(40);
 select tests.deal_game(2, 'q');
@@ -40,6 +40,7 @@ select ok(
 select tests.authenticate_as('q1');
 select api.cast_vote(tests.room_id(), tests.film(20), 'nope', null, -5, null);
 select api.cast_vote(tests.room_id(), tests.film(19), 'nope', null, 10000000, null);
+select api.cast_vote(tests.room_id(), tests.film(15), 'nope', null, null, null);
 select tests.clear_authentication();
 select is(
   (select dwell_ms from public.swipe_log where room_member_id = tests.member_id('q1') and title_id = tests.film(20)),
@@ -50,6 +51,11 @@ select is(
   (select dwell_ms from public.swipe_log where room_member_id = tests.member_id('q1') and title_id = tests.film(19)),
   120000,
   'T3 a dwell of 10,000,000 ms is stored as 120,000'
+);
+select is(
+  (select dwell_ms from public.swipe_log where room_member_id = tests.member_id('q1') and title_id = tests.film(15)),
+  null::integer,
+  'T3 a null dwell stays null'
 );
 
 -- T4: client_at is clamped between the room's start and now; null stays null.
@@ -77,7 +83,8 @@ select is(
 
 -- T5: at most 50 services per call; nothing saved over the cap.
 select tests.create_provider(70000 + n, 'Service ' || n) from generate_series(1, 51) n;
-select set_config('tests.q1_services', (select provider_ids::text from public.room_members where id = tests.member_id('q1')), true);
+create temp table q1_services as select provider_ids from public.room_members where id = tests.member_id('q1');
+grant select on q1_services to public;
 select tests.authenticate_as('q1');
 select is(
   api.set_seat_prefs(tests.room_id(), (select array_agg(70000 + n) from generate_series(1, 51) n)),
@@ -87,7 +94,7 @@ select is(
 select tests.clear_authentication();
 select is(
   (select provider_ids from public.room_members where id = tests.member_id('q1')),
-  current_setting('tests.q1_services')::integer[],
+  (select provider_ids from q1_services),
   'T5 the seat is unchanged after too_many'
 );
 select tests.authenticate_as('q1');
@@ -112,6 +119,10 @@ select is(
   (select provider_ids from public.room_members where id = tests.member_id('q2')),
   array[70101],
   'T6 the foreign service is dropped from the seat'
+);
+select ok(
+  (select 70100 <> all(provider_ids) from public.rooms where id = tests.room_id()),
+  'T6 the foreign service does not reach rooms.provider_ids'
 );
 
 -- T7: at most 3 moods and 20 genres.
@@ -145,6 +156,25 @@ select is(
   (select array_agg(provider_id order by provider_id) from public.profile_providers where profile_id = tests.uid('q1')),
   array[70101],
   'T8 only the service listed in the profile''s country is kept'
+);
+
+-- T8: a null array changes nothing (the old behaviour), and a null country keeps any listed service.
+select tests.authenticate_as('q1');
+select is(api.set_my_providers(null)->>'status', 'ok', 'T8 a null array is answered ok');
+select tests.clear_authentication();
+select is(
+  (select array_agg(provider_id order by provider_id) from public.profile_providers where profile_id = tests.uid('q1')),
+  array[70101],
+  'T8 a null array leaves the profile''s services unchanged'
+);
+update public.profiles set country = null where id = tests.uid('q2');
+select tests.authenticate_as('q2');
+select api.set_my_providers(array[70100, 70101, 987654321]);
+select tests.clear_authentication();
+select is(
+  (select array_agg(provider_id order by provider_id) from public.profile_providers where profile_id = tests.uid('q2')),
+  array[70100, 70101],
+  'T8 with no country, any listed service is kept and an unknown one is dropped'
 );
 
 select * from finish();
