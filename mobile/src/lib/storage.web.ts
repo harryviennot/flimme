@@ -19,4 +19,11 @@ export const storage: KeyValueStore = {
   removeItem: async (key) => {
     local()?.removeItem(key);
   },
+  getItemSync: (key) => local()?.getItem(key) ?? null,
+  setItemSync: (key, value) => {
+    local()?.setItem(key, value);
+  },
+  removeItemSync: (key) => {
+    local()?.removeItem(key);
+  },
 };
