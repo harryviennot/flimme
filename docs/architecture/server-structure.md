@@ -347,6 +347,8 @@ What we'd run: two deck workers with 1 GB each, one pipeline worker with 2 GB (e
 
 ## Deploying
 
+**Apps** ([decided on 2 November 2026](../decisions.md)). Two Fly.io apps per environment, in the personal organization: `flimme-api-<env>` runs the HTTP API and is the only one holding the Supabase secret key; `flimme-workers-<env>` runs the deck workers, the pipeline worker and the trainer as process groups. Fly.io secrets belong to an app, not to a process, so this split is what keeps the secret key out of the workers ([security.md](security.md#secrets-and-the-servers-database-logins)). Each app has its own deploy token in GitHub: `FLY_API_TOKEN_API` and `FLY_API_TOKEN_WORKERS`, in the `staging` and `production` environments.
+
 1. **Schema first.** A release that needs a schema change ships the migration first, and only additive changes go out before the code that uses them ([operations.md](operations.md)). The server always works with the schema before and after its own release.
 2. **One image** built from the repository, tagged with the commit.
 3. **Rolling restart**, process by process: the API (health checks gate traffic), then the deck workers one at a time, then the pipeline worker. A worker that's told to stop finishes its current messages within its visibility timeout; anything cut short is redelivered.

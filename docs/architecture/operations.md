@@ -109,7 +109,7 @@ Nothing secret is committed. Local values live in an ignored `.env.local`.
 | Sentry DSN for the server | The server host's secrets | The server |
 | Apple and Google sign-in keys | Supabase Auth settings | Supabase |
 | `SUPABASE_ACCESS_TOKEN`, each project's database password and project ref | GitHub Actions secrets, in `staging` and `production` environments | CI deploys |
-| The server host's deploy token | GitHub Actions secrets | CI deploys |
+| Fly.io deploy tokens, one per app: `FLY_API_TOKEN_API` and `FLY_API_TOKEN_WORKERS` | GitHub Actions secrets, in `staging` and `production` environments | CI deploys |
 | `EXPO_TOKEN` | GitHub Actions secrets (app repository) | CI triggering EAS |
 
 - **One secret per component**, as Supabase recommends for secret keys, so a leak means rotating one thing.

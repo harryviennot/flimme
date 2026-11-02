@@ -12,7 +12,7 @@ Background: docs/architecture/operations.md and docs/architecture/groundwork.md,
 | | Local | Staging | Production |
 | --- | --- | --- | --- |
 | Supabase | `supabase start` (Docker) on the Mac; the lite Postgres in cloud sessions | Its own project, Ireland | Its own project, Frankfurt |
-| Server | `uv run server <command>` | Fly.io, London | Fly.io, Frankfurt |
+| Server | `uv run server <command>` | Fly.io, London: `flimme-api-staging`, `flimme-workers-staging` | Fly.io, Frankfurt: `flimme-api-production`, `flimme-workers-production` |
 | App | Development build (`.dev`) | Preview builds (`.preview`), EAS channel `preview` | Store builds, channel `production` |
 
 Both Supabase projects are on the Free plan until M2.15 moves the organization to Pro: a project pauses after a week without activity (restore it from the dashboard) and the database is capped at 500 MB.

@@ -153,7 +153,7 @@ The three environments are operations.md's: local, staging and production.
 | GitHub | Week 0 | The monorepo, its environments and settings |
 | Supabase | Week 0 | An organization on the Free plan (Pro from M2.15), staging in Ireland and production in Frankfurt, the settings checklist (M1.1, M1.2) |
 | Expo (EAS) | Week 0 | One project, Free plan until launch |
-| Fly.io | Week 1 | One organization, the staging app in London and the production app in Frankfurt |
+| Fly.io | Week 1 | Two apps per environment, `flimme-api-<env>` and `flimme-workers-<env>`: staging in London, production in Frankfurt |
 | Sentry (EU) | Week 1 | Two projects (app and server), environments as tags |
 | PostHog (EU) | Before M9 | The free plan has one project, so staging and production share it: every event carries its environment, and development builds send nothing |
 | Domain and support email | After the name (M0.1, M0.2) | Blocks invite links (M4.14), not the start |
@@ -175,7 +175,7 @@ Every secret starts in the password manager; the places below hold copies. Nothi
 | `SUPABASE_ACCESS_TOKEN`, each project's database password and ref | M1.15 | GitHub's `staging` and `production` environments | Yes |
 | The server's database logins, one per process | M2.12 | Fly secrets; the local login in `server/.env.local` | Yes |
 | TMDB API token | M2.3 | Fly secrets (pipeline worker); your own key in `server/.env.local` | Yes |
-| Fly deploy token | M2.12 | GitHub Actions | Yes |
+| Fly deploy tokens, one per app (`FLY_API_TOKEN_API`, `FLY_API_TOKEN_WORKERS`) | M2.12 | GitHub's `staging` and `production` environments | Yes |
 | A Supabase secret key, for account deletion only | M8.5 | Fly secrets, the HTTP API process only | Yes |
 | Sentry DSN for the server | M9.4 | Fly secrets | No |
 | App Store Connect API key, Google Play service account | M10.2 | EAS credentials | Yes |
