@@ -45,6 +45,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // expo-secure-store's biometric library declares these; the app never uses biometrics.
+    blockedPermissions: ['android.permission.USE_BIOMETRIC', 'android.permission.USE_FINGERPRINT'],
   },
   web: {
     // At launch the web build only serves the invite page (app-structure.md).
@@ -65,8 +67,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ['expo-audio', { microphonePermission: false }],
     'expo-localization',
     'expo-sqlite',
-    // Keeps the session key out of Android Auto Backup (security.md#the-app).
-    ['expo-secure-store', { configureAndroidBackup: true }],
+    // Keeps the session key out of Android Auto Backup (security.md#the-app). The app never asks
+    // for biometrics, so no Face ID text (see the blocked Android permissions too).
+    ['expo-secure-store', { configureAndroidBackup: true, faceIDPermission: false }],
   ],
   experiments: {
     typedRoutes: true,
