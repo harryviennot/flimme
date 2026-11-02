@@ -94,7 +94,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | --- | --- | --- | --- | --- |
 | **First release** | | | | |
 | [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | In progress |
-| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | In progress |
+| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | Not started |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 16 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 25 of 244 tasks done.
+Progress: 26 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -237,7 +237,7 @@ Done when: migrations and the test suite run from CI on staging and production.
   Done when: a test game starts swiping straight after `start_game`.
 - [x] **M1.14** A synthetic seed for local work and CI: a few hundred made-up films with French availability, no TMDB data · backend · M · needs M1.5 · [operations](../architecture/operations.md#seed-and-test-data)
   Done when: a local game can be played on the seed.
-- [ ] **M1.15** Backend CI: the test suite on every pull request, migrations to staging on merge, to production by a manual workflow, actions pinned to commit SHAs · ops · M · needs M1.2, M1.5 · [operations](../architecture/operations.md#continuous-integration)
+- [x] **M1.15** Backend CI: the test suite on every pull request, migrations to staging on merge, to production by a manual workflow, actions pinned to commit SHAs · ops · M · needs M1.2, M1.5 · [operations](../architecture/operations.md#continuous-integration)
   Done when: a merged migration reaches staging without hands. Once the baseline migration is on each project, only `api` is exposed (Data API settings), a table in `public` doesn't answer through `/rest/v1/`, and `/graphql/v1` doesn't answer.
 - [x] **M1.16** The lite database for cloud sessions and the pgTAP helpers: stand-ins for Supabase's `auth`, `realtime` and `pgmq`, the `tests` helpers, a smoke test · test · S · needs M1.3 · [groundwork](../architecture/groundwork.md#cloud-sessions)
   Done when: the smoke test passes on the lite database and with `supabase test db`.
