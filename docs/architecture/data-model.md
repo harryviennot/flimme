@@ -155,7 +155,7 @@ erDiagram
 | --- | --- | --- |
 | id | integer PK | TMDB watch provider id (8 is Netflix) |
 | name, logo_path | text | |
-| parent_id | integer | A variant points at its main service (null for a main service). Never itself; one level only |
+| parent_id | integer | A variant points at its main service (null for a main service). Never itself |
 
 **provider_regions**: which services exist in which country, with TMDB's display order. Replaces the old 64,000-line `countries.json`. Key: (provider_id, country). `is_listed` (default false) puts the service in that country's picker (`api.country_providers`); `free_for_all` (default false) marks a service with only free or ad-supported offers, which counts for every room in the country while the host keeps free services on.
 

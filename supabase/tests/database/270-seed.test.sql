@@ -4,7 +4,7 @@
 -- rooms it makes are rolled back with the test.
 
 begin;
-select plan(25);
+select plan(26);
 
 -- The first release deals with the SQL baseline (deck_engine = sql, M1.13), so
 -- the seed game is played that way.
@@ -43,6 +43,8 @@ select is((select api.start_game(tests.room_id())->>'status'), 'ok',
 select tests.clear_authentication();
 select is((select state::text from public.rooms where id = tests.room_id()), 'swiping',
   'S2 the room is swiping after the deal');
+select is((select provider_ids from public.rooms where id = tests.room_id()), '{8001,8002,8008,8009,8010}'::integer[],
+  'S2 the room''s services are the seats'' two plus the free services');
 select is((select count(*) from public.room_cards where room_id = tests.room_id()), 30::bigint,
   'S2 the room is dealt 30 cards');
 select is(

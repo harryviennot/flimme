@@ -23,7 +23,6 @@ update public.provider_regions set free_for_all = false;
 select tests.create_provider(9101, 'Test Service A');
 select tests.create_provider(9102, 'Test Service B');
 select tests.create_provider(9103, 'Test Service F');
-select tests.create_provider(9104, 'Test Service G');
 update public.provider_regions set free_for_all = true where provider_id = 9103 and country = 'FR';
 -- A free service of another country.
 select tests.create_provider(9104, 'Test Service G', 'DE');
