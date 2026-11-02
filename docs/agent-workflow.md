@@ -153,9 +153,9 @@ The planner sizes all 141 first-release tasks in one pass at the start. A rough 
 
 | Size | Typical tasks | What happens |
 | --- | --- | --- |
-| **S** | One function or one component, rules in one doc section: M1.10, M1.11, M3.8, M4.3, M5.4, M6.7, M8.6 | No planner. The session reads the roadmap line and its one linked section. `/code-review` reviews. Harry merges |
-| **M** | A function with several rules, or a screen with its states: M1.8, M1.9, M2.7, M4.8, M4.11, M6.12 | A planner brief, a design spec for UI, the reviewer agent |
-| **L** | Game logic, concurrency, the signature screens: M1.4, M4.10, M6.4 to M6.6, M6.9, M6.11, M6.14, M6.15 | The brief is approved by Harry first. A design or game spec. The reviewer on Opus. A device check |
+| **S** | One function or one component, rules in one doc section: M3.8, M6.7 | No planner. The session reads the roadmap line and its one linked section. `/code-review` reviews. Harry merges |
+| **M** | A function with several rules, or a screen with its states: M1.10, M1.11, M4.3, M4.8, M4.11, M5.4, M6.12, M8.6 | A planner brief, a design spec for UI, the reviewer agent |
+| **L** | Game logic, concurrency, the signature screens: M1.4, M1.8, M1.9, M2.7, M4.10, M6.4 to M6.6, M6.9, M6.11, M6.14, M6.15 | The brief is approved by Harry first. A design or game spec. The reviewer on Opus. A device check |
 
 ### The loop
 
