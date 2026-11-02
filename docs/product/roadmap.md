@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 29 of 244 tasks done.
+Progress: 30 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -252,7 +252,7 @@ Done when: production holds France's watchable films, and the daily sweep has ru
 
 - [x] **M2.1** Server skeleton: Python with uv, the folder layout, settings and secrets, one Docker image, tests in CI · server · S · [server-structure](../architecture/server-structure.md#folder-layout)
   Done when: the image builds and an empty test passes in CI.
-- [ ] **M2.2** Database layer and queue consumer: psycopg, typed wrappers for contract functions, the pgmq loop with visibility timeouts and poison messages · server · L · needs M2.1, M1.5, M1.12 · [server-structure](../architecture/server-structure.md#consuming-the-queues)
+- [x] **M2.2** Database layer and queue consumer: psycopg, typed wrappers for contract functions, the pgmq loop with visibility timeouts and poison messages · server · L · needs M2.1, M1.5, M1.12 · [server-structure](../architecture/server-structure.md#consuming-the-queues)
   Done when: a test message is consumed once, a failing one ends up archived as poison.
 - [x] **M2.3** TMDB client: polite request rate, retries, 429 handling, failure logging · server · M · needs M2.1 · [tmdb](../integrations/tmdb.md#failures-and-retries)
   Done when: tests with recorded responses cover success, 429 and errors.
