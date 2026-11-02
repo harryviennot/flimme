@@ -16,7 +16,10 @@ offer or a language TMDB dropped disappears, and running the message again chang
   film only if it is released, at least 40 minutes long, has at least 30 votes and is not
   adult (decision Q19: the others are not stored). A film already stored is never removed by
   it, and refreshes (`changes`, `weekly`, `monthly`) are not judged by it.
-- Nothing goes to `embed_titles` and no placeholder is made here (M2.8, M19.2).
+- The poster placeholder (M2.8) is made only when `poster_path` changed (or the film is new),
+  from the w92 poster. A failed download keeps the old value and counts `placeholder_errors`.
+  Without a `Posters` (tests, mostly) none is made.
+- Nothing goes to `embed_titles` here (M19.2).
 
 A film whose response cannot be read is counted as an error and skipped; the others in the
 message still go through. Logs carry TMDB ids only.
@@ -34,6 +37,7 @@ from psycopg import AsyncConnection
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from server.catalog.placeholders import Posters
 from server.catalog.tmdb import NotFound, TmdbClient
 from server.db import queries
 from server.db.payloads import FetchMessage
@@ -562,7 +566,12 @@ async def load_context(database: Database, tmdb_ids: Sequence[int]) -> FetchCont
     )
 
 
-async def run_fetch(database: Database, tmdb: TmdbClient, message: FetchMessage) -> Outcome:
+async def run_fetch(
+    database: Database,
+    tmdb: TmdbClient,
+    message: FetchMessage,
+    posters: Posters | None = None,
+) -> Outcome:
     """Fetch the message's films and write them. `TmdbRetryLater` (and any database failure)
     escapes, so the message comes back; what was already written is safe to write again."""
     context = await load_context(database, message.tmdb_ids)
@@ -574,7 +583,7 @@ async def run_fetch(database: Database, tmdb: TmdbClient, message: FetchMessage)
     async def one(tmdb_id: int) -> None:
         nonlocal errors
         async with gate:
-            failed = await _fetch_one(database, tmdb, context, tmdb_id, counts, floor)
+            failed = await _fetch_one(database, tmdb, context, tmdb_id, counts, floor, posters)
         errors += failed
 
     try:
@@ -595,6 +604,7 @@ async def _fetch_one(
     tmdb_id: int,
     counts: Counter[str],
     floor: bool,
+    posters: Posters | None,
 ) -> int:
     """Returns 1 if the film could not be read, else 0."""
     body = await tmdb.get(f"/movie/{tmdb_id}", REQUEST_PARAMS)
@@ -618,12 +628,44 @@ async def _fetch_one(
         for rule in rows.floor_failures:
             counts[f"floor_{rule}"] += 1
         return 0
+    placeholder = await _placeholder(database, posters, rows.title, counts)
     async with database.connection() as conn, conn.transaction():
         compared, disagreements = await _write(conn, rows)
+        if placeholder is not _KEEP:
+            await conn.execute(
+                queries.load("set_poster_placeholder"), (placeholder, rows.title.tmdb_id)
+            )
     counts["films_written"] += 1
     counts["offers_compared"] += compared
     counts["availability_disagreements"] += disagreements
     return 0
+
+
+_KEEP: Any = object()  # "leave the stored placeholder as it is"
+
+
+async def _placeholder(
+    database: Database, posters: Posters | None, title: TitleRow, counts: Counter[str]
+) -> str | None:
+    """The placeholder to write, or `_KEEP`. Computed only when the poster path is not the one
+    stored (or the stored one never got a placeholder, so a failed download heals on the next
+    fetch); a poster that is gone clears it; a failed download keeps the old value."""
+    if posters is None:
+        return _KEEP
+    async with database.connection() as conn:
+        cur = await conn.execute(queries.load("title_poster_state"), (title.tmdb_id,))
+        stored = await cur.fetchone()
+    if stored is not None and stored[0] == title.poster_path and stored[1] is not None:
+        return _KEEP
+    if title.poster_path is None:
+        return None
+    made = await posters.placeholder(title.poster_path)
+    if made is None:
+        log.warning("placeholder failed tmdb_id=%s", title.tmdb_id)
+        counts["placeholder_errors"] += 1
+        return _KEEP
+    counts["placeholders_made"] += 1
+    return made
 
 
 async def _is_stored(database: Database, tmdb_id: int) -> bool:

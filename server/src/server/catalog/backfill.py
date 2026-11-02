@@ -9,6 +9,8 @@ The same worker code, run once from a laptop or CI:
    queue uses, at the TMDB client's 20 requests a second. The floor judges each one.
 4. A SQL pass sets C and every `quality_score`. C is computed once, after every film is in,
    and never stored (decision Q18).
+5. Placeholders (M2.8): every film with a poster and no placeholder gets one, so a run that
+   was interrupted or had failed downloads is mended by running `backfill` again.
 
 It can resume. The run's `ingest_runs.cursor` holds `export_day` (the file the candidates came
 from, so the order cannot change under it) and `position` (how many candidates are done). An
@@ -28,6 +30,7 @@ from psycopg.types.json import Jsonb
 
 from server.catalog.curation import Curation, load_curation
 from server.catalog.fetch import QUALITY_M, run_fetch
+from server.catalog.placeholders import Posters, fill_missing_placeholders
 from server.catalog.popularity import (
     FETCH_BATCH,
     TOP_CANDIDATES,
@@ -71,6 +74,7 @@ async def run_backfill(
     limit: int | None = None,
     chunk_size: int = FETCH_BATCH,
     quality_chunk: int = QUALITY_CHUNK,
+    posters: Posters | None = None,
 ) -> BackfillResult:
     """Raises `BackfillFailed` when the reference step or the export file fails, and lets a
     TMDB or database failure escape: the run stays open and the next call resumes it."""
@@ -103,7 +107,10 @@ async def run_backfill(
         to_fetch = [tmdb_id for tmdb_id in chunk if tmdb_id not in known]
         for ids in batches(to_fetch, FETCH_BATCH):
             await run_fetch(
-                database, tmdb, FetchMessage(run_id=run_id, tmdb_ids=ids, reason="candidate")
+                database,
+                tmdb,
+                FetchMessage(run_id=run_id, tmdb_ids=ids, reason="candidate"),
+                posters,
             )
         cursor = {**cursor, "position": start + len(chunk)}
         await _set_cursor(database, run_id, cursor)
@@ -112,6 +119,9 @@ async def run_backfill(
     average, scored = await set_quality_scores(database, quality_chunk)
     after = tmdb.stats
     stats = {key: after[key] - before[key] for key in after} | {"quality_scores_set": scored}
+    if posters is not None:
+        filled = await fill_missing_placeholders(database, posters)
+        stats |= {"placeholders_filled": filled.set, "placeholder_errors": filled.errors}
     note = f"export of {cursor['export_day']}, {len(candidates)} candidates"
     async with database.connection() as conn:
         await conn.execute(
@@ -153,9 +163,13 @@ async def backfill_from_settings(settings: Settings, limit: int | None) -> Backf
         raise BackfillFailed("TMDB_READ_TOKEN is not set")
     database = await Database.open(settings.database_url_for(Process.PIPELINE))
     tmdb = TmdbClient(settings.tmdb_token.get_secret_value())
+    posters = Posters()
     try:
-        return await run_backfill(database, tmdb, load_curation(), ExportSource(), limit=limit)
+        return await run_backfill(
+            database, tmdb, load_curation(), ExportSource(), limit=limit, posters=posters
+        )
     finally:
+        await posters.aclose()
         await tmdb.aclose()
         await database.close()
 
