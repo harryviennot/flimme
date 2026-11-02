@@ -1,0 +1,469 @@
+{
+  "adult": false,
+  "backdrop_path": "/fixture-backdrop.jpg",
+  "belongs_to_collection": {
+    "id": 98000900,
+    "name": "Invented collection",
+    "poster_path": "/fixture-c.jpg"
+  },
+  "genres": [
+    {
+      "id": 18,
+      "name": "Invented genre A"
+    },
+    {
+      "id": 35,
+      "name": "Invented genre B"
+    }
+  ],
+  "id": 60000010,
+  "imdb_id": "tt9000010",
+  "original_language": "fr",
+  "original_title": "Film invente dix",
+  "overview": "An invented English overview.",
+  "popularity": 33.3,
+  "poster_path": "/fixture-poster-en.jpg",
+  "release_date": "2019-06-05",
+  "runtime": 104,
+  "tagline": "An invented English tagline.",
+  "title": "Invented film ten",
+  "vote_average": 7.4,
+  "vote_count": 1250,
+  "translations": {
+    "id": 60000010,
+    "translations": [
+      {
+        "iso_3166_1": "US",
+        "iso_639_1": "en",
+        "name": "English",
+        "english_name": "English",
+        "data": {
+          "title": "Invented film ten",
+          "overview": "An invented English overview.",
+          "tagline": "An invented English tagline.",
+          "homepage": "",
+          "runtime": 104
+        }
+      },
+      {
+        "iso_3166_1": "CA",
+        "iso_639_1": "fr",
+        "name": "Francais",
+        "english_name": "French",
+        "data": {
+          "title": "Film invente dix (CA)",
+          "overview": "Un resume invente (CA).",
+          "tagline": "",
+          "homepage": "",
+          "runtime": 104
+        }
+      },
+      {
+        "iso_3166_1": "FR",
+        "iso_639_1": "fr",
+        "name": "Francais",
+        "english_name": "French",
+        "data": {
+          "title": "Film invente dix",
+          "overview": "Un resume invente de France.",
+          "tagline": "",
+          "homepage": "",
+          "runtime": 104
+        }
+      },
+      {
+        "iso_3166_1": "DE",
+        "iso_639_1": "de",
+        "name": "Deutsch",
+        "english_name": "German",
+        "data": {
+          "title": "Erfundener Film zehn",
+          "overview": "Eine erfundene Zusammenfassung.",
+          "tagline": "",
+          "homepage": "",
+          "runtime": 104
+        }
+      }
+    ]
+  },
+  "keywords": {
+    "id": 60000010,
+    "keywords": [
+      {
+        "id": 98000002,
+        "name": "invented keyword b"
+      },
+      {
+        "id": 98000001,
+        "name": "invented keyword a"
+      }
+    ]
+  },
+  "credits": {
+    "id": 60000010,
+    "cast": [
+      {
+        "id": 97000104,
+        "name": "Invented Actor 4",
+        "profile_path": "/fixture-actor-4.jpg",
+        "popularity": 5.5,
+        "character": "Invented Role 4",
+        "order": 4,
+        "known_for_department": "Acting"
+      },
+      {
+        "id": 97000100,
+        "name": "Invented Actor 0",
+        "profile_path": "/fixture-actor-0.jpg",
+        "popularity": 1.5,
+        "character": "Invented Role 0",
+        "order": 0,
+        "known_for_department": "Acting"
+      },
+      {
+        "id": 97000101,
+        "name": "Invented Actor 1",
+        "profile_path": "/fixture-actor-1.jpg",
+        "popularity": 2.5,
+        "character": "Invented Role 1",
+        "order": 1,
+        "known_for_department": "Acting"
+      },
+      {
+        "id": 97000102,
+        "name": "Invented Actor 2",
+        "profile_path": "/fixture-actor-2.jpg",
+        "popularity": 3.5,
+        "character": "Invented Role 2",
+        "order": 2,
+        "known_for_department": "Acting"
+      },
+      {
+        "id": 97000103,
+        "name": "Invented Actor 3",
+        "profile_path": "/fixture-actor-3.jpg",
+        "popularity": 4.5,
+        "character": "",
+        "order": 3,
+        "known_for_department": "Acting"
+      },
+      {
+        "id": 97000105,
+        "name": "Invented Actor 5",
+        "profile_path": "/fixture-actor-5.jpg",
+        "popularity": 6.5,
+        "character": "Invented Role 5",
+        "order": 5,
+        "known_for_department": "Acting"
+      },
+      {
+        "id": 97000106,
+        "name": "Invented Actor 6",
+        "profile_path": "/fixture-actor-6.jpg",
+        "popularity": 7.5,
+        "character": "Invented Role 6",
+        "order": 6,
+        "known_for_department": "Acting"
+      },
+      {
+        "id": 97000107,
+        "name": "Invented Actor 7",
+        "profile_path": "/fixture-actor-7.jpg",
+        "popularity": 8.5,
+        "character": "Invented Role 7",
+        "order": 7,
+        "known_for_department": "Acting"
+      },
+      {
+        "id": 97000108,
+        "name": "Invented Actor 8",
+        "profile_path": "/fixture-actor-8.jpg",
+        "popularity": 9.5,
+        "character": "Invented Role 8",
+        "order": 8,
+        "known_for_department": "Acting"
+      },
+      {
+        "id": 97000109,
+        "name": "Invented Actor 9",
+        "profile_path": "/fixture-actor-9.jpg",
+        "popularity": 10.5,
+        "character": "Invented Role 9",
+        "order": 9,
+        "known_for_department": "Acting"
+      }
+    ],
+    "crew": [
+      {
+        "id": 97000001,
+        "name": "Invented Director One",
+        "job": "Director",
+        "department": "Directing",
+        "profile_path": null,
+        "popularity": 4.0
+      },
+      {
+        "id": 97000002,
+        "name": "Invented Director Two",
+        "job": "Director",
+        "department": "Directing",
+        "profile_path": "/fixture-d2.jpg",
+        "popularity": 3.0
+      },
+      {
+        "id": 97000011,
+        "name": "Invented Writer One",
+        "job": "Screenplay",
+        "department": "Writing",
+        "profile_path": null,
+        "popularity": 2.0
+      },
+      {
+        "id": 97000012,
+        "name": "Invented Writer Two",
+        "job": "Writer",
+        "department": "Writing",
+        "profile_path": null,
+        "popularity": 2.1
+      },
+      {
+        "id": 97000013,
+        "name": "Invented Writer Three",
+        "job": "Story",
+        "department": "Writing",
+        "profile_path": null,
+        "popularity": 2.2
+      },
+      {
+        "id": 97000014,
+        "name": "Invented Writer Four",
+        "job": "Writer",
+        "department": "Writing",
+        "profile_path": null,
+        "popularity": 2.3
+      },
+      {
+        "id": 97000011,
+        "name": "Invented Writer One",
+        "job": "Story",
+        "department": "Writing",
+        "profile_path": null,
+        "popularity": 2.0
+      },
+      {
+        "id": 97000021,
+        "name": "Invented Editor",
+        "job": "Editor",
+        "department": "Editing",
+        "profile_path": null,
+        "popularity": 1.0
+      }
+    ]
+  },
+  "release_dates": {
+    "id": 60000010,
+    "results": [
+      {
+        "iso_3166_1": "FR",
+        "release_dates": [
+          {
+            "certification": "16",
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2019-09-01T00:00:00.000Z",
+            "type": 4
+          },
+          {
+            "certification": "12",
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2019-06-05T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "10",
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2019-05-01T00:00:00.000Z",
+            "type": 3
+          },
+          {
+            "certification": "",
+            "iso_639_1": "",
+            "note": "",
+            "release_date": "2019-07-01T00:00:00.000Z",
+            "type": 3
+          }
+        ]
+      },
+      {
+        "iso_3166_1": "US",
+        "release_dates": [
+          {
+            "certification": "PG-13",
+            "iso_639_1": "en",
+            "note": "",
+            "release_date": "2019-06-07T00:00:00.000Z",
+            "type": 3
+          }
+        ]
+      }
+    ]
+  },
+  "videos": {
+    "id": 60000010,
+    "results": [
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Invented teaser",
+        "key": "teaserEn0001",
+        "site": "YouTube",
+        "type": "Teaser",
+        "official": true,
+        "published_at": "2019-01-01T00:00:00.000Z"
+      },
+      {
+        "iso_639_1": "fr",
+        "iso_3166_1": "FR",
+        "name": "Invented bande-annonce",
+        "key": "trailerFr001",
+        "site": "YouTube",
+        "type": "Trailer",
+        "official": true,
+        "published_at": "2019-02-01T00:00:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Invented trailer",
+        "key": "trailerEn001",
+        "site": "YouTube",
+        "type": "Trailer",
+        "official": true,
+        "published_at": "2019-03-01T00:00:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Invented fan trailer",
+        "key": "fanEn0000001",
+        "site": "YouTube",
+        "type": "Trailer",
+        "official": false,
+        "published_at": "2019-04-01T00:00:00.000Z"
+      },
+      {
+        "iso_639_1": "en",
+        "iso_3166_1": "US",
+        "name": "Invented vimeo trailer",
+        "key": "vimeo0000001",
+        "site": "Vimeo",
+        "type": "Trailer",
+        "official": true,
+        "published_at": "2019-05-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "watch/providers": {
+    "results": {
+      "FR": {
+        "link": "https://www.example.invalid/watch/fr/60000010",
+        "flatrate": [
+          {
+            "provider_id": 60000201,
+            "provider_name": "Invented Service One",
+            "logo_path": "/fixture-p1.png",
+            "display_priority": 1
+          },
+          {
+            "provider_id": 60000203,
+            "provider_name": "Invented Variant",
+            "logo_path": "/fixture-p3.png",
+            "display_priority": 3
+          },
+          {
+            "provider_id": 60000299,
+            "provider_name": "Invented Unswept",
+            "logo_path": "/fixture-p9.png",
+            "display_priority": 9
+          }
+        ],
+        "free": [
+          {
+            "provider_id": 60000202,
+            "provider_name": "Invented Free",
+            "logo_path": "/fixture-p2.png",
+            "display_priority": 2
+          }
+        ],
+        "ads": [
+          {
+            "provider_id": 60000202,
+            "provider_name": "Invented Free",
+            "logo_path": "/fixture-p2.png",
+            "display_priority": 2
+          }
+        ],
+        "rent": [
+          {
+            "provider_id": 60000201,
+            "provider_name": "Invented Service One",
+            "logo_path": "/fixture-p1.png",
+            "display_priority": 1
+          }
+        ],
+        "buy": [
+          {
+            "provider_id": 60000201,
+            "provider_name": "Invented Service One",
+            "logo_path": "/fixture-p1.png",
+            "display_priority": 1
+          }
+        ]
+      },
+      "DE": {
+        "link": "https://www.example.invalid/watch/de/60000010",
+        "flatrate": [
+          {
+            "provider_id": 60000201,
+            "provider_name": "Invented Service One",
+            "logo_path": "/fixture-p1.png",
+            "display_priority": 1
+          }
+        ]
+      }
+    }
+  },
+  "images": {
+    "id": 60000010,
+    "backdrops": [],
+    "logos": [],
+    "posters": [
+      {
+        "iso_639_1": "en",
+        "file_path": "/fixture-poster-en2.jpg",
+        "vote_average": 9.0,
+        "vote_count": 20
+      },
+      {
+        "iso_639_1": "fr",
+        "file_path": "/fixture-poster-fr-low.jpg",
+        "vote_average": 5.1,
+        "vote_count": 3
+      },
+      {
+        "iso_639_1": "fr",
+        "file_path": "/fixture-poster-fr-best.jpg",
+        "vote_average": 5.9,
+        "vote_count": 6
+      },
+      {
+        "iso_639_1": null,
+        "file_path": "/fixture-poster-null.jpg",
+        "vote_average": 8.0,
+        "vote_count": 9
+      }
+    ]
+  }
+}
