@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 23 of 244 tasks done.
+Progress: 24 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -225,7 +225,7 @@ Done when: migrations and the test suite run from CI on staging and production.
   Done when: the check fails on purpose-built bad examples and passes on the schema.
 - [x] **M1.8** Removed players lose room access, and players who left can't send: `room_members.removed_at`, `is_room_member` and `can_use_room_topic` updated (gap 3, access part) · backend · L · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: tests show a removed seat reads nothing and can't send on the room's topics.
-- [ ] **M1.9** One `internal.rate_limit` helper, per profile and per IP, stricter on failed joins, used by `join_room`, `submit_calibration` and `export_my_data` (gaps 6 and 7) · backend · L · needs M1.5 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [x] **M1.9** One `internal.rate_limit` helper, per profile and per IP, stricter on failed joins, used by `join_room`, `submit_calibration` and `export_my_data` (gaps 6 and 7) · backend · L · needs M1.5 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: tests show the limits per profile and per IP.
 - [x] **M1.10** `api.update_room_settings` checks ranges and broadcasts the saved values (gap 5) · backend · M · needs M1.5 · [security](../architecture/security.md#the-database-gaps-found)
   Done when: out-of-range settings are refused in tests.
