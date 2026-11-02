@@ -97,7 +97,7 @@ That's seven appended parts; the endpoint allows up to 20. To confirm on the fir
 
 Computed at ingest:
 
-- **`quality_score`** = (v / (v + m)) × R + (m / (v + m)) × C, where R is the film's vote average, v its vote count, C the catalog's average vote and m = 100. Films with few votes are pulled toward the average, so a 9.0 from 40 votes doesn't outrank an 8.4 from 20,000. The value of m interacts with the deck's quality presets, Hidden gems (7.0 or more) especially, so tune them together.
+- **`quality_score`** = (v / (v + m)) × R + (m / (v + m)) × C, where R is the film's vote average, v its vote count, C the catalog's average vote (active, non-adult films with 30 votes or more, computed in SQL when a fetch needs it and never stored; the score stays null until a first C exists) and m = 100. Films with few votes are pulled toward the average, so a 9.0 from 40 votes doesn't outrank an 8.4 from 20,000. The value of m interacts with the deck's quality presets, Hidden gems (7.0 or more) especially, so tune them together.
 - **`poster_placeholder`**: a thumbhash of the w92 poster, computed when the poster path changes.
 - **`refresh_tier`**: 1 when the film is available by subscription, free or with ads in an enabled country, else 2.
 - **The embedding text** and its hash (see [Embeddings and moods](#embeddings-and-moods)).
@@ -221,7 +221,7 @@ English and French at launch, from the `translations` part. Missing French text 
 
 | Case | What happens |
 | --- | --- |
-| 429 | Wait for `Retry-After` if sent, else 1 second, doubling up to 60. The worker halves its rate for 5 minutes |
+| 429 | Wait for `Retry-After` if sent, else 1 second, doubling up to 60, and never more than 60 whatever `Retry-After` says. The worker halves its rate for 5 minutes. After 10 consecutive 429s the client gives up with `TmdbRetryLater` and the message goes back to its queue |
 | 5xx or a timeout (10 seconds) | 3 retries with backoff, then the message goes back to its queue (visibility timeout). After 5 deliveries it's logged as an error in `ingest_runs` and dropped |
 | 404 | The film is deactivated; its content is cleared after 6 months |
 | A sweep that didn't finish | No deletions for that service that night |
@@ -280,7 +280,7 @@ All placeholders until the first load has run.
 | --- | --- |
 | Popular candidates | Top 60,000 by popularity |
 | Floor | Released, 40 minutes or more, 30 votes or more, not adult |
-| `quality_score` | m = 100; C = the catalog's average vote, recomputed weekly |
+| `quality_score` | m = 100; C = the catalog's average vote, computed in SQL at each fetch |
 | Rate | 20 requests per second, 8 in flight |
 | Timeouts and retries | 10 seconds; 3 retries; dropped after 5 deliveries |
 | Sweep guard | No run removes more than 20% of a service's films in a country |

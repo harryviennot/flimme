@@ -285,3 +285,79 @@ async def test_a_failing_read_is_logged_and_retried(caplog: pytest.LogCaptureFix
         await run_until(runner, lambda: not queue.messages)
     assert failures == 1
     assert any("read" in r.getMessage() for r in caplog.records)
+
+
+async def test_a_handler_over_the_time_cap_is_cancelled_and_left_for_its_timeout(
+    caplog: pytest.LogCaptureFixture,
+):
+    queue = FakeQueue()
+    msg_id = queue.send({"secret": "x"})
+    cancelled = asyncio.Event()
+    calls = 0
+
+    async def slow_handler(delivery: Delivery) -> Outcome:
+        nonlocal calls
+        calls += 1
+        try:
+            await asyncio.sleep(60)
+        except asyncio.CancelledError:
+            cancelled.set()
+            raise
+        return Done()
+
+    spec = QueueSpec("catalog_refresh", vt_s=300, poison_after=5, concurrency=1, max_run_s=0.2)
+    runner = make_runner(queue, slow_handler, spec, heartbeat_every_s=0.05)
+    caplog.set_level(logging.ERROR)
+    stop = asyncio.Event()
+    task = asyncio.create_task(runner.run(stop))
+    try:
+        await wait_until(cancelled.is_set)
+        await wait_until(lambda: any("time limit" in r.getMessage() for r in caplog.records))
+        calls_at_cancel = len(queue.set_vt_calls)
+        await asyncio.sleep(0.2)
+    finally:
+        stop.set()
+        await asyncio.wait_for(task, 5)
+    assert calls == 1
+    assert msg_id in queue.messages  # not deleted, so its timeout brings it back
+    assert queue.archived == []
+    assert len(queue.set_vt_calls) == calls_at_cancel  # the timeout is no longer extended
+    errors = [r for r in caplog.records if "time limit" in r.getMessage()]
+    assert len(errors) == 1
+    assert errors[0].levelno == logging.ERROR
+    message = errors[0].getMessage()
+    assert "catalog_refresh" in message and str(msg_id) in message and "slow_handler" in message
+    assert "secret" not in message
+
+
+async def test_a_handler_under_the_time_cap_is_untouched(caplog: pytest.LogCaptureFixture):
+    queue = FakeQueue()
+    queue.send({})
+
+    async def handler(delivery: Delivery) -> Outcome:
+        await asyncio.sleep(0.05)
+        return Done()
+
+    spec = QueueSpec("catalog_refresh", vt_s=300, poison_after=5, concurrency=1, max_run_s=5)
+    await run_until(make_runner(queue, handler, spec), lambda: not queue.messages)
+    assert not [r for r in caplog.records if "time limit" in r.getMessage()]
+
+
+async def test_a_handler_that_raises_timeout_itself_is_not_a_time_limit_hit(
+    caplog: pytest.LogCaptureFixture,
+):
+    queue = FakeQueue()
+    queue.send({})
+
+    async def handler(delivery: Delivery) -> Outcome:
+        if delivery.read_ct == 1:
+            raise TimeoutError("its own")
+        return Done()
+
+    spec = QueueSpec("catalog_refresh", vt_s=1, poison_after=5, concurrency=1, max_run_s=5)
+    await run_until(make_runner(queue, handler, spec), lambda: not queue.messages)
+    assert not [r for r in caplog.records if "time limit" in r.getMessage()]
+
+
+def test_the_default_cap_is_thirty_minutes():
+    assert QueueSpec("q", vt_s=1, poison_after=1, concurrency=1).max_run_s == 30 * 60

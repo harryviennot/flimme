@@ -1,0 +1,29 @@
+# flimme-workers-staging: the workers' Fly.io app (London). Today only the pipeline worker; the
+# deck workers (M17.4) and the trainer (M22.1) join as process groups. The API is a separate app,
+# so the Supabase secret key never reaches these machines (server-structure.md#deploying).
+#
+# Deployed by CI from server/ (.github/workflows/staging.yml). Secrets are set by hand with
+# `fly secrets set`: PIPELINE_DATABASE_URL, TMDB_READ_TOKEN and optionally SENTRY_DSN.
+app = "flimme-workers-staging"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ENVIRONMENT = "staging"
+
+# The image's entrypoint is `server`, so each value is the command it runs.
+[processes]
+  pipeline = "pipeline-worker"
+
+# A worker serves no requests, so there is no [http_service] and no health check.
+# Fly's default restart policy (on-failure) gives up after 10 retries in 5 minutes.
+[[restart]]
+  policy = "always"
+  processes = ["pipeline"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
+  processes = ["pipeline"]
