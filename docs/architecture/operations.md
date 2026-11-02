@@ -177,7 +177,7 @@ flowchart LR
 | App crashes | Sentry, app | A new issue, or crash-free sessions under 99% in a day | Roll back the update if it came with one |
 | Server errors | Sentry, server | A new issue, or 10 times the usual rate | Read the issue; redeploy the previous version if it came with a release |
 | Deck worker latency | `rec.requests.latency_ms` | p95 over 1 second for 15 minutes | Check queue depth and database CPU |
-| Fallback deals | `rec.requests.is_fallback` | Over 5% of deals in an hour | The server is slow or down: restart, then look |
+| Fallback deals | `rec.requests.is_fallback` | Over 5% of deals in an hour. Ignore rooms dealt while `deck_engine` is `sql`: those deals are SQL by design and still log `is_fallback` (M1.13) | The server is slow or down: restart, then look |
 | Queue depth | `pgmq.metrics_all()`: `queue_length`, `oldest_msg_age_sec` | `deck_requests` oldest message over 10 seconds; `room_finished` and `taste_refresh` over 15 minutes; the others over 6 hours | Workers stuck or crashed |
 | Scheduled jobs | `cron.job_run_details` | `sweep_rooms` missed 3 runs in a row; retention not run in 36 hours | Check `pg_cron` and the database |
 | Catalog jobs | `ingest_runs` | A daily job unfinished after 36 hours; the 20% guard tripped; a 429 rate over 1% ([tmdb.md](../integrations/tmdb.md#failures-and-retries)) | Decks keep working on the last good data; fix the job |

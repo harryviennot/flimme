@@ -4,7 +4,11 @@
 -- rooms it makes are rolled back with the test.
 
 begin;
-select plan(24);
+select plan(25);
+
+-- The first release deals with the SQL baseline (deck_engine = sql, M1.13), so
+-- the seed game is played that way.
+select tests.use_deck_engine('sql');
 
 -- S1: the films are watchable in France on the seed services.
 select cmp_ok(
@@ -34,14 +38,8 @@ select api.set_seat_prefs(tests.room_id(), array[8002]);
 select tests.authenticate_as('s4');
 select api.set_seat_prefs(tests.room_id(), array[8002]);
 select tests.authenticate_as('s1');
-select api.start_game(tests.room_id());
-select tests.clear_authentication();
--- While the server deals the start, a second tap after 8 seconds deals the SQL baseline.
-update public.rooms set dealing_at = now() - interval '9 seconds'
-where id = tests.room_id() and state = 'dealing';
-select tests.authenticate_as('s1');
-select api.start_game(tests.room_id())
-where (select state from public.rooms where id = tests.room_id()) = 'dealing';
+select is((select api.start_game(tests.room_id())->>'status'), 'ok',
+  'S2 start_game deals the SQL baseline at once and answers ok');
 select tests.clear_authentication();
 select is((select state::text from public.rooms where id = tests.room_id()), 'swiping',
   'S2 the room is swiping after the deal');

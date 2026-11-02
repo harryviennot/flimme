@@ -3,9 +3,9 @@
 -- leaves behind (data-model.md#start-dealing-the-deck, #create-and-join and
 -- recommendation-server.md#the-contract-with-the-database).
 --
--- This file assumes the server deals the start. The `deck_engine` setting of
--- roadmap task M1.13 does not exist yet; when it makes the SQL deal the default,
--- setup here must set it to `server` first.
+-- This file is about the server dealing the start, so it sets `deck_engine` to
+-- `server` first: since roadmap task M1.13 the default is `sql`, which deals at
+-- once (340-sql-deck-engine.test.sql).
 --
 -- S1b, S5b, S6b and S10b are beyond the 120 checks of data-model.md#what-was-tested.
 -- Nothing here pins which films the candidates or the baseline pick, how many, or
@@ -14,6 +14,7 @@
 begin;
 select plan(39);
 
+select tests.use_deck_engine('server');
 select tests.create_catalog(40);
 
 -- S1b (beyond the 120): a room of one cannot start.
