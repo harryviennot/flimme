@@ -120,7 +120,10 @@ class TmdbClient:
         while True:
             status, response = await self._send_once(path, params)
             if status == 200 and response is not None:
-                body = response.json()
+                try:
+                    body = response.json()
+                except ValueError:
+                    raise TmdbError(f"unreadable body for {path}") from None
                 if not isinstance(body, dict):
                     raise TmdbError(f"unexpected body for {path}")
                 return body
