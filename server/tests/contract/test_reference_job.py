@@ -47,9 +47,27 @@ async def restore(admin: AsyncConnection) -> AsyncIterator[AsyncConnection]:
     countries = await cur.fetchall()
     cur = await admin.execute("select country, certification from public.certification_ages")
     ages = await cur.fetchall()
+    cur = await admin.execute(
+        "select provider_id, country, display_priority, is_listed, free_for_all"
+        " from public.provider_regions where provider_id < 60000000"
+    )
+    regions = await cur.fetchall()
+    cur = await admin.execute("select id, parent_id from public.providers where id < 60000000")
+    parents = await cur.fetchall()
     try:
         yield admin
     finally:
+        # The reference job sets the service flags of the seed's services: put them back.
+        for provider, country, priority, listed, free in regions:
+            await admin.execute(
+                "update public.provider_regions set display_priority = %s, is_listed = %s,"
+                " free_for_all = %s where provider_id = %s and country = %s",
+                (priority, listed, free, provider, country),
+            )
+        for provider, parent in parents:
+            await admin.execute(
+                "update public.providers set parent_id = %s where id = %s", (parent, provider)
+            )
         await admin.execute("delete from public.ingest_runs where id > %s", (last_run,))
         await admin.execute("delete from public.genres where id >= %s", (FIRST_TEST_GENRE,))
         await admin.execute("delete from public.providers where id >= %s", (FIRST_TEST_PROVIDER,))
