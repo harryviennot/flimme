@@ -42,6 +42,19 @@ same function can't run in parallel).
 - **Questions are a feature.** A choice nobody made goes under Questions, never into a guess. Note the default you'd recommend.
 - **No code** beyond signatures and payload shapes.
 
+## Where briefs go
+
+The planner writes them itself, with the Write tool, into `.claude/state/briefs/` (git-ignored): `<id>.md` for a task, `slice-<n>.md` for a slice's shared plan, `<n>` being its number in docs/agent-workflow.md#slices-for-the-first-release. Its answer to the session that asked is a summary (paths, sizes, questions, waves), never the briefs: that session carries the answer through every later step.
+
 ## A slice plan
 
-For a feature (several tasks, see docs/agent-workflow.md#slices-for-the-first-release), write one shared section first: the contract all its tasks share, the order of the tasks (backend before app), which screens need specs and which moments need beats. Then one short brief per task that points to it.
+For a feature (several tasks), in two passes, so the first tasks start while the others are still being written.
+
+**First pass**, which ends as soon as these are written:
+
+1. Read for every task in the slice. The questions come out of this reading, so all of them reach Harry at once.
+2. `slice-<n>.md`: the contract the tasks share, the conventions every task follows, the order (backend before app), the SQL functions and files each task touches, the waves (at most three tasks each, no shared function or file), the sizes with a reason each, which screens need specs and which moments need beats, and every open question with its default, numbered by task (Q9.1 is M1.9's first).
+3. The brief of each task in the first wave, pointing to the slice file for the shared parts.
+4. The summary, then stop. If the whole slice fits in one wave, this pass writes every brief and there is no second.
+
+**Second pass**, resumed with Harry's answers while the first wave builds: write the other tasks' briefs with the answers folded in, so their Questions sections hold nothing open. Answer with the paths.
