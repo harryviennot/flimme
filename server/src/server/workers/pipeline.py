@@ -13,10 +13,16 @@ from dataclasses import dataclass
 from pydantic import ValidationError
 
 from server.catalog.curation import Curation, load_curation
+from server.catalog.fetch import run_fetch
 from server.catalog.reference import run_reference_weekly
 from server.catalog.tmdb import TmdbClient
 from server.config import Process, Settings
-from server.db.payloads import CatalogRefreshAdapter, CatalogRefreshMessage, JobMessage
+from server.db.payloads import (
+    CatalogRefreshAdapter,
+    CatalogRefreshMessage,
+    FetchMessage,
+    JobMessage,
+)
 from server.db.pool import Database
 from server.db.queues import PgmqClient
 from server.workers.runner import (
@@ -35,8 +41,8 @@ CATALOG_REFRESH = QueueSpec("catalog_refresh", vt_s=300, poison_after=5, concurr
 
 KindHandler = Callable[[CatalogRefreshMessage, Delivery], Awaitable[Outcome]]
 
-# kind ("job", "fetch", "sweep") -> handler. `job` is added in run_pipeline_worker; M2.7 adds
-# `fetch`, M2.10 `sweep`.
+# kind ("job", "fetch", "sweep") -> handler. `job` and `fetch` are added in
+# run_pipeline_worker (they need the context); M2.10 adds `sweep`.
 HANDLERS: dict[str, KindHandler] = {}
 
 
@@ -73,6 +79,16 @@ def make_job_handler(context: Context, jobs: Mapping[str, JobRunner] = JOBS) -> 
     return handle
 
 
+def make_fetch_handler(context: Context) -> KindHandler:
+    async def handle(message: CatalogRefreshMessage, delivery: Delivery) -> Outcome:
+        assert isinstance(message, FetchMessage)
+        if context.tmdb is None:
+            raise RuntimeError("TMDB_READ_TOKEN is not set")
+        return await run_fetch(context.database, context.tmdb, message)
+
+    return handle
+
+
 def make_dispatcher(handlers: Mapping[str, KindHandler]) -> Handler:
     async def dispatch(delivery: Delivery) -> Outcome:
         try:
@@ -97,7 +113,12 @@ async def run_pipeline_worker(settings: Settings) -> None:
     database = await Database.open(settings.database_url_for(Process.PIPELINE))
     client = PgmqClient(database)
     tmdb = TmdbClient(settings.tmdb_token.get_secret_value()) if settings.tmdb_token else None
-    handlers = {**HANDLERS, "job": make_job_handler(Context(database, tmdb, load_curation()))}
+    context = Context(database, tmdb, load_curation())
+    handlers = {
+        **HANDLERS,
+        "job": make_job_handler(context),
+        "fetch": make_fetch_handler(context),
+    }
     stop = asyncio.Event()
     remove_signal_handlers = install_signal_handlers(stop)
     try:
