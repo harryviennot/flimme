@@ -105,6 +105,12 @@ if (touched('supabase/')) {
       'database: skipped, neither the local Supabase stack nor the lite Postgres is available',
     );
 }
+if (touched('.github/', 'tools/')) {
+  add(
+    'ci: tools tests, actions pinned',
+    'node --test tools/*.test.mjs && node tools/check-ci.mjs pins',
+  );
+}
 if (
   touched('docs/', 'README.md', 'CLAUDE.md', '.claude/') ||
   files.some((f) => f.endsWith('.md'))

@@ -4,8 +4,9 @@
 -- The 8 seconds is a starting value, tested as the doc states it. Time is never
 -- waited for: dealing_at and refill_requested_at are backdated.
 --
--- This file assumes the server deals the start. When roadmap task M1.13 makes the
--- SQL deal the default, setup here must set `deck_engine` to `server` first.
+-- The 8-second fallback only exists while the server deals, so this file sets
+-- `deck_engine` to `server` first: since roadmap task M1.13 the default is `sql`,
+-- which deals at once (340-sql-deck-engine.test.sql).
 --
 -- Which films the baseline picks, and how many, belong to roadmap task M5.2: the
 -- tests only check that fallback cards exist and come from the fixture catalog.
@@ -13,6 +14,7 @@
 begin;
 select plan(27);
 
+select tests.use_deck_engine('server');
 select tests.create_catalog(60);
 
 -- F1: a start the server never answers is dealt by the baseline on the second tap after 8 seconds.
