@@ -37,7 +37,7 @@ Facts about outside services were checked on their live sites on 29 October 2026
 
 | | Local | Staging | Production |
 | --- | --- | --- | --- |
-| Supabase | `supabase start` on the developer's machine (Docker) | A second project in the same Pro organization, Micro compute, West EU (Paris) | Pro project, Micro compute to start, West EU (Paris) |
+| Supabase | `supabase start` on the developer's machine (Docker) | A second project in the same organization, West EU (Ireland). Free plan, then Micro compute from M2.15 | Central EU (Frankfurt). Free plan, then Pro with Micro compute from M2.15 |
 | Data | Synthetic seed, plus an optional small real catalog fetched with your own TMDB key | The full France catalog from its own ingest, test accounts, bot players | Real |
 | Recommendation server | Runs locally against local Supabase | One small instance with staging configuration ([server-structure.md](server-structure.md)) | Production instance, same region as the database |
 | App | Development build (`….dev`) | Preview builds: TestFlight and Play internal testing (`….preview`) | Store builds |
@@ -46,7 +46,9 @@ Facts about outside services were checked on their live sites on 29 October 2026
 
 **Why a separate staging project** rather than a Supabase branch: a branch costs the same per hour as a Micro project, starts without data, needs auth secrets set again, and dashboard branching is in beta. A plain second project is simpler to reason about and to point a preview build at. Default; see the question in [Starting values](#starting-values).
 
-**Region.** Supabase has a Paris region (`eu-west-3`). Players are French first, and it keeps personal data in France. The server goes in the same region ([server-structure.md](server-structure.md)).
+**Region.** Staging is in Ireland (`eu-west-1`) and production in Frankfurt (`eu-central-1`), both in the EU ([decided on 2 November 2026](../decisions.md)). Paris was the first choice; the projects were created elsewhere and kept. The server goes in the Fly.io region next to each database: London for staging, Frankfurt for production ([server-structure.md](server-structure.md#hosting)). Since the two environments are in different regions, latency measured on staging (the [load test](#load-test)) is a close estimate of production's, not an exact one.
+
+**Plan.** Both projects start on Supabase's Free plan ([decided on 2 November 2026](../decisions.md)); the organization moves to Pro in M2.15, before the first full catalog load. Free means (checked on 2 November 2026): a project pauses after a week without activity (restore it from the dashboard), a 500 MB database, shared compute, 200 Realtime connections at once, no backups and one day of logs. What needs Pro: the full catalog, which won't fit in 500 MB (M2.13); the speed check on real compute (M5.8); daily backups and the restore drill (M9.6); the load test's 230 players (M9.7); real players from the internal alpha on (M10.3).
 
 ### Seed and test data
 
@@ -77,7 +79,7 @@ Set on both staging and production, by hand once, then checked against this list
 
 | Setting | Value | Where | Why |
 | --- | --- | --- | --- |
-| Region | West EU (Paris), `eu-west-3` | At project creation | French players; data stays in France |
+| Region | Staging: West EU (Ireland), `eu-west-1`. Production: Central EU (Frankfurt), `eu-central-1` | At project creation | Players' data stays in the EU |
 | Exposed schemas | `api` only | Project settings, Data API, "Exposed schemas" | The app reaches nothing but `api` ([data model](data-model.md#the-apps-api)). After setting it, check that a table in `public` doesn't answer through `/rest/v1/` |
 | Automatically expose new tables | Off | Data API settings | A new table is never reachable by accident |
 | GraphQL | Off: drop the `pg_graphql` extension in the baseline migration | Migration, or Database, Extensions | Unused surface. Supabase's docs don't spell out the switch; check that `/graphql/v1` no longer answers |
@@ -88,8 +90,8 @@ Set on both staging and production, by hand once, then checked against this list
 | JWT signing keys | Asymmetric (ES256) | Authentication, JWT signing keys | The server verifies phones' tokens against the public JWKS endpoint, with no shared secret |
 | API keys | The publishable key in the app; one secret key per server component | Project settings, API keys | The legacy `anon` and `service_role` keys are being deprecated by the end of 2026 |
 | Extensions | `vector`, `pg_trgm`, `pgmq` (Queues), `pg_cron` (Cron) | Baseline migration | Needed by the schema |
-| Compute | Micro to start; Small if the [load test](#load-test) misses its targets | Compute and disk | Small also unlocks point-in-time recovery |
-| Spend cap | On during the closed beta; off at public launch | Organization billing | With the cap on, going over a quota restricts the project instead of billing it. A busy night must never cut games off; overages are cheap (see [Monthly costs](#monthly-costs)) |
+| Compute | Micro from M2.15 (Free has shared compute); Small if the [load test](#load-test) misses its targets | Compute and disk | Small also unlocks point-in-time recovery |
+| Spend cap | On from M2.15 (it comes with Pro) through the closed beta; off at public launch | Organization billing | With the cap on, going over a quota restricts the project instead of billing it. A busy night must never cut games off; overages are cheap (see [Monthly costs](#monthly-costs)) |
 
 ## Secrets
 
@@ -309,7 +311,7 @@ All placeholders until the first months of real use.
 
 | Value | Start |
 | --- | --- |
-| Environments | Local, staging (second Pro project, Micro), production (Pro, Micro), all in Paris |
+| Environments | Local, staging and production; staging in Ireland, production in Frankfurt; Free plan until M2.15, then Pro with Micro compute |
 | Production deploys | By hand after staging; staging deploys on every merge |
 | Health check | Every 5 minutes |
 | Alert thresholds | As in the [monitoring table](#monitoring-and-alerts) |

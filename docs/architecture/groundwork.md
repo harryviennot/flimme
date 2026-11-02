@@ -151,9 +151,9 @@ The three environments are operations.md's: local, staging and production.
 | Google Play (personal) | Day 1 | Identity check. The 14-day testing count starts later |
 | TMDB | Day 1 | A developer key for local and staging, and the licence email (M0.5) |
 | GitHub | Week 0 | The monorepo, its environments and settings |
-| Supabase | Week 0 | Pro organization, staging and production in Paris, the settings checklist (M1.1, M1.2) |
+| Supabase | Week 0 | An organization on the Free plan (Pro from M2.15), staging in Ireland and production in Frankfurt, the settings checklist (M1.1, M1.2) |
 | Expo (EAS) | Week 0 | One project, Free plan until launch |
-| Fly.io | Week 1 | One organization, staging and production apps in Paris |
+| Fly.io | Week 1 | One organization, the staging app in London and the production app in Frankfurt |
 | Sentry (EU) | Week 1 | Two projects (app and server), environments as tags |
 | PostHog (EU) | Before M9 | The free plan has one project, so staging and production share it: every event carries its environment, and development builds send nothing |
 | Domain and support email | After the name (M0.1, M0.2) | Blocks invite links (M4.14), not the start |

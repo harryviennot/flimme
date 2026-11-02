@@ -94,8 +94,8 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | --- | --- | --- | --- | --- |
 | **First release** | | | | |
 | [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | In progress |
-| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production in Paris | 17 | In progress |
-| [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 14 | Not started |
+| [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | In progress |
+| [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | Not started |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 16 | Not started |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 12 of 243 tasks done.
+Progress: 12 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -190,7 +190,7 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
   Done when: the account is verified.
 - [ ] **M0.5** Email TMDB about the licence: catalog only at launch, embeddings and trained models later · legal · S · [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
   Done when: the email is sent; the answer, when it comes, goes in decisions.md.
-- [ ] **M0.6** Open the service accounts with 2FA: Supabase (Pro organization), Fly.io, Sentry (EU), PostHog (EU), Expo, GitHub secret scanning · ops · S · [operations](../architecture/operations.md#environments), [security](../architecture/security.md#dependencies-and-accounts)
+- [ ] **M0.6** Open the service accounts with 2FA: Supabase (Free until M2.15), Fly.io, Sentry (EU), PostHog (EU), Expo, GitHub secret scanning · ops · S · [operations](../architecture/operations.md#environments), [security](../architecture/security.md#dependencies-and-accounts)
   Done when: every account exists in Harry's name with 2FA on.
 - [x] **M0.7** Confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards) · decision · M · [game-modes](game-modes.md#time-to-a-pick)
   Done when: recorded in decisions.md.
@@ -205,14 +205,14 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
 
 ## M1 Backend foundation
 
-The database the first release needs, tested and deployable to staging and production in Paris.
+The database the first release needs, tested and deployable to staging and production.
 
 Done when: migrations and the test suite run from CI on staging and production.
 
-- [ ] **M1.1** Create the staging and production Supabase projects in Paris (`eu-west-3`) · ops · S · needs M0.6 · [operations](../architecture/operations.md#environments)
-  Done when: both projects exist on Pro.
+- [ ] **M1.1** Create the staging and production Supabase projects: staging in Ireland, production in Frankfurt · ops · S · needs M0.6 · [operations](../architecture/operations.md#environments)
+  Done when: both projects exist, on the Free plan until M2.15.
 - [ ] **M1.2** Apply the Supabase settings checklist to both projects · ops · M · needs M1.1 · [operations](../architecture/operations.md#supabase-settings), [security](../architecture/security.md#supabase-settings)
-  Done when: only `api` is exposed, Realtime public access is off, ES256 signing keys and the new API keys are in use, the spend cap is on.
+  Done when: only `api` is exposed, Realtime public access is off, ES256 signing keys and the new API keys are in use.
 - [x] **M1.3** Set up the Supabase CLI in the backend repo: `supabase/` folder and the local stack · backend · S · [operations](../architecture/operations.md#from-schemasql-to-migrations)
   Done when: `supabase start` runs the local stack from the repo.
 - [x] **M1.4** Rewrite the 120 checks as pgTAP tests against `schema.sql` as it stands · test · L · needs M1.3 · [data-model](../architecture/data-model.md#what-was-tested)
@@ -272,12 +272,14 @@ Done when: production holds France's watchable films, and the daily sweep has ru
   Done when: a sweep updates `title_availability`, and a simulated glitch is refused by the guard.
 - [ ] **M2.11** The refresh schedule: the changes feed, weekly and monthly fetches, the 6-month rule, enqueued by Supabase Cron · server · M · needs M2.9, M2.10 · [tmdb](../integrations/tmdb.md#keeping-it-fresh)
   Done when: each job runs on schedule on staging.
-- [ ] **M2.12** Deploy the pipeline worker on Fly.io in Paris, staging and production, with its secrets · ops · M · needs M2.2, M1.15 · [server-structure](../architecture/server-structure.md#deploying), [operations](../architecture/operations.md#secrets)
+- [ ] **M2.12** Deploy the pipeline worker on Fly.io next to each database (London for staging, Frankfurt for production), with its secrets · ops · M · needs M2.2, M1.15 · [server-structure](../architecture/server-structure.md#deploying), [operations](../architecture/operations.md#secrets)
   Done when: the worker runs in both environments and restarts on failure.
-- [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
+- [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12, M2.15 · [tmdb](../integrations/tmdb.md#the-first-full-load)
   Done when: about 40,000 to 60,000 films, and every listed French service has availability rows.
 - [ ] **M2.14** Spot-check 30 French films against TMDB's watch pages and JustWatch · test · S · needs M2.13 · [streaming-availability](../integrations/streaming-availability.md#the-sources-compared)
   Done when: mismatches are under 5% or explained.
+- [ ] **M2.15** Move the Supabase organization to Pro: Micro compute on both projects, the spend cap on · ops · S · needs M1.1 · [operations](../architecture/operations.md#environments)
+  Done when: both projects are on Pro with Micro compute, and the spend cap is on.
 
 ## M3 App foundation
 

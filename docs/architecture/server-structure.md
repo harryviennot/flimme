@@ -330,20 +330,20 @@ The 50-room load test is in [operations.md](operations.md).
 
 ## Hosting
 
-> **Decided on 29 October 2026: Fly.io in Paris, with Supabase in Paris (`eu-west-3`).**
+> **Decided on 29 October 2026: Fly.io. Changed on 2 November 2026: Supabase runs in Ireland (staging) and Frankfurt (production), so the server runs in Fly.io's London region for staging and Frankfurt for production.**
 
-The workers hold queue connections, so they need always-on machines, not per-request serverless. They should sit close to the Supabase project. **Default region: Paris** (Supabase's `eu-west-3`), for French players and EU data; Supabase's regions page points projects that need the EU to Frankfurt, Ireland or Paris.
+The workers hold queue connections, so they need always-on machines, not per-request serverless. They should sit close to the Supabase project, so each environment's server runs in the Fly.io region nearest its database: **London (`lhr`) for staging** (Fly.io has no region in Ireland) and **Frankfurt (`fra`) for production**. Supabase's regions page points projects that need the EU to Frankfurt, Ireland or Paris.
 
 What we'd run: two deck workers with 1 GB each, one pipeline worker with 2 GB (embeddings), two small API instances, and the nightly trainer.
 
 | Host | European regions | Prices checked on 29 October 2026 | Estimate for our setup | Notes |
 | --- | --- | --- | --- | --- |
-| **Fly.io** | Paris, Frankfurt, Amsterdam, London, Stockholm | shared-cpu-1x 512 MB $3.69 a month, 1 GB $6.70, shared-cpu-2x 2 GB $13.39 (US list prices; Frankfurt 1 GB is $7.73). Outbound data in Europe $0.02 a GB. No free allowance | About $40 to $45 a month | A machine per process from one image, rolling deploys, scheduled machines for the trainer, a Paris region next to Supabase |
+| **Fly.io** | Paris, Frankfurt, Amsterdam, London, Stockholm | shared-cpu-1x 512 MB $3.69 a month, 1 GB $6.70, shared-cpu-2x 2 GB $13.39 (US list prices; Frankfurt 1 GB is $7.73). Outbound data in Europe $0.02 a GB. No free allowance | About $40 to $45 a month | A machine per process from one image, rolling deploys, scheduled machines for the trainer, regions next to both databases (London, Frankfurt) |
 | Hetzner Cloud | Nuremberg, Falkenstein, Helsinki | 1 vCPU 2 GB €11.99, 2 vCPU 4 GB €19.99, 4 vCPU 8 GB €35.99 a month, excluding VAT, 20 TB of traffic included | €20 a month on one server, €40 on two | Cheapest by far, but we run the server ourselves: updates, deploys, restarts, redundancy |
 | Railway | Amsterdam | Pro plan $20 a month including $20 of usage; about $20 per vCPU and $10 per GB of memory per month; outbound $0.05 a GB | Usage-based; about 5 GB of memory always on is about $50 a month in memory alone | Simple deploys; no Paris region |
 | Render | Frankfurt | Background workers from $7 a month (512 MB) and $25 (1 CPU, 2 GB); no free workers | About $55 a month, plus the workspace plan (not checked) | Simple deploys; no Paris region |
 
-**Recommendation: Fly.io in Paris.** It's the only option in the same city as the Supabase project, it fits the four-process shape directly, and at our size it costs less than a pair of Hetzner servers once our own time is counted. Hetzner is the fallback if costs ever matter more than time.
+**Recommendation: Fly.io.** It has a region next to each database, it fits the four-process shape directly, and at our size it costs less than a pair of Hetzner servers once our own time is counted. Hetzner is the fallback if costs ever matter more than time.
 
 ## Deploying
 
