@@ -221,7 +221,7 @@ English and French at launch, from the `translations` part. Missing French text 
 
 | Case | What happens |
 | --- | --- |
-| 429 | Wait for `Retry-After` if sent, else 1 second, doubling up to 60. The worker halves its rate for 5 minutes |
+| 429 | Wait for `Retry-After` if sent, else 1 second, doubling up to 60, and never more than 60 whatever `Retry-After` says. The worker halves its rate for 5 minutes. After 10 consecutive 429s the client gives up with `TmdbRetryLater` and the message goes back to its queue |
 | 5xx or a timeout (10 seconds) | 3 retries with backoff, then the message goes back to its queue (visibility timeout). After 5 deliveries it's logged as an error in `ingest_runs` and dropped |
 | 404 | The film is deactivated; its content is cleared after 6 months |
 | A sweep that didn't finish | No deletions for that service that night |

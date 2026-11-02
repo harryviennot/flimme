@@ -4,7 +4,8 @@
 2. A message read more often than the queue allows is poisoned: archived, logged as an
    error, handler not run. Never retried forever.
 3. Otherwise the handler runs, and while it runs the loop extends the message's timeout
-   (`set_vt`) before it runs out.
+   (`set_vt`) before it runs out, but only up to `max_run_s` (30 minutes by default). Past
+   that the handler is cancelled and the message is left for its timeout, like a failure.
 4. `Done` deletes the message. `Reject` (bad input, will never succeed) archives it at once.
    An exception is a failure worth retrying: nothing is done, the timeout brings it back.
 5. On shutdown (`stop` is set) the loop stops reading, lets the handlers in progress finish
@@ -25,6 +26,9 @@ from server.db.queues import QueueMessage
 
 log = logging.getLogger(__name__)
 
+# A handler runs at most this long (decisions.md, 2 Nov 2026). Set per queue with `max_run_s`.
+DEFAULT_MAX_RUN_S = 30 * 60
+
 
 @dataclass(frozen=True)
 class QueueSpec:
@@ -32,6 +36,7 @@ class QueueSpec:
     vt_s: int  # visibility timeout
     poison_after: int  # a message read more than this many times is poisoned
     concurrency: int  # handlers running at once
+    max_run_s: float = DEFAULT_MAX_RUN_S  # a handler running longer is cancelled and retried
 
 
 @dataclass(frozen=True)
@@ -141,18 +146,28 @@ class QueueRunner:
 
         delivery = Delivery(message.msg_id, message.read_ct, message.body)
         heartbeat = asyncio.create_task(self._heartbeat(message.msg_id))
+        limit = asyncio.timeout(spec.max_run_s)
         try:
-            outcome = await self._handler(delivery)
-        except Exception as error:
-            # Worth retrying: leave the message, its timeout brings it back.
+            async with limit:
+                outcome = await self._handler(delivery)
+        except TimeoutError as error:
+            if not limit.expired():
+                self._log_failure(message, error)
+                return
+            # Hung or too slow: the heartbeat stops (below), the timeout brings it back.
             log.error(
-                "queue %s: message %d failed on read %d (%s), left for its timeout",
+                "queue %s: message %d hit the time limit of %s s in handler %s on read %d, "
+                "cancelled and left for its timeout",
                 spec.name,
                 message.msg_id,
+                spec.max_run_s,
+                getattr(self._handler, "__qualname__", type(self._handler).__name__),
                 message.read_ct,
-                type(error).__name__,
-                exc_info=True,
             )
+            return
+        except Exception as error:
+            # Worth retrying: leave the message, its timeout brings it back.
+            self._log_failure(message, error)
             return
         finally:
             heartbeat.cancel()
@@ -174,6 +189,16 @@ class QueueRunner:
                     spec.name,
                     message.msg_id,
                 )
+
+    def _log_failure(self, message: QueueMessage, error: Exception) -> None:
+        log.error(
+            "queue %s: message %d failed on read %d (%s), left for its timeout",
+            self._spec.name,
+            message.msg_id,
+            message.read_ct,
+            type(error).__name__,
+            exc_info=True,
+        )
 
     async def _release(self, queue: str, msg_id: int) -> bool:
         log.info("queue %s: stopping, message %d handed back unstarted", queue, msg_id)
