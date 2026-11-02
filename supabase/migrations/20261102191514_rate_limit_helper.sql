@@ -45,7 +45,7 @@ revoke execute on function internal.rate_limit(text, integer, interval, boolean)
 
 -- The client address as a key: sha-256 of the normalised address, never the
 -- address itself (privacy.md, Rate limits). Null when the request has none.
--- Q9.2: cf-connecting-ip when present, else the LAST x-forwarded-for entry (the
+-- Q9.2: cf-connecting-ip when it parses, else the LAST x-forwarded-for entry (the
 -- one the platform appends), never the first, which a client can forge.
 -- IPv6 is keyed by its /64, and an IPv4-mapped IPv6 address by its IPv4.
 create function internal.request_ip_key() returns text
@@ -66,22 +66,27 @@ begin
     return null;
   end if;
 
-  v_raw := nullif(btrim(v_headers->>'cf-connecting-ip'), '');
-  if v_raw is null then
-    v_parts := string_to_array(coalesce(v_headers->>'x-forwarded-for', ''), ',');
-    if coalesce(array_length(v_parts, 1), 0) > 0 then
-      v_raw := nullif(btrim(v_parts[array_length(v_parts, 1)]), '');
-    end if;
-  end if;
-  if v_raw is null then
+  -- The first candidate that parses wins: cf-connecting-ip, then the last
+  -- x-forwarded-for entry. A netmask is dropped (inet(host(...))), so 1.2.3.4/8
+  -- keys like 1.2.3.4.
+  v_parts := string_to_array(coalesce(v_headers->>'x-forwarded-for', ''), ',');
+  foreach v_raw in array array[
+    nullif(btrim(v_headers->>'cf-connecting-ip'), ''),
+    case when coalesce(array_length(v_parts, 1), 0) > 0
+         then nullif(btrim(v_parts[array_length(v_parts, 1)]), '') end
+  ] loop
+    continue when v_raw is null;
+    begin
+      v_ip := inet(host(v_raw::inet));
+      exit;
+    exception when others then
+      v_ip := null;
+    end;
+  end loop;
+  if v_ip is null then
     return null;
   end if;
 
-  begin
-    v_ip := v_raw::inet;
-  exception when others then
-    return null;
-  end;
   if family(v_ip) = 6 then
     if v_ip << '::ffff:0:0/96'::inet then
       v_ip := regexp_replace(host(v_ip), '^::ffff:', '')::inet;

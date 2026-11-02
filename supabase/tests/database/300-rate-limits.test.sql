@@ -8,7 +8,7 @@
 -- the last x-forwarded-for entry, never the first.
 
 begin;
-select plan(34);
+select plan(37);
 
 -- One attempt as a named player, back to the superuser afterwards, so a query
 -- can run many attempts in a row. The answer is the status.
@@ -105,6 +105,12 @@ select set_config('request.headers', '{"x-forwarded-for": "198.51.100.1, 203.0.1
 create temp table k1 as select internal.request_ip_key() as k;
 select set_config('request.headers', '{"x-forwarded-for": "198.51.100.77, 203.0.113.9"}', true);
 select is(internal.request_ip_key(), (select k from k1), 'T7 changing the forged first entry keeps the key');
+-- An unparsable cf-connecting-ip falls back to the last x-forwarded-for entry.
+select set_config('request.headers', '{"cf-connecting-ip": "not-an-address", "x-forwarded-for": "198.51.100.1, 203.0.113.9"}', true);
+select is(internal.request_ip_key(), (select k from k1), 'T7 an unparsable cf-connecting-ip falls back to the last x-forwarded-for entry');
+-- An address given with a netmask is keyed on the host.
+select set_config('request.headers', '{"cf-connecting-ip": "203.0.113.9/8"}', true);
+select is(internal.request_ip_key(), (select k from k1), 'T7 an IPv4 address with a netmask has the key of the plain address');
 -- IPv6 is keyed by its /64.
 select set_config('request.headers', '{"cf-connecting-ip": "2001:db8:1:2:aaaa::1"}', true);
 create temp table k6 as select internal.request_ip_key() as k;
@@ -112,6 +118,8 @@ select set_config('request.headers', '{"cf-connecting-ip": "2001:db8:1:2:bbbb::9
 select is(internal.request_ip_key(), (select k from k6), 'T7 two IPv6 addresses in one /64 share a key');
 select set_config('request.headers', '{"cf-connecting-ip": "2001:db8:1:3::1"}', true);
 select isnt(internal.request_ip_key(), (select k from k6), 'T7 another /64 has another key');
+select set_config('request.headers', '{"cf-connecting-ip": "2001:db8:1:2:cccc::5/48"}', true);
+select is(internal.request_ip_key(), (select k from k6), 'T7 an IPv6 address with a netmask is keyed on its host and /64');
 
 -- T8: the 11th taste check submission in an hour is refused, saves nothing, queues nothing.
 select tests.create_catalog(10);
