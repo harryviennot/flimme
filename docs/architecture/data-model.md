@@ -541,11 +541,11 @@ erDiagram
 
 ## 7. Operations
 
-**rate_limits**: counters per key and 10-minute window. `join:<profile id>` allows 10 join attempts per window, so the million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
+**rate_limits**: counters per key and fixed window, written only by `internal.rate_limit(key, max, window)`. Keys: `join:p:<profile id>` (10 per 10 minutes), `join:ip:<address hash>` (30 per 10 minutes), `join_failed:p:<profile id>` (5 `not_found` per 10 minutes), `calibration:p:<profile id>` (10 per hour), `export:p:<profile id>` (1 per hour). The address is read by `internal.request_ip_key()` (`cf-connecting-ip`, else the last `x-forwarded-for` entry) and only its hash is stored, IPv6 by its /64. The million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
 
 **ingest_runs**: one row per catalog job run, with counts, errors and a resume cursor.
 
-**app_config**: key and value pairs the app reads at launch through `api.app_config`, starting with `min_app_version` per platform, so an old build can be asked to update before an incompatible change.
+**app_config**: key and value pairs the app reads at launch through `api.app_config`, starting with `min_app_version` per platform, so an old build can be asked to update before an incompatible change. Also `tmdb_image_base` (`"https://image.tmdb.org/t/p/"`, so no build hard-codes the image host) and `deck_engine`: `"sql"` (the first release, no deck worker) deals the SQL baseline at once on start and refills, `"server"` (from M17.4) waits for the deck worker. A missing key means `server`; the database reads it through `internal.deck_engine()`. `invite_base_url` comes with the domain (M0.2).
 
 ## How it fits together
 
@@ -622,6 +622,8 @@ sequenceDiagram
 
 If nothing has arrived 8 seconds after the tap, the host's phone calls `api.start_game` again and the database deals the SQL baseline itself (`internal.deal_baseline`): the same candidates, the same order for every seat, logged as `sql-baseline` with `is_fallback`.
 
+That is with `deck_engine` set to `server`. With `sql` (the first release, see [app_config](#7-operations)), nothing is queued: `api.start_game` sends `state_changed` `dealing`, deals the SQL baseline in the same call and answers its `ok` (`started`, no `fallback` field), so `state_changed` `swiping` follows from the same commit. Refills work the same way: the vote at 15 cards left, a late joiner and `api.request_cards` deal the baseline at once. These deals are still logged with `is_fallback` true.
+
 ### A swipe
 
 ```mermaid
@@ -662,6 +664,7 @@ sequenceDiagram
 - At 15 cards left the vote queues a refill for that seat. The deck worker updates `room_models` from the votes, retrieves again (now with the live room signal), and calls `deal_cards` with `keep: 3`: the 3 mounted cards and any propagated card stay, the rest is replaced by the new ranking, and new cards are appended.
 - If the phone gets down to 5 cards with nothing new, it calls `api.request_cards`. After 8 seconds without an answer from the server, that deals the SQL baseline for the seat.
 - Late joiners get the active opening cards at join time and a queued refill.
+- With `deck_engine` set to `sql`, each of these refills is the SQL baseline, dealt in the same call ([Start](#start-dealing-the-deck)).
 
 ### Leaving and coming back
 
@@ -726,8 +729,8 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `leave_room(room)` | Leave, hand over host, re-check matches |
 | `update_room_settings(room, settings)` | Host, lobby only |
 | `set_seat_prefs(room, services, moods, genres)` | Your settings for tonight |
-| `start_game(room)` | Host: queue the deal; on a second tap after 8 seconds, deal the baseline |
-| `request_cards(room)` | Running low with no refill: queue one, or deal the baseline after 8 seconds |
+| `start_game(room)` | Host: queue the deal; on a second tap after 8 seconds, deal the baseline. Under `deck_engine` `sql`, deal the baseline at once |
+| `request_cards(room)` | Running low with no refill: queue one, or deal the baseline after 8 seconds. Under `deck_engine` `sql`, deal at once |
 | `cast_vote(room, title, answer, seat, dwell_ms, client_at)` | The vote |
 | `undo_last_vote(room, seat)` | Undo |
 | `my_next_cards(room, limit, seat, language)` | Your next cards, ready to render: title and overview in your language, poster and placeholder, year, runtime, genres, TMDB score, director, cast, trailer, tonight's services for it, watch link, reason label, members' ratings |
@@ -778,7 +781,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `member_joined` | room | join_room | seat, name, avatar | Adds the avatar |
 | `member_left` | room | leave_room | seat, new host seat | Removes it, moves the crown |
 | `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
-| `settings_changed` | room | update_room_settings | changed fields | Refetches the room |
+| `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state | Moves to the next screen ("Shuffling" while dealing) |
 | `deck_updated` | room | cast_vote, deal_cards | seat ids | Those seats refetch behind their mounted cards |
 | `near_miss` | room | cast_vote, Party mode only | title, likes, of | "2 of 3 of you liked this" |

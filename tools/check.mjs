@@ -5,9 +5,12 @@
 //   node tools/check.mjs --all        every package
 //   node tools/check.mjs --tests-only skip lint and types
 import { execSync, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 
 import { ROOT } from './lib/roadmap.mjs';
+
+// The same version as the database job in .github/workflows/ci.yml: change both together.
+const SQUAWK = 'squawk-cli@2.70.0';
 
 const args = new Set(process.argv.slice(2));
 const all = args.has('--all');
@@ -33,6 +36,22 @@ function changedFiles() {
   lines(sh('git diff --name-only HEAD')).forEach((f) => files.add(f));
   lines(sh('git ls-files --others --exclude-standard')).forEach((f) => files.add(f));
   return [...files];
+}
+
+// Migrations main doesn't have yet: the files CI's Squawk step lints.
+function newMigrations() {
+  const dir = `${ROOT}supabase/migrations`;
+  if (!existsSync(dir)) return [];
+  let onMain;
+  try {
+    onMain = new Set(lines(sh('git ls-tree --name-only origin/main supabase/migrations/')));
+  } catch {
+    return [];
+  }
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.sql'))
+    .map((f) => `supabase/migrations/${f}`)
+    .filter((f) => !onMain.has(f));
 }
 
 const files = all ? [] : changedFiles();
@@ -64,6 +83,14 @@ if (touched('server/')) {
   }
 }
 if (touched('supabase/')) {
+  const migrations = newMigrations();
+  if (migrations.length && !testsOnly) {
+    // One plain line per finding: the default report is mostly colour codes.
+    add(
+      'database: new migrations (Squawk)',
+      `npx --yes ${SQUAWK} --reporter gcc ${migrations.join(' ')}`,
+    );
+  }
   const stackUp =
     has('supabase') &&
     spawnSync('supabase', ['status'], { cwd: ROOT, stdio: 'ignore' }).status === 0;
@@ -77,6 +104,12 @@ if (touched('supabase/')) {
     console.warn(
       'database: skipped, neither the local Supabase stack nor the lite Postgres is available',
     );
+}
+if (touched('.github/', 'tools/')) {
+  add(
+    'ci: tools tests, actions pinned',
+    'node --test tools/*.test.mjs && node tools/check-ci.mjs pins',
+  );
 }
 if (
   touched('docs/', 'README.md', 'CLAUDE.md', '.claude/') ||

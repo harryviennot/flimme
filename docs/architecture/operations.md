@@ -118,27 +118,25 @@ Nothing secret is committed. Local values live in an ignored `.env.local`.
 
 ## Continuous integration
 
-GitHub Actions in both repositories. Builds run on Expo's machines (EAS), not on GitHub's macOS runners, which cost about ten times Linux.
-
-**Backend repository** (`movie-swipe-backend`: `supabase/`, the server, the docs):
+GitHub Actions in the one repository (`.github/workflows/`). Builds run on Expo's machines (EAS), not on GitHub's macOS runners, which cost about ten times Linux. Every `uses:` is pinned to a full commit SHA with a `# vX.Y.Z` comment, which Dependabot keeps current, and every workflow sets `permissions: contents: read` at the top.
 
 | Workflow | When | Does |
 | --- | --- | --- |
-| `ci.yml` | Every pull request | `supabase start`, `supabase db reset` (migrations and the synthetic seed), `supabase test db` (pgTAP), regenerate the `api` types and compare, the server's lint and tests against the local stack ([server-structure.md](server-structure.md)), the docs' link check |
-| `staging.yml` | Merge to `main` | `supabase link` to staging, `supabase db push`, then deploy the server to staging |
-| `production.yml` | By hand (`workflow_dispatch`), after checking staging | `supabase db push` to production, then deploy the server to production |
+| `ci.yml` | Every pull request, and pushes to `main` | Only the parts that changed. Mobile: lint, types, Jest ([app-structure.md](app-structure.md#testing)). Server: ruff, pyright, pytest ([server-structure.md](server-structure.md)). Database: `supabase start`, `supabase db reset`, `supabase test db` (pgTAP), Squawk on new migrations, the `api` types regenerated and compared. Always: the pull request title, gitleaks, every action pinned to a SHA, the CI tools' tests, and the docs' link check. On pull requests: new migrations sort after every migration on `main` |
+| `staging.yml` | Merge to `main` that touches `supabase/migrations/**`, or by hand | In the `staging` environment: `supabase link`, `supabase db push`, then a smoke test of the Data API. The server deploy joins it with M2.12 |
+| `production.yml` | By hand (`workflow_dispatch`), after checking staging | In the `production` environment, which holds the job until Harry approves: the same steps against production, from `main` only. The server deploy joins it with M2.12 |
+| `roadmap.yml` | A pull request merges | Ticks the roadmap task named in the title |
 | `backup.yml` | Weekly | A logical dump of production to private storage (see [Backups and restore](#backups-and-restore)) |
 
-**App repository** (`movie-swipe-app`):
+The end-to-end flows run on EAS Workflows (the Maestro flows, nightly and before a release, against staging), and the app's preview and production updates are EAS's own workflows ([app-structure.md](app-structure.md)).
 
-| Workflow | When | Does |
-| --- | --- | --- |
-| `ci.yml` | Every pull request | Lint, TypeScript check, unit tests ([app-structure.md](app-structure.md#testing)) |
-| `preview.yml` | Merge to `main` | If the native fingerprint changed: an EAS preview build for TestFlight and Play internal testing. Otherwise an EAS Update on the `preview` channel |
-| `production.yml` | By hand | An EAS Update on the `production` channel, or a store build and submission when the fingerprint changed |
-| End to end | Nightly and before a release | The Maestro flows on EAS Workflows, against staging |
+The two Supabase deploy workflows follow Supabase's own guide (`supabase/setup-cli`, `SUPABASE_ACCESS_TOKEN`, the database password and project ref per environment). Each GitHub environment holds three secrets, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_ID` (the project ref, which the dashboard calls the project ID), and two variables, `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` (neither is secret: the app ships with them).
 
-The two Supabase deploy workflows follow Supabase's own guide (`supabase/setup-cli`, `SUPABASE_ACCESS_TOKEN`, the database password and project ref per environment). GitHub's free plan includes $12 of compute a month for private repositories, which by our count is about 2,000 minutes on Linux runners: enough for one developer.
+**Data API settings stay by hand.** Exposed schemas set to `api` only and "Automatically expose new tables" off are set once on each project in the dashboard, which keeps the access token's use to `db push`. The smoke step checks them on every deploy (`tools/smoke-data-api.mjs`): `public` is refused, `/graphql/v1` gives no data, and `api` answers.
+
+**Migration order.** `supabase db push` refuses a local migration older than one already applied, so the pull request check fails a new migration that sorts before or with the latest one on `main`. Rename it with `git mv` to a fresh timestamp.
+
+GitHub's free plan includes $12 of compute a month for private repositories, which by our count is about 2,000 minutes on Linux runners: enough for one developer.
 
 ## Releasing
 
@@ -177,7 +175,7 @@ flowchart LR
 | App crashes | Sentry, app | A new issue, or crash-free sessions under 99% in a day | Roll back the update if it came with one |
 | Server errors | Sentry, server | A new issue, or 10 times the usual rate | Read the issue; redeploy the previous version if it came with a release |
 | Deck worker latency | `rec.requests.latency_ms` | p95 over 1 second for 15 minutes | Check queue depth and database CPU |
-| Fallback deals | `rec.requests.is_fallback` | Over 5% of deals in an hour | The server is slow or down: restart, then look |
+| Fallback deals | `rec.requests.is_fallback` | Over 5% of deals in an hour. Ignore rooms dealt while `deck_engine` is `sql`: those deals are SQL by design and still log `is_fallback` (M1.13) | The server is slow or down: restart, then look |
 | Queue depth | `pgmq.metrics_all()`: `queue_length`, `oldest_msg_age_sec` | `deck_requests` oldest message over 10 seconds; `room_finished` and `taste_refresh` over 15 minutes; the others over 6 hours | Workers stuck or crashed |
 | Scheduled jobs | `cron.job_run_details` | `sweep_rooms` missed 3 runs in a row; retention not run in 36 hours | Check `pg_cron` and the database |
 | Catalog jobs | `ingest_runs` | A daily job unfinished after 36 hours; the 20% guard tripped; a 429 rate over 1% ([tmdb.md](../integrations/tmdb.md#failures-and-retries)) | Decks keep working on the last good data; fix the job |
