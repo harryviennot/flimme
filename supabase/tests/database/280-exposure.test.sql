@@ -19,7 +19,7 @@
 --   g  api views that are not security_invoker
 
 begin;
-select plan(22);
+select plan(23);
 
 create function pg_temp.exposure(p_check text) returns setof text
 language sql stable
@@ -30,7 +30,7 @@ as $$
            p.prosecdef, p.proconfig
     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname in ('api', 'internal', 'rec', 'public')
-      and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')
+      and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e')
   ),
   rels as (
     select c.oid, n.nspname, c.relname, c.relkind, c.relrowsecurity, c.reloptions,
@@ -38,7 +38,7 @@ as $$
     from pg_class c join pg_namespace n on n.oid = c.relnamespace
     where n.nspname in ('api', 'internal', 'rec', 'public')
       and c.relkind in ('r', 'p', 'v', 'm', 'f', 'S')
-      and not exists (select 1 from pg_depend d where d.objid = c.oid and d.deptype = 'e')
+      and not exists (select 1 from pg_depend d where d.classid = 'pg_class'::regclass and d.objid = c.oid and d.deptype = 'e')
   )
   select sig from (
     select 'a' as chk, name as sig from rels
@@ -77,11 +77,12 @@ as $$
                    ]))))
     union all
     select 'f', sig from fns
-      where prosecdef and not exists (select 1 from unnest(coalesce(proconfig, '{}')) c where c like 'search_path=%')
+      where prosecdef and not exists (select 1 from unnest(coalesce(proconfig, '{}')) c where c in ('search_path=""', 'search_path='))
     union all
     select 'g', name from rels
       where nspname = 'api' and relkind = 'v'
-        and not coalesce(reloptions @> array['security_invoker=true'], false)
+        and not exists (select 1 from pg_options_to_table(reloptions) o
+                        where o.option_name = 'security_invoker' and o.option_value::boolean)
   ) x
   where chk = p_check
   order by sig
@@ -140,6 +141,10 @@ create function public.t7_definer() returns int language sql security definer as
 create view api.t7_view as select 1 as x;
 select is(array(select pg_temp.exposure('f')), array['public.t7_definer()'], 'T7 check f lists a security definer function without search_path');
 select is(array(select pg_temp.exposure('g')), array['api.t7_view'], 'T7 check g lists an api view that is not security_invoker');
+
+-- A view that sets the option as "on" is fine: the check reads it as a boolean.
+create view api.t7_view_ok with (security_invoker = on) as select 1 as x;
+select is(array(select pg_temp.exposure('g')), array['api.t7_view'], 'T7 check g accepts security_invoker = on');
 
 select * from finish();
 rollback;

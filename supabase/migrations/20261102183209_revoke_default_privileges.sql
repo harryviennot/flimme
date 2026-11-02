@@ -25,3 +25,9 @@ alter default privileges in schema public revoke all on functions from anon, aut
 -- The baseline revoked the tables of public (views included) but not its
 -- sequences.
 revoke all on all sequences in schema public from anon, authenticated;
+
+-- Functions that a later "create extension" makes follow the extension owner's
+-- defaults (supabase_admin on Supabase), not this revoke, and the check skips
+-- extension-owned objects. On the lite database the loading superuser owns
+-- them, so this revoke does apply there. A task that adds an extension grants
+-- what phones or app_server need.
