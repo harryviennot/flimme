@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 17 of 244 tasks done.
+Progress: 18 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -209,7 +209,7 @@ The database the first release needs, tested and deployable to staging and produ
 
 Done when: migrations and the test suite run from CI on staging and production.
 
-- [ ] **M1.1** Create the staging and production Supabase projects: staging in Ireland, production in Frankfurt · ops · S · needs M0.6 · [operations](../architecture/operations.md#environments)
+- [x] **M1.1** Create the staging and production Supabase projects: staging in Ireland, production in Frankfurt · ops · S · needs M0.6 · [operations](../architecture/operations.md#environments)
   Done when: both projects exist, on the Free plan until M2.15.
 - [x] **M1.2** Apply the Supabase settings checklist to both projects · ops · M · needs M1.1 · [operations](../architecture/operations.md#supabase-settings), [security](../architecture/security.md#supabase-settings)
   Done when: Realtime public access is off, anonymous sign-ins are on, ES256 signing keys and the new API keys are in use. Exposing only `api` waits for the first migration to reach the projects, in M1.15.
