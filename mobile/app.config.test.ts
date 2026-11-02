@@ -1,10 +1,24 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 import appConfig from './app.config';
+import eas from './eas.json';
 
-function load(): ExpoConfig {
+const variants = ['development', 'preview', 'production'] as const;
+const originalVariant = process.env.APP_VARIANT;
+
+function load(variant?: string): ExpoConfig {
+  if (variant === undefined) delete process.env.APP_VARIANT;
+  else process.env.APP_VARIANT = variant;
   return appConfig({ config: {}, projectRoot: '.' } as ConfigContext);
 }
+
+afterEach(() => {
+  if (originalVariant === undefined) delete process.env.APP_VARIANT;
+  else process.env.APP_VARIANT = originalVariant;
+});
+
+type Profile = { [key: string]: unknown };
+const easJson = eas as { cli: Profile; build: Record<(typeof variants)[number], Profile> };
 
 function pluginOptions(config: ExpoConfig, name: string): unknown {
   const entry = config.plugins?.find((plugin) =>
@@ -16,5 +30,73 @@ function pluginOptions(config: ExpoConfig, name: string): unknown {
 describe('app config', () => {
   it('lists French and English for the system per-app language setting', () => {
     expect(pluginOptions(load(), 'expo-localization')).toEqual({ supportedLocales: ['fr', 'en'] });
+  });
+
+  it('builds the preview variant with its own ids, scheme, icon and update url', () => {
+    const config = load('preview');
+    expect(config.ios?.bundleIdentifier).toBe('com.harryviennot.flimme.preview');
+    expect(config.android?.package).toBe('com.harryviennot.flimme.preview');
+    expect(config.scheme).toBe('flimme-preview');
+    expect(config.ios?.icon).toBe('./assets/images/icon-preview.png');
+    expect(config.android?.adaptiveIcon?.foregroundImage).toBe(
+      './assets/images/android-icon-foreground-preview.png',
+    );
+    expect(config.updates?.url).toBe('https://u.expo.dev/2aeaa454-cf9d-400f-a840-b8f100e0061e');
+  });
+
+  it('gives each variant a different icon so builds cannot be confused', () => {
+    const icons = variants.map((variant) => load(variant).ios?.icon);
+    expect(new Set(icons).size).toBe(variants.length);
+  });
+
+  it('refuses an unknown APP_VARIANT and names the variable', () => {
+    expect(() => load('nonsense')).toThrow(/APP_VARIANT/);
+  });
+
+  it('is the development variant when APP_VARIANT is not set', () => {
+    expect(load().ios?.bundleIdentifier).toBe('com.harryviennot.flimme.dev');
+  });
+
+  it.each(variants)('%s uses the fingerprint runtime version and tracks nothing', (variant) => {
+    const config = load(variant);
+    expect(config.runtimeVersion).toEqual({ policy: 'fingerprint' });
+    expect(config.ios?.privacyManifests?.NSPrivacyTracking).toBe(false);
+    expect(config.ios?.privacyManifests?.NSPrivacyTrackingDomains).toEqual([]);
+  });
+
+  it.each(variants)('%s never asks for the microphone', (variant) => {
+    const config = load(variant);
+    expect(config.android?.permissions ?? []).not.toContain('android.permission.RECORD_AUDIO');
+    expect(pluginOptions(config, 'expo-audio')).toMatchObject({
+      recordAudioAndroid: false,
+      microphonePermission: false,
+    });
+  });
+});
+
+describe('eas.json', () => {
+  it('has one build profile per variant, each with its own channel and environment', () => {
+    expect(Object.keys(easJson.build).sort()).toEqual([...variants].sort());
+    for (const name of variants) {
+      expect(easJson.build[name].channel).toBe(name);
+      expect(easJson.build[name].environment).toBe(name);
+    }
+  });
+
+  it('makes a development client only in development', () => {
+    for (const name of variants) {
+      expect(easJson.build[name].developmentClient === true).toBe(name === 'development');
+    }
+  });
+
+  it('keeps the store version in EAS and counts builds up on production only', () => {
+    expect(easJson.cli.appVersionSource).toBe('remote');
+    expect(easJson.build.production.autoIncrement).toBe(true);
+    expect(easJson.build.preview.autoIncrement).toBeUndefined();
+  });
+
+  it('keeps preview and development builds internal', () => {
+    expect(easJson.build.development.distribution).toBe('internal');
+    expect(easJson.build.preview.distribution).toBe('internal');
   });
 });
