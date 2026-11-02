@@ -187,9 +187,11 @@ $$;
 -- -------------------------------------------------------------------------
 -- pgmq: Supabase Queues. Same table layout as the extension (pgmq.q_<name>
 -- and pgmq.a_<name>, the archive) and the same function names and arguments,
--- for what the schema and the server use: create, send, read, delete,
--- archive and set_vt. Real: also has batches, pop, metrics, partitioned
--- queues, headers and more; add here only what a test needs.
+-- for what the schema and the server use: create, send, read, read_with_poll,
+-- delete, archive, set_vt, purge_queue and drop_queue. delete and archive have
+-- the single-id and the array overload, as on the real extension. Real: also
+-- has pop, metrics, partitioned queues, headers and more; add here only what a
+-- test needs.
 -- -------------------------------------------------------------------------
 
 create schema pgmq;
@@ -261,6 +263,30 @@ begin
 end
 $$;
 
+create function pgmq.read_with_poll(
+  queue_name text, vt integer, qty integer,
+  max_poll_seconds integer default 5, poll_interval_ms integer default 100,
+  conditional jsonb default '{}'
+) returns setof pgmq.message_record
+language plpgsql
+as $$
+declare
+  v_started timestamptz := clock_timestamp();
+  v_found boolean;
+  r pgmq.message_record;
+begin
+  loop
+    v_found := false;
+    for r in select * from pgmq.read(queue_name, vt, qty, conditional) loop
+      v_found := true;
+      return next r;
+    end loop;
+    exit when v_found or clock_timestamp() >= v_started + max_poll_seconds * interval '1 second';
+    perform pg_sleep(poll_interval_ms / 1000.0);
+  end loop;
+end
+$$;
+
 create function pgmq.delete(queue_name text, msg_id bigint) returns boolean
 language plpgsql
 as $$
@@ -270,6 +296,14 @@ begin
   execute format('delete from pgmq.%I where msg_id = %L', 'q_' || queue_name, msg_id);
   get diagnostics n = row_count;
   return n > 0;
+end
+$$;
+
+create function pgmq.delete(queue_name text, msg_ids bigint[]) returns setof bigint
+language plpgsql
+as $$
+begin
+  return query execute format('delete from pgmq.%I where msg_id = any(%L) returning msg_id', 'q_' || queue_name, msg_ids);
 end
 $$;
 
@@ -286,6 +320,18 @@ begin
     'q_' || queue_name, msg_id, 'a_' || queue_name);
   get diagnostics n = row_count;
   return n > 0;
+end
+$$;
+
+create function pgmq.archive(queue_name text, msg_ids bigint[]) returns setof bigint
+language plpgsql
+as $$
+begin
+  return query execute format(
+    'with moved as (delete from pgmq.%I where msg_id = any(%L) returning msg_id, read_ct, enqueued_at, vt, message)
+     insert into pgmq.%I (msg_id, read_ct, enqueued_at, vt, message)
+     select msg_id, read_ct, enqueued_at, vt, message from moved returning msg_id',
+    'q_' || queue_name, msg_ids, 'a_' || queue_name);
 end
 $$;
 
@@ -307,7 +353,9 @@ declare
   n bigint;
 begin
   execute format('select count(*) from pgmq.%I', 'q_' || queue_name) into n;
-  execute format('delete from pgmq.%I', 'q_' || queue_name);
+  -- Truncate, as the real extension does: it needs the truncate right, which
+  -- delete does not give.
+  execute format('truncate pgmq.%I', 'q_' || queue_name);
   return n;
 end
 $$;

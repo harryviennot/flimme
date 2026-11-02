@@ -20,7 +20,7 @@ The database decides the game. The app only reaches the `api` schema; the server
 - **Expand, then contract.** Add tables, columns with defaults, functions, `_v2` versions. Dropping or renaming waits for a separate contract release once no shipped app or server uses the old thing.
 - **`create or replace` collisions:** if your migration replaces a function another open branch also changes, the later merge silently undoes the earlier one. The brief lists the functions touched; replace the whole function from main's latest version.
 - No down migrations: fix forward.
-- Squawk lints new migrations in CI (locks, unsafe changes).
+- Squawk lints new migrations in CI (locks, unsafe changes). Timeouts it asks for are `set local lock_timeout` and `set local statement_timeout`: a plain `set` outlives the file's transaction and applies to every later migration on the same connection.
 
 ## Functions
 
@@ -52,4 +52,4 @@ The database decides the game. The app only reaches the `api` schema; the server
 
 - Mac, CI: `supabase start` once, then `supabase db reset` and `supabase test db` (`mise run db:test`).
 - Cloud sessions: `mise run db:lite` then `mise run db:lite:test`.
-- After a schema change: `mise run typegen` and commit `packages/contract/src/database.types.ts` (CI compares it).
+- After a schema change: `mise run typegen` and commit `packages/contract/src/database.types.ts` (CI compares it). In a cloud session, generate it from the lite database instead: docs/pipeline.md, "Types out of date in CI".

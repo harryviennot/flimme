@@ -52,7 +52,7 @@ Only what the schema and the tests touch, behaving as Supabase does for those pa
 | `extensions` schema | `vector`, `pg_trgm` and `pgcrypto` live there, and it is on the database's default `search_path`, as in Supabase |
 | `auth.users`, `auth.uid()`, `auth.role()`, `auth.email()`, `auth.jwt()` | The sign-up trigger, the foreign key from `profiles`, and the functions that read `request.jwt.claims` |
 | `realtime.messages`, `realtime.topic()`, `realtime.send()` | The two row-level security policies on `realtime.messages`, and `internal.broadcast_room`. `send` stores the row, so a test can check what the database broadcast |
-| `pgmq.create`, `send`, `read`, `delete`, `archive`, `set_vt`, `purge_queue`, `drop_queue`, tables `q_<name>` and `a_<name>` | `internal.enqueue`, the seven queues, and the server's queue loop later |
+| `pgmq.create`, `send`, `read`, `read_with_poll`, `delete` and `archive` (one id or an array), `set_vt`, `purge_queue`, `drop_queue`, tables `q_<name>` and `a_<name>` | `internal.enqueue`, the seven queues, and the server's queue loop later |
 | `cron.job`, `cron.schedule`, `cron.unschedule` | Nothing yet; later migrations can schedule jobs. Jobs are recorded, never run |
 
 ## What it doesn't cover
@@ -64,6 +64,6 @@ Verify these on the Mac (`supabase start`, `supabase test db`) or in CI:
 - **The Data API**: PostgREST's exposed-schema setting, its role switching, `max_rows`. The tests switch roles themselves with `set local role`.
 - **The real pgmq**: the extension has more functions, columns (`headers`) and grants; `app_server`'s access to the queues, which the baseline still lists as a to-do, is not tested.
 - **pg_cron** running jobs, **Postgres 17** (new projects get 17; this runs on 16), Supabase's own extension versions, Storage, Edge Functions, the pooler, `supabase db reset` and the migration runner itself.
-- **Performance**: there is no catalog data until the seed (M1.14) and no realistic one ever, so timing and index choices need the real thing.
+- **Performance**: the only catalog is the synthetic seed (500 invented films) and never a realistic one, so timing and index choices need the real thing.
 
 When the real stack disagrees with a stand-in, fix the stand-in, and say so in its comment.
