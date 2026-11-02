@@ -174,7 +174,7 @@ Every secret starts in the password manager; the places below hold copies. Nothi
 | `EXPO_TOKEN` | M3.3 | GitHub Actions | Yes |
 | `ROADMAP_DEPLOY_KEY`, the private half of a write deploy key | Now | GitHub Actions, repository secret; the main ruleset lets deploy keys bypass it | Yes |
 | `SUPABASE_ACCESS_TOKEN`, each project's database password and ref | M1.15 | GitHub's `staging` and `production` environments | Yes |
-| The server's database logins, one per process | M2.12 | Fly secrets; the local login in `server/.env.local` | Yes |
+| The server's database logins, one per process | M2.12 | Fly secrets, set by `node tools/server-logins.mjs <env>` (they exist nowhere else); the local login in `server/.env.local` | Yes |
 | TMDB API token | M2.3 | Fly secrets (pipeline worker); your own key in `server/.env.local` | Yes |
 | Fly deploy tokens, one per app (`FLY_API_TOKEN_API`, `FLY_API_TOKEN_WORKERS`) | M2.12 | GitHub's `staging` and `production` environments | Yes |
 | A Supabase secret key, for account deletion only | M8.5 | Fly secrets, the HTTP API process only | Yes |

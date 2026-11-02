@@ -103,7 +103,7 @@ Nothing secret is committed. Local values live in an ignored `.env.local`.
 | PostHog project key, Sentry DSN for the app | EAS environment variables (`EXPO_PUBLIC_`) | The app |
 | Sentry auth token (source map upload) | EAS secret | EAS Build and EAS Update |
 | App Store Connect API key, Google Play service account | EAS credentials | EAS Submit |
-| One database password per process login: `flimme_deck`, `flimme_pipeline`, `flimme_trainer` (role `app_server`) and `flimme_http` (role `app_http`), each as its connection string | The server host's secrets: `flimme-api-<env>` holds `flimme_http`'s, `flimme-workers-<env>` the other three. Set by hand per project with `alter role ... password` in the SQL editor, never in a migration | Each server process ([contract](recommendation-server.md#the-contract-with-the-database)) |
+| One database password per process login: `flimme_deck`, `flimme_pipeline`, `flimme_trainer` (role `app_server`) and `flimme_http` (role `app_http`), each as its connection string | The server host's secrets: `flimme-api-<env>` holds `flimme_http`'s, `flimme-workers-<env>` the other three. Set by Harry with `node tools/server-logins.mjs <env>`: it generates each password, sends Postgres only its SCRAM hash, tests the login through the pooler and stages the URL on Fly. The passwords exist only on Fly; to replace them, run it again. Never in a migration | Each server process ([contract](recommendation-server.md#the-contract-with-the-database)) |
 | A Supabase secret key for account deletion only | The server host's secrets | The server's HTTP API |
 | TMDB API token | The server host's secrets; your own key in `.env.local` | The pipeline worker, `tools/seed-local-catalog` |
 | Sentry DSN for the server | The server host's secrets | The server |
@@ -195,7 +195,7 @@ What Supabase Pro gives:
 
 - **Daily backups, kept 7 days.** They don't include files in Supabase Storage (we keep none there that matter: training exports live in the server's object storage).
 - **Restoring takes the project offline**, for longer the bigger the database. A restore into a new project goes through "Duplicate project".
-- **Passwords of custom roles aren't in daily backups.** After any restore, reset the four server logins' passwords (`flimme_deck`, `flimme_pipeline`, `flimme_trainer`, `flimme_http`) and update the server's secrets, or the server can't connect.
+- **Passwords of custom roles aren't in daily backups.** After any restore, run `node tools/server-logins.mjs <env>` for that project and redeploy both server apps, or the server can't connect. It resets all four logins (`flimme_deck`, `flimme_pipeline`, `flimme_trainer`, `flimme_http`) and their Fly secrets.
 - **Point-in-time recovery** restores to the second, but costs $100 a month per 7 days of history and needs at least Small compute. Not at launch (default).
 
 What we add:
