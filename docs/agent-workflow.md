@@ -225,7 +225,7 @@ The first release's tasks, grouped into features. Each slice gets one brief; the
 | --- | --- | --- | --- |
 | 1 | Backend foundation | M1.3 to M1.15 | None |
 | 2 | Catalog | M2.1 to M2.14 | None |
-| 3 | App shell | M3.1 to M3.12 | Design system and motion tokens (M3.4) |
+| 3 | App shell | M3.1 to M3.15 | Design system and motion tokens (M3.4) |
 | 4 | First launch | M4.3, M4.6, M4.7 | Screens 01 to 04 |
 | 5 | Hosting | M4.4, M4.9 | Screens 06 and 07 |
 | 6 | Joining | M4.1, M4.8, M4.14, M4.15 | Screen 05 and the join sheet |

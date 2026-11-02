@@ -296,7 +296,9 @@ All from environment variables, validated at start: the process refuses to start
 
 | Variable | Used by | What |
 | --- | --- | --- |
-| `DATABASE_URL` | All | The process's own login (`flimme_deck`, `flimme_pipeline`, `flimme_trainer` in role `app_server`; `flimme_http` in role `app_http` for the API), through the shared pooler in session mode |
+| `PIPELINE_DATABASE_URL`, `DECK_DATABASE_URL`, `TRAINER_DATABASE_URL` | Pipeline worker and `backfill`, deck worker, trainer | That process's own login (`flimme_pipeline`, `flimme_deck`, `flimme_trainer` in role `app_server`), through the shared pooler in session mode |
+| `API_DATABASE_URL` | API | The API's login (`flimme_http` in role `app_http`), through the shared pooler in session mode |
+| `DATABASE_URL` | Local only | Stands in for any of the four above when `ENVIRONMENT` is `local`. Staging and production ignore it |
 | `SUPABASE_URL` | API, trainer | For the signing keys, the admin API and Storage |
 | `SUPABASE_SECRET_KEY` | API | Only for deleting accounts |
 | `STORAGE_BUCKET` | Trainer, deck worker | Models and training exports |
@@ -322,7 +324,7 @@ No Streaming Availability key: it's dropped from v1. How secrets are stored per 
 | Unit tests | Each pure stage: fits, group scores, the misery line, fatigue, the shuffle, variety, slots, labels, live learning, the taste builder, the mood scorer | Every commit, in seconds |
 | Rules as tests | Things that must always hold: a dropped film is never dealt; the opening is the same for every seat; rewatches stay at or under 1 card in 10; propensities are between 0 and 1; a deal never repeats a card the seat already has | Every commit |
 | Contract tests | Against a local Supabase with the real schema: every query in `db/queries/` runs; `deal_cards` accepts what the deck builder makes; the Letterboxd payloads round-trip; running a queue message twice changes nothing | Every commit, in CI ([operations.md](operations.md)) |
-| Recorded outside calls | TMDB and Letterboxd responses recorded once and replayed, so tests never hit the network | Every commit |
+| Replayed outside calls | Synthetic TMDB and Letterboxd responses in the real shapes, replayed through a test transport that fails any request without a fixture, so tests never hit the network. Raw recordings stay in the git-ignored `tests/fixtures/.recorded/`; `tools/scrub_fixture.py` turns one into a committable file, and a test fails on any movie id below 60,000,001 | Every commit |
 | Simulation | Bot players with hidden tastes play thousands of games against a recipe: time to a pick, swipes per pick, repeat rate over several games of the same group, misery. Used to compare recipes before playtests | On demand: `server replay` |
 | Log replay | Later, once real games exist: re-deal logged requests with a new recipe or model and estimate the result from the logged propensities | On demand |
 

@@ -22,11 +22,17 @@ Postgres decides the game; the server decides the deck, learns, and makes every 
 
 - Python 3.13, uv. Add a dependency with `uv add <pkg>` (never edit `uv.lock` by hand).
 - Types everywhere; pyright must pass. Pydantic models for payloads crossing the database or HTTP.
-- **No network in tests.** TMDB and Letterboxd responses are recorded once into `tests/fixtures/` and replayed.
+- **No network in tests.** TMDB and Letterboxd responses are replayed from `tests/fixtures/`, which holds synthetic files only (TMDB's response shape, movie ids from 60,000,001; a test fails on any other id). Record a real one into the git-ignored `tests/fixtures/.recorded/` and run `tools/scrub_fixture.py` before committing. The TMDB client is `catalog/tmdb.py`: one per process, it owns the rate limiter.
 - **TMDB:** a polite request rate, retries with backoff, 429 handling (tmdb.md#failures-and-retries). Its data never goes into git.
 - **No personal data in logs**: ids only, never names, room codes or emails.
 - The HTTP API checks the Supabase token (ES256, against the project's signing keys) on every route but `/healthz`.
 - Each process has its own database login; only the HTTP API holds the Supabase secret key.
+
+## Queue workers
+
+- A handler is `async def (Delivery) -> Done | Reject` (`workers/runner.py`). Return `Done` to delete, `Reject` for bad input that will never succeed (archived at once), and let an exception escape for a failure worth retrying. The runner extends the visibility timeout while a handler runs, so a handler never calls `set_vt` itself.
+- A pipeline queue's handlers register by message kind in `workers/pipeline.py` (`HANDLERS`); the message shapes are pydantic models in `db/payloads.py`. Send with `db.contract.enqueue`, never `pgmq.send`.
+- Tests: the loop's logic against `tests/unit/fakes.py` (an in-memory queue); the real queue and login in `tests/contract` (needs a database, see server/README.md). Async tests use `pytestmark = pytest.mark.anyio`.
 
 ## Commands (from server/)
 

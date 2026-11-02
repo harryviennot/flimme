@@ -14,6 +14,11 @@
 begin;
 select plan(39);
 
+-- The seed's free services (8008 to 8010) would join every FR room since M2.4;
+-- this file is about the fixture catalog's services, so switch them off here (rolled back
+-- with the test). The free-service rule is tested in 350-catalog-from-tmdb.test.sql.
+update public.provider_regions set free_for_all = false;
+
 select tests.use_deck_engine('server');
 select tests.create_catalog(40);
 

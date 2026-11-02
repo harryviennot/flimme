@@ -49,3 +49,5 @@ venv = ".venv"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --import-mode=importlib"
+# Lets tests import each other's helpers as `tests.unit.fakes`.
+pythonpath = ["."]
