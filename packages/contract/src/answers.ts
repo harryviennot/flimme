@@ -79,7 +79,8 @@ export type SetSeatPrefsAnswer = (typeof SET_SEAT_PREFS_ANSWERS)[number];
 /**
  * `api.start_game` answers. `ok` means the SQL baseline dealt and the game started:
  * at once under `deck_engine` `sql` (M1.13), or the 8-second fallback (with `fallback`).
- * The app treats it like `dealing` and follows `state_changed`.
+ * The app treats it like `dealing` and follows `state_changed`. `too_few_films` (with `eligible`)
+ * means fewer than 20 films fit and the room is back in the lobby (M5.5).
  */
 export const START_GAME_ANSWERS = [
   'ok',
