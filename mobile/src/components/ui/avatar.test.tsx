@@ -12,4 +12,9 @@ describe('Avatar', () => {
     await render(<Avatar name="🎬 Film" color="red" />);
     expect(screen.getByText('🎬')).toBeTruthy();
   });
+
+  it('draws blue for a color it does not know', async () => {
+    await render(<Avatar name="Sam" color={'default' as never} />);
+    expect(screen.getByLabelText('Sam').props.className).toContain('bg-avatar-blue');
+  });
 });
