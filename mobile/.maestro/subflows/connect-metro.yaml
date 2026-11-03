@@ -1,0 +1,22 @@
+# Opens Metro's bundle in the development build, confirms the system prompt, and closes the
+# developer menu's first-run sheet and the menu itself when they show.
+appId: com.harryviennot.flimme.dev
+---
+- openLink: flimme-dev://expo-development-client/?url=${METRO_URL}
+- runFlow:
+    when:
+      visible: 'Open'
+    commands:
+      - tapOn: 'Open'
+- runFlow:
+    when:
+      visible: 'This is the developer menu.*'
+    commands:
+      - tapOn: 'Continue'
+- runFlow:
+    when:
+      visible: 'Go home'
+    commands:
+      # The close button has no label: it is the circle at the top right of the sheet.
+      - tapOn:
+          point: 90%,50%

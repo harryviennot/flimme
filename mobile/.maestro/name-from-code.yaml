@@ -1,0 +1,41 @@
+# Slice 4, the `?code=` entry point of the name screen: a code that needs a name opens
+# `/name?code=482913`. Saving the name goes back (to the code screen, later) and never to Home.
+# Run: `maestro test mobile/.maestro/name-from-code.yaml` with the development build installed
+# and Metro running (`-e METRO_URL=http://localhost:8096`).
+appId: com.harryviennot.flimme.dev
+env:
+  METRO_URL: http://localhost:8096
+---
+- runFlow: subflows/open-app-fresh.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+
+- openLink: flimme-dev://name?code=482913
+- runFlow:
+    when:
+      visible: 'Open'
+    commands:
+      - tapOn: 'Open'
+- extendedWaitUntil:
+    visible: '(?i)what should we call you\?'
+    timeout: 15000
+- assertVisible: '(?i)your color'
+- takeScreenshot: name-from-code-1-name
+
+- inputText: 'Coco'
+- tapOn: '(?i)continue'
+
+# Back from the name screen: the profile is saved and we are not on Home.
+- extendedWaitUntil:
+    notVisible: '(?i)what should we call you\?'
+    timeout: 15000
+- assertNotVisible: '(?i)open a room'
+- takeScreenshot: name-from-code-2-after-save
+
+# The name was saved: a relaunch lands on Home.
+- runFlow: subflows/open-app.yaml
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 30000
+- assertNotVisible: '(?i)get started'
