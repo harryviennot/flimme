@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 79 of 253 tasks done.
+Progress: 80 of 253 tasks done.
 
 ```mermaid
 flowchart LR
@@ -387,7 +387,7 @@ Done when: a room is dealt in under a second, only with films its players can wa
   Done when: tested with a franchise-heavy seed.
 - [x] **M5.4** "Seen it" swipes saved to `user_titles` (source `app`), so later games leave them out · backend · M · needs M1.5 · [deck-engine](../architecture/deck-engine.md#signals)
   Done when: a film swiped "Seen it" doesn't come back in the player's next room.
-- [ ] **M5.5** Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing · backend · M · needs M5.1, M5.2 · [game-modes](game-modes.md#how-a-game-ends)
+- [x] **M5.5** Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing · backend · M · needs M5.1, M5.2 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: tested with a room whose services have almost nothing.
 - [ ] **M5.6** Card payloads (`api.my_next_cards`): poster, placeholder, year, runtime, genres, TMDB score, director, cast, trailer, backdrop, the room's services for that film with their names and logos, watch link · backend · M · needs M2.7, M1.7, M1.9 · [data-model](../architecture/data-model.md#the-apps-api)
   Done when: a card renders from one call.
