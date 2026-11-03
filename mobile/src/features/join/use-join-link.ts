@@ -12,6 +12,7 @@ import {
   useMyProfile,
   type SubmitOutcome,
 } from '@/features/profile';
+import { releaseRoomGuards } from '@/features/room/leave-guard';
 import { startSession, useSession, useSessionFailed } from '@/features/session';
 import { haptics } from '@/lib/haptics';
 
@@ -346,6 +347,8 @@ function enterRoom(path: string, roomId: string, routes: readonly RootRoute[]) {
   if (entry === 'dismissTo') {
     router.dismissTo(path as never);
   } else if (entry === 'reset') {
+    // Another room's screens go: the player isn't asked whether to leave them.
+    releaseRoomGuards();
     router.dismissAll();
     router.replace(path as never);
   } else {

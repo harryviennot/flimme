@@ -29,6 +29,7 @@ import { bannerFor, isFresh, nextBannerChange, presenceOf, type BannerKind } fro
 export const EVENT_READS: Partial<Record<RoomEvent, 'seats' | 'room'>> = {
   member_joined: 'seats',
   member_left: 'seats',
+  member_removed: 'seats',
   seat_updated: 'seats',
   host_changed: 'seats',
   settings_changed: 'room',

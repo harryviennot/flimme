@@ -1,6 +1,7 @@
 import { router, Stack, useLocalSearchParams, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 
+import { RoomLeaveGuard } from '@/components/screens/room/leave-guard';
 import { ErrorScreen } from '@/components/shared/error-screen';
 import {
   isAllowed,
@@ -79,39 +80,41 @@ export default function RoomLayout() {
 
   return (
     <RoomRealtimeProvider value={realtime}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          // Once swiping starts, leaving is an explicit "Leave room", never a back swipe.
-          gestureEnabled: false,
-          contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
-        }}
-      >
-        <Stack.Screen
-          name="invite"
-          options={{
-            presentation: 'formSheet',
-            sheetGrabberVisible: true,
-            sheetAllowedDetents: [0.8],
+      <RoomLeaveGuard roomId={id ?? ''} active={!current || !isSheet(current)}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            // Once swiping starts, leaving is an explicit "Leave room", never a back swipe.
+            gestureEnabled: false,
+            contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
           }}
-        />
-        <Stack.Screen
-          name="services"
-          options={{
-            presentation: 'formSheet',
-            sheetGrabberVisible: true,
-            sheetAllowedDetents: [0.8],
-          }}
-        />
-        <Stack.Screen
-          name="recap"
-          options={{
-            presentation: 'formSheet',
-            sheetGrabberVisible: true,
-            sheetAllowedDetents: [0.9],
-          }}
-        />
-      </Stack>
+        >
+          <Stack.Screen
+            name="invite"
+            options={{
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [0.8],
+            }}
+          />
+          <Stack.Screen
+            name="services"
+            options={{
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [0.8],
+            }}
+          />
+          <Stack.Screen
+            name="recap"
+            options={{
+              presentation: 'formSheet',
+              sheetGrabberVisible: true,
+              sheetAllowedDetents: [0.9],
+            }}
+          />
+        </Stack>
+      </RoomLeaveGuard>
     </RoomRealtimeProvider>
   );
 }

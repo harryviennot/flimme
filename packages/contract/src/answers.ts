@@ -22,17 +22,28 @@ export const JOIN_ROOM_ANSWERS = [
   'full',
   'starting',
   'in_finale',
+  'removed',
   'name_required',
   'rate_limited',
 ] as const;
 export type JoinRoomAnswer = (typeof JOIN_ROOM_ANSWERS)[number];
-/** `closed` is a stale invite link (M4.1). Planned: `removed` and `locked` arrive with roadmap M4.2. */
-export const PLANNED_JOIN_ROOM_ANSWERS = ['removed', 'locked'] as const;
+/**
+ * `closed` is a stale invite link (M4.1); `removed` is a seat the host removed (M4.2).
+ * Planned: `locked` arrives with roadmap M4.23.
+ */
+export const PLANNED_JOIN_ROOM_ANSWERS = ['locked'] as const;
 
-/** `api.room_preview` answers (M4.19). Planned: `removed` and `locked` arrive with roadmap M4.2. */
-export const ROOM_PREVIEW_ANSWERS = ['ok', 'closed', 'full', 'in_finale', 'rate_limited'] as const;
+/** `api.room_preview` answers (M4.19, `removed` M4.2). Planned: `locked` arrives with roadmap M4.23. */
+export const ROOM_PREVIEW_ANSWERS = [
+  'ok',
+  'closed',
+  'removed',
+  'full',
+  'in_finale',
+  'rate_limited',
+] as const;
 export type RoomPreviewAnswer = (typeof ROOM_PREVIEW_ANSWERS)[number];
-export const PLANNED_ROOM_PREVIEW_ANSWERS = ['removed', 'locked'] as const;
+export const PLANNED_ROOM_PREVIEW_ANSWERS = ['locked'] as const;
 
 /** How a seat came in (`public.join_via`, M4.1); sent as `via`, stored on the seat. */
 export const JOIN_VIAS = ['link', 'code', 'qr', 'rejoin', 'play_again'] as const;
@@ -49,6 +60,10 @@ export type ReportMemberAnswer = (typeof REPORT_MEMBER_ANSWERS)[number];
 /** `api.leave_room` answers. */
 export const LEAVE_ROOM_ANSWERS = ['ok', 'not_in_room'] as const;
 export type LeaveRoomAnswer = (typeof LEAVE_ROOM_ANSWERS)[number];
+
+/** `api.remove_member` answers (M4.2): the host removes a player. */
+export const REMOVE_MEMBER_ANSWERS = ['ok', 'not_in_room', 'closed'] as const;
+export type RemoveMemberAnswer = (typeof REMOVE_MEMBER_ANSWERS)[number];
 
 /** `api.update_room_settings` answers. */
 export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed', 'invalid_settings'] as const;

@@ -45,7 +45,7 @@ export const joinRoomResult = z.discriminatedUnion('status', [
   z.object({ status: z.literal('full'), max_players: z.number() }),
   z.object({ status: z.literal('name_required'), host_name: z.nullable(z.string()) }),
   z.object({
-    status: z.enum(['not_found', 'closed', 'starting', 'in_finale', 'rate_limited']),
+    status: z.enum(['not_found', 'closed', 'starting', 'in_finale', 'removed', 'rate_limited']),
   }),
 ]);
 export type JoinRoomResult = z.infer<typeof joinRoomResult>;
@@ -61,7 +61,7 @@ export const roomPreviewResult = z.discriminatedUnion('status', [
     seated: z.boolean(),
   }),
   z.object({ status: z.literal('full'), max_players: z.number() }),
-  z.object({ status: z.enum(['closed', 'in_finale', 'rate_limited']) }),
+  z.object({ status: z.enum(['closed', 'removed', 'in_finale', 'rate_limited']) }),
 ]);
 export type RoomPreviewResult = z.infer<typeof roomPreviewResult>;
 
@@ -72,6 +72,9 @@ export type ReportMemberResult = z.infer<typeof reportMemberResult>;
 
 export const leaveRoomResult = z.object({ status: z.enum(['ok', 'not_in_room']) });
 export type LeaveRoomResult = z.infer<typeof leaveRoomResult>;
+
+export const removeMemberResult = z.object({ status: z.enum(['ok', 'not_in_room', 'closed']) });
+export type RemoveMemberResult = z.infer<typeof removeMemberResult>;
 
 /** The host's settings: any subset; `runtime_max` and `max_age` take null to clear. */
 export type RoomSettings = {
