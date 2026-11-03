@@ -1,0 +1,45 @@
+# M4.13, the host menu: the host's phone removes a player and locks the room.
+# Needs a room the phone hosts, with a second player named "Zed" already seated (join it with
+# curl: sign in a guest, `update_profile`, `join_room`), on a backend the dev build points at.
+# After the run: the removed player's `join_room` answers `removed`, and with the lock on a new
+# player's `join_room` answers `locked` (check both by curl or on a second simulator).
+# Run: `maestro test mobile/.maestro/host-powers.yaml -e METRO_URL=http://localhost:8094`
+# with the app already open on the lobby.
+appId: com.harryviennot.flimme.dev
+env:
+  METRO_URL: http://localhost:8094
+---
+- tapOn: '.*Zed.*'
+- tapOn: 'Remove Zed from the room'
+- extendedWaitUntil:
+    visible: 'Remove Zed\?'
+    timeout: 5000
+# Cancel calls nothing and keeps the player.
+- tapOn: 'Cancel'
+- assertVisible: 'Remove Zed from the room'
+- tapOn: 'Remove Zed from the room'
+- tapOn: 'Remove'
+- extendedWaitUntil:
+    notVisible: '.*Zed.*'
+    timeout: 8000
+# Lock the room: the ticket gets its tag.
+- swipe:
+    start: 50%,70%
+    end: 50%,20%
+- tapOn: 'Lock the room'
+- swipe:
+    start: 50%,30%
+    end: 50%,80%
+- extendedWaitUntil:
+    visible: 'Locked'
+    timeout: 8000
+# The invite sheet says so, and swipes down without asking to leave.
+- tapOn:
+    point: 92%,10%
+- assertVisible: 'The room is locked: nobody new can join.'
+- swipe:
+    start: 50%,28%
+    end: 50%,95%
+    duration: 500
+- assertNotVisible: 'Leave the room\?'
+- assertVisible: 'In the room'

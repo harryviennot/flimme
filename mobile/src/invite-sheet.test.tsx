@@ -15,7 +15,11 @@ import RoomInviteScreen from './app/room/[id]/invite';
 const ID = '0b9a7c3e-6a1d-4f6e-9a55-2b6f1e0c8d41';
 const mockQr = jest.fn();
 
-jest.mock('@/api', () => ({ api: { room: jest.fn(), appConfig: jest.fn() } }));
+jest.mock('@/api', () => ({
+  api: { room: jest.fn(), roomSeats: jest.fn(), appConfig: jest.fn(), setRoomLocked: jest.fn() },
+}));
+jest.mock('@/lib/supabase', () => ({ supabase: {} }));
+jest.mock('@/features/network', () => ({ useOnline: () => true }));
 jest.mock('@/features/session', () => ({
   startSession: jest.fn(async () => ({ status: 'ok', userId: 'u1', isNew: false })),
 }));
@@ -65,6 +69,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   room.mockResolvedValue({ id: ID, code: '482913', state: 'lobby' });
   appConfig.mockResolvedValue({});
+  (api.roomSeats as jest.Mock).mockResolvedValue([]);
   jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction', activityType: undefined });
 });
 

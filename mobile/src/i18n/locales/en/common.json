@@ -48,7 +48,9 @@
     "stars": "★ {{rating}}"
   },
   "ticket": {
-    "roomCode": "Room code"
+    "roomCode": "Room code",
+    "locked": "Locked",
+    "lockedA11y": "Room locked"
   },
   "services": {
     "tapToAdd": "Tap to add",

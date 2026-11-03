@@ -6,6 +6,9 @@ export const gallery: GalleryEntry = {
   tier: 'shared',
   description: 'The room code as a cinema ticket, readable across a couch.',
   render: () => (
-    <RoomTicket code="482913" leftDetail="3 of 10 players" rightDetail="Host · Harry" />
+    <>
+      <RoomTicket code="482913" leftDetail="3 of 10 players" rightDetail="Host · Harry" />
+      <RoomTicket code="482913" leftDetail="3 of 10 players" rightDetail="Host · Harry" locked />
+    </>
   ),
 };

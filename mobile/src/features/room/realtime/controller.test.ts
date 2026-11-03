@@ -274,6 +274,16 @@ describe('presence', () => {
     expect([...online].sort()).toEqual(['seat-1', 'seat-2']);
   });
 
+  it('ignores presence from a seat that is not in the seated list', () => {
+    const t = setup();
+    t.live().status!('SUBSCRIBED');
+    t.live().presence = { 'seat-2': [{}], stranger: [{}] };
+    t.live().sync!();
+    const { online, away } = presenceOf(t.rt.getState(), seats, 'seat-1', Date.now());
+    expect([...online].sort()).toEqual(['seat-1', 'seat-2']);
+    expect(away.has('stranger')).toBe(false);
+  });
+
   it('turns a seat away after 90 s missing, not 89', () => {
     const t = setup();
     t.live().status!('SUBSCRIBED');

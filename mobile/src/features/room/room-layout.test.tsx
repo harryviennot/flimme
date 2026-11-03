@@ -5,6 +5,8 @@ import { router, Stack } from 'expo-router';
 import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 import type { ReactNode } from 'react';
 
+import { showToast } from '@/components/ui/toast';
+
 import { keptRoomStore } from './kept-room';
 
 const mockSeat = {
@@ -60,6 +62,10 @@ jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
 }));
 jest.mock('@/lib/sentry', () => ({ reportError: jest.fn() }));
+jest.mock('@/components/ui/toast', () => ({
+  ...jest.requireActual('@/components/ui/toast'),
+  showToast: jest.fn(),
+}));
 // The invite sheet reads app_config, which starts the guest session: keep the real one out.
 jest.mock('@/features/session', () => ({ startSession: jest.fn(async () => ({ status: 'no' })) }));
 
@@ -100,6 +106,7 @@ beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } });
   mockOnline.value = true;
   keptRoomStore.getState().forget();
+  jest.mocked(showToast).mockClear();
   api.room.mockReset().mockResolvedValue(roomOf('lobby'));
   api.roomSeats.mockReset().mockResolvedValue([mockSeat]);
   api.touchRoom.mockClear();
@@ -168,12 +175,26 @@ describe('the room layout', () => {
     await renderRouter(routes, { initialUrl: '/room/r1/lobby', wrapper: Providers });
     await waitFor(() => expect(screen).toHavePathname('/home'));
     expect(keptRoomStore.getState().room).toBeNull();
+    expect(showToast).toHaveBeenCalledTimes(1);
+    expect(showToast).toHaveBeenCalledWith({
+      tone: 'info',
+      title: 'The host removed you from this room.',
+    });
   });
 
-  it('sends the phone Home when its seat has left', async () => {
+  it('says nothing for a null read of a room the phone does not keep', async () => {
+    api.room.mockResolvedValue(null);
+    await renderRouter(routes, { initialUrl: '/room/r1/lobby', wrapper: Providers });
+    await waitFor(() => expect(screen).toHavePathname('/home'));
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('sends the phone Home when its seat has left, with no message', async () => {
+    keptRoomStore.getState().keep({ id: 'r1', code: '482913' });
     api.roomSeats.mockResolvedValue([{ ...mockSeat, left_at: '2026-11-03T11:00:00Z' }]);
     await renderRouter(routes, { initialUrl: '/room/r1/lobby', wrapper: Providers });
     await waitFor(() => expect(screen).toHavePathname('/home'));
+    expect(showToast).not.toHaveBeenCalled();
   });
 
   it('trusts a fresh read over a cached left seat after a rejoin', async () => {
