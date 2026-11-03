@@ -1,5 +1,5 @@
 // Roadmap M1.15, tests 1 and 2: the pin check and the migration-order check, each shown
-// failing on a bad example and passing on a good one. Run with `node --test tools/`.
+// failing on a bad example and passing on a good one. Run with `node --test tools/*.test.mjs`.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 

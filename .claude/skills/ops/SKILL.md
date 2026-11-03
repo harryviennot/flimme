@@ -45,6 +45,8 @@ Order: **database, then server, then app.** Each must work with the one before a
 
 The table is in docs/architecture/groundwork.md#secrets. Every secret starts in Harry's password manager; copies live in GitHub environments, EAS, Fly and Supabase. Agents never handle real secrets: they name the variable, Harry sets it.
 
+One exception to the password manager: the server's four database logins. Harry runs `node tools/server-logins.mjs staging` (or `production`), which generates their passwords, sends Postgres only a SCRAM hash, tests each login and stages its URL on the right Fly app. The passwords exist only on Fly. It runs once per project after the migrations create the logins, after any restore, and to rotate; then both apps are redeployed. Agents never run it.
+
 ## Commands
 
 `mise run setup`, `mise run dev`, `mise run check`, `supabase db reset`, `supabase test db`, `npx eas-cli@latest build --profile preview`, `npx eas-cli@latest update --channel preview`, `fly deploy --config server/fly.staging.toml` (once M2.12 adds it).

@@ -174,7 +174,7 @@ The [recommendation server](recommendation-server.md#processes) exposes two endp
 
 | Secret | Lives in | Never in | Rotation |
 | --- | --- | --- | --- |
-| The server's database logins | The host's secret store, one login per process | The repo, the app, logs | `alter role ... password`, then redeploy that process. Two logins per process allow a swap without downtime |
+| The server's database logins | The host's secret store, one login per process | The repo, the app, logs | `node tools/server-logins.mjs <env>`, which sets new passwords for all four as SCRAM hashes, then redeploy both apps. The old passwords stop working at once, so the server is down until the redeploy; two logins per process would allow a swap without downtime |
 | A Supabase secret key (account deletion only) | The HTTP API process only | Workers, the trainer, the app, CI logs | Create a new key, deploy, delete the old one. Deletion is permanent |
 | The TMDB API key | The pipeline worker | The app (posters load from TMDB's image servers without a key) | Regenerate in TMDB's settings |
 | The Postgres owner password and a Supabase access token | CI only, for migrations | The server | Change in the dashboard; Supabase says this causes no downtime for its own services |
