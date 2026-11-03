@@ -1,6 +1,7 @@
 // Every component's gallery entry. scripts/check-gallery.mjs keeps this list complete.
 
 import { gallery as uiAvatar } from './ui/avatar.gallery';
+import { gallery as uiAvatarPicker } from './ui/avatar-picker.gallery';
 import { gallery as uiBanner } from './ui/banner.gallery';
 import { gallery as uiButton } from './ui/button.gallery';
 import { gallery as uiChip } from './ui/chip.gallery';
@@ -22,6 +23,7 @@ import { gallery as uiToast } from './ui/toast.gallery';
 import { gallery as uiToggle } from './ui/toggle.gallery';
 import { gallery as uiTopBar } from './ui/top-bar.gallery';
 import { gallery as sharedMovieCard } from './shared/movie-card.gallery';
+import { gallery as sharedNameForm } from './shared/name-form.gallery';
 import { gallery as sharedPlayerPill } from './shared/player-pill.gallery';
 import { gallery as sharedPoster } from './shared/poster.gallery';
 import { gallery as sharedRatingLogo } from './shared/rating-logo.gallery';
@@ -34,6 +36,7 @@ import type { GalleryEntry } from './gallery';
 
 export const galleryEntries: GalleryEntry[] = [
   uiAvatar,
+  uiAvatarPicker,
   uiBanner,
   uiButton,
   uiChip,
@@ -55,6 +58,7 @@ export const galleryEntries: GalleryEntry[] = [
   uiToggle,
   uiTopBar,
   sharedMovieCard,
+  sharedNameForm,
   sharedPlayerPill,
   sharedPoster,
   sharedRatingLogo,

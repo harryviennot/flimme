@@ -26,5 +26,19 @@
     },
     "start": "Get started",
     "haveCode": "I have a room code"
+  },
+  "name": {
+    "topBar": "Your profile",
+    "title": "What should we call you?",
+    "colorLabel": "Your color",
+    "nameLabel": "Your name",
+    "helper": "This is how friends see you in the room.",
+    "note": "No account, no email. Just a name for tonight.",
+    "continue": "Continue",
+    "errors": {
+      "invalid": "Use at least one letter or number.",
+      "notAllowed": "That name isn't allowed. Pick another one.",
+      "offline": "You're offline. Connect to continue."
+    }
   }
 }
