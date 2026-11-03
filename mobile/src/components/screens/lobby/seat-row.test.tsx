@@ -55,5 +55,11 @@ describe('SeatRow', () => {
     await show({ onPress });
     await fireEvent.press(screen.getByRole('button'));
     expect(onPress).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button').props.accessibilityHint).toBe('Open options for Sam');
+  });
+
+  it('is not a button without onPress', async () => {
+    await show();
+    expect(screen.queryByRole('button')).toBeNull();
   });
 });

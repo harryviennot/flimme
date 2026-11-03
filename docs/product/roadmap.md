@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 77 of 253 tasks done.
+Progress: 80 of 253 tasks done.
 
 ```mermaid
 flowchart LR
@@ -383,11 +383,11 @@ Done when: a room is dealt in under a second, only with films its players can wa
   Done when: tests show each filter, and the crowd score orders the rest.
 - [x] **M5.2** The weighted shuffle in the SQL deal (noise from a hash of the room's seed and the film), with the shared opening of 10 · backend · M · needs M5.1 · [deck-engine](../architecture/deck-engine.md#weighted-shuffle)
   Done when: the same room settings give different but repeatable decks per seed.
-- [ ] **M5.3** One film per franchise in the opening and in any 10 cards · backend · M · needs M5.2 · [deck-engine](../architecture/deck-engine.md#variety)
+- [x] **M5.3** One film per franchise in the opening and in any 10 cards · backend · M · needs M5.2 · [deck-engine](../architecture/deck-engine.md#variety)
   Done when: tested with a franchise-heavy seed.
 - [x] **M5.4** "Seen it" swipes saved to `user_titles` (source `app`), so later games leave them out · backend · M · needs M1.5 · [deck-engine](../architecture/deck-engine.md#signals)
   Done when: a film swiped "Seen it" doesn't come back in the player's next room.
-- [ ] **M5.5** Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing · backend · M · needs M5.1, M5.2 · [game-modes](game-modes.md#how-a-game-ends)
+- [x] **M5.5** Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing · backend · M · needs M5.1, M5.2 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: tested with a room whose services have almost nothing.
 - [ ] **M5.6** Card payloads (`api.my_next_cards`): poster, placeholder, year, runtime, genres, TMDB score, director, cast, trailer, backdrop, the room's services for that film with their names and logos, watch link · backend · M · needs M2.7, M1.7, M1.9 · [data-model](../architecture/data-model.md#the-apps-api)
   Done when: a card renders from one call.
@@ -474,7 +474,7 @@ Done when: the security checklist for the closed beta is ticked.
 
 - [x] **M7.1** Reports: `api.report_member` stores a report with a fixed reason and a rate limit; the alert comes with M9.5 · backend · M · needs M1.9 · [store-listing](store-listing.md#passing-review)
   Done when: a report is stored, a repeat from the same reporter adds no row, and the limit answers `rate_limited`.
-- [ ] **M7.2** Report a player, from the player list · app · M · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [x] **M7.2** Report a player, from the player list · app · M · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: works on both platforms.
 - [ ] **M7.3** No trailer button in rooms with an age cap under 13 · app · S · needs M6.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tested in a capped room.

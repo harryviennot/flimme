@@ -151,6 +151,7 @@ const cases = [
       ok: { request_id: null, started: false, seats: 0 },
       closed: { state: 'swiping' },
       not_enough_players: { need: 2 },
+      too_few_films: { eligible: 12 },
     },
   },
 ] as const;

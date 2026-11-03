@@ -131,6 +131,12 @@ export const startGameResult = z.discriminatedUnion('status', [
   // `state` is missing when the room moved on while it was being dealt.
   z.object({ status: z.literal('closed'), state: z.optional(roomState) }),
   z.object({ status: z.literal('not_enough_players'), need: z.number() }),
+  // Fewer than 20 films fit tonight's filters: the room is back in the lobby (M5.5).
+  z.object({
+    status: z.literal('too_few_films'),
+    eligible: z.number(),
+    fallback: z.optional(z.boolean()),
+  }),
 ]);
 export type StartGameResult = z.infer<typeof startGameResult>;
 

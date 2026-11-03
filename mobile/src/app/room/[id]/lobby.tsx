@@ -250,6 +250,11 @@ export default function RoomLobbyScreen() {
                   present={seat.is_me === true || here.has(seat.member_id)}
                   away={away.has(seat.member_id)}
                   last={index === seated.length - 1 && seated.length > 1}
+                  onPress={
+                    seat.is_me === true
+                      ? undefined
+                      : () => router.push(`/room/${id}/seat/${seat.member_id}`)
+                  }
                 />
               ))}
               {seated.length === 1 ? (

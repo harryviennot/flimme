@@ -1,0 +1,30 @@
+{
+  "title": "Signaler {{name}}",
+  "helper": "Seule l'équipe Flimme le verra. Personne dans la salle n'est prévenu.",
+  "reasons": {
+    "offensiveName": {
+      "title": "Prénom choquant",
+      "description": "Insultes, propos haineux ou déplacés"
+    },
+    "spam": {
+      "title": "Spam ou sabotage",
+      "description": "Gâche la partie exprès"
+    },
+    "other": {
+      "title": "Autre chose",
+      "description": "Un autre problème avec ce joueur"
+    }
+  },
+  "send": "Envoyer le signalement",
+  "thanks": {
+    "title": "Merci",
+    "body": "On va regarder. Rien ne change dans la salle.",
+    "bodyHost": "On va regarder. En attendant, tu peux aussi retirer {{name}} de la salle.",
+    "done": "OK"
+  },
+  "errors": {
+    "rateLimited": "Beaucoup de signalements d'un coup. Réessaie plus tard.",
+    "offline": "Tu es hors ligne. Ton signalement n'est pas parti.",
+    "generic": "Impossible d'envoyer le signalement. Réessaie."
+  }
+}

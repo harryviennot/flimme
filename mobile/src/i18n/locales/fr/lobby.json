@@ -52,7 +52,12 @@
     "start": "Impossible de lancer la séance. Réessaie.",
     "services": "Impossible d'enregistrer tes plateformes. Réessaie."
   },
+  "seatSheet": {
+    "report": "Signaler"
+  },
   "a11y": {
+    "seat": "Ouvrir les options pour {{name}}",
+    "report": "Signaler {{name}}",
     "invite": "Inviter des amis",
     "joined": "{{name}} est là",
     "left": "{{name}} a quitté la salle",

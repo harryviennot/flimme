@@ -1,4 +1,4 @@
-import '@/i18n';
+import i18n from '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
@@ -10,9 +10,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { api } from '@/api';
 import RoomLobbyScreen from '@/app/room/[id]/lobby';
 import { RoomLeaveGuard } from '@/components/screens/room/leave-guard';
+import RoomReportSheet from '@/app/room/[id]/report/[memberId]';
+import RoomSeatSheet from '@/app/room/[id]/seat/[memberId]';
 import RoomServicesScreen from '@/app/room/[id]/services';
 import { showToast } from '@/components/ui/toast';
 import { leaveRoom } from '@/features/room/leave';
+import { reportError } from '@/lib/sentry';
 import { haptics } from '@/lib/haptics';
 
 jest.mock('@/api', () => ({
@@ -24,6 +27,7 @@ jest.mock('@/api', () => ({
     startGame: jest.fn(),
     setMyProviders: jest.fn(),
     setSeatPrefs: jest.fn(),
+    reportMember: jest.fn(),
   },
 }));
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
@@ -46,6 +50,7 @@ jest.mock('@/features/invite/invite-link', () => ({
 }));
 
 const mockShare = jest.fn();
+let mockMemberId = 'b';
 let mockOnline = true;
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline }));
 
@@ -74,7 +79,7 @@ jest.mock('expo-router', () => ({
     return jest.fn();
   },
   router: { push: jest.fn(), back: jest.fn(), replace: jest.fn(), dismissAll: jest.fn() },
-  useLocalSearchParams: () => ({ id: 'r1' }),
+  useLocalSearchParams: () => ({ id: 'r1', memberId: mockMemberId }),
   useFocusEffect: (effect: () => void | (() => void)) => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { useEffect } = require('react');
@@ -90,7 +95,8 @@ type ApiName =
   | 'gameModes'
   | 'startGame'
   | 'setMyProviders'
-  | 'setSeatPrefs';
+  | 'setSeatPrefs'
+  | 'reportMember';
 const mockApi = api as unknown as Record<ApiName, M>;
 const mockRouter = router as unknown as Record<string, M>;
 
@@ -553,5 +559,154 @@ describe('the services sheet', () => {
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Netflix' }));
     await fireEvent.press(done());
     await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+  });
+});
+
+describe('the seat rows', () => {
+  it('opens the seat sheet from another guest, never from the own row', async () => {
+    mockSeats = [{ ...lea, is_me: false }, { ...sam, is_me: true }, jo];
+    await show();
+    await waitFor(() => expect(screen.getByText('Jo')).toBeTruthy());
+    expect(screen.queryByRole('button', { name: /Sam/ })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: /Jo/ }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/room/r1/seat/c');
+  });
+
+  it('lets the host open a guest too', async () => {
+    await show();
+    await waitFor(() => expect(screen.getByText('Sam')).toBeTruthy());
+    expect(screen.queryByRole('button', { name: /Léa/ })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: /Sam/ }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/room/r1/seat/b');
+  });
+});
+
+describe('the seat sheet', () => {
+  const open = async (name: string) => {
+    await render(<RoomSeatSheet />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText(name)).toBeTruthy());
+  };
+
+  it('offers a guest Report, and no Remove', async () => {
+    mockSeats = [{ ...lea, is_me: false }, { ...sam, is_me: true }, jo];
+    mockMemberId = 'c';
+    await open('Jo');
+    expect(screen.getByRole('button', { name: 'Report Jo' })).toBeTruthy();
+    expect(screen.queryByText(/Remove/)).toBeNull();
+  });
+
+  it('shows Report to the host, and replaces itself with the report sheet', async () => {
+    mockMemberId = 'b';
+    await open('Sam');
+    await waitFor(() => expect(screen.getByText('Disney+')).toBeTruthy());
+    await fireEvent.press(screen.getByRole('button', { name: 'Report Sam' }));
+    expect(mockRouter.replace).toHaveBeenCalledWith('/room/r1/report/b');
+  });
+
+  it('closes by itself when the seat has left', async () => {
+    mockMemberId = 'd';
+    await render(<RoomSeatSheet />, { wrapper: Providers });
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+  });
+});
+
+describe('the report sheet', () => {
+  beforeEach(() => {
+    mockMemberId = 'b';
+    mockApi.reportMember.mockResolvedValue({ status: 'ok' });
+  });
+  const open = async () => {
+    await render(<RoomReportSheet />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText('Report Sam')).toBeTruthy());
+  };
+  const send = () => screen.getByRole('button', { name: 'Send report' });
+
+  it('lists exactly the three reasons', async () => {
+    await open();
+    for (const title of ['Offensive name', 'Spam or trolling', 'Something else']) {
+      expect(screen.getByRole('radio', { name: title })).toBeTruthy();
+    }
+    expect(screen.getAllByRole('radio')).toHaveLength(3);
+    // No free text anywhere: nothing on the sheet has a value to type into.
+    expect(screen.queryByDisplayValue(/.*/)).toBeNull();
+    expect(send()).toBeDisabled();
+  });
+
+  it('lists the same three reasons in French', async () => {
+    await i18n.changeLanguage('fr');
+    try {
+      await render(<RoomReportSheet />, { wrapper: Providers });
+      await waitFor(() => expect(screen.getByText('Signaler Sam')).toBeTruthy());
+      for (const title of ['Prénom choquant', 'Spam ou sabotage', 'Autre chose']) {
+        expect(screen.getByRole('radio', { name: title })).toBeTruthy();
+      }
+      expect(screen.getAllByRole('radio')).toHaveLength(3);
+      expect(screen.getByRole('button', { name: 'Envoyer le signalement' })).toBeTruthy();
+    } finally {
+      await i18n.changeLanguage('en');
+    }
+  });
+
+  it('sends once with the room, the seat and the reason, then thanks', async () => {
+    await open();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Spam or trolling' }));
+    const button = send();
+    await fireEvent.press(button);
+    await fireEvent.press(button);
+    await waitFor(() => expect(screen.getByText('Thanks')).toBeTruthy());
+    expect(mockApi.reportMember).toHaveBeenCalledTimes(1);
+    expect(mockApi.reportMember).toHaveBeenCalledWith({
+      room_id: 'r1',
+      member_id: 'b',
+      reason: 'spam',
+    });
+    expect(screen.getByText(/remove Sam from the room/)).toBeTruthy();
+    expect(reportError).not.toHaveBeenCalled();
+    // Nothing about the report goes to a toast or a haptic either.
+    expect(showToast).not.toHaveBeenCalled();
+    expect(haptics.error).not.toHaveBeenCalled();
+  });
+
+  it('shows the rate limit line and stays', async () => {
+    mockApi.reportMember.mockResolvedValue({ status: 'rate_limited' });
+    await open();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Something else' }));
+    await fireEvent.press(send());
+    await waitFor(() =>
+      expect(screen.getByText("That's a lot of reports at once. Try again later.")).toBeTruthy(),
+    );
+    expect(haptics.error).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes with a toast when the seat is not in the room', async () => {
+    mockApi.reportMember.mockResolvedValue({ status: 'not_in_room' });
+    await open();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Something else' }));
+    await fireEvent.press(send());
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+    expect(showToast).toHaveBeenCalledWith({ tone: 'warn', title: 'The projector jammed' });
+  });
+
+  it('keeps the sheet and warns when the call fails, then works again', async () => {
+    mockApi.reportMember.mockRejectedValueOnce(new Error('down'));
+    await open();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Something else' }));
+    await fireEvent.press(send());
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        tone: 'warn',
+        title: "We couldn't send your report. Try again.",
+      }),
+    );
+    await waitFor(() => expect(send()).toBeEnabled());
+    expect(reportError).not.toHaveBeenCalled();
+  });
+
+  it('disables Send offline and says why', async () => {
+    mockOnline = false;
+    await open();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Something else' }));
+    expect(send()).toBeDisabled();
+    expect(screen.getByText("You're offline. Your report wasn't sent.")).toBeTruthy();
   });
 });
