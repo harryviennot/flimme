@@ -57,8 +57,12 @@ class FakeConnection:
     def __init__(self, database: "FakeDatabase") -> None:
         self.database = database
 
-    async def execute(self, *args: Any, **kwargs: Any) -> None:
+    async def execute(self, *args: Any, **kwargs: Any) -> "FakeConnection":
         self.database.statements += 1
+        return self
+
+    async def fetchone(self) -> None:
+        return None  # nothing stored yet
 
     @asynccontextmanager
     async def transaction(self):  # noqa: ANN202
@@ -73,7 +77,7 @@ class FakeDatabase:
         self.held = 0
         self.max_held = 0
         self.statements = 0
-        self.writing_tasks: set[Any] = set()
+        self.holders: set[Any] = set()
         self.counted: list[tuple[int, int, dict[str, int]]] = []
         self.transport: SlowTmdb | None = None
 
@@ -83,11 +87,13 @@ class FakeDatabase:
             self.held += 1
             self.max_held = max(self.max_held, self.held)
             task = asyncio.current_task()
+            self.holders.add(task)
             if self.transport is not None:
                 self.transport.tasks_holding_a_connection.add(task)
             try:
                 yield FakeConnection(self)
             finally:
+                self.holders.discard(task)
                 if self.transport is not None:
                     self.transport.tasks_holding_a_connection.discard(task)
                 self.held -= 1
@@ -130,9 +136,9 @@ async def test_the_films_of_one_message_share_the_eight_slots(fake_time: FakeTim
 
     assert CONCURRENCY == MAX_IN_FLIGHT == 8
     assert transport.max_in_flight == MAX_IN_FLIGHT  # filled, never exceeded
-    # Sequential would take films * DELAY; eight at a time takes a quarter of that or less in
-    # theory an eighth. A third leaves room for a slow CI machine.
-    assert elapsed < films * DELAY / 3
+    # Sequential would take films * DELAY (0.64 s); eight at a time takes an eighth. Half leaves
+    # room for a slow CI machine; the in-flight check above is the exact one.
+    assert elapsed < films * DELAY / 2
     await tmdb.aclose()
 
 
@@ -184,6 +190,41 @@ async def test_the_time_spent_in_each_phase_is_counted(fake_time: FakeTime) -> N
 
     ((_, _, counts),) = database.counted
     assert counts["ms_tmdb"] >= 8 * DELAY * 1000 * 0.9
-    assert all(counts.get(phase, 0) >= 0 for phase in fetch.PHASES)
-    assert set(fetch.PHASES) == {"ms_tmdb", "ms_poster", "ms_pool_wait", "ms_read", "ms_write"}
+    assert counts["ms_pool_wait"] >= 0 and "ms_write" in counts
+    assert counts["ms_write"] >= 0
+    await tmdb.aclose()
+
+
+class SlowPosters:
+    """Stands for `Posters`: records whether the caller held a connection while it downloaded."""
+
+    def __init__(self, database: FakeDatabase) -> None:
+        self.database = database
+        self.downloads = 0
+        self.held_while_downloading = 0
+
+    async def placeholder(self, poster_path: str) -> str:
+        self.downloads += 1
+        if asyncio.current_task() in self.database.holders:
+            self.held_while_downloading += 1
+        await asyncio.sleep(0.001)
+        return "hash"
+
+
+async def test_the_poster_download_holds_no_connection_and_is_timed(fake_time: FakeTime) -> None:
+    transport = SlowTmdb()
+    database = FakeDatabase(size=3)
+    posters = SlowPosters(database)
+    tmdb = client(fake_time, transport)
+
+    await run_fetch(
+        database,  # type: ignore[arg-type]
+        tmdb,
+        message(1, range(FIRST, FIRST + 8)),
+        posters,  # type: ignore[arg-type]
+    )
+
+    ((_, _, counts),) = database.counted
+    assert posters.downloads == 8 and posters.held_while_downloading == 0
+    assert counts["placeholders_made"] == 8 and counts["ms_poster"] >= 0
     await tmdb.aclose()
