@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 69 of 250 tasks done.
+Progress: 70 of 250 tasks done.
 
 ```mermaid
 flowchart LR
@@ -350,7 +350,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: killing the network mid-lobby and restoring it shows the right state.
 - [x] **M4.22** The kept room: the splash rejoins it, joining another room leaves the old seat, and the join sheet's leave line · app · M · needs M4.10, M4.20 · [splash](../design/screens/splash.md), [join sheet](../design/screens/join-sheet.md), [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: reopening the app returns to a kept room, joining another room leaves the old seat, and the leave line is absent for a room that has ended.
-- [ ] **M4.11** The lobby: code, players and their services, the host's crown, Start for the host, Leave room; an optional services row for guests · app · M · needs M4.21, M4.12, M4.5 · [onboarding](onboarding.md#the-lobby)
+- [x] **M4.11** The lobby: code, players and their services, the host's crown, Start for the host, Leave room; an optional services row for guests · app · M · needs M4.21, M4.12, M4.5 · [onboarding](onboarding.md#the-lobby)
   Done when: players appear and leave live on three phones.
 - [x] **M4.12** The invite sheet: share the link, show the QR code · app · S · needs M4.10, M4.1 · [onboarding](onboarding.md#the-link)
   Done when: sharing works on both platforms. Until M4.18, the link uses the build's own scheme, so https links that chat apps make tappable, the camera opening the app through a universal link, the invite page for guests and the device check of a link sent by message wait for M4.18.
