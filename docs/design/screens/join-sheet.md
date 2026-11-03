@@ -1,6 +1,6 @@
 # Join sheet
 
-Route `/join/[code]`, the target of every invite link and invite QR code. Built in M4.15, with the room reference from M4.1; the preview before joining is M4.20, on `api.room_preview` from M4.19. Written on 30 October 2026 and updated on 3 November 2026 twice: slice 6's questions (all defaults accepted by Harry), then Harry's call that a link confirms before joining (M4.19 and M4.20's questions, defaults accepted). Sources: [app installed](../../product/onboarding.md#app-installed), [the link](../../product/onboarding.md#the-link) and [invites and deep links](../../architecture/app-structure.md#invites-and-deep-links).
+Route `/join/[code]`, the target of every invite link and invite QR code. Built in M4.15, with the room reference from M4.1; the preview before joining is M4.20, on `api.room_preview` from M4.19. Written on 30 October 2026 and updated on 3 November 2026: slice 6's questions (all defaults accepted by Harry), Harry's call that a link confirms before joining (M4.19 and M4.20's questions, defaults accepted), then the leave line naming the host's room. Sources: [app installed](../../product/onboarding.md#app-installed), [the link](../../product/onboarding.md#the-link) and [invites and deep links](../../architecture/app-structure.md#invites-and-deep-links).
 
 **The Figma.** Frames N1 `107:1747` (First time) and N2 `107:2042` (Refused) on the First release page. N1 predates the preview: it has no host line, and its note says a named player sees only the ticket. This spec wins; the Figma is updated only when a task asks.
 
@@ -86,7 +86,7 @@ No ticket here: with the keyboard up, the name field must stay in view. The eyeb
 
 ### The leave line (M4.10)
 
-Specced now, built by M4.10, which knows the room the phone keeps (Q20.6). When the phone keeps an open seat in another room, Confirm and First time show `join:link.leaveRoom` with that room's code, in `body-s` tone `muted`, centred under Join: "You'll leave room 482 913". Rooms have no names, so it's the code, with the space in the middle as `RoomTicket` writes it. Not shown when the kept room is this one (that player is seated and goes straight in), nor on Joining (a link with no `r` joins at once). Joining the new room then leaves the old seat (Q2).
+Specced now, built by M4.10, which knows the room the phone keeps (Q20.6). When the phone keeps an open seat in another room, Confirm and First time show `join:link.leaveRoom` in `body-s` tone `muted`, centred under Join: "You'll leave Harry's room". Rooms have no names, so the line names the kept room by its host, not its code (Harry, 3 November 2026). `name` is the kept room's current host: the seat in `api.room_seats` for that room with `role` `host` and no `left_at` (the player is seated there, so they can read it; the crown moves when a host leaves). When that name isn't known (the read hasn't answered, failed, or the phone is offline), the line is `join:link.leaveOtherRoom`: "You'll leave your other room". Not shown when the kept room is this one (that player is seated and goes straight in), nor on Joining (a link with no `r` joins at once). Joining the new room then leaves the old seat (Q2).
 
 ## Preview answers (`api.room_preview`)
 
@@ -146,13 +146,14 @@ The refusal messages are the [code screen's](join-code.md#copy-join-namespace). 
 | `link.join` | Rejoindre | Join |
 | `link.anotherCode` | Entrer un autre code | Enter another code |
 
-New keys (M4.20, and `link.leaveRoom` for M4.10):
+New keys (M4.20, and `link.leaveRoom` and `link.leaveOtherRoom` for M4.10):
 
 | Key | French | English |
 | --- | --- | --- |
 | `link.players_one` | {{count}} joueur déjà là | {{count}} player in |
 | `link.players_other` | {{count}} joueurs déjà là | {{count}} players in |
-| `link.leaveRoom` | Tu quitteras la salle {{code}} | You'll leave room {{code}} |
+| `link.leaveRoom` | Tu quitteras la salle de {{name}} | You'll leave {{name}}'s room |
+| `link.leaveOtherRoom` | Tu quitteras ton autre salle | You'll leave your other room |
 | `a11y.hostLine_one` | Hôte : {{name}}. {{count}} joueur déjà là | Host: {{name}}. {{count}} player in |
 | `a11y.hostLine_other` | Hôte : {{name}}. {{count}} joueurs déjà là | Host: {{name}}. {{count}} players in |
 
