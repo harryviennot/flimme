@@ -553,21 +553,28 @@ def _offers(providers: _WatchProviders, context: FetchContext) -> tuple[OfferRow
 # --- Load and write.
 
 
+async def read_swept_set(conn: AsyncConnection) -> tuple[list[str], dict[str, frozenset[int]]]:
+    """The enabled countries and, for each, the services whose offers we store: listed or free
+    services and the variants of either. The sweep and the film fetch both use it."""
+    cur = await conn.execute(queries.load("enabled_countries"))
+    countries = [row[0] for row in await cur.fetchall()]
+    cur = await conn.execute(queries.load("swept_services"), (countries,))
+    swept: dict[str, set[int]] = {}
+    for country, provider_id in await cur.fetchall():
+        swept.setdefault(country, set()).add(provider_id)
+    return countries, {country: frozenset(ids) for country, ids in swept.items()}
+
+
 async def load_context(database: Database, tmdb_ids: Sequence[int]) -> FetchContext:
     async with database.connection() as conn:
-        cur = await conn.execute(queries.load("enabled_countries"))
-        countries = [row[0] for row in await cur.fetchall()]
-        cur = await conn.execute(queries.load("swept_services"), (countries,))
-        swept: dict[str, set[int]] = {}
-        for country, provider_id in await cur.fetchall():
-            swept.setdefault(country, set()).add(provider_id)
+        countries, swept = await read_swept_set(conn)
         cur = await conn.execute(queries.load("certification_ages_all"))
         ages = {(country, cert): age for country, cert, age in await cur.fetchall()}
         cur = await conn.execute(queries.load("catalog_average"), (list(tmdb_ids),))
         average = await cur.fetchone()
     return FetchContext(
         enabled_countries=frozenset(countries),
-        swept={country: frozenset(ids) for country, ids in swept.items()},
+        swept=swept,
         ages=ages,
         catalog_average=average[0] if average else None,
     )
