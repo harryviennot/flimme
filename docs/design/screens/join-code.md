@@ -1,6 +1,6 @@
 # Join with a code
 
-Screen 05 in the Figma (`15:312`). Route `/join`. Built in M4.8, with the answers from M4.1 (and `removed` and `locked` from M4.2). Written on 30 October 2026 from [joining with a code](../../product/onboarding.md#joining-with-a-code-or-a-qr-code), [empty and error states](../../product/onboarding.md#empty-and-error-states), [the worked example](../../agent-workflow.md#a-worked-example-joining-with-a-code), [room codes and joining](../../architecture/security.md#room-codes-joining-and-the-host) and `JOIN_ROOM_ANSWERS` in `packages/contract/src/answers.ts`.
+Screen 05 in the Figma (`15:312`). Route `/join`. Built in M4.8, with the answers from M4.1 (and `removed` and `locked` from M4.2). Written on 30 October 2026 and updated on 3 November 2026 (slice 6's questions, all defaults accepted by Harry) from [joining with a code](../../product/onboarding.md#joining-with-a-code-or-a-qr-code), [empty and error states](../../product/onboarding.md#empty-and-error-states), [the worked example](../../agent-workflow.md#a-worked-example-joining-with-a-code), [room codes and joining](../../architecture/security.md#room-codes-joining-and-the-host) and `JOIN_ROOM_ANSWERS` in `packages/contract/src/answers.ts`.
 
 ## Purpose
 
@@ -14,7 +14,7 @@ Six digits and you're in. The app tries to join as soon as the sixth digit is ty
 2. **Body**, `body-m`, tone `secondary`, `join:body`.
 3. **`CodeField`** (`screens/join/code-field.tsx`): six `PinBox` in a row (`gap-2`, so 328 points wide at 375), over a hidden `TextInput` that owns the value: `keyboardType="number-pad"`, `maxLength` 6, focused on open, no autofill. The box for the next digit is `active`; typed boxes show their digit. Tapping the boxes focuses the input. The keypad is the system number pad, as the Figma draws it.
 4. **Status line**, `body-s`, under the boxes: `join:checking` in tone `muted` while the call runs; an answer's message in tone `nope`. One line reserved, so nothing jumps.
-5. **Paste**, under the status line while the field is empty: on iOS 16 and later, `ClipboardPasteButton` (expo-clipboard), which pastes without the system alert; on Android, `Button` ghost S with icon `copy`, `join:paste`. Pasting keeps the digits only; a pasted invite link gives its code and its room reference, so `closed` can come back.
+5. **Paste**, under the status line while the field is empty: on iOS 16 and later, `ClipboardPasteButton`, which pastes without the system alert; on Android (and older iOS), `Button` ghost S with icon `copy`, `join:paste`, which reads the clipboard only when tapped. Both come from **expo-clipboard**, which M4.8 installs: a native package, so the development builds are rebuilt. Pasted text that is an invite link (parsed as strictly as the [join sheet's](join-sheet.md#links) links) gives its code and its room reference; anything else keeps its digits only, and six of them fill the field.
 6. **Next step**, under the status line when an answer offers one: `Button` secondary S (`join:actions.host`, to [host setup](host-setup.md), or `common:actions.retry`).
 
 ## Answers (`api.join_room`)
@@ -24,17 +24,19 @@ Six digits and you're in. The app tries to join as soon as the sixth digit is ty
 | `ok` | | Stay filled | None: arriving is the reward | `replace` with `/room/[id]`; the room layout shows the lobby or the swipe screen |
 | `not_found` | `join:errors.notFound` | Shake, then clear; the caret goes back to the first box | `haptics.error()` | Type again |
 | `rate_limited` | `join:errors.rateLimited` | Clear, no shake | `haptics.error()` | Paste a link, or wait |
-| `full` | `join:errors.full` | Stay filled | `haptics.error()` | Host a movie night |
+| `full` | `join:errors.full` (`{{max}}` is `max_players`) | Stay filled | `haptics.error()` | Host a movie night |
 | `starting` | `join:shuffling` in tone `muted` | Stay filled | None | Retries every second for up to 10 seconds, then `join:errors.starting` and Retry |
 | `in_finale` | `join:errors.inFinale` | Stay filled | `haptics.error()` | Host a movie night |
-| `name_required` | | Stay filled | None | Pushes [the name screen](name.md) with `?code=`; back here, it joins again by itself |
+| `name_required` | | Stay filled | None | Pushes [the name screen](name.md) with `?code=`. Back here, it joins again by itself only if the profile now has a name; a player who backed out without saving finds the digits filled and no message (deleting a digit and typing it again retries) |
 | `closed` (a pasted link to an ended room) | `join:errors.closed` | Clear | `haptics.error()` | Host a movie night |
-| `removed` (M4.2) | `join:errors.removed` | Clear | `haptics.error()` | Host a movie night |
-| `locked` (M4.2) | `join:errors.locked` | Stay filled | `haptics.error()` | Host a movie night |
+| `removed` (planned, M4.2) | `join:errors.removed` | Clear | `haptics.error()` | Host a movie night |
+| `locked` (planned, M4.2) | `join:errors.locked` | Stay filled | `haptics.error()` | Host a movie night |
 | Offline before the call | `join:errors.offline` | Stay filled | None | Joins by itself when the connection comes back |
 | The call failed | `join:errors.network` | Stay filled | `haptics.error()` | Retry |
 
-Typing or deleting a digit clears the message. A Jest test walks `JOIN_ROOM_ANSWERS` and fails if one has no row here.
+Typing or deleting a digit clears the message. A Jest test walks `JOIN_ROOM_ANSWERS` and `PLANNED_JOIN_ROOM_ANSWERS` and fails if one has no row here. `removed` and `locked` ship in M4.8 against the planned list (`['removed', 'locked']` after M4.1), so they work the day M4.2 makes `join_room` return them, with no app change.
+
+**What the call sends.** `api.joinRoom({ code, via: 'code' })` for typed digits. For a pasted link: `{ code, ref, via: 'link' }`, with no `link_opened_at` (nobody knows when the link was tapped). The [join sheet](join-sheet.md) is the only caller that sends `link_opened_at`.
 
 ## Copy (`join` namespace)
 
@@ -90,5 +92,12 @@ The messages are shared with the [join sheet](join-sheet.md).
 Harry accepted every default below on 30 October 2026.
 
 1. **An in-app scanner.** Default: none in the first release (one less permission, and the camera app already opens the link). Onboarding's permissions table keeps the camera row for when it comes.
-2. **`full` with the number.** `join_room` doesn't say the room's maximum. Default: M4.1 adds `max_players` to the `full` answer; until then the message drops the brackets ("Cette salle est complète." / "This room is full.").
+2. **`full` with the number.** `join_room` didn't say the room's maximum. Default: M4.1 adds `max_players` to the `full` answer, and the message always shows it.
 3. **Paste on Android.** Default: the ghost Paste button reads the clipboard only when tapped. Android 13 and later shows its own "pasted" notice, which is fine.
+
+Harry accepted every default of slice 6's plan on 3 November 2026; this spec now says each one:
+
+4. **Paste now** (Q8.1): M4.8 installs expo-clipboard, with new development builds.
+5. **A pasted link** (Q8.2) sends `via: 'link'` and the reference, no `link_opened_at`; typed digits send `via: 'code'`.
+6. **Back from the name screen without saving** (Q8.3): join again only when the profile now has a name.
+7. **`removed` and `locked`** (Q1.6) get their messages in M4.8, against `PLANNED_JOIN_ROOM_ANSWERS`.

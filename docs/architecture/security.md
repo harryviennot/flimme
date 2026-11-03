@@ -198,8 +198,8 @@ The [recommendation server](recommendation-server.md#processes) exposes two endp
 **Links into the app** ([app structure](app-structure.md#invites-and-deep-links)):
 
 - Invites use universal links and Android App Links, which Expo notes both require a file on our domain proving we control it. The custom URL scheme is only a fallback, and no link ever carries a token.
-- Links are parsed strictly: `/join/<6 digits>` plus the room reference, nothing else. Anything that doesn't match opens Home.
-- Joining from a link shows the host's name and the number of players before the player's first swipe, so a stale or forwarded link is visible for what it is.
+- Links are parsed strictly: `/join/<6 digits>` plus the room reference, nothing else. A malformed link, such as a room reference that isn't a uuid, shows the refused sheet with the `closed` message, not Home. A link with no reference joins by code.
+- Joining from a link shows the host's name and the number of players before the player's first swipe, in the lobby and the swipe screen's player row, so a stale or forwarded link is visible for what it is.
 
 **Over-the-air updates can push JavaScript to every phone.** Whoever controls the Expo account controls the app. 2FA on the Expo account, and only Harry can publish. Expo's end-to-end code signing for updates (the phone refuses updates not signed with our key) is only available on the EAS Production or Enterprise plans: worth it later, not needed for the beta.
 
