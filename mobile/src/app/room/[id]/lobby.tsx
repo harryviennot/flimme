@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, BackHandler, View } from 'react-native';
+import { View } from 'react-native';
 
 import { api } from '@/api';
 import { LobbyFooter } from '@/components/screens/lobby/lobby-footer';
@@ -21,16 +21,15 @@ import { TopBar } from '@/components/ui/top-bar';
 import { useCountryProviders } from '@/features/host/queries';
 import { useInvite } from '@/features/invite/invite-link';
 import { useSeatAnnouncements } from '@/features/lobby/announce';
-import { runLeave } from '@/features/lobby/leave';
+import { useAskToLeave } from '@/features/lobby/leave-context';
 import { formatList, serviceNames } from '@/features/lobby/names';
 import { useGameModes } from '@/features/lobby/queries';
-import { hostSeat, nextHost, presentSeats, seatedSeats, startGate } from '@/features/lobby/seats';
+import { hostSeat, presentSeats, seatedSeats, startGate } from '@/features/lobby/seats';
 import { runStart, useDealingTimers } from '@/features/lobby/start';
 import { useOnline } from '@/features/network';
 import { toAvatarColor } from '@/features/profile';
 import {
   ROOM_KEY,
-  useExitRoomToHome,
   useMySeat,
   useRoom,
   useRoomConnection,
@@ -113,41 +112,8 @@ export default function RoomLobbyScreen() {
 
   const { slow } = useDealingTimers(dealing, isHost, () => void callStart());
 
-  // Leave.
-  const exitToHome = useExitRoomToHome();
-  const leave = async () => {
-    const outcome = await runLeave(id ?? '', online);
-    if (outcome === 'offline') showToast({ tone: 'warn', title: tc('states.offlineRoom') });
-    else if (outcome === 'failed') showToast({ tone: 'warn', title: tc('errors.generic.title') });
-    else {
-      exitToHome();
-    }
-  };
-  const askToLeave = () => {
-    let body: string | undefined;
-    if (!isHost) body = t('leave.bodyGuest');
-    else {
-      const next = host ? nextHost(seated, host.member_id, away) : null;
-      if (next) body = t('leave.bodyHost', { name: next.display_name });
-    }
-    Alert.alert(t('leave.title'), body, [
-      { text: t('leave.stay'), style: 'cancel' },
-      { text: t('leave.confirm'), style: 'destructive', onPress: () => void leave() },
-    ]);
-  };
-  const askRef = useRef(askToLeave);
-  useEffect(() => {
-    askRef.current = askToLeave;
-  });
-  useFocusEffect(
-    useCallback(() => {
-      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-        askRef.current();
-        return true;
-      });
-      return () => subscription.remove();
-    }, []),
-  );
+  // Leave: the same confirm as the swipe back and Android's back button (the room's guard).
+  const askToLeave = useAskToLeave();
 
   const header = (
     <>

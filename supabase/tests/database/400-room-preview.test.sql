@@ -124,8 +124,8 @@ update public.rooms set state = 'lobby', max_players = 10 where id = (select c_i
 
 -- 9. A removed seat is not a seat.
 update public.room_members set removed_at = now() where profile_id = tests.uid('c2');
-select is(pg_temp.preview('c2', (select c_code from fx3), (select c_id from fx3))->>'seated', 'false',
-  '9 a removed seat answers seated false');
+select is(pg_temp.preview('c2', (select c_code from fx3), (select c_id from fx3))->>'status', 'removed',
+  '9 a removed seat answers removed (M4.2)');
 update public.room_members set removed_at = null where profile_id = tests.uid('c2');
 
 -- 10. A player with no name still gets ok.
