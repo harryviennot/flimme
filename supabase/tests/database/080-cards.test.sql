@@ -90,7 +90,7 @@ select set_config('tests.asked', array[
 select tests.authenticate_as('p1');
 select is(
   (select array_agg((c->>'title_id')::bigint order by o)
-   from jsonb_array_elements(api.title_cards(current_setting('tests.asked')::bigint[])) with ordinality x(c, o)),
+   from jsonb_array_elements(api.title_cards(tests.room_id(), current_setting('tests.asked')::bigint[])->'cards') with ordinality x(c, o)),
   current_setting('tests.asked')::bigint[],
   'C5 title_cards returns the films in the order asked'
 );

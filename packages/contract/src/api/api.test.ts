@@ -11,6 +11,7 @@ import {
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
+  TITLE_CARDS_ANSWERS,
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
 } from '../answers';
@@ -153,6 +154,12 @@ const cases = [
       not_enough_players: { need: 2 },
       too_few_films: { eligible: 12 },
     },
+  },
+  {
+    name: 'title_cards',
+    answers: TITLE_CARDS_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.titleCards({ room_id: ROOM, title_ids: [1] }),
+    full: { ok: { cards: [] }, too_many: { max: 50 } },
   },
 ] as const;
 
@@ -594,6 +601,29 @@ describe('my_next_cards', () => {
       fn: 'my_next_cards',
       args: { p_room_id: ROOM, p_limit: 5, p_member_id: undefined, p_language: undefined },
     });
+  });
+
+  it('title_cards sends the room, the films and the language', async () => {
+    const { deck_source, reason_code, reason_params, member_ratings, ...plain } = card;
+    void [deck_source, reason_code, reason_params, member_ratings];
+    const { client, calls } = fake(() => ok({ status: 'ok', cards: [plain] }));
+    const result = await createApi(client, { validate: true }).titleCards({
+      room_id: ROOM,
+      title_ids: [7, 3],
+      language: 'fr',
+    });
+    expect(result).toEqual({ status: 'ok', cards: [plain] });
+    expect(calls[0]).toEqual({
+      fn: 'title_cards',
+      args: { p_room_id: ROOM, p_title_ids: [7, 3], p_language: 'fr' },
+    });
+  });
+
+  it('title_cards rejects as denied when the caller has no seat', async () => {
+    const { client } = fake(() => ({ data: null, error: { message: 'no', code: '42501' } }));
+    await expect(
+      createApi(client).titleCards({ room_id: ROOM, title_ids: [1] }),
+    ).rejects.toMatchObject({ kind: 'denied' });
   });
 
   it('an empty array is a removed seat, not an error', async () => {

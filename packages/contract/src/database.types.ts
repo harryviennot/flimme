@@ -297,7 +297,7 @@ export type Database = {
 { Args: { "p_answers": Json,"p_room_id"?: string }; Returns: Json
                            },
 "title_cards":
-{ Args: { "p_country"?: string,"p_language"?: string,"p_title_ids": (number)[] }; Returns: Json
+{ Args: { "p_language"?: string,"p_room_id": string,"p_title_ids": (number)[] }; Returns: Json
                            },
 "touch_room":
 { Args: { "p_room_id": string }; Returns: undefined

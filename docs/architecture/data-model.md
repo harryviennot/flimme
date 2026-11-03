@@ -748,7 +748,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `cast_vote(room, title, answer, seat, dwell_ms, client_at)` | The vote |
 | `undo_last_vote(room, seat)` | Undo |
 | `my_next_cards(room, limit, seat, language)` | Your next cards, ready to render: title and overview in your language, poster and placeholder, backdrop, year, runtime, genres, TMDB score, director, cast (first 5), trailer (none in rooms capped under 13), tonight's services for it (name and logo, a variant shown as its main service, one entry per service and offer kind), watch link, reason label, members' ratings. Up to 30 cards (the limit is clamped to 1 to 30); a card renders front and back from this one call |
-| `title_cards(ids, language, country)` | The same card payload for any films: winner, finale, calibration |
+| `title_cards(room, ids, language)` | The same card payload for films in the room's pool, in the order asked (the winner screen and the finale); other films are left out. Country, services and age cap come from the room. Answers `ok` with `cards`, `too_many` (over 50, `max`) or `rate_limited` (30 calls per 10 minutes per profile); a caller with no seat, or a removed one, is refused. The taste check has its own `taste_check_cards` |
 | `submit_calibration(answers, room)` | Lobby calibration |
 | `answer_followup(room, watched, reaction)` | "Did you watch it?" |
 | `disconnect_letterboxd()` | Removes your Letterboxd link and everything that came with it |

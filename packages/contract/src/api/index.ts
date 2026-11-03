@@ -15,6 +15,7 @@ import {
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
+  TITLE_CARDS_ANSWERS,
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
   type JoinVia,
@@ -35,7 +36,9 @@ import {
   countryProvidersSchema,
   gameModesSchema,
   myNextCardsResult,
+  titleCardsResult,
   type NextCard,
+  type TitleCardsResult,
   type CountryProvider,
   type GameMode,
   setMyProvidersResult,
@@ -275,6 +278,25 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
           p_language: args.language,
         },
         myNextCardsResult,
+      );
+    },
+
+    /**
+     * Cards for films in the room's pool (the winner screen, the finale), in the order asked. Films
+     * outside the pool are left out. A seat that was removed, or no seat, rejects as denied.
+     */
+    titleCards(args: {
+      room_id: string;
+      title_ids: number[];
+      language?: string;
+    }): Promise<TitleCardsResult> {
+      return callAnswer(
+        client,
+        options,
+        'title_cards',
+        { p_room_id: args.room_id, p_title_ids: args.title_ids, p_language: args.language },
+        TITLE_CARDS_ANSWERS,
+        titleCardsResult,
       );
     },
 
