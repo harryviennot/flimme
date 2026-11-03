@@ -41,6 +41,12 @@ Expo SDK 58 (React Native 0.88, React 19.3), Expo Router with routes in `mobile/
 
 Every `api` function answers with a status (`packages/contract/src/answers.ts`). Each status has a message or a behaviour; a test walks every status of a function the screen uses. Real errors go to Sentry: `src/api/` reports `ApiError` kinds `denied` and `unexpected` (not `network`) through `reportError` from `@/lib/sentry`, and `ErrorScreen` reports what a route throws. Never call `Sentry.setUser` or put a code, name, email or id in an error message: `lib/sentry-scrub.ts` is the last defence, not the first. `/dev` is the dev menu (backend switch, haptics and sound, gallery, crash): a new dev tool adds a row there. Never put a test file inside `src/app/`: Expo Router bundles every file there as a route, so route tests live in `src/routes.test.tsx`. `/dev/crash` (development and preview builds) crashes the app on purpose to prove readable frames.
 
+## Session, profile and connection
+
+- `useSession()` / `useSessionFailed()` (`features/session`): the guest sign-in's answer, and whether it threw (reported once inside `startSession`; callers use `.catch(() => {})`). `useMyProfile()` (`features/profile`, key `['my_profile']`) is seeded from the copy kept on the device and stale from the start; `useOnline()` (`features/network`) comes from expo-network and also drives TanStack's `onlineManager`. A screen that needs the player's name reads `useMyProfile()`, never the api.
+- `routes.test.tsx` mocks `@/api`, `@/features/session`, `@/features/network` and `@/lib/storage` and wraps routes in a `QueryClientProvider`; a screen that reaches for something new adds its answer there.
+- `EmptyState autoFocus` moves a screen reader's focus to the title of a screen that failed.
+
 ## Translations
 
 - Every visible string through `t()` (lint enforces it). French first; the same key in `locales/en`. A new feature gets its own JSON file per language, added in `src/i18n/resources.ts`.

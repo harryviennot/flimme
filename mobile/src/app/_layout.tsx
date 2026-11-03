@@ -10,11 +10,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { UpdateGate } from '@/components/screens/update/update-gate';
 import { ToastHost } from '@/components/ui/toast';
 import { registerDevMenu } from '@/features/dev/dev-menu';
+import { watchNetwork } from '@/features/network';
 import '@/features/settings';
 import { startSession } from '@/features/session';
 import { watchDeviceLanguage } from '@/i18n';
 import { queryClient } from '@/lib/query-client';
-import { initSentry, reportError, wrapRoot } from '@/lib/sentry';
+import { initSentry, wrapRoot } from '@/lib/sentry';
 import { tokens } from '@/theme/generated/tokens';
 
 export { ErrorScreen as ErrorBoundary } from '@/components/shared/error-screen';
@@ -25,9 +26,14 @@ function RootLayout() {
   // Fonts are embedded at build time (the expo-font plugin): the first frame has them, so the
   // splash needs no hold.
   useEffect(() => {
-    // Not awaited: the `/` route (M4.6) waits for the answer. A real error reaches Sentry;
-    // the splash then shows its own error state.
-    startSession().catch(reportError);
+    // Not awaited: the `/` route waits for the answer. A real error is reported by
+    // startSession itself; the splash then shows its error state.
+    startSession().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const subscription = watchNetwork();
+    return () => subscription.remove();
   }, []);
 
   useEffect(() => {

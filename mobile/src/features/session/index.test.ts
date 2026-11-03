@@ -1,15 +1,21 @@
 import { act, renderHook } from '@testing-library/react-native';
 
-import { startSession, useSession } from '.';
+import { reportError } from '@/lib/sentry';
+
+import { startSession, useSession, useSessionFailed } from '.';
 
 const mockStart = jest.fn();
 
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
+jest.mock('@/lib/sentry', () => ({ reportError: jest.fn() }));
 jest.mock('./start-session', () => ({
   startSessionWith: (...args: unknown[]) => mockStart(...args),
 }));
 
-beforeEach(() => mockStart.mockReset());
+beforeEach(() => {
+  mockStart.mockReset();
+  jest.mocked(reportError).mockClear();
+});
 
 describe('startSession and useSession', () => {
   it('shares one sign-in between callers that overlap', async () => {
@@ -41,5 +47,20 @@ describe('startSession and useSession', () => {
     await expect(startSession()).rejects.toThrow('boom');
     mockStart.mockResolvedValueOnce({ status: 'offline' });
     expect(await startSession()).toEqual({ status: 'offline' });
+  });
+
+  it('reports a real error once and keeps it for the splash until the next start', async () => {
+    const { result } = await renderHook(() => useSessionFailed());
+    mockStart.mockRejectedValueOnce(new Error('boom'));
+    await act(async () => {
+      await expect(startSession()).rejects.toThrow('boom');
+    });
+    expect(reportError).toHaveBeenCalledTimes(1);
+    expect(result.current).toBe(true);
+    mockStart.mockResolvedValueOnce({ status: 'offline' });
+    await act(async () => {
+      await startSession();
+    });
+    expect(result.current).toBe(false);
   });
 });
