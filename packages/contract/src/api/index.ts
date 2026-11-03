@@ -21,6 +21,8 @@ import {
   joinRoomResult,
   leaveRoomResult,
   myProfileRow,
+  countryProvidersSchema,
+  type CountryProvider,
   setMyProvidersResult,
   setSeatPrefsResult,
   startGameResult,
@@ -80,12 +82,14 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
     },
 
     // --- Rooms and lobby -----------------------------------------------------------------
-    createRoom(args: { mode?: string; country?: string } = {}): Promise<CreateRoomResult> {
+    createRoom(
+      args: { mode?: string; country?: string; settings?: RoomSettings } = {},
+    ): Promise<CreateRoomResult> {
       return callAnswer(
         client,
         options,
         'create_room',
-        { p_mode: args.mode, p_country: args.country },
+        { p_mode: args.mode, p_country: args.country, p_settings: args.settings },
         CREATE_ROOM_ANSWERS,
         createRoomResult,
       );
@@ -192,6 +196,40 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         }
       }
       return row as MyProfile | null;
+    },
+
+    /** The services streaming in a country, most shown first. */
+    async countryProviders(args: { country: string }): Promise<CountryProvider[]> {
+      const rows = await readView(
+        () =>
+          client
+            .from('country_providers')
+            .select('provider_id, name, logo_path, display_priority')
+            .eq('country', args.country)
+            .order('display_priority'),
+        'country_providers',
+      );
+      if (options.validate) {
+        const parsed = countryProvidersSchema.safeParse(rows ?? []);
+        if (!parsed.success) {
+          throw new ApiError(
+            'unexpected',
+            'country_providers',
+            `wrong shape: ${parsed.error.message}`,
+          );
+        }
+        return parsed.data;
+      }
+      return (rows ?? []) as CountryProvider[];
+    },
+
+    /** The ids of the services the signed-in player has. */
+    async myProviders(): Promise<number[]> {
+      const rows = await readView(
+        () => client.from('my_providers').select('provider_id'),
+        'my_providers',
+      );
+      return (rows ?? []).map((r) => r.provider_id);
     },
 
     /** The `app_config` keys the app reads. Unknown keys are ignored, missing ones are undefined. */

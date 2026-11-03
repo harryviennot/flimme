@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 64 of 246 tasks done.
+Progress: 65 of 246 tasks done.
 
 ```mermaid
 flowchart LR
@@ -332,7 +332,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: tests cover removing, locking and rejoining.
 - [x] **M4.3** Names normalised and filtered with an English and French blocklist; avatars from presets only · backend · M · needs M1.5 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tests refuse blocked names, invisible characters and unknown avatars.
-- [ ] **M4.4** `api.create_room` takes the room settings, so opening a room is one call · backend · S · needs M1.5, M1.10 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
+- [x] **M4.4** `api.create_room` takes the room settings, so opening a room is one call · backend · S · needs M1.5, M1.10 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
   Done when: a room is created with its settings in one call. The switch to turn free services off is not here: turning them off waits, with no task yet ([host-setup](../design/screens/host-setup.md), Q3).
 - [ ] **M4.5** The host role passes to the longest-seated present player when the host leaves · backend · M · needs M1.5 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
   Done when: tested with an absent player who joined earlier.

@@ -10,6 +10,7 @@ export const CREATE_ROOM_ANSWERS = [
   'name_required',
   'unknown_mode',
   'country_required',
+  'invalid_settings',
 ] as const;
 export type CreateRoomAnswer = (typeof CREATE_ROOM_ANSWERS)[number];
 

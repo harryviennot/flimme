@@ -31,8 +31,18 @@ function fake(respond: (fn: string, args: unknown) => Response | Promise<Respons
       select: () => {
         const result = Promise.resolve(respond(view, null)) as Promise<Response> & {
           limit: () => Promise<Response>;
+          eq: (column: string, value: unknown) => typeof result;
+          order: (column: string) => typeof result;
         };
         result.limit = () => Promise.resolve(respond(view, null));
+        result.eq = (column, value) => {
+          calls.push({ fn: `${view}.eq`, args: [column, value] });
+          return result;
+        };
+        result.order = (column) => {
+          calls.push({ fn: `${view}.order`, args: column });
+          return result;
+        };
         return result;
       },
     }),
@@ -62,7 +72,7 @@ const cases = [
     name: 'create_room',
     answers: CREATE_ROOM_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.createRoom({ mode: 'quick_match' }),
-    full: { ok: { room_id: ROOM, code: '482915' } },
+    full: { ok: { room_id: ROOM, code: '482915' }, invalid_settings: { field: 'max_age' } },
   },
   {
     name: 'join_room',
@@ -131,6 +141,23 @@ describe('arguments', () => {
         p_provider_ids: undefined,
         p_mood_slugs: undefined,
         p_member_id: undefined,
+      },
+    });
+  });
+
+  it('create_room sends the settings as p_settings', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok', room_id: ROOM, code: '482915' }));
+    await createApi(client).createRoom({
+      mode: 'quick_match',
+      country: 'FR',
+      settings: { runtime_max: 105, max_age: null },
+    });
+    expect(calls[0]).toEqual({
+      fn: 'create_room',
+      args: {
+        p_mode: 'quick_match',
+        p_country: 'FR',
+        p_settings: { runtime_max: 105, max_age: null },
       },
     });
   });
@@ -258,6 +285,40 @@ describe('only bugs reject', () => {
       kind: 'unexpected',
       code: '22023',
     });
+  });
+});
+
+describe('provider readers', () => {
+  const row = { provider_id: 8, name: 'Netflix', logo_path: null, display_priority: 1 };
+
+  it('countryProviders filters on the country and orders by display_priority', async () => {
+    const { client, calls } = fake(() => ok([row]));
+    const rows = await createApi(client, { validate: true }).countryProviders({ country: 'FR' });
+    expect(rows).toEqual([row]);
+    expect(calls).toContainEqual({ fn: 'country_providers.eq', args: ['country', 'FR'] });
+    expect(calls).toContainEqual({ fn: 'country_providers.order', args: 'display_priority' });
+  });
+
+  it('countryProviders rejects a wrong shape as unexpected when checks are on', async () => {
+    const { client } = fake(() => ok([{ provider_id: '8' }]));
+    await expect(
+      createApi(client, { validate: true }).countryProviders({ country: 'FR' }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
+  });
+
+  it('countryProviders returns no rows as an empty list', async () => {
+    const { client } = fake(() => ok(null));
+    await expect(createApi(client).countryProviders({ country: 'FR' })).resolves.toEqual([]);
+  });
+
+  it('myProviders maps rows to ids', async () => {
+    const { client } = fake(() => ok([{ provider_id: 8 }, { provider_id: 9 }]));
+    await expect(createApi(client).myProviders()).resolves.toEqual([8, 9]);
+  });
+
+  it('myProviders returns [] for none', async () => {
+    const { client } = fake(() => ok([]));
+    await expect(createApi(client).myProviders()).resolves.toEqual([]);
   });
 });
 
