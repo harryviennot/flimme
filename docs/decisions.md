@@ -224,6 +224,10 @@ Everything decided so far, the defaults chosen while designing that still need a
 | The lobby (M4.11, Q11.2): when the services sheet's Done fails, `set_my_providers` runs only if the selection changed, then `set_seat_prefs`. Any failure shows a warn toast and the sheet stays open | 3 Nov 2026 | [Lobby](design/screens/lobby.md) |
 | The lobby (M4.11, Q11.3): the leave alert's next host is computed on the phone with M4.5's rule over the seats and presence, and with nobody present, it's the longest-seated player | 3 Nov 2026 | [Who counts](product/game-modes.md#who-counts-presence-joining-and-leaving), [Lobby](design/screens/lobby.md) |
 | The lobby (M4.11, Q11.4): the three-phone check for the pull request uses two simulators and M4.16's bots. Harry runs three real phones once before the slice closes | 3 Nov 2026 | [Lobby](design/screens/lobby.md) |
+| The kept room (M4.22, Q22.6): when the player is the kept room's own host, the leave line shows "You'll leave your other room", never their own name | 3 Nov 2026 | [The leave line](design/screens/join-sheet.md#the-leave-line-m410) |
+| The lobby (M4.11, Q11.5): the lobby reads each mode's minimum players with a new `api.gameModes()` reader over the existing view, not a hardcoded 2 | 3 Nov 2026 | [Game modes](product/game-modes.md#the-modes) |
+| The lobby (M4.11, Q11.6): when a services save fails, the sheet shows "Impossible d'enregistrer tes plateformes. Réessaie." in French and "We couldn't save your services. Try again." in English | 3 Nov 2026 | [Lobby](design/screens/lobby.md) |
+| The lobby (M4.11): a Leave that fails while online shows the generic warn toast, and the player and the kept room both stay | 3 Nov 2026 | [Lobby](design/screens/lobby.md) |
 
 ## Defaults, not yet confirmed
 
