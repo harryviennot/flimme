@@ -416,7 +416,7 @@ The 10-minute limits are my starting values; the plan only gives 8 minutes for 3
 | --- | --- | --- |
 | id | uuid PK | |
 | code | char(6) | Six digits. Unique among open rooms only, so codes are recycled |
-| host_id | uuid | Moves to the longest-seated player if the host leaves |
+| host_id | uuid | Moves to the longest-seated present player if the host leaves (else the longest-seated) |
 | mode | text | References game_modes |
 | state | room_state | `lobby`, `dealing` (start pressed, the server is dealing), `swiping`, `finale`, `done`, `abandoned` |
 | country | char(2) | From the host's profile; drives availability and certifications |
@@ -671,7 +671,7 @@ sequenceDiagram
 
 ### Leaving and coming back
 
-- `api.leave_room` marks the seat, hands the host role to the longest-seated player, recomputes services and re-checks liked cards: if everyone still here liked a card, that's a match now.
+- `api.leave_room` marks the seat, hands the host role to the longest-seated present player (else the longest-seated seat that hasn't left; `internal.next_host_member`), recomputes services and re-checks liked cards: if everyone still here liked a card, that's a match now.
 - A phone that silently disappears stops counting after 90 seconds; the minute sweeper re-checks liked cards in rooms where a seat timed out.
 - Reopening the app calls `api.join_room` with the room's code: same seat, and `api.my_next_cards` returns the rest of the deck.
 
