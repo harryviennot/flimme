@@ -6,6 +6,7 @@
     "@expo-google-fonts/schibsted-grotesk": "^0.4.2",
     "@expo-google-fonts/staatliches": "^0.4.1",
     "@flimme/contract": "workspace:*",
+    "@sentry/react-native": "~8.28.0",
     "@supabase/supabase-js": "^2.118.0",
     "@tanstack/react-query": "^5.105.0",
     "expo": "~58.0.22",

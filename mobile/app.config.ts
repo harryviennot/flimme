@@ -117,6 +117,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ['expo-secure-store', { configureAndroidBackup: true, faceIDPermission: false }],
       // iOS would keep Auth responses (with the session in plain text) in its disk URL cache.
       './plugins/with-no-disk-url-cache',
+      // Crash reports (app-structure.md#analytics-and-crash-reports), EU region. The token comes
+      // from SENTRY_AUTH_TOKEN in the EAS environment, never from this file. Debug builds upload
+      // nothing (Metro resolves their frames).
+      [
+        '@sentry/react-native/expo',
+        { organization: 'flimme', project: 'flimme-app', url: 'https://de.sentry.io/' },
+      ],
     ],
     experiments: {
       typedRoutes: true,
