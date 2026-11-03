@@ -97,6 +97,11 @@ export default function DevScreen() {
             onPress={() => router.push('/dev/gallery')}
           />
           <ListRow label="Test a crash" icon="alert" onPress={() => router.push('/dev/crash')} />
+          <ListRow
+            label="Realtime spike"
+            icon="zap"
+            onPress={() => router.push('/dev/realtime-spike')}
+          />
         </View>
       </ScrollView>
     </Screen>
