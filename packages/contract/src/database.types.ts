@@ -252,7 +252,7 @@ export type Database = {
 { Args: { "p_answer": "nope"|"like"|"super_like"|"seen","p_client_at"?: string,"p_dwell_ms"?: number,"p_member_id"?: string,"p_room_id": string,"p_title_id": number }; Returns: Json
                            },
 "create_room":
-{ Args: { "p_country"?: string,"p_mode"?: string }; Returns: Json
+{ Args: { "p_country"?: string,"p_mode"?: string,"p_settings"?: Json }; Returns: Json
                            },
 "disconnect_letterboxd":
 { Args: Record<PropertyKey, never>; Returns: Json

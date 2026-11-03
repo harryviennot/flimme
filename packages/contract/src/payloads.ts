@@ -28,6 +28,8 @@ export type SetMyProvidersResult = z.infer<typeof setMyProvidersResult>;
 export const createRoomResult = z.discriminatedUnion('status', [
   z.object({ status: z.literal('ok'), room_id: z.string(), code: z.string() }),
   z.object({ status: z.enum(['name_required', 'unknown_mode', 'country_required']) }),
+  // `field` names the setting that was refused (`settings` when the payload isn't an object).
+  z.object({ status: z.literal('invalid_settings'), field: z.string() }),
 ]);
 export type CreateRoomResult = z.infer<typeof createRoomResult>;
 
@@ -113,3 +115,12 @@ export const myProfileRow = z.object({
   created_at: z.string(),
 });
 export type MyProfile = z.infer<typeof myProfileRow>;
+
+export const countryProviderRow = z.object({
+  provider_id: z.number(),
+  name: z.string(),
+  logo_path: z.nullable(z.string()),
+  display_priority: z.number(),
+});
+export const countryProvidersSchema = z.array(countryProviderRow);
+export type CountryProvider = z.infer<typeof countryProviderRow>;
