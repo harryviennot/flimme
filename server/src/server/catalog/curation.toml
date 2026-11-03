@@ -22,4 +22,47 @@ PG-13 = 13
 R = 17
 NC-17 = 18
 
-# France's services (listed, free, variants, order) are added by M2.6 as [services.FR].
+# France's services (M2.6; Harry signs the list off, Q34). TMDB provider ids only: names are
+# comments. Listed means shown in the picker, in TMDB's display order (no override). Free means
+# TMDB lists the service in France only as free or ad-supported. A variant is never listed: a
+# player who picks the main service gets films on either. france.tv is an accepted gap.
+[services.FR]
+listed = [
+  8,    # Netflix
+  119,  # Amazon Prime Video
+  350,  # Apple TV
+  337,  # Disney Plus
+  283,  # Crunchyroll
+  381,  # Canal+
+  2744, # INA madelen
+  11,   # MUBI
+  415,  # Animation Digital Network
+  389,  # Sooner
+  147,  # M6+
+  1967, # Molotov TV
+  685,  # Cine+ OCS Amazon Channel (the channel that matters in France)
+  1754, # TF1+
+  531,  # Paramount Plus
+  193,  # SFR Play
+  513,  # Shadowz
+  1899, # HBO Max
+]
+free = [
+  234,  # Arte
+  538,  # Plex
+  300,  # Pluto TV
+  2077, # Plex Channel
+]
+
+[services.FR.variants]
+1796 = 8     # Netflix Standard with Ads
+2100 = 119   # Amazon Prime Video with Ads
+2243 = 350   # Apple TV Amazon Channel
+1968 = 283   # Crunchyroll Amazon Channel
+1737 = 2744  # INA madelen Amazon Channel
+201 = 11     # MUBI Amazon Channel
+2173 = 415   # Anime Digital Network Amazon Channel
+1736 = 513   # Shadowz Amazon Channel
+2303 = 531   # Paramount Plus Premium
+582 = 531    # Paramount+ Amazon Channel
+1825 = 1899  # HBO Max Amazon Channel
