@@ -591,6 +591,7 @@ sequenceDiagram
 1. The host calls `api.create_room(mode, country, settings)`: the optional settings are checked as `update_room_settings` checks them (a refusal is `invalid_settings` with the field, and nothing is created), then a free 6-digit code, the host seat, the room model, the service list. Later, the hosting cap and the room's tier are decided here.
 2. The invite is `/join/482913` as a link and a QR code.
 3. A guest calls `api.join_room(code, ref, via, link_opened_at)`; only the code is required. It counts the attempt first, then answers `ok`, `not_found`, `closed`, `full` (with the room's `max_players`), `starting`, `in_finale`, `name_required` (with the host's `host_name`) or `rate_limited`. With a `ref` (the `rooms.id` an invite link carries), any call where no open room has both that code and that id answers `closed`, and counts as a failed attempt like `not_found`; `not_found` comes back only without a `ref`. An unknown `via` raises `22023` before any limit counts. It never raises an error on a wrong code, since an error would roll back the attempt counter. A player who already has a seat gets the same seat back.
+   Before joining, a link holder can call `api.room_preview(code, ref)`: both are required (a null raises `22023`, so a typed code cannot probe codes), and it answers `ok` (with `state`, the host seat's `host_name` and `host_avatar_key`, `players`, `max_players` and `seated`), `full`, `in_finale`, `closed` or `rate_limited`. It names no one but the host, takes no seat, and writes nothing but its own rate limit rows (10 per profile and 30 per address per 10 minutes, apart from join's). A caller who already has a seat gets `ok` with `seated: true`.
 4. Each new seat recomputes the room's services and broadcasts `member_joined`.
 
 ### Lobby
@@ -727,6 +728,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `set_my_providers(ids)` | Replaces your services |
 | `create_room(mode, country, settings)` | New room with its settings, host seat, code. A refused setting answers `invalid_settings` with the field and creates nothing |
 | `join_room(code, ref, via, link_opened_at)` | Join or rejoin, rate limited; `ref` makes a stale invite link answer `closed` |
+| `room_preview(code, ref)` | What an invite link shows before joining: the host's name and avatar and the player count, never other players; needs the `ref`; read only, rate limited |
 | `touch_room(room)` | Heartbeat every 30 seconds |
 | `leave_room(room)` | Leave, hand over host, re-check matches |
 | `update_room_settings(room, settings)` | Host, lobby only |
@@ -770,7 +772,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | Realtime `room:<id>` | Seated players read, including seats that left. Removed seats don't | The database sends |
 | Realtime `room:<id>:live` | Seated players read and send. Seats that left read but can't send; removed seats do neither | |
 
-- Nobody can list rooms. A room is found only by its code, through `join_room`.
+- Nobody can list rooms. A room is found only by its code, through `join_room`, or by its code and its id together, through `room_preview` (which shows the host's name and the count, never another player).
 - Other players' answers never reach a phone as rows. In Party mode they arrive as counts; in Blind mode not at all.
 - Phones can't send on `room:<id>`, so a fake `match` event can't appear there.
 

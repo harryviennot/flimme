@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 69 of 246 tasks done.
+Progress: 70 of 248 tasks done.
 
 ```mermaid
 flowchart LR
@@ -362,7 +362,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: Home is three taps from a fresh install.
 - [x] **M4.18** The domain hookup: Associated Domains, Android intent filters, `invite_base_url`, and hosting the invite page and verification files on the domain · ops · S · needs M0.2, M4.14 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
   Done when: a link opens the app when installed and the invite page when not, checked on a device.
-- [ ] **M4.19** `api.room_preview(code, ref)`: who invited you, before joining · backend · M · needs M4.1 · [security](../architecture/security.md#room-codes-joining-and-the-host), [data-model](../architecture/data-model.md#the-apps-api)
+- [x] **M4.19** `api.room_preview(code, ref)`: who invited you, before joining · backend · M · needs M4.1 · [security](../architecture/security.md#room-codes-joining-and-the-host), [data-model](../architecture/data-model.md#the-apps-api)
   Done when: `api.room_preview` answers a link's code and reference with the host's name and avatar, the seated count and whether the room can be joined; a wrong or missing reference reveals nothing; pgTAP covers every rule.
 - [ ] **M4.20** The join sheet confirms before joining, with the host and the player count from the preview · app · M · needs M4.19, M4.15, M4.14 · [join sheet](../design/screens/join-sheet.md), [onboarding](onboarding.md#app-installed)
   Done when: opening a link with a reference shows the ticket, the host and "N players in" with Join, and nothing joins before the tap; a first-time player sees the same above `NameForm`.
