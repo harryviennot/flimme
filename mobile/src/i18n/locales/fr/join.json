@@ -1,0 +1,27 @@
+{
+  "topBar": "Rejoindre une salle",
+  "title": "Entre le code de la salle",
+  "body": "Demande les 6 chiffres à l'hôte, ou scanne son QR code avec l'appareil photo.",
+  "checking": "Vérification…",
+  "paste": "Coller",
+  "shuffling": "On mélange les cartes…",
+  "errors": {
+    "notFound": "Aucune salle ouverte avec ce code. Vérifie les chiffres avec l'hôte.",
+    "rateLimited": "Trop d'essais. Demande le lien à l'hôte, ou réessaie dans quelques minutes.",
+    "full": "Cette salle est complète : {{max}} joueurs maximum.",
+    "starting": "La partie démarre. Réessaie dans un instant.",
+    "inFinale": "Ils votent pour le film du soir en ce moment. Tu seras de la prochaine partie.",
+    "closed": "Cette soirée film est terminée.",
+    "removed": "L'hôte t'a retiré de cette salle.",
+    "locked": "Cette salle est verrouillée. Demande à l'hôte de l'ouvrir.",
+    "offline": "Tu es hors ligne. Reconnecte-toi pour rejoindre.",
+    "network": "Impossible de joindre la salle. Vérifie ta connexion."
+  },
+  "actions": {
+    "host": "Organiser une soirée"
+  },
+  "a11y": {
+    "field": "Code de la salle, 6 chiffres",
+    "progress": "{{digits}}, {{count}} chiffres sur 6"
+  }
+}
