@@ -3,3 +3,5 @@ export { linkOpenedAt, markLinkReceived, takeLinkReceivedAt } from './link-recei
 export { JOIN_ROWS, type JoinMessage, type JoinRow } from './rows';
 export { JOIN_SHEET_ROWS, type SheetRow, type SheetState } from './sheet-rows';
 export { useJoinAttempt, type JoinView } from './use-join-attempt';
+export { leaveOldSeat } from './old-seat';
+export { useLeaveLine, type LeaveLine } from './leave-line';

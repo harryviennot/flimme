@@ -13,14 +13,18 @@ import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { showToast } from '@/components/ui/toast';
 import { Text } from '@/components/ui/text';
+import type { LeaveLine as LeaveLineValue } from '@/features/join/leave-line';
 import type { JoinHost, LinkView, NameError } from '@/features/join/use-join-link';
 import { initialColor, isNameValid, type SubmitOutcome } from '@/features/profile';
 import { layout } from '@/theme/motion';
 
 import { HostLine } from './host-line';
+import { LeaveLine } from './leave-line';
 
 export type JoinSheetProps = {
   view: LinkView;
+  /** Seated in another room: what the player will leave (Confirm and First time only). */
+  leaveLine?: LeaveLineValue;
   code: string;
   nameError: NameError | null;
   saving: boolean;
@@ -42,7 +46,7 @@ export function JoinSheet({ view, code, ...rest }: JoinSheetProps) {
           {view.kind === 'loading' ? <Loading code={code} /> : null}
           {view.kind === 'joining' ? <Joining code={code} shuffling={view.shuffling} /> : null}
           {view.kind === 'confirm' ? (
-            <Confirm code={code} view={view} onJoin={rest.onJoin} />
+            <Confirm code={code} view={view} leaveLine={rest.leaveLine} onJoin={rest.onJoin} />
           ) : null}
           {view.kind === 'first-time' ? (
             <FirstTime code={code} host={view.host} hostName={view.hostName} {...rest} />
@@ -78,10 +82,12 @@ function Loading({ code }: { code: string }) {
 function Confirm({
   code,
   view,
+  leaveLine,
   onJoin,
 }: {
   code: string;
   view: Extract<LinkView, { kind: 'confirm' }>;
+  leaveLine?: LeaveLineValue;
   onJoin: () => void;
 }) {
   const { t } = useTranslation('join');
@@ -95,6 +101,7 @@ function Confirm({
       <HostLine host={host} centered />
       <View className="w-full gap-3">
         <Button label={t('link.join')} size="l" block loading={busy} onPress={onJoin} />
+        {leaveLine ? <LeaveLine line={leaveLine} /> : null}
         {shuffling ? (
           <Text variant="body-m" tone="secondary" align="center" accessibilityLiveRegion="polite">
             {t('shuffling')}
@@ -125,6 +132,7 @@ function FirstTime({
   code,
   host,
   hostName,
+  leaveLine,
   nameError,
   saving,
   onClearNameError,
@@ -187,6 +195,7 @@ function FirstTime({
         loading={saving}
         onPress={() => void join()}
       />
+      {leaveLine ? <LeaveLine line={leaveLine} /> : null}
     </Animated.View>
   );
 }

@@ -17,7 +17,9 @@ import { haptics } from '@/lib/haptics';
 
 import { linkOpenedAt, takeLinkReceivedAt } from './link-received';
 import { roomEntry, type RootRoute } from './enter-room';
+import { useLeaveLine } from './leave-line';
 import { parseInviteLink, roomRouteFor } from './link';
+import { leaveOldSeat } from './old-seat';
 import { STARTING_RETRIES, STARTING_RETRY_MS, type JoinMessage } from './rows';
 import { JOIN_SHEET_ROWS, type SheetRow } from './sheet-rows';
 
@@ -137,6 +139,7 @@ export function useJoinLink(params: Params) {
           return;
         }
         if (result.status === 'ok') {
+          leaveOldSeat(result.room_id);
           enterRoom(roomRouteFor(result.room_id, result.state), result.room_id, rootRoutes.current);
           return;
         }
@@ -318,9 +321,11 @@ export function useJoinLink(params: Params) {
 
   const profile = useMyProfile(sessionOk);
   const view = deriveView(state, profile.isPending, profile.data);
+  const leaveLine = useLeaveLine(ref);
 
   return {
     view,
+    leaveLine,
     retry,
     join,
     submit,

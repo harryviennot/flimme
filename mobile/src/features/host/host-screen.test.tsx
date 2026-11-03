@@ -8,6 +8,7 @@ import type { ReactNode } from 'react';
 
 import { api } from '@/api';
 import HostScreen from '@/app/host/index';
+import { keptRoomStore } from '@/features/room/kept-room';
 import { showToast } from '@/components/ui/toast';
 import { reportError } from '@/lib/sentry';
 
@@ -18,6 +19,7 @@ jest.mock('@/api', () => ({
     myProviders: jest.fn(),
     setMyProviders: jest.fn(),
     createRoom: jest.fn(),
+    leaveRoom: jest.fn(),
   },
 }));
 jest.mock('expo-router', () => ({
@@ -37,7 +39,7 @@ jest.mock('@/lib/haptics', () => ({
 
 type Mocks<K extends string> = Record<K, jest.Mock>;
 const mockApi = api as unknown as Mocks<
-  'myProfile' | 'countryProviders' | 'myProviders' | 'setMyProviders' | 'createRoom'
+  'myProfile' | 'countryProviders' | 'myProviders' | 'setMyProviders' | 'createRoom' | 'leaveRoom'
 >;
 const mockRouter = router as unknown as Mocks<'replace' | 'push' | 'back'>;
 
@@ -99,6 +101,26 @@ describe('host setup', () => {
     expect(open()).toBeDisabled();
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Netflix' }));
     expect(open()).toBeEnabled();
+  });
+
+  it('leaves the kept room once after the new room opens, and a failed leave changes nothing', async () => {
+    keptRoomStore.getState().keep({ id: 'old-room', code: '654321' });
+    mockApi.leaveRoom.mockRejectedValue(new Error('down'));
+    await show();
+    await waitFor(() => expect(open()).toBeEnabled());
+    await fireEvent.press(open());
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/room/r1/lobby'));
+    expect(mockApi.leaveRoom).toHaveBeenCalledTimes(1);
+    expect(mockApi.leaveRoom).toHaveBeenCalledWith({ room_id: 'old-room' });
+    keptRoomStore.getState().forget();
+  });
+
+  it('leaves nothing when no room is kept', async () => {
+    await show();
+    await waitFor(() => expect(open()).toBeEnabled());
+    await fireEvent.press(open());
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalled());
+    expect(mockApi.leaveRoom).not.toHaveBeenCalled();
   });
 
   it('opens with the defaults, without saving an unchanged selection', async () => {

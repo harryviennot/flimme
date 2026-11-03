@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { api } from '@/api';
 import Index from '@/app/index';
 import i18n from '@/i18n';
+import { keptRoomStore } from '@/features/room/kept-room';
 import { saveCachedProfile } from '@/features/profile';
 import { startSession } from '@/features/session';
 import { duration } from '@/theme/motion';
@@ -22,7 +23,7 @@ let mockReduceMotion = false;
 const mockMemory = new Map<string, string>();
 
 jest.mock('@/api', () => ({
-  api: { myProfile: jest.fn(), updateProfile: jest.fn() },
+  api: { myProfile: jest.fn(), updateProfile: jest.fn(), joinRoom: jest.fn() },
 }));
 jest.mock('@/features/session', () => ({
   startSession: jest.fn(() => Promise.resolve()),
@@ -40,6 +41,7 @@ jest.mock('@/lib/storage', () => ({
   storage: {
     getItemSync: (key: string) => mockMemory.get(key) ?? null,
     setItemSync: (key: string, value: string) => void mockMemory.set(key, value),
+    removeItemSync: (key: string) => void mockMemory.delete(key),
   },
 }));
 jest.mock('expo-localization', () => ({
@@ -53,6 +55,7 @@ jest.mock('expo-router', () => {
 
 const myProfile = jest.mocked(api.myProfile);
 const updateProfile = jest.mocked(api.updateProfile);
+const joinRoom = jest.mocked(api.joinRoom);
 
 const named: MyProfile = {
   id: 'u1',
@@ -94,6 +97,8 @@ beforeEach(async () => {
   mockReduceMotion = false;
   mockMemory.clear();
   myProfile.mockReset();
+  joinRoom.mockReset();
+  keptRoomStore.getState().forget();
   updateProfile
     .mockReset()
     .mockResolvedValue({ status: 'ok', display_name: 'Léa', avatar_key: 'blue' });
@@ -121,6 +126,73 @@ describe('the splash routing', () => {
     myProfile.mockRejectedValue(new ApiError('network', 'my_profile', 'offline'));
     await renderSplash();
     expect(screen.getByText('redirect:/home')).toBeTruthy();
+  });
+});
+
+describe('the kept room', () => {
+  const kept = { id: 'room-1', code: '482913' };
+  const room = () => keptRoomStore.getState().room;
+  beforeEach(() => {
+    keptRoomStore.getState().keep(kept);
+    myProfile.mockResolvedValue(named);
+  });
+
+  it('rejoins with the code and the id, then replaces with the state screen', async () => {
+    joinRoom.mockResolvedValue({
+      status: 'ok',
+      room_id: 'room-1',
+      member_id: 'm1',
+      state: 'swiping',
+      rejoined: true,
+    });
+    await renderSplash();
+    expect(joinRoom).toHaveBeenCalledWith({ code: '482913', ref: 'room-1', via: 'rejoin' });
+    expect(screen.getByText('redirect:/room/room-1/swipe')).toBeTruthy();
+    expect(room()).toEqual(kept);
+  });
+
+  it.each(['closed', 'not_found', 'full', 'in_finale'])(
+    'goes Home and forgets the room on %s',
+    async (status) => {
+      joinRoom.mockResolvedValue({ status } as never);
+      await renderSplash();
+      expect(screen.getByText('redirect:/home')).toBeTruthy();
+      expect(room()).toBeNull();
+    },
+  );
+
+  it.each([
+    ['rate_limited', () => joinRoom.mockResolvedValue({ status: 'rate_limited' } as never)],
+    ['a thrown call', () => joinRoom.mockRejectedValue(new Error('down'))],
+  ])('goes Home and keeps the room on %s', async (_n, arrange) => {
+    arrange();
+    await renderSplash();
+    expect(screen.getByText('redirect:/home')).toBeTruthy();
+    expect(room()).toEqual(kept);
+  });
+
+  it('goes Home and keeps the room offline, with no call', async () => {
+    mockOnline = false;
+    await renderSplash();
+    expect(screen.getByText('redirect:/home')).toBeTruthy();
+    expect(joinRoom).not.toHaveBeenCalled();
+    expect(room()).toEqual(kept);
+  });
+
+  it('goes to Welcome without a name, with no call', async () => {
+    myProfile.mockResolvedValue(unnamed);
+    await renderSplash();
+    expect(screen.getByText('redirect:/welcome')).toBeTruthy();
+    expect(joinRoom).not.toHaveBeenCalled();
+  });
+
+  it('shows the slow tagline while the call takes over 3 seconds', async () => {
+    joinRoom.mockReturnValue(new Promise(() => {}));
+    await renderSplash();
+    await act(async () => {
+      jest.advanceTimersByTime(SLOW_AFTER_MS);
+    });
+    expect(screen.getByText('Lighting up the marquee…')).toBeTruthy();
   });
 });
 

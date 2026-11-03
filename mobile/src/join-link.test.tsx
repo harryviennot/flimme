@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import JoinFromLinkScreen from '@/app/join/[code]';
 import i18n from '@/i18n';
+import { keptRoomStore } from '@/features/room/kept-room';
 import { haptics } from '@/lib/haptics';
 import { resetServerTime } from '@/lib/server-time';
 
@@ -19,8 +20,14 @@ jest.mock('@/api', () => ({
     roomPreview: (...a: unknown[]) => mockRoomPreview(...a),
     joinRoom: (...a: unknown[]) => mockJoinRoom(...a),
     updateProfile: (...a: unknown[]) => mockUpdateProfile(...a),
+    room: (...a: unknown[]) => mockRoom(...a),
+    roomSeats: (...a: unknown[]) => mockRoomSeats(...a),
+    leaveRoom: (...a: unknown[]) => mockLeaveRoom(...a),
   },
 }));
+const mockRoom = jest.fn();
+const mockRoomSeats = jest.fn();
+const mockLeaveRoom = jest.fn();
 
 const PREVIEW_OK = {
   status: 'ok',
@@ -65,7 +72,7 @@ jest.mock('expo-router', () => ({
 }));
 jest.mock('@/lib/haptics', () => ({ haptics: { error: jest.fn(), press: jest.fn() } }));
 jest.mock('@/lib/storage', () => ({
-  storage: { getItemSync: () => null, setItemSync: jest.fn() },
+  storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
 }));
 jest.mock('@/lib/sentry', () => ({ reportError: jest.fn() }));
 
@@ -442,5 +449,110 @@ describe('the join sheet', () => {
       await act(async () => {});
       expect(mockRoomPreview).toHaveBeenCalledTimes(1);
     });
+  });
+});
+
+describe('the kept room', () => {
+  const OLD = { id: 'room-old', code: '654321' };
+  const SEATS = [
+    { role: 'host', display_name: 'Harry', left_at: null, is_me: false },
+    { role: 'guest', display_name: 'Léa', left_at: null, is_me: true },
+  ];
+
+  beforeEach(() => {
+    mockRoom.mockReset().mockResolvedValue({ state: 'lobby' });
+    mockRoomSeats.mockReset().mockResolvedValue(SEATS);
+    mockLeaveRoom.mockReset().mockResolvedValue({ status: 'ok' });
+    keptRoomStore.getState().keep(OLD);
+  });
+  afterEach(() => keptRoomStore.getState().forget());
+
+  it('shows the leave line on Confirm and on First time, in French too', async () => {
+    const confirm = await openOnly({ code: '482913', r: REF });
+    expect(await screen.findByText("You'll leave Harry's room")).toBeTruthy();
+    await confirm.unmount();
+    mockProfile = { display_name: '' };
+    await openOnly({ code: '482913', r: REF });
+    expect(await screen.findByText("You'll leave Harry's room")).toBeTruthy();
+    await act(async () => {
+      await i18n.changeLanguage('fr');
+    });
+    expect(await screen.findByText('Tu quitteras la salle de Harry')).toBeTruthy();
+  });
+
+  it('says "your other room" while the seats are unread or when the host is the player', async () => {
+    mockRoomSeats.mockReturnValue(new Promise(() => {}));
+    const pending = await openOnly({ code: '482913', r: REF });
+    expect(screen.getByText("You'll leave your other room")).toBeTruthy();
+    await pending.unmount();
+    client = new QueryClient();
+    mockRoomSeats.mockReset().mockResolvedValue([{ ...SEATS[0], is_me: true }]);
+    await openOnly({ code: '482913', r: REF });
+    expect(await screen.findByText("You'll leave your other room")).toBeTruthy();
+  });
+
+  it('shows no line for an ended kept room, and forgets it', async () => {
+    mockRoom.mockResolvedValue({ state: 'done' });
+    await openOnly({ code: '482913', r: REF });
+    await waitFor(() => expect(keptRoomStore.getState().room).toBeNull());
+    expect(screen.queryByText(/You'll leave/)).toBeNull();
+  });
+
+  it('shows no line when the link is the kept room', async () => {
+    keptRoomStore.getState().keep({ id: REF, code: '482913' });
+    await openOnly({ code: '482913', r: REF });
+    expect(screen.queryByText(/You'll leave/)).toBeNull();
+  });
+
+  it('wins over the kept room at launch: the link joins with via link and never rejoins', async () => {
+    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+    await open({ code: '482913', r: REF });
+    expect(mockJoinRoom).toHaveBeenCalledTimes(1);
+    expect(mockJoinRoom.mock.calls[0]?.[0]).toMatchObject({ via: 'link' });
+    expect(router.replace).toHaveBeenCalledWith(`/room/${ROOM}/lobby`);
+  });
+
+  it('shows no line while loading or joining', async () => {
+    mockRoomPreview.mockReturnValue(new Promise(() => {}));
+    await openOnly({ code: '482913', r: REF });
+    expect(screen.queryByText(/You'll leave/)).toBeNull();
+    await screen.unmount();
+    mockJoinRoom.mockReturnValue(new Promise(() => {}));
+    await openOnly({ code: '482913' });
+    expect(screen.queryByText(/You'll leave/)).toBeNull();
+  });
+
+  it('shows no line on a refusal', async () => {
+    mockRoomPreview.mockResolvedValue({ status: 'closed' });
+    await openOnly({ code: '482913', r: REF });
+    expect(screen.queryByText(/You'll leave/)).toBeNull();
+  });
+
+  it('leaves the old room once on ok, and enters the new one without waiting', async () => {
+    mockLeaveRoom.mockReturnValue(new Promise(() => {}));
+    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+    await open({ code: '482913', r: REF });
+    expect(mockLeaveRoom).toHaveBeenCalledTimes(1);
+    expect(mockLeaveRoom).toHaveBeenCalledWith({ room_id: 'room-old' });
+    expect(router.replace).toHaveBeenCalledWith(`/room/${ROOM}/lobby`);
+  });
+
+  it('leaves the old room when the link has no reference', async () => {
+    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+    await open({ code: '482913' });
+    expect(mockLeaveRoom).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves nothing for the same room', async () => {
+    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: 'room-old', state: 'lobby' });
+    await open({ code: '482913' });
+    expect(mockLeaveRoom).not.toHaveBeenCalled();
+  });
+
+  it('opens the new room even when the leave call fails', async () => {
+    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+    mockLeaveRoom.mockRejectedValue(new Error('down'));
+    await open({ code: '482913' });
+    expect(router.replace).toHaveBeenLastCalledWith(`/room/${ROOM}/lobby`);
   });
 });

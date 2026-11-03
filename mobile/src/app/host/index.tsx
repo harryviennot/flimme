@@ -14,6 +14,7 @@ import { Screen } from '@/components/ui/screen';
 import { showToast } from '@/components/ui/toast';
 import { Text } from '@/components/ui/text';
 import { TopBar } from '@/components/ui/top-bar';
+import { leaveOldSeat } from '@/features/join/old-seat';
 import { openRoom } from '@/features/host/open-room';
 import { MY_PROVIDERS_KEY, useCountryProviders, useMyProviders } from '@/features/host/queries';
 import {
@@ -91,6 +92,7 @@ export default function HostScreen() {
     switch (outcome.kind) {
       case 'opened':
         client.setQueryData(MY_PROVIDERS_KEY, selection);
+        leaveOldSeat(outcome.roomId);
         router.replace(`/room/${outcome.roomId}/lobby`);
         router.push(`/room/${outcome.roomId}/invite`);
         return;

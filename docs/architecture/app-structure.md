@@ -257,7 +257,7 @@ The flow decided in [Connecting](../integrations/letterboxd.md#connecting), as t
 - **Not installed.** The link opens the web page, which shows the code in large type and the store buttons; the player types the code after installing. There is no browser version of the game: guests download the app (decided on 30 October 2026).
 - **QR code** in the invite sheet, drawn with `react-native-qrcode-svg`, encoding the same link. Guests scan it with their camera app; the app has no scanner of its own.
 - **Sharing** uses the system share sheet: "Join my room: <link> (code 482 913)". The recap card is shared as an image with `expo-sharing`.
-- **Rejoining.** The phone keeps the current room's code. Reopening the app calls `api.join_room` with it and gets the same seat back.
+- **Rejoining.** The phone keeps the current room's code and id. Reopening the app calls `api.join_room` with them, `via` `rejoin`, and gets the same seat back.
 
 > The invite page also needs a Smart App Banner, the official store badges, the privacy policy link and the TMDB and JustWatch credits ([store-listing.md](../product/store-listing.md#invite-links-and-the-web-page)). If tablets are supported, Apple requires 13-inch iPad screenshots and reviews on iPad.
 
