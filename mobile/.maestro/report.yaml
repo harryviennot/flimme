@@ -1,0 +1,37 @@
+# Slice 8, report a player (M7.2): in the lobby, tap another player's row, the seat sheet opens
+# with Report (no Remove for a guest), Report opens the report sheet, pick a reason, Send, the
+# thank-you shows. The own row is not a button. Closing the sheets never asks "Leave the room?".
+# Needs a room whose lobby is open on the simulator with another player seated (join from a
+# script or a second simulator), and the phone on the same backend as the room.
+# Run: `maestro test mobile/.maestro/report.yaml -e OTHER=Sam`
+appId: com.harryviennot.flimme.dev
+env:
+  OTHER: Sam
+---
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 20000
+- assertVisible: '${OTHER}.*'
+- tapOn: '${OTHER}.*'
+- extendedWaitUntil:
+    visible: '(?i)report.*'
+    timeout: 10000
+- assertNotVisible: '(?i)remove.*'
+- takeScreenshot: report-1-seat-sheet
+- tapOn:
+    text: '(?i)report sam'
+    index: 0
+- extendedWaitUntil:
+    visible: '(?i)send report.*'
+    timeout: 10000
+- takeScreenshot: report-2-reasons
+- tapOn: '(?i)spam or trolling.*'
+- takeScreenshot: report-3-picked
+- tapOn: '(?i)send report.*'
+- extendedWaitUntil:
+    visible: '(?i)thanks.*'
+    timeout: 20000
+- takeScreenshot: report-4-thanks
+- tapOn: 'Done'
+- assertVisible: '(?i)in the room'
+- assertNotVisible: '(?i)leave the room\?'
