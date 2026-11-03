@@ -336,6 +336,44 @@ Each is a day or less, on real phones, before building on top of it:
 4. **A private room channel across a token refresh,** during a 10-minute game, plus a phone going offline and coming back.
 5. **The card stack at full frame rate** on a low-end Android with 3 mounted cards and prefetching.
 
+### Spike 4 findings: the private room channel (M3.11, 3 November 2026)
+
+Run with the diagnostic route `/dev/realtime-spike` (linked from `/dev`) on two iOS simulators (iPhone 17 and iPhone Air, development build, supabase-js 2.118.0), against a local Supabase stack with `jwt_expiry = 120`. One phone hosted a room, the other joined. Both opened `room:<id>` and `room:<id>:live` with `config: { private: true }`, and each phone called `track()` on the live channel.
+
+**How the network loss was simulated, and what that limits.** No airplane mode: the stack's gateway (`kong`) and Realtime containers were paused with `docker pause` (for the last row of the table below, only the auth container). The socket stays open but silent, which is not the same as a lost network: requests hang instead of failing with a network error, and the socket is not closed by the OS. The background runs were on simulators, where iOS did not suspend the app's JavaScript. The real runs (airplane mode and a suspended app on phones, Android, staging with its ES256 keys) are still to do (see the end of this section).
+
+**1. Does the channel keep receiving across a refresh, and is `setAuth` automatic?** Yes to both. Over about 10 minutes, with a refresh every 30 seconds (supabase-js refreshes when less than 90 of the 120 seconds are left), the statuses never changed and the host's `settings_changed` reached the guest after the last refresh as after the first. `setAuth` is automatic: supabase-js listens to its own auth events and calls `realtime.setAuth(token)` on `TOKEN_REFRESHED`, `SIGNED_IN` and `INITIAL_SESSION`. The app does nothing. The log showed two `TOKEN_REFRESHED` events 50 to 300 ms apart on every cycle (cause not found), so never count refreshes.
+
+**2. The statuses seen and the times.**
+
+| What | Statuses | Times |
+| --- | --- | --- |
+| Gateway silent for 10 s | none | A message sent during the gap arrived when it ended (held, not lost) |
+| Silent for 60 s | `CHANNEL_ERROR` ("heartbeat timeout") on both channels, then `SUBSCRIBED` on both | The error came 29 to 47 s after the silence began (the 25 s heartbeat plus its wait). Both channels were back in under 1 s after the network returned, with no backoff wait |
+| Silent for 5 min | one `CHANNEL_ERROR` per channel at about 37 s, then nothing, then `SUBSCRIBED` | Back within 1 s of the end. The token had expired during the silence, and supabase-js refreshed it first (`TOKEN_REFRESHED` 0.14 s before `SUBSCRIBED`) |
+| Background 1 and 10 minutes (simulator) | none | JavaScript kept running; the refresh timer was stopped by the app's `AppState` hook, and the next one came when the app returned. Not a real suspension, so no conclusion about phones |
+| Token expired and the refresh could not happen (auth container paused for 4 min) | **`CLOSED`** on both channels, exactly at the token's expiry (120 s after the last refresh) | They **stayed `CLOSED`** after the refresh worked again 2.5 minutes later: no automatic rejoin, no event received |
+
+The two last rows differ because the 5 minute run also paused Realtime, so the server never saw the token expire; only the last row is the server-side expiry, and it was simulated by blocking the refresh, not the network. **The `CLOSED` behaviour is to be confirmed on a phone** (Harry's run 1 below). A fresh `supabase.channel(...).subscribe()` after that went to `SUBSCRIBED` in under 100 ms.
+
+**3. Does presence come back by itself?** No. In the runs where `track()` was called only on the first `SUBSCRIBED`, the presence state was empty after every rejoin (`sync: 0 here`, `leave` for each seat on both phones) and stayed empty. In the earlier runs, where `track()` was called on every `SUBSCRIBED`, each seat was back (`join`) within 100 ms. The route now tracks on every `SUBSCRIBED` (`RETRACK_ON_REJOIN`; set it to false to see the empty state). Presence from a phone that was cut off is also dropped by the others: they see a `leave`.
+
+**4. Messages sent while a channel was down are lost.** A broadcast sent during a 60 s or 5 min silence never arrived, even after the rejoin. Only gaps shorter than the heartbeat (10 s) delivered late. This confirms "missed messages are normal".
+
+**What M4.10 must do:**
+
+- Treat `CHANNEL_ERROR` and `TIMED_OUT` as "reconnecting" (show the banner): supabase-js rejoins by itself, and it did so in under a second once the network was back. Don't add a retry loop on top.
+- Treat **`CLOSED` that the app didn't ask for** as dead: it happens when the token expired before a refresh (a phone offline for more than the token's life, or the refresh failing), and nothing brings the channel back. Remove the channel, wait for a valid session (`TOKEN_REFRESHED` or `getSession()`), then create and subscribe a new one, with a backoff (1, 2, 5, 10 s, then every 10 s). In production the token lives 3600 s, so this is rare but real for a phone that sleeps in a pocket.
+- On every `SUBSCRIBED` (first or not): re-read the room, seats, matches, round and next cards (events were lost), and call `track()` again on the live channel.
+- On return to the foreground: re-read, and check each channel's state; recreate it if it is `closed`.
+- Don't call `setAuth` by hand.
+
+**Still to do, by Harry on phones** (the diagnostic route is what to run):
+
+1. Airplane mode for 10 s, 60 s and 5 min on an iPhone and an Android, with the two-phone setup above and a short `jwt_expiry` (or staging). Expect the table above, and in particular whether a real network loss gives `CHANNEL_ERROR` or `CLOSED`, and whether a refresh fails with a network error and is retried.
+2. The phone in the background for 1 and 10 minutes on iOS and Android (home button, then back): are the statuses the same, and does the channel survive a token that expired while the JavaScript was suspended?
+3. The same on staging (real network, ES256 keys), with the default 1-hour token for 70 minutes in a room.
+
 ## Starting values
 
 Placeholders until playtests.
