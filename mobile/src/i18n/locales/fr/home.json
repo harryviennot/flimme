@@ -1,0 +1,22 @@
+{
+  "greeting": {
+    "morning": "Bonjour",
+    "afternoon": "Bon après-midi",
+    "evening": "Bonsoir"
+  },
+  "host": {
+    "title": "Organise une soirée film",
+    "body": "Choisis tes plateformes, invite tes amis. Tout le monde swipe jusqu'au match.",
+    "cta": "Ouvrir une salle"
+  },
+  "join": {
+    "title": "Tu as un code ?",
+    "body": "Rejoins tes amis qui ont déjà ouvert une salle.",
+    "cta": "Rejoindre"
+  },
+  "offline": "Tu es hors ligne. Reconnecte-toi pour organiser ou rejoindre.",
+  "a11y": {
+    "profile": "Modifier ton prénom et ta couleur",
+    "settings": "Réglages"
+  }
+}
