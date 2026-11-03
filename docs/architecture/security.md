@@ -121,6 +121,8 @@ Settings outside the SQL that the security above depends on. Checked against Sup
 5. **Alerts** when `not_found` answers or guest sign-ups spike ([operations.md](operations.md)).
 6. **A CAPTCHA kept ready** for guest sign-up ([Guest accounts](#guest-accounts)).
 
+**The room preview** (`api.room_preview`, M4.19) is what the join sheet shows before Join: the host's name and avatar, the player count, and whether the room can be joined. It needs a reference that matches an open room, and it never names any other player. It takes no seat and sends no broadcast. Its own limits, kept apart from join's, stop a link holder from polling: 10 per profile per 10 minutes, then 30 per address per 10 minutes. A typed code gets no preview.
+
 **Remove player and Lock room.** Neither exists yet, and a host has no answer to a troll who got in.
 
 - **Remove player** (`api.remove_member(room, member)`, host only): sets `removed_at`. The seat stops being a member (gap 3), its presence disappears, and `api.join_room` answers `removed` if it tries to come back. Its votes stay in the log but no longer count, because the seat is no longer present. One limit: Supabase evaluates Realtime policies when a channel is joined and caches them until a new token is sent, so a removed phone can keep receiving room events for up to the token's lifetime. It sees counts and matches, never votes, and the other phones ignore anything it sends on `:live`.
@@ -199,7 +201,7 @@ The [recommendation server](recommendation-server.md#processes) exposes two endp
 
 - Invites use universal links and Android App Links, which Expo notes both require a file on our domain proving we control it. The custom URL scheme is only a fallback, and no link ever carries a token.
 - Links are parsed strictly: `/join/<6 digits>` plus the room reference, nothing else. A malformed link, such as a room reference that isn't a uuid, shows the refused sheet with the `closed` message, not Home. A link with no reference joins by code.
-- Joining from a link shows the host's name and the number of players before the player's first swipe, in the lobby and the swipe screen's player row, so a stale or forwarded link is visible for what it is.
+- Joining from a link shows the host's name and the number of players before the player's first swipe, in the lobby and the swipe screen's player row, so a stale or forwarded link is visible for what it is. The join sheet also shows the host's name, avatar and the player count before Join.
 
 **Over-the-air updates can push JavaScript to every phone.** Whoever controls the Expo account controls the app. 2FA on the Expo account, and only Harry can publish. Expo's end-to-end code signing for updates (the phone refuses updates not signed with our key) is only available on the EAS Production or Enterprise plans: worth it later, not needed for the beta.
 
@@ -314,6 +316,8 @@ All placeholders until playtests.
 | Join attempts per profile | 10 per 10 minutes (already in the schema) |
 | Failed joins (`not_found`) per profile | 5 per 10 minutes |
 | Join attempts per IP address | 30 per 10 minutes |
+| Room previews per profile | 10 per 10 minutes (M4.19) |
+| Room previews per IP address | 30 per 10 minutes, separate from join's (M4.19) |
 | Anonymous sign-ins per IP address | 30 per hour (Supabase's default) |
 | Data exports | 1 per hour per profile |
 | Taste check submissions | 10 per hour per profile |

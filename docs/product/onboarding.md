@@ -61,7 +61,7 @@ flowchart TD
 | Path | Steps before the first card | Rough time |
 | --- | --- | --- |
 | Invited, app installed, first time | Tap the link, type a name, pick a color, Join | About 15 seconds |
-| Invited, app installed, played before | Tap the link | About 5 seconds |
+| Invited, app installed, played before | Tap the link, Join | About 5 seconds |
 | Invited, no app, installs | Tap the link, store, install, open, tap the link again | A minute or more, mostly the store |
 | New player, hosting | Welcome, name, Open a room, mode, vibe and services, Open the room | About a minute, plus waiting for friends |
 
@@ -102,10 +102,10 @@ The fastest path, and the one most guests take.
 
 ### App installed
 
-The link opens the app straight on the room, skipping Welcome and Home.
+The link opens the app on the join sheet, skipping Welcome and Home. Nothing joins until **Join** is tapped, unless the player already has a seat in that room, who goes straight back to it.
 
-- **First time on this phone:** one sheet, "Join Harry's movie night", with the name field, the colors and a **Join** button. Then the lobby, or straight into swiping if the game has started.
-- **Played before:** a one-second "Joining Harry's room" and they're in.
+- **First time on this phone:** one sheet, "Join Harry's movie night", with the host's name and avatar, the player count, the name field, the colors and a **Join** button. Then the lobby, or straight into swiping if the game has started.
+- **Played before:** the sheet shows the host and the player count, and one tap on **Join** puts them in.
 
 ### App not installed
 
