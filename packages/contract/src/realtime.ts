@@ -21,6 +21,12 @@ export const ROOM_EVENTS = [
 ] as const;
 export type RoomEvent = (typeof ROOM_EVENTS)[number];
 
+/**
+ * What a phone tracks on `room:<id>:live`, keyed by its seat id (Q21.2). Nothing else goes in
+ * presence: a vote, a name or a film would break "nobody sees who noped".
+ */
+export type LivePresence = { swipe_count: number; done: boolean };
+
 /** Room states, in the order a game moves through them. */
 export const ROOM_STATES = ['lobby', 'dealing', 'swiping', 'finale', 'done', 'abandoned'] as const;
 export type RoomState = (typeof ROOM_STATES)[number];

@@ -9,6 +9,8 @@
     "loading": "Chargement",
     "offline": "Hors ligne",
     "reconnecting": "Reconnexion…",
+    "stillTrying": "Toujours en train de reconnecter. Ta place est gardée.",
+    "offlineRoom": "Tu es hors ligne. La salle se met à jour à ton retour.",
     "offlineVotes_one": "Hors ligne : {{count}} vote en attente",
     "offlineVotes_other": "Hors ligne : {{count}} votes en attente"
   },

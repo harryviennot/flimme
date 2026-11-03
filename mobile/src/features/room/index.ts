@@ -1,4 +1,12 @@
-export { HEARTBEAT_MS, useHeartbeat, useRefreshOnForeground } from './heartbeat';
+export { beatNow, HEARTBEAT_MS, useHeartbeat, useRefreshOnForeground } from './heartbeat';
+export {
+  RoomRealtimeProvider,
+  useRoomChannels,
+  useRoomConnection,
+  useRoomEvent,
+  useRoomPresence,
+  type BannerKind,
+} from './realtime';
 export {
   createKeptRoomStore,
   keptRoomStore,

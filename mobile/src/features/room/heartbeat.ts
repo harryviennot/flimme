@@ -8,6 +8,11 @@ import { ROOM_KEY } from './queries';
 
 export const HEARTBEAT_MS = 30_000;
 
+/** Marks the seat present now. A failed call is not shown: the next one tries again. */
+export function beatNow(roomId: string): void {
+  api.touchRoom({ room_id: roomId }).catch(() => {});
+}
+
 /**
  * While the app is in the foreground, marks the seat present at once and every 30 seconds
  * (app-structure.md#realtime). Timers can't be relied on in the background on iOS, so it stops
@@ -19,7 +24,7 @@ export function useHeartbeat(roomId: string | undefined, enabled = true): void {
     if (!roomId || !enabled) return;
     let timer: ReturnType<typeof setInterval> | undefined;
     const beat = () => {
-      api.touchRoom({ room_id: roomId }).catch(() => {});
+      beatNow(roomId);
     };
     const stop = () => {
       clearInterval(timer);
