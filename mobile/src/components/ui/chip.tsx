@@ -9,15 +9,20 @@ export type ChipProps = {
   selected?: boolean;
   onPress?: () => void;
   disabled?: boolean;
+  /**
+   * How a screen reader announces it: `checkbox` for filters that combine (the default), `radio`
+   * for one choice among several. Put radios in a `View` with `accessibilityRole="radiogroup"`.
+   */
+  role?: 'checkbox' | 'radio';
 };
 
 /** Figma "Chip": a selectable filter (moods, time budget). A check appears when selected. */
-export function Chip({ label, selected = false, onPress, disabled }: ChipProps) {
+export function Chip({ label, selected = false, onPress, disabled, role = 'checkbox' }: ChipProps) {
   return (
     <Pressable
       accessibilityLabel={label}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: selected }}
+      accessibilityRole={role}
+      accessibilityState={role === 'radio' ? { selected } : { checked: selected }}
       onPress={onPress}
       disabled={disabled}
       className={cn(

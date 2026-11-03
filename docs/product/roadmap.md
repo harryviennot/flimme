@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 66 of 246 tasks done.
+Progress: 67 of 246 tasks done.
 
 ```mermaid
 flowchart LR
@@ -342,7 +342,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: both buttons lead to their flows.
 - [ ] **M4.8** Join with a code: the keypad and a message for each `join_room` answer · app · M · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
   Done when: a wrong code, a full room and a started room each show their message.
-- [ ] **M4.9** Host setup: the country's services (saved to the profile), age cap, time budget, then "Open the room" · app · M · needs M4.7, M4.4, M2.6 · [onboarding](onboarding.md#hosting)
+- [x] **M4.9** Host setup: the country's services (saved to the profile), age cap, time budget, then "Open the room" · app · M · needs M4.7, M4.4, M2.6 · [onboarding](onboarding.md#hosting)
   Done when: a room opens with those settings.
 - [ ] **M4.10** The room layout: both Realtime topics, presence, the 30-second heartbeat, re-reading on reconnect and foreground, screens by room state, the Reconnecting banner, the splash's room code kept from last time, unknown messages dropped, leaving the old room's seat when a player joins another room · app · L · needs M3.6, M3.7, M3.11, M3.15 · [app-structure](../architecture/app-structure.md#realtime)
   Done when: killing the network mid-lobby and restoring it shows the right state.

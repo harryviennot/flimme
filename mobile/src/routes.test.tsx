@@ -17,6 +17,10 @@ jest.mock('@/api', () => ({
       created_at: '2026-11-03T00:00:00Z',
     })),
     joinRoom: jest.fn(async () => ({ status: 'not_found' })),
+    countryProviders: jest.fn(async () => [
+      { provider_id: 8, name: 'Netflix', logo_path: null, display_priority: 1 },
+    ]),
+    myProviders: jest.fn(async () => []),
     updateProfile: jest.fn(async () => ({ status: 'ok', display_name: 'Léa', avatar_key: 'blue' })),
   },
 }));
