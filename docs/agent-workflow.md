@@ -208,13 +208,13 @@ About a page. If it runs longer, the task should probably be split.
 
 ### A worked example: joining with a code
 
-The slice is M4.1 (backend), M4.8 (app), M4.14 (ops) and M4.15 (app).
+The slice is M4.1 (backend), M4.8 (app), M4.15 (app), M4.14 (ops) and M4.18 (ops).
 
 1. **planner**, one brief for the slice: `api.join_room` takes the room reference and gains the `closed` answer; every answer and the message for each; the link format `/join/<code>?r=<ref>`. Tests: a stale link can't join the newer room that reused its code; `via` and `link_opened_at` are stored; every answer has a message.
 2. **designer**, the spec for screen 05: six boxes over the keypad, joining as soon as the sixth digit is typed, what a wrong code does (the boxes shake, an error haptic, the digits clear), the copy for each answer in French and English, screen-reader labels.
 3. **backend-dev**, M4.1 in its own session: the migration, pgTAP tests, the regenerated types. Reviewed on Opus, since it's an access rule. Harry merges.
 4. **app-dev**, M4.8: the wrapper returns answers as values, and a Jest test walks every answer and fails if one has no message. Two screenshots, the screen and one error. The designer reviews them; then Harry's feel check: typing six digits feels instant, and the shake reads as "try again", not as a crash.
-5. **M4.14** is Harry's (the domain and its verification files), with the `ops` skill writing the files. **M4.15**, the route, is app-dev again, tested from a cold start on both platforms.
+5. **M4.15**, the route, is app-dev again, tested from a cold start on both platforms with the `flimme-dev` scheme. **M4.14** (the invite page and the verification files) and **M4.18** (the domain hookup, Harry's, with the `ops` skill writing the files) come after it.
 6. **qa** adds a "join by code" Maestro flow to the nightly run.
 
 ## Slices for the first release
@@ -228,7 +228,7 @@ The first release's tasks, grouped into features. Each slice gets one brief; the
 | 3 | App shell | M3.1 to M3.15 | Design system and motion tokens (M3.4) |
 | 4 | First launch | M4.3, M4.6, M4.17, M4.7 | Screens 01 to 04 |
 | 5 | Hosting | M4.4, M4.9 | Screens 06 and 07 |
-| 6 | Joining | M4.1, M4.8, M4.14, M4.15 | Screen 05 and the join sheet |
+| 6 | Joining | M4.1, M4.8, M4.15, M4.14, M4.18 | Screen 05 and the join sheet |
 | 7 | The lobby | M4.5, M4.10, M4.11, M4.12 | Screens 08, 09 and 24 |
 | 8 | Host powers and reports | M4.2, M4.13, M7.1, M7.2 | The host menu and the report sheet |
 | 9 | The deck | M5.1 to M5.8 | None |

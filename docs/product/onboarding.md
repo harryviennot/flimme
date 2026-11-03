@@ -299,7 +299,7 @@ Every state says what happened and offers a next step, never a raw error.
 | Final vote under way (`in_finale`) | Join sheet | "They're voting on the final pick right now." | Host your own, or wait for the next one |
 | Old link, room ended | Join sheet | "This movie night has ended." (the Figma's screen 25) | Host a movie night, or Enter another code |
 | No name yet (`name_required`) | Join | The name and color step | |
-| The host's country has no availability data | Open a room | "We can't show where to watch in your country yet. You can still join friends' rooms." | Choose another country (for people abroad), or join |
+| The host's country has no availability data | Open a room | "We can't show where to watch in your country yet. You can still join friends' rooms." | Join with a code. There is no country picker in the first release |
 | No services picked | Open a room | **Open the room** stays disabled, with "Pick at least one service" | |
 | Not a Letterboxd export | Letterboxd import | "This doesn't look like a Letterboxd export. Pick the ZIP Letterboxd sent you." | Pick again |
 | The export doesn't match the public profile (the RSS check) | Letterboxd import | "This export doesn't match the public diary of @harryv. Make sure it's your own export, made recently." | Open Letterboxd again |

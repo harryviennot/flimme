@@ -97,20 +97,20 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
-| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 17 | In progress |
+| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 18 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | In progress |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | Not started |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | In progress |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 7 | Not started |
-| [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | Not started |
+| [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | In progress |
 | [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the reviewers' demo room are ready on both stores | 9 | Not started |
 | [M12](#m12-closed-beta) | Closed beta | Friend groups and families play, Google's 12 testers have run 14 days, and the go decision is made | 7 | Not started |
 | [M13](#m13-public-launch) | Public launch | Live on both stores in France | 6 | Not started |
 | **After launch** | | | | |
 | [M14](#m14-measure-and-learn) | Measure and learn | Dashboards and funnels drive a weekly review | 5 | Not started |
 | [M15](#m15-accounts-and-follow-up) | Accounts and follow-up | Players can save an account, and "Did you watch it?" is measured | 10 | Not started |
-| [M16](#m16-growth-loop) | Growth loop | The invite page and reactions bring new players | 2 | Not started |
+| [M16](#m16-growth-loop) | Growth loop | The invite page and reactions bring new players | 2 | In progress |
 | [M17](#m17-fresher-decks-and-moods) | Fresher decks and moods | Repeat rate under 10%, moods live, the deck worker dealing | 15 | Not started |
 | [M18](#m18-more-modes-and-host-controls) | More modes and host controls | Final Cut and Date Night modes and the host controls are live | 8 | Not started |
 | [M19](#m19-smart-deck) | Smart deck | Taste-based decks beat the crowd deck in an A/B test | 10 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 60 of 245 tasks done.
+Progress: 63 of 246 tasks done.
 
 ```mermaid
 flowchart LR
@@ -180,7 +180,7 @@ Everything that blocks building or publishing, started first. Several items take
 
 Done when: the name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, and the repository and the agents are set up.
 
-- [ ] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
+- [x] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
   Done when: the name is checked on both stores, in trademark databases and for domains, and recorded in decisions.md.
 - [ ] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the domain resolves and support@ receives mail.
@@ -333,7 +333,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
 - [x] **M4.3** Names normalised and filtered with an English and French blocklist; avatars from presets only · backend · M · needs M1.5 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tests refuse blocked names, invisible characters and unknown avatars.
 - [ ] **M4.4** `api.create_room` takes the room settings, so opening a room is one call · backend · S · needs M1.5, M1.10 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
-  Done when: a room is created with its settings in one call.
+  Done when: a room is created with its settings in one call. The switch to turn free services off is not here: turning them off waits, with no task yet ([host-setup](../design/screens/host-setup.md), Q3).
 - [ ] **M4.5** The host role passes to the longest-seated present player when the host leaves · backend · M · needs M1.5 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
   Done when: tested with an absent player who joined earlier.
 - [x] **M4.6** First launch: splash, welcome, launch routing, country and language from the device, connectivity · app · M · needs M3.4, M3.6, M3.8, M3.13, M3.15 · [onboarding](onboarding.md#first-launch)
@@ -344,7 +344,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a wrong code, a full room and a started room each show their message.
 - [ ] **M4.9** Host setup: the country's services (saved to the profile), age cap, time budget, then "Open the room" · app · M · needs M4.7, M4.4, M2.6 · [onboarding](onboarding.md#hosting)
   Done when: a room opens with those settings.
-- [ ] **M4.10** The room layout: both Realtime topics, presence, the 30-second heartbeat, re-reading on reconnect and foreground, screens by room state, the Reconnecting banner, the splash's room code kept from last time, unknown messages dropped · app · L · needs M3.6, M3.7, M3.11, M3.15 · [app-structure](../architecture/app-structure.md#realtime)
+- [ ] **M4.10** The room layout: both Realtime topics, presence, the 30-second heartbeat, re-reading on reconnect and foreground, screens by room state, the Reconnecting banner, the splash's room code kept from last time, unknown messages dropped, leaving the old room's seat when a player joins another room · app · L · needs M3.6, M3.7, M3.11, M3.15 · [app-structure](../architecture/app-structure.md#realtime)
   Done when: killing the network mid-lobby and restoring it shows the right state.
 - [ ] **M4.11** The lobby: code, players and their services, the host's crown, Start for the host, Leave room; an optional services row for guests · app · M · needs M4.10 · [onboarding](onboarding.md#the-lobby)
   Done when: players appear and leave live on three phones.
@@ -352,14 +352,16 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: sharing works on both platforms.
 - [ ] **M4.13** The host menu: Remove player, Lock room · app · M · needs M4.11, M4.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: a removed player sees why and can't come back.
-- [ ] **M4.14** Universal links and App Links: verification files on the domain, Associated Domains, a minimal invite page with the code and store buttons · ops · M · needs M0.2, M3.2 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
-  Done when: a link opens the app when installed and the invite page when not.
-- [ ] **M4.15** The `/join/[code]` route: a link or a QR code from the phone's camera opens the room · app · M · needs M4.14, M4.8 · [onboarding](onboarding.md#app-installed)
-  Done when: tested from a cold start on both platforms.
+- [ ] **M4.14** The invite page with the code and store buttons, and the verification files in the repo, ready for the domain · ops · M · needs M3.2 · [store-listing](store-listing.md#invite-links-and-the-web-page), [app-structure](../architecture/app-structure.md#invites-and-deep-links)
+  Done when: the invite page shows the code and the steps, and the verification files are in the repo.
+- [ ] **M4.15** The `/join/[code]` route: a link or a QR code from the phone's camera opens the room · app · M · needs M4.8 · [onboarding](onboarding.md#app-installed)
+  Done when: tested from a cold start on both platforms, with the `flimme-dev` scheme.
 - [ ] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · M · needs M4.1, M3.6, M1.17 · [groundwork](../architecture/groundwork.md#the-local-environment)
   Done when: `mise run bots` fills a local room with three present players.
 - [x] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
   Done when: Home is three taps from a fresh install.
+- [ ] **M4.18** The domain hookup: Associated Domains, Android intent filters, `invite_base_url`, and hosting the invite page and verification files on the domain · ops · S · needs M0.2, M4.14 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
+  Done when: a link opens the app when installed and the invite page when not, checked on a device.
 
 ## M5 Basic deck
 
@@ -523,7 +525,7 @@ Done when: five real movie nights end with a pick.
 
 - [ ] **M10.1** Create the App Store Connect app and the Play Console app: bundle id, package name, French as primary language, Entertainment · publishing · S · needs M0.1, M0.3, M0.4 · [store-listing](store-listing.md#setting-up-the-store-records)
   Done when: both records exist.
-- [ ] **M10.2** First production-signed builds to TestFlight internal and Play internal testing · ops · M · needs M10.1, M3.2, M3.9, M6.20, M4.14 · [store-listing](store-listing.md#the-closed-beta)
+- [x] **M10.2** First production-signed builds to TestFlight internal and Play internal testing · ops · M · needs M10.1, M3.2, M3.9, M6.20, M4.18 · [store-listing](store-listing.md#the-closed-beta)
   Done when: the testers install from TestFlight and Play.
 - [ ] **M10.3** A week of real movie nights with Harry and two or three friends, on the production catalog · product · M · needs M10.2, M2.13 · [store-listing](store-listing.md#the-closed-beta)
   Done when: five nights played; issues filed as tasks.
@@ -647,7 +649,7 @@ Each movie night bringing the next players.
 
 Done when: the invite page brings new players, visible in the funnels. The recap card and Play again moved into the first release on 29 October 2026 (M6.21 to M6.23).
 
-- [ ] **M16.4** Invite page polish: Smart App Banner, store badges, credits, the install referrer on Android and the paste button on iOS · ops · needs M4.14 · [onboarding](onboarding.md#app-not-installed)
+- [x] **M16.4** Invite page polish: Smart App Banner, store badges, credits, the install referrer on Android and the paste button on iOS · ops · needs M4.18 · [onboarding](onboarding.md#app-not-installed)
   Done when: an invited guest without the app reaches the room after installing.
 - [ ] **M16.7** Reactions from a fixed emoji set · app · needs M4.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: reactions pop on every phone.
