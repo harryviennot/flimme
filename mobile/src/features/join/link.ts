@@ -1,5 +1,7 @@
 import type { RoomState } from '@flimme/contract';
 
+import { roomScreenFor } from '../room/screens';
+
 export const CODE_LENGTH = 6;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -39,17 +41,7 @@ export function readPasted(text: string): { code: string; ref?: string } {
   return parseInviteLink(text) ?? { code: digitsOf(text) };
 }
 
-/**
- * Where an `ok` answer goes. `/room/[id]` has no screen of its own until M4.10 routes by state,
- * so the state picks the screen. M4.10 replaces this.
- */
+/** Where an `ok` answer goes: the screen the room's state calls for. */
 export function roomRouteFor(roomId: string, state: RoomState): string {
-  switch (state) {
-    case 'swiping':
-      return `/room/${roomId}/swipe`;
-    case 'finale':
-      return `/room/${roomId}/final-cut`;
-    default:
-      return `/room/${roomId}/lobby`;
-  }
+  return `/room/${roomId}/${roomScreenFor(state)}`;
 }
