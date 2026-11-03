@@ -21,4 +21,4 @@ set imdb_id = null, original_title = null, original_language = null, release_dat
     poster_path = null, poster_placeholder = null, backdrop_path = null, trailer_key = null,
     is_adult = false, tmdb_changed_at = null
 from gone
-where t.id = gone.id
+where t.id = gone.id and not t.is_active
