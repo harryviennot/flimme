@@ -119,7 +119,7 @@ const typography = Object.fromEntries(
     const style = {
       fontFamily: fontFile(v.fontFamily, v.fontWeight ?? 400),
       fontSize: px(v.fontSize),
-      lineHeight: px(v.lineHeight),
+      ...(v.lineHeight ? { lineHeight: px(v.lineHeight) } : {}),
       letterSpacing: px(v.letterSpacing ?? 0),
     };
     if (v.textTransform) style.textTransform = v.textTransform;
@@ -163,7 +163,7 @@ for (const [name, t] of Object.entries(typography)) {
   css.push(`@utility type-${name} {`);
   css.push(`  font-family: ${t.fontFamily};`);
   css.push(`  font-size: ${t.fontSize}px;`);
-  css.push(`  line-height: ${t.lineHeight}px;`);
+  if (t.lineHeight !== undefined) css.push(`  line-height: ${t.lineHeight}px;`);
   css.push(`  letter-spacing: ${t.letterSpacing}px;`);
   if (t.textTransform) css.push(`  text-transform: ${t.textTransform};`);
   css.push('}');

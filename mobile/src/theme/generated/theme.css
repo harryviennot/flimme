@@ -80,14 +80,14 @@
 @utility type-display-xl {
   font-family: Staatliches_400Regular;
   font-size: 72px;
-  line-height: 64px;
+  line-height: 72px;
   letter-spacing: 0.72px;
   text-transform: uppercase;
 }
 @utility type-display-l {
   font-family: Staatliches_400Regular;
   font-size: 48px;
-  line-height: 46px;
+  line-height: 48px;
   letter-spacing: 0.48px;
   text-transform: uppercase;
 }
@@ -121,6 +121,11 @@
   font-family: SchibstedGrotesk_400Regular;
   font-size: 17px;
   line-height: 26px;
+  letter-spacing: 0px;
+}
+@utility type-input {
+  font-family: SchibstedGrotesk_400Regular;
+  font-size: 17px;
   letter-spacing: 0px;
 }
 @utility type-body-m {
@@ -183,7 +188,7 @@
 @utility type-display-stamp {
   font-family: Staatliches_400Regular;
   font-size: 52px;
-  line-height: 46px;
+  line-height: 52px;
   letter-spacing: 0.52px;
   text-transform: uppercase;
 }

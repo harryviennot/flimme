@@ -7,7 +7,7 @@ export const gallery: GalleryEntry = {
   name: 'Avatar',
   tier: 'ui',
   description:
-    'Player avatar. 10 colors for up to 10 players, assigned in join order, never repeated in a room.',
+    'Player avatar. Players pick one of 6 colors and two players in a room may share one. All 10 colors of the Figma are shown.',
   render: () => (
     <View className="gap-3">
       {(['s', 'm', 'l'] as const).map((size) => (

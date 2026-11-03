@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 47 of 244 tasks done.
+Progress: 49 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -291,7 +291,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: the project runs in a development build on both platforms.
 - [x] **M3.2** EAS: build profiles (development, preview, production), fingerprint runtime versions, update channels · ops · M · needs M3.1, M0.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: each profile builds.
-- [ ] **M3.3** App CI: lint and tests on every pull request, preview builds on demand · ops · S · needs M3.1 · [operations](../architecture/operations.md#continuous-integration)
+- [x] **M3.3** App CI: lint and tests on every pull request, preview builds on demand · ops · S · needs M3.1 · [operations](../architecture/operations.md#continuous-integration)
   Done when: a failing test blocks a pull request.
 - [ ] **M3.4** Design tokens from the Figma: `tokens.json`, the generated Uniwind theme and `tokens.ts`, the three fonts, the 38 icons · design · S · needs M3.1 · [groundwork](../architecture/groundwork.md#tokens)
   Done when: `pnpm tokens --check` passes and every type style renders in the gallery.
@@ -311,7 +311,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: the findings are written in app-structure.md.
 - [ ] **M3.12** Spike: the card stack at full frame rate on a low-end Android, styled with Uniwind · test · L · needs M3.4 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
   Done when: the findings are written in app-structure.md, and Uniwind is confirmed (or NativeWind 4.2.7 chosen) in decisions.md.
-- [ ] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
+- [x] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
   Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
 - [ ] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: the gallery's motion section plays each spring and haptic on a phone.

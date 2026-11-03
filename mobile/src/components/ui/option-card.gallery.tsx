@@ -18,7 +18,7 @@ function Demo() {
       <OptionCard
         icon="ticket"
         title="Final Cut"
-        description="Swipe for a while, then vote on the top 3."
+        description="Swipe a while, then vote on the final three."
         selected={mode === 'final'}
         onPress={() => setMode('final')}
       />

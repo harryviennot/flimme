@@ -14,19 +14,25 @@ export type RoomTicketProps = {
   rightDetail: string;
 };
 
-/** Figma "Room ticket": the room code as a cinema ticket, readable across a couch. */
+/**
+ * Figma "Room ticket": the room code as a cinema ticket, readable across a couch. The card does
+ * not clip: the notches cover the border and bulge past the card edge, as in the Figma.
+ */
 export function RoomTicket({ code, leftDetail, rightDetail }: RoomTicketProps) {
   const { t } = useTranslation();
   const spaced = code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code;
   return (
-    <View className="self-stretch overflow-hidden rounded-lg border border-marquee-strong bg-bg-surface elevation-card">
+    <View className="self-stretch rounded-lg border border-marquee-strong bg-bg-surface elevation-card">
       <View className="items-center gap-1 px-5 pt-5.5 pb-2">
         <Text variant="mono-eyebrow" tone="marquee">
           {t('ticket.roomCode')}
         </Text>
-        <Text variant="display-ticket" accessibilityLabel={code.split('').join(' ')}>
-          {spaced}
-        </Text>
+        {/* Tracking is added after the last digit too: pull it back so the code is centred. */}
+        <View style={{ marginRight: -tokens.typography['display-ticket'].letterSpacing }}>
+          <Text variant="display-ticket" accessibilityLabel={code.split('').join(' ')}>
+            {spaced}
+          </Text>
+        </View>
       </View>
       <View className="h-6 justify-center">
         <Svg height={2} width="100%">
