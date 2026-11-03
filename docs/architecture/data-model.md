@@ -871,6 +871,25 @@ The ranked items are the one table that grows fast; they move to object storage 
 
 The first release (M5.1) changed the query body after that measurement: it no longer joins `title_vectors`, and it computes the crowd percentiles on narrow rows and cuts to the limit before building each seat's fits. M5.8 measures it again on the real catalog. The plan's budget is under 150 ms. Two to four players meet it on this machine; ten don't yet. If real data on Supabase hardware is still slow: precompute each room's eligible set once at start, or cap candidates with an HNSW search around the room's average taste before scoring. The server's ranking adds its own time on top, inside the same "well under a second" behind the 15-card buffer.
 
+**Check on the real catalog (M5.8).** `supabase/checks/deck-check.sql` counts the catalog, deals five sample rooms and times room 2, then undoes every write. Harry runs it in staging's SQL editor (agents hold no database credentials): paste the file, run it, copy the result grid back. The committed findings hold ids, counts, years and timings, never titles (rule 7). Locally, run `set deckcheck.min_films = 100;` first, because the seed is under the 40,000 films gate.
+
+| Rooms | Players | Services | Time | Age cap |
+| --- | --- | --- | --- | --- |
+| 1 | 2 | first listed | any | none |
+| 2 (timed) | 4 | first three | under 2 h | none (Adults) |
+| 3 | 6 | first two | under 1 h 45 | 12 |
+| 4 | 10 | every listed | any | All ages (0) |
+| 5 | 3 | none (free services only) | any | 10 |
+
+Every room also has the country's free services. Results: not run yet (staging, Free plan; M5.8 follow-up).
+
+- Catalog counts: pending.
+- Eligible films per room: pending.
+- The checks (services, age cap, time budget, one film per franchise in any 10 cards, identical openings): pending.
+- `deck_candidates(room, 300)` for 4 players, median of three: pending (budget 150 ms; on Free the figure is indicative, and it is re-timed after Pro only if it misses).
+- `deal_baseline` for 4 players: pending (budget under 1 s).
+- Opening overlap between two seeds: pending.
+
 ## Retention
 
 | Data | Kept |
