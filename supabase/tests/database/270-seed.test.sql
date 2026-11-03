@@ -107,8 +107,8 @@ select is((select count(*) from public.genres where id not between 7001 and 7012
   'S5 every seed genre is 7001 to 7012');
 select is((select count(*) from public.genres where slug not like 'seed\_%'), 0::bigint,
   'S5 every seed genre slug starts with seed_, so the reference job''s slugs cannot collide');
-select is((select count(*) from public.titles where poster_path is not null or backdrop_path is not null), 0::bigint,
-  'S5 no film has a poster or a backdrop path');
+select is((select count(*) from public.titles where poster_path !~ '^/seed-[0-9]+\.jpg$' or backdrop_path is not null), 0::bigint,
+  'S5 no film has a backdrop path, and a poster path is only the synthetic /seed-N.jpg (the deal needs one)');
 
 -- S6: every film has French and English text, a vector and a French certification.
 select is(
