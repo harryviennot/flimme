@@ -19,6 +19,28 @@ function fontPlugin(): FontPlugin {
   return entry[1] as FontPlugin;
 }
 
+/** The PostScript name (name table, nameID 6) of a TrueType file. */
+function postScriptName(bytes: Buffer): string | undefined {
+  const tables = bytes.readUInt16BE(4);
+  for (let i = 0; i < tables; i += 1) {
+    const entry = 12 + i * 16;
+    if (bytes.toString('latin1', entry, entry + 4) !== 'name') continue;
+    const table = bytes.readUInt32BE(entry + 8);
+    const count = bytes.readUInt16BE(table + 2);
+    const strings = table + bytes.readUInt16BE(table + 4);
+    for (let j = 0; j < count; j += 1) {
+      const record = table + 6 + j * 12;
+      if (bytes.readUInt16BE(record + 6) !== 6 || bytes.readUInt16BE(record) !== 3) continue;
+      const length = bytes.readUInt16BE(record + 8);
+      const offset = strings + bytes.readUInt16BE(record + 10);
+      return Buffer.from(bytes.subarray(offset, offset + length))
+        .swap16()
+        .toString('utf16le');
+    }
+  }
+  return undefined;
+}
+
 describe('embedded fonts', () => {
   it('declares every fontFamily the theme uses in the expo-font plugin, on both platforms', () => {
     const plugin = fontPlugin();
@@ -35,10 +57,7 @@ describe('embedded fonts', () => {
 
   it('names each font by the PostScript name inside its file', () => {
     for (const font of fontList.fonts) {
-      const bytes = readFileSync(join(root, font.file));
-      // The name table stores the name as UTF-16 big endian; ASCII names make this simple.
-      const utf16 = Buffer.from(font.postScriptName, 'utf16le').swap16();
-      expect(bytes.includes(utf16)).toBe(true);
+      expect(postScriptName(readFileSync(join(root, font.file)))).toBe(font.postScriptName);
     }
   });
 

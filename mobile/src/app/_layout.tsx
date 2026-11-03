@@ -21,9 +21,8 @@ export { ErrorScreen as ErrorBoundary } from '@/components/shared/error-screen';
 initSentry();
 
 function RootLayout() {
-  // Fonts are embedded at build time (the expo-font plugin), so the first frame has them and
-  // the splash needs no wait.
-
+  // Fonts are embedded at build time (the expo-font plugin): the first frame has them, so the
+  // splash needs no hold.
   useEffect(() => {
     // Not awaited: the `/` route (M4.6) waits for the answer. A real error reaches Sentry;
     // the splash then shows its own error state.
