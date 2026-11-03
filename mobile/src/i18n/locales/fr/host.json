@@ -1,0 +1,34 @@
+{
+  "topBar": "Nouvelle salle",
+  "title": "Prépare la soirée",
+  "services": {
+    "label": "Où pouvez-vous regarder ?",
+    "helper": "Tes amis ajoutent leurs plateformes en arrivant.",
+    "free": "Les plateformes gratuites sont toujours incluses.",
+    "required": "Choisis au moins une plateforme"
+  },
+  "time": {
+    "label": "Durée",
+    "any": "Peu importe",
+    "under105": "Moins de 1 h 45",
+    "under120": "Moins de 2 h"
+  },
+  "age": {
+    "label": "Le plus jeune devant l'écran",
+    "adults": "Adultes",
+    "years": "{{age}} ans",
+    "all": "Tous publics",
+    "helper": "Les films au-dessus de son âge restent hors du jeu."
+  },
+  "open": "Ouvrir la salle",
+  "offline": "Tu es hors ligne. Reconnecte-toi pour ouvrir une salle.",
+  "errors": {
+    "services": "Impossible de charger les plateformes.",
+    "network": "Impossible d'ouvrir la salle. Réessaie.",
+    "unsupported": {
+      "title": "Pas encore dans ton pays",
+      "body": "On ne sait pas encore où regarder les films dans ton pays. Tu peux quand même rejoindre la salle d'un ami.",
+      "action": "Rejoindre avec un code"
+    }
+  }
+}

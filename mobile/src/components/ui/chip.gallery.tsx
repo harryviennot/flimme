@@ -23,9 +23,36 @@ function Demo() {
   );
 }
 
+function RadioDemo() {
+  const [picked, setPicked] = useState('Any length');
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel="Time budget"
+      className="flex-row flex-wrap gap-2"
+    >
+      {['Any length', 'Under 1 h 45', 'Under 2 h'].map((label) => (
+        <Chip
+          key={label}
+          role="radio"
+          label={label}
+          selected={picked === label}
+          onPress={() => setPicked(label)}
+        />
+      ))}
+    </View>
+  );
+}
+
 export const gallery: GalleryEntry = {
   name: 'Chip',
   tier: 'ui',
-  description: 'Selectable filter chip: moods, time budget.',
-  render: () => <Demo />,
+  description:
+    'Selectable filter chip. Checkboxes combine (moods); radios, in a radiogroup View, pick one (time budget, age cap).',
+  render: () => (
+    <View className="gap-4">
+      <Demo />
+      <RadioDemo />
+    </View>
+  ),
 };

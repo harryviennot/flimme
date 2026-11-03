@@ -1,0 +1,34 @@
+{
+  "topBar": "New room",
+  "title": "Set up tonight",
+  "services": {
+    "label": "Where can you watch?",
+    "helper": "Friends add their own services when they join.",
+    "free": "Free services are always included.",
+    "required": "Pick at least one service"
+  },
+  "time": {
+    "label": "Time budget",
+    "any": "Any length",
+    "under105": "Under 1 h 45",
+    "under120": "Under 2 h"
+  },
+  "age": {
+    "label": "Youngest viewer",
+    "adults": "Adults",
+    "years": "{{age}}+",
+    "all": "All ages",
+    "helper": "Films above their age stay out of the deck."
+  },
+  "open": "Open the room",
+  "offline": "You're offline. Connect to open a room.",
+  "errors": {
+    "services": "We couldn't load the services.",
+    "network": "We couldn't open the room. Try again.",
+    "unsupported": {
+      "title": "Not in your country yet",
+      "body": "We can't show where to watch in your country yet. You can still join friends' rooms.",
+      "action": "Join with a code"
+    }
+  }
+}
