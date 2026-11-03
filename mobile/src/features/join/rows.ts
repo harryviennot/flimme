@@ -1,7 +1,7 @@
-import type { JoinRoomAnswer, PLANNED_JOIN_ROOM_ANSWERS } from '@flimme/contract';
+import type { JoinRoomAnswer } from '@flimme/contract';
 
 // One row per answer of `api.join_room`, as in docs/design/screens/join-code.md#answers-apijoin_room.
-// A test walks JOIN_ROOM_ANSWERS and PLANNED_JOIN_ROOM_ANSWERS, and the types fail on a new
+// A test walks JOIN_ROOM_ANSWERS, and the types fail on a new
 // answer without a row.
 
 export type JoinMessage =
@@ -31,9 +31,7 @@ export type JoinRow =
   /** The game is starting: try again every second. */
   | { kind: 'wait' };
 
-type PlannedAnswer = (typeof PLANNED_JOIN_ROOM_ANSWERS)[number];
-
-export const JOIN_ROWS: Record<JoinRoomAnswer | PlannedAnswer, JoinRow> = {
+export const JOIN_ROWS: Record<JoinRoomAnswer, JoinRow> = {
   ok: { kind: 'go', to: 'room' },
   name_required: { kind: 'go', to: 'name' },
   not_found: { kind: 'message', message: 'errors.notFound', boxes: 'shake', next: null },

@@ -7,6 +7,7 @@ import {
   REPORT_MEMBER_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
+  SET_ROOM_LOCKED_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
@@ -121,6 +122,12 @@ const cases = [
     answers: REMOVE_MEMBER_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.removeMember({ room_id: ROOM, member_id: MEMBER }),
     full: {},
+  },
+  {
+    name: 'set_room_locked',
+    answers: SET_ROOM_LOCKED_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.setRoomLocked({ room_id: ROOM, locked: true }),
+    full: { ok: { locked: true } },
   },
   {
     name: 'update_room_settings',
@@ -463,6 +470,7 @@ describe('views', () => {
     finale_at: null,
     decided_at: null,
     ended_at: null,
+    locked: false,
   };
   const seatFixture = {
     member_id: MEMBER,
