@@ -334,6 +334,31 @@ describe('provider readers', () => {
     await expect(createApi(client).countryProviders({ country: 'FR' })).resolves.toEqual([]);
   });
 
+  it('gameModes reads the view in display order', async () => {
+    const mode = {
+      slug: 'quick_match',
+      min_players: 2,
+      max_players: 10,
+      ends_on_first_match: true,
+      sort: 1,
+    };
+    const { client, calls } = fake(() => ok([mode]));
+    await expect(createApi(client, { validate: true }).gameModes()).resolves.toEqual([mode]);
+    expect(calls).toContainEqual({ fn: 'game_modes.order', args: 'sort' });
+  });
+
+  it('gameModes rejects a wrong shape as unexpected when checks are on', async () => {
+    const { client } = fake(() => ok([{ slug: 1 }]));
+    await expect(createApi(client, { validate: true }).gameModes()).rejects.toMatchObject({
+      kind: 'unexpected',
+    });
+  });
+
+  it('gameModes returns no rows as an empty list', async () => {
+    const { client } = fake(() => ok(null));
+    await expect(createApi(client).gameModes()).resolves.toEqual([]);
+  });
+
   it('myProviders maps rows to ids', async () => {
     const { client } = fake(() => ok([{ provider_id: 8 }, { provider_id: 9 }]));
     await expect(createApi(client).myProviders()).resolves.toEqual([8, 9]);

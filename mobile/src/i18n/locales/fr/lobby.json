@@ -1,4 +1,67 @@
 {
+  "topBar": "Avant la séance",
+  "ticket": {
+    "players_one": "{{count}} joueur sur {{max}}",
+    "players_other": "{{count}} joueurs sur {{max}}",
+    "host": "Hôte · {{name}}"
+  },
+  "shareLink": "Partager le lien",
+  "showQr": "Voir le QR code",
+  "rules": {
+    "quickMatch": "Partie rapide : on swipe jusqu'à tomber d'accord sur un film. Pas de match ? Un vote rapide tranche."
+  },
+  "inTheRoom": "Dans la salle",
+  "seat": {
+    "you": "{{name}} (toi)",
+    "noServices": "Pas encore de plateformes",
+    "host": "Hôte",
+    "away": "Pas là"
+  },
+  "alone": "Personne d'autre pour l'instant. Partage le code.",
+  "roomServices": "Cette salle peut regarder sur {{list}}.",
+  "yourServices": {
+    "label": "Tes plateformes",
+    "optional": "Facultatif"
+  },
+  "servicesSheet": {
+    "title": "Tes plateformes",
+    "helper": "Facultatif : ça ajoute des films.",
+    "done": "C'est bon"
+  },
+  "start": {
+    "cta": "Lancer la séance",
+    "needPlayers": "Il faut {{count}} joueurs présents pour lancer.",
+    "away_one": "{{names}} n'est pas là. Tu peux lancer sans attendre.",
+    "away_other": "{{names}} ne sont pas là. Tu peux lancer sans attendre."
+  },
+  "waiting": "On attend que {{name}} lance la séance…",
+  "shuffling": "On mélange les cartes…",
+  "shufflingSlow": "Ça prend plus de temps que prévu.",
+  "youreHost": {
+    "title": "Tu es l'hôte maintenant",
+    "message": "Lance la séance quand vous êtes prêts."
+  },
+  "leave": {
+    "title": "Quitter la salle ?",
+    "bodyGuest": "Tu pourras revenir avec le code.",
+    "bodyHost": "{{name}} deviendra l'hôte.",
+    "stay": "Rester",
+    "confirm": "Quitter"
+  },
+  "errors": {
+    "start": "Impossible de lancer la séance. Réessaie.",
+    "services": "Impossible d'enregistrer tes plateformes. Réessaie."
+  },
+  "a11y": {
+    "invite": "Inviter des amis",
+    "joined": "{{name}} est là",
+    "left": "{{name}} a quitté la salle",
+    "leave": "Quitter la salle",
+    "ticket": "Code de la salle {{code}}, {{count}} sur {{max}} joueurs, hôte {{host}}",
+    "seatHere": "{{name}}, présent",
+    "seatAway": "{{name}}, pas là",
+    "seatHost": "hôte"
+  },
   "invite": {
     "title": "Invite tes amis",
     "helper": "Toute personne avec le lien peut rejoindre cette salle.",

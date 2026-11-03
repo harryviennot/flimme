@@ -26,7 +26,9 @@ import {
   roomRow,
   roomSeatRow,
   countryProvidersSchema,
+  gameModesSchema,
   type CountryProvider,
+  type GameMode,
   setMyProvidersResult,
   setSeatPrefsResult,
   startGameResult,
@@ -279,6 +281,26 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         return parsed.data;
       }
       return (rows ?? []) as CountryProvider[];
+    },
+
+    /** The game modes and their player limits, in display order. */
+    async gameModes(): Promise<GameMode[]> {
+      const rows = await readView(
+        () =>
+          client
+            .from('game_modes')
+            .select('slug, min_players, max_players, ends_on_first_match, sort')
+            .order('sort'),
+        'game_modes',
+      );
+      if (options.validate) {
+        const parsed = gameModesSchema.safeParse(rows ?? []);
+        if (!parsed.success) {
+          throw new ApiError('unexpected', 'game_modes', `wrong shape: ${parsed.error.message}`);
+        }
+        return parsed.data;
+      }
+      return (rows ?? []) as GameMode[];
     },
 
     /** The ids of the services the signed-in player has. */
