@@ -26,6 +26,8 @@ Sections are 24 points apart (`gap-6`); eyebrow to content 8. Each chip row is a
 2. `api.create_room` with `quick_match`, `profile.country` and `{ runtime_max, max_age }` (one call, M4.4).
 3. `ok`: `router.replace('/room/[id]/lobby')`, then `router.push('/room/[id]/invite')`, so closing the [invite sheet](invite-sheet.md) lands on the lobby. Both routes stay placeholders until their tasks ([lobby](lobby.md) in M4.11, the invite sheet in M4.12): M4.9 wires the flow and those tasks fill the screens.
 
+Opening a room leaves the kept room: after `ok`, if the phone keeps another room, it calls `api.leave_room` on it once, without waiting or retrying (see [leaving the old seat](join-sheet.md#leaving-the-old-seat)).
+
 ## States and answers
 
 | State or answer | What the host sees | Next |

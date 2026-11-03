@@ -27,6 +27,8 @@
     "code": "Room {{code}}",
     "title": "Join the movie night",
     "titleHost": "Join {{name}}'s movie night",
+    "leaveRoom": "You'll leave {{name}}'s room",
+    "leaveOtherRoom": "You'll leave your other room",
     "join": "Join",
     "anotherCode": "Enter another code",
     "players_one": "{{count}} player in",
