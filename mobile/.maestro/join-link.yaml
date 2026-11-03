@@ -51,6 +51,25 @@ env:
     visible: '(?i)lobby'
     timeout: 40000
 
+# The same link tapped again, twice, while the app is on the room: the sheet closes on the same
+# room each time and nothing is pushed on top. Maestro cannot count screens (routes.test.tsx
+# does), so this checks that the sheet is gone and the lobby is showing each time.
+- repeat:
+    times: 2
+    commands:
+      - openLink: flimme-dev://join/482913
+      - runFlow:
+          when:
+            visible: 'Open'
+          commands:
+            - tapOn: 'Open'
+      - extendedWaitUntil:
+          notVisible: '(?i)getting you in.*'
+          timeout: 15000
+      - assertVisible: '(?i)lobby'
+      - assertNotVisible: '(?i)join .*movie night'
+- takeScreenshot: join-link-2b-lobby-after-repeat
+
 # A malformed link: the refused sheet, and closing it lands on Home (the profile has a name by
 # now; an unnamed one would land on Welcome).
 - stopApp

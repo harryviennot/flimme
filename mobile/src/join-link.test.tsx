@@ -33,8 +33,16 @@ jest.mock('@/features/session', () => ({
 }));
 
 let mockParams: Record<string, unknown> = {};
+let mockRoutes: { name: string; params?: object }[] = [];
 jest.mock('expo-router', () => ({
-  router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
+  router: {
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    dismissTo: jest.fn(),
+    dismissAll: jest.fn(),
+  },
+  useRootNavigationState: () => ({ routes: mockRoutes }),
   useLocalSearchParams: () => mockParams,
   useFocusEffect: jest.fn(),
 }));
@@ -72,6 +80,9 @@ beforeEach(async () => {
   mockUpdateProfile.mockReset();
   mockStartSession.mockClear();
   jest.mocked(router.replace).mockClear();
+  jest.mocked(router.dismissTo).mockClear();
+  jest.mocked(router.dismissAll).mockClear();
+  mockRoutes = [{ name: 'index' }, { name: 'join/[code]' }];
   jest.mocked(haptics.error).mockClear();
   mockOnline = true;
   mockSession = { status: 'ok' };
@@ -139,6 +150,30 @@ describe('the join sheet', () => {
     mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state });
     await open({ code: '482913', r: REF });
     expect(router.replace).toHaveBeenCalledWith(path);
+  });
+
+  it('goes back to the room screen already open instead of stacking another', async () => {
+    mockRoutes = [
+      { name: 'index' },
+      { name: 'room/[id]', params: { id: ROOM } },
+      { name: 'join/[code]' },
+    ];
+    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+    await open({ code: '482913', r: REF });
+    expect(router.dismissTo).toHaveBeenCalledWith('/room/room-1/lobby');
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
+  it("drops another room's screens before entering the new one", async () => {
+    mockRoutes = [
+      { name: 'index' },
+      { name: 'room/[id]', params: { id: 'other' } },
+      { name: 'join/[code]' },
+    ];
+    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+    await open({ code: '482913', r: REF });
+    expect(router.dismissAll).toHaveBeenCalled();
+    expect(router.replace).toHaveBeenCalledWith('/room/room-1/lobby');
   });
 
   it.each([

@@ -76,6 +76,17 @@ const routes = {
 };
 /* eslint-enable @typescript-eslint/no-require-imports */
 
+// Like the real root layout: a stack anchored on `/`.
+const rootLayout = {
+  default: () => <Stack screenOptions={{ headerShown: false }} />,
+  unstable_settings: { anchor: 'index' },
+};
+
+/** How many room screens the navigation state holds. */
+function roomScreens(app: { getRouterState: () => unknown }): number {
+  return (JSON.stringify(app.getRouterState()).match(/"name":"room\/\[id\]"/g) ?? []).length;
+}
+
 const paths = [
   '/welcome',
   '/name',
@@ -107,17 +118,34 @@ describe('routes', () => {
     await waitFor(() => expect(screen).toHavePathname('/welcome'));
   });
 
+  it('a second link to the room you are in leaves one room screen', async () => {
+    const { api } = jest.requireMock('@/api');
+    api.joinRoom.mockResolvedValueOnce({
+      status: 'ok',
+      room_id: 'abc',
+      state: 'lobby',
+      rejoined: true,
+    });
+    const app = await renderRouter(
+      { _layout: rootLayout, ...routes },
+      { initialUrl: '/room/abc/lobby', wrapper: Providers },
+    );
+    expect(roomScreens(app)).toBe(1);
+    await act(async () => {
+      router.push('/join/123456');
+    });
+    await waitFor(() => expect(screen).toHavePathname('/room/abc/lobby'));
+    // The sheet is gone and no second copy of the room was pushed.
+    expect(roomScreens(app)).toBe(1);
+    expect(JSON.stringify(app.getRouterState())).not.toContain('"name":"join/[code]"');
+  });
+
   // The root layout anchors on `/`, so a link opened on a cold start has `/` under the sheet and
   // closing the sheet lands on Home or Welcome (join-sheet.md#presentation).
   describe('closing the join sheet after a cold start', () => {
-    const layout = {
-      default: () => <Stack screenOptions={{ headerShown: false }} />,
-      unstable_settings: { initialRouteName: 'index' },
-    };
-
     it('anchors the real root layout on the index route', () => {
       const source = readFileSync(resolve(__dirname, 'app', '_layout.tsx'), 'utf8');
-      expect(source).toContain("export const unstable_settings = { initialRouteName: 'index' }");
+      expect(source).toContain("export const unstable_settings = { anchor: 'index' }");
     });
 
     it.each([
@@ -134,7 +162,7 @@ describe('routes', () => {
         created_at: '2026-11-03T00:00:00Z',
       });
       await renderRouter(
-        { _layout: layout, ...routes },
+        { _layout: rootLayout, ...routes },
         { initialUrl: '/join/123456', wrapper: Providers },
       );
       // `not_found` keeps the sheet open: the player closes it.
