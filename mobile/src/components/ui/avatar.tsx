@@ -59,7 +59,7 @@ export function Avatar({ name, color, size = 's', online = false, overlap = fals
       className={cn(
         'relative items-center justify-center rounded-pill',
         dims.disc,
-        discs[color],
+        discs[color] ?? discs.blue,
         overlap && '-ml-2',
       )}
     >
