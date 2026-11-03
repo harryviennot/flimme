@@ -276,10 +276,12 @@ $$;
 -- reading its queues, and a dealt game. Made-up films only, never TMDB data.
 
 -- Films 'Catalog Film 001' to 'Catalog Film <p_count>' (existing names are
--- skipped), each with a falling popularity, a subscription offer from the
--- service in the country (the service is created if missing), and a constant
--- made-up vector (internal.deck_candidates joins title_vectors). Returns the
--- ids in number order.
+-- skipped), each with a falling popularity, a quality score that varies from 6.2
+-- to 8.1 (the crowd score ranks by it), a poster path (the deal needs one),
+-- and a subscription offer from the service in the country (the service is
+-- created if missing). No vector: the real catalog has none, and
+-- internal.deck_candidates must deal films without one. Returns the ids in
+-- number order.
 create or replace function tests.create_catalog(
   p_count integer default 40,
   p_provider_id integer default 9001,
@@ -307,14 +309,9 @@ begin
     if v_id is null then
       v_id := tests.create_title(v_name);
     end if;
-    update public.titles set popularity = 1000 - i where id = v_id;
+    update public.titles set popularity = 1000 - i, quality_score = 6.2 + (i % 20) / 10.0, poster_path = '/catalog-' || i || '.jpg' where id = v_id;
     insert into public.title_availability (title_id, country, provider_id, kind)
     values (v_id, p_country, p_provider_id, 'subscription')
-    on conflict do nothing;
-    insert into public.title_vectors (title_id, embedding, source_hash)
-    values (v_id,
-            ('[' || array_to_string(array_fill(0.1::float8, array[384]), ',') || ']')::extensions.vector,
-            md5(v_name))
     on conflict do nothing;
     v_ids := v_ids || v_id;
   end loop;

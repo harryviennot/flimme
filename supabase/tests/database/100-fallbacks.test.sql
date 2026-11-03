@@ -14,6 +14,11 @@
 begin;
 select plan(27);
 
+-- The seed's free services would join every FR room, and the crowd score now ranks the
+-- seed's films with the fixture ones; this file is about the fixture catalog, so switch
+-- them off (rolled back with the test, as in 070-server-contract).
+update public.provider_regions set free_for_all = false;
+
 select tests.use_deck_engine('server');
 select tests.create_catalog(60);
 
