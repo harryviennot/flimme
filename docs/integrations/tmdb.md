@@ -179,6 +179,7 @@ The same worker code, run once from a laptop or CI, as the data model plans:
 1. **Reference data:** genres, the providers and display priorities of enabled countries, certification lists. The listed services, variants, free services and `certification_ages` are seeded by hand.
 2. **Candidates:** the top 60,000 from the export file, plus the first availability sweep.
 3. **Full fetch** of every candidate at 20 requests per second: about 60,000 requests, under an hour. It can resume: `ingest_runs.cursor` holds the position.
+   A measured run is the proof: `server backfill` ends with a line giving films a second and each phase's share of the time (TMDB, poster, waiting for a connection, reads, write), and the totals stay in `ingest_runs.stats` (`ms_*`). The writes go down in pipeline mode, one transaction per film, and the process's pool holds one connection per film in flight plus one.
 4. **The floor, tiers and quality score.** C is computed once every film is in.
 5. **Embeddings, mood scores and thumbhashes.**
 
