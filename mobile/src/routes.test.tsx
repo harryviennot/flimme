@@ -2,10 +2,11 @@ import '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { router, Stack } from 'expo-router';
-import { act, renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { Alert } from 'react-native';
 
 // What the screens of wave 2 reach for: the api, the guest session, the connection and the
 // on-device store. M4.17 and M4.7 add their own answers to these mocks.
@@ -88,6 +89,9 @@ function Providers({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
+jest.mock('@/features/room/leave', () => ({
+  leaveRoom: jest.fn(async () => ({ status: 'ok' })),
+}));
 jest.mock('@/lib/sound', () => ({ setSoundEnabled: jest.fn(), playSound: jest.fn() }));
 jest.mock('expo-haptics', () => ({
   selectionAsync: jest.fn(async () => undefined),
@@ -226,6 +230,114 @@ describe('routes', () => {
         router.back();
       });
       await waitFor(() => expect(screen).toHavePathname(path));
+    });
+  });
+
+  // Leaving a room goes back to the Home already in the stack, never to a second one
+  // (lobby.md#leaving, `useExitRoomToHome`).
+  describe('leaving a room', () => {
+    /** The names in the root stack, whichever wrapper the router puts around it. */
+    function rootNames(app: { getRouterState: () => unknown }): string[] {
+      type S = { routes?: { name: string; state?: S }[] };
+      let state = app.getRouterState() as S;
+      while (state.routes?.length === 1 && state.routes[0]?.state) state = state.routes[0].state;
+      return (state.routes ?? []).map((route) => route.name);
+    }
+
+    async function leave() {
+      jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Back' })).toBeTruthy());
+      await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+      const buttons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] as {
+        text: string;
+        onPress?: () => void;
+      }[];
+      await act(async () => {
+        buttons.find((b) => b.text === 'Leave')?.onPress?.();
+      });
+      await waitFor(() => expect(screen).toHavePathname('/home'));
+    }
+
+    /** One Home, and nothing under it except the index route. */
+    function expectOneHome(app: { getRouterState: () => unknown }) {
+      const names = rootNames(app);
+      expect(names.filter((name) => name === 'home')).toHaveLength(1);
+      expect(names.at(-1)).toBe('home');
+      expect(names.slice(0, -1).filter((name) => name !== 'index')).toEqual([]);
+    }
+
+    const open = (
+      url: string,
+      layout: { default: () => ReactElement; unstable_settings?: { anchor: string } } = rootLayout,
+    ) => renderRouter({ _layout: layout, ...routes }, { initialUrl: url, wrapper: Providers });
+
+    it('after Home, host setup and the room', async () => {
+      const app = await open('/home');
+      await act(async () => {
+        router.push('/host');
+      });
+      await act(async () => {
+        router.replace('/room/abc/lobby');
+      });
+      // Like the host screen: the invite sheet opens over the lobby, and the host closes it.
+      await act(async () => {
+        router.push('/room/abc/invite');
+      });
+      await act(async () => {
+        router.back();
+      });
+      await leave();
+      expectOneHome(app);
+    });
+
+    it('after Home, the code screen and the room', async () => {
+      const app = await open('/home');
+      await act(async () => {
+        router.push('/join');
+      });
+      await act(async () => {
+        router.replace('/room/abc/lobby');
+      });
+      await leave();
+      expectOneHome(app);
+    });
+
+    it('after a link sheet over Home and the room', async () => {
+      const { api } = jest.requireMock('@/api');
+      api.joinRoom.mockResolvedValueOnce({
+        status: 'ok',
+        room_id: 'abc',
+        state: 'lobby',
+        rejoined: false,
+      });
+      const app = await open('/home');
+      await act(async () => {
+        router.push('/join/123456');
+      });
+      await waitFor(() => expect(screen).toHavePathname('/room/abc/lobby'));
+      await leave();
+      expectOneHome(app);
+    });
+
+    it('after a cold start link and the room', async () => {
+      const { api } = jest.requireMock('@/api');
+      api.joinRoom.mockResolvedValueOnce({
+        status: 'ok',
+        room_id: 'abc',
+        state: 'lobby',
+        rejoined: false,
+      });
+      const app = await open('/join/123456');
+      await waitFor(() => expect(screen).toHavePathname('/room/abc/lobby'));
+      await leave();
+      expectOneHome(app);
+    });
+
+    it('after the splash rejoined the kept room (nothing under the room)', async () => {
+      const app = await open('/room/abc/lobby', { default: rootLayout.default });
+      await leave();
+      expectOneHome(app);
+      expect(rootNames(app)).toEqual(['home']);
     });
   });
 });

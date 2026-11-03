@@ -7,6 +7,7 @@ import {
   isSheet,
   mySeatOf,
   roomScreenFor,
+  useExitRoomToHome,
   useHeartbeat,
   useKeptRoom,
   RoomRealtimeProvider,
@@ -29,6 +30,7 @@ export default function RoomLayout() {
   const room = useRoom(id);
   const seats = useRoomSeats(id);
   const { keep, forget } = useKeptRoom();
+  const exitToHome = useExitRoomToHome();
 
   const settled = !room.isFetching && !seats.isFetching;
   const mine = mySeatOf(seats.data);
@@ -49,13 +51,13 @@ export default function RoomLayout() {
     if (!id) return;
     if (notSeated) {
       forget(id);
-      router.replace('/home');
+      exitToHome();
       return;
     }
     if (!state || !code || !mine) return;
     if (state === 'done' || state === 'abandoned') forget(id);
     else keep({ id, code });
-  }, [id, notSeated, state, code, mine, keep, forget]);
+  }, [id, notSeated, state, code, mine, keep, forget, exitToHome]);
 
   useEffect(() => {
     if (!id || !state || !current || isAllowed(state, current)) return;
