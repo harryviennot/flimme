@@ -39,6 +39,22 @@ export function hashFrom(output) {
   return output.hash;
 }
 
+/** The JSON in an `eas ... --json` answer. EAS prints log lines on stdout before it (for example
+ * which environment variables it loaded), so the JSON starts at the first line that opens an
+ * object or an array. */
+export function jsonFrom(out, command = 'eas') {
+  const lines = out.split('\n');
+  const start = lines.findIndex((line) => /^\s*[[{]/.test(line));
+  if (start !== -1) {
+    try {
+      return JSON.parse(lines.slice(start).join('\n'));
+    } catch {
+      // Falls through to the error below.
+    }
+  }
+  throw new Error(`${command} did not print JSON: ${out.slice(0, 300)}`);
+}
+
 const MOBILE = join(dirname(fileURLToPath(import.meta.url)), '..', 'mobile');
 
 function eas(args) {
@@ -47,11 +63,7 @@ function eas(args) {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'inherit'],
   });
-  try {
-    return JSON.parse(out);
-  } catch {
-    throw new Error(`eas ${args[0]} did not print JSON: ${out.slice(0, 200)}`);
-  }
+  return jsonFrom(out, `eas ${args[0]}`);
 }
 
 function hasPreviewBuild(platform) {
