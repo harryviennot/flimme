@@ -109,8 +109,8 @@ Called on open for a link with `r`, after `startSession()`. A refusal shows on o
 | `full` | Refused, `join:errors.full` with `max` = `max_players` | `users` | `haptics.error()` | Host, or another code |
 | `in_finale` | Refused, `join:errors.inFinale` | `clock` | `haptics.error()` | Host, or another code |
 | `rate_limited` | Refused, `join:errors.rateLimited` | `clock` | `haptics.error()` | Another code later |
-| `removed` (planned, M4.2) | Refused, `join:errors.removed` | `ban` | `haptics.error()` | Host, or another code |
-| `locked` (planned, M4.2) | Refused, `join:errors.locked` | `lock` | `haptics.error()` | Host, or another code |
+| `removed` | Refused, `join:errors.removed` | `ban` | `haptics.error()` | Host, or another code |
+| `locked` (planned, M4.23) | Refused, `join:errors.locked` | `lock` | `haptics.error()` | Host, or another code |
 | Offline | Refused, `join:errors.offline`, `EmptyState` without `error` | `wifi-off` | None | Previews again by itself when the connection comes back (never joins) |
 | The call failed | Refused, `join:errors.network` | `alert` | `haptics.error()` | Retry runs the preview again |
 
@@ -129,8 +129,8 @@ After Join (Confirm or First time), or at once for a seated player or a link wit
 | `not_found` | Refused, `join:errors.closed` (for a link, a missing room has ended) | `ticket` | `haptics.error()` | Host, or another code |
 | `full` | Refused, `join:errors.full` | `users` | `haptics.error()` | Host, or another code |
 | `in_finale` | Refused, `join:errors.inFinale` | `clock` | `haptics.error()` | Host, or another code |
-| `removed` (planned, M4.2) | Refused, `join:errors.removed` | `ban` | `haptics.error()` | Host, or another code |
-| `locked` (planned, M4.2) | Refused, `join:errors.locked` | `lock` | `haptics.error()` | Host, or another code |
+| `removed` | Refused, `join:errors.removed` | `ban` | `haptics.error()` | Host, or another code |
+| `locked` (planned, M4.23) | Refused, `join:errors.locked` | `lock` | `haptics.error()` | Host, or another code |
 | `rate_limited` | Refused, `join:errors.rateLimited` | `clock` | `haptics.error()` | Another code later |
 | Offline | Refused, `join:errors.offline`, `EmptyState` without `error` | `wifi-off` | None | Joins by itself when the connection comes back |
 | The call failed | Refused, `join:errors.network` | `alert` | `haptics.error()` | Retry |

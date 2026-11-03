@@ -1,6 +1,6 @@
 # Join with a code
 
-Screen 05 in the Figma (`15:312`). Route `/join`. Built in M4.8, with the answers from M4.1 (and `removed` and `locked` from M4.2). Written on 30 October 2026 and updated on 3 November 2026 (slice 6's questions, then slice 7's kept room, all defaults accepted by Harry) from [joining with a code](../../product/onboarding.md#joining-with-a-code-or-a-qr-code), [empty and error states](../../product/onboarding.md#empty-and-error-states), [the worked example](../../agent-workflow.md#a-worked-example-joining-with-a-code), [room codes and joining](../../architecture/security.md#room-codes-joining-and-the-host) and `JOIN_ROOM_ANSWERS` in `packages/contract/src/answers.ts`.
+Screen 05 in the Figma (`15:312`). Route `/join`. Built in M4.8, with the answers from M4.1 (and `removed` from M4.2, `locked` from M4.23). Written on 30 October 2026 and updated on 3 November 2026 (slice 6's questions, then slice 7's kept room, all defaults accepted by Harry) from [joining with a code](../../product/onboarding.md#joining-with-a-code-or-a-qr-code), [empty and error states](../../product/onboarding.md#empty-and-error-states), [the worked example](../../agent-workflow.md#a-worked-example-joining-with-a-code), [room codes and joining](../../architecture/security.md#room-codes-joining-and-the-host) and `JOIN_ROOM_ANSWERS` in `packages/contract/src/answers.ts`.
 
 ## Purpose
 
@@ -29,12 +29,12 @@ Six digits and you're in. The app tries to join as soon as the sixth digit is ty
 | `in_finale` | `join:errors.inFinale` | Stay filled | `haptics.error()` | Host a movie night |
 | `name_required` | | Stay filled | None | Pushes [the name screen](name.md) with `?code=`. Back here, it joins again by itself only if the profile now has a name; a player who backed out without saving finds the digits filled and no message (deleting a digit and typing it again retries) |
 | `closed` (a pasted link to an ended room) | `join:errors.closed` | Clear | `haptics.error()` | Host a movie night |
-| `removed` (planned, M4.2) | `join:errors.removed` | Clear | `haptics.error()` | Host a movie night |
-| `locked` (planned, M4.2) | `join:errors.locked` | Stay filled | `haptics.error()` | Host a movie night |
+| `removed` | `join:errors.removed` | Clear | `haptics.error()` | Host a movie night |
+| `locked` (planned, M4.23) | `join:errors.locked` | Stay filled | `haptics.error()` | Host a movie night |
 | Offline before the call | `join:errors.offline` | Stay filled | None | Joins by itself when the connection comes back |
 | The call failed | `join:errors.network` | Stay filled | `haptics.error()` | Retry |
 
-Typing or deleting a digit clears the message. A Jest test walks `JOIN_ROOM_ANSWERS` and `PLANNED_JOIN_ROOM_ANSWERS` and fails if one has no row here. `removed` and `locked` ship in M4.8 against the planned list (`['removed', 'locked']` after M4.1), so they work the day M4.2 makes `join_room` return them, with no app change.
+Typing or deleting a digit clears the message. A Jest test walks `JOIN_ROOM_ANSWERS` and `PLANNED_JOIN_ROOM_ANSWERS` and fails if one has no row here. `removed` and `locked` ship in M4.8 against the planned list (`['removed', 'locked']` after M4.1), so they work the day M4.2 and M4.23 make `join_room` return them, with no app change.
 
 **Leaving the old seat (M4.22).** When the phone keeps a seat in another room, an `ok` here leaves it exactly as the [join sheet](join-sheet.md#leaving-the-old-seat) does (once, without waiting or retrying), and the new room becomes the kept one. There is **no leave line**: a typed code joins at once, with nothing to confirm (Q22.4).
 

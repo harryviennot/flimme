@@ -5,6 +5,7 @@ import {
   JOIN_ROOM_ANSWERS,
   ROOM_PREVIEW_ANSWERS,
   LEAVE_ROOM_ANSWERS,
+  REMOVE_MEMBER_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
@@ -105,6 +106,12 @@ const cases = [
     name: 'leave_room',
     answers: LEAVE_ROOM_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.leaveRoom({ room_id: ROOM }),
+    full: {},
+  },
+  {
+    name: 'remove_member',
+    answers: REMOVE_MEMBER_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.removeMember({ room_id: ROOM, member_id: MEMBER }),
     full: {},
   },
   {
