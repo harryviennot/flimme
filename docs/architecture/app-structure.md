@@ -80,6 +80,7 @@ The design file's 26 screens are the reference for what exists, not the final wo
 | `/room/[id]` | | Layout for every room screen: subscribes to Realtime, keeps the room fresh, redirects by state |
 | `/room/[id]/lobby` | 08 | With the "Shuffling" overlay while the room is `dealing` |
 | `/room/[id]/invite` | 09 | Sheet over the lobby |
+| `/room/[id]/services` | | Sheet over the lobby: a guest picks their services ([lobby](../design/screens/lobby.md)) |
 | `/room/[id]/taste-check` | 10 | Local to the lobby: the room is still `lobby` |
 | `/room/[id]/swipe` | 11 to 13, 26 | Flipping is an animation, not a route. "Nothing left" is a state of this screen |
 | `/room/[id]/final-cut` | 15 | One 60-second round: order the finalists and veto one at once ([the finale](../product/game-modes.md#the-finale)) |
