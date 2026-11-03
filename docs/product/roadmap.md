@@ -97,8 +97,8 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
-| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 22 | In progress |
-| [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | Not started |
+| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
+| [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Not started |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | Not started |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | Not started |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 70 of 250 tasks done.
+Progress: 70 of 253 tasks done.
 
 ```mermaid
 flowchart LR
@@ -328,8 +328,10 @@ Done when: three phones join one room by code, link and QR code, see each other 
 
 - [x] **M4.1** Invite links carry a room reference; `api.join_room` takes it, answers `closed` for a stale link, and stores how the player came in (`via`, `link_opened_at`) · backend · M · needs M1.5 · [onboarding](onboarding.md#the-link), [analytics](analytics.md#changes-this-asks-elsewhere)
   Done when: a link to a closed room can't join the newer room that reused its code.
-- [ ] **M4.2** Host powers: `rooms.locked`, `api.remove_member`, `api.set_room_locked`; a removed player can't rejoin · backend · L · needs M1.8 · [security](../architecture/security.md#room-codes-joining-and-the-host)
-  Done when: tests cover removing, locking and rejoining. It also adds `removed` and `locked` to `api.room_preview` (M4.19), as it adds them to `join_room`.
+- [ ] **M4.2** Remove player: `api.remove_member`, host only; a removed player can't rejoin · backend · M · needs M1.8 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+  Done when: tests cover removing (the host only, and each answer) and rejoining. It also adds `removed` to `api.join_room` and `api.room_preview` (M4.19).
+- [ ] **M4.23** Lock room: `rooms.locked` and `api.set_room_locked`, host only; a locked room takes no new player · backend · M · needs M4.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+  Done when: tests cover locking, unlocking and joining a locked room. A seated player still rejoins, and `locked` answers in `api.join_room` and `api.room_preview`.
 - [x] **M4.3** Names normalised and filtered with an English and French blocklist; avatars from presets only · backend · M · needs M1.5 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tests refuse blocked names, invisible characters and unknown avatars.
 - [x] **M4.4** `api.create_room` takes the room settings, so opening a room is one call · backend · S · needs M1.5, M1.10 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
@@ -354,7 +356,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: players appear and leave live on three phones.
 - [x] **M4.12** The invite sheet: share the link, show the QR code · app · S · needs M4.10, M4.1 · [onboarding](onboarding.md#the-link)
   Done when: sharing works on both platforms. Until M4.18, the link uses the build's own scheme, so https links that chat apps make tappable, the camera opening the app through a universal link, the invite page for guests and the device check of a link sent by message wait for M4.18.
-- [ ] **M4.13** The host menu: Remove player, Lock room · app · M · needs M4.11, M4.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [ ] **M4.13** The host menu: Remove player, Lock room · app · M · needs M4.11, M4.2, M4.23, M7.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: a removed player sees why and can't come back.
 - [x] **M4.14** The invite page with the code and store buttons, and the verification files in the repo, ready for the domain · ops · M · needs M3.2 · [store-listing](store-listing.md#invite-links-and-the-web-page), [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the invite page shows the code and the steps, and the verification files are in the repo.
@@ -385,14 +387,18 @@ Done when: a room is dealt in under a second, only with films its players can wa
   Done when: tested with a franchise-heavy seed.
 - [ ] **M5.4** "Seen it" swipes saved to `user_titles` (source `app`), so later games leave them out · backend · M · needs M1.5 · [deck-engine](../architecture/deck-engine.md#signals)
   Done when: a film swiped "Seen it" doesn't come back in the player's next room.
-- [ ] **M5.5** Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing · backend · M · needs M5.1 · [game-modes](game-modes.md#how-a-game-ends)
+- [ ] **M5.5** Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing · backend · M · needs M5.1, M5.2 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: tested with a room whose services have almost nothing.
-- [ ] **M5.6** Card payloads (`api.my_next_cards`, `api.title_cards`): poster, placeholder, year, runtime, genres, TMDB score, director, cast, trailer, the room's services for that film, watch link; `api.title_cards` limited to the caller's rooms (gap 2) · backend · L · needs M2.7, M1.7, M1.9 · [data-model](../architecture/data-model.md#the-apps-api), [security](../architecture/security.md#the-database-gaps-found)
-  Done when: a card renders from one call, and scraping other films is refused.
-- [ ] **M5.7** `api.cast_vote` accepts a vote on any active card in the room's pool, even if a refill removed it from the seat's deck · backend · L · needs M1.5 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
+- [ ] **M5.6** Card payloads (`api.my_next_cards`): poster, placeholder, year, runtime, genres, TMDB score, director, cast, trailer, backdrop, the room's services for that film with their names and logos, watch link · backend · M · needs M2.7, M1.7, M1.9 · [data-model](../architecture/data-model.md#the-apps-api)
+  Done when: a card renders from one call.
+- [ ] **M5.7** `api.cast_vote` accepts a vote on any active card in the room's pool, even if a refill removed it from the seat's deck · backend · L · needs M1.5, M5.4 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
   Done when: the refill race is covered by a test.
-- [ ] **M5.8** Check decks on the real catalog: five sample rooms (2 to 10 players, different services and age caps) look right, and 4 players deal in under 150 ms · test · M · needs M5.3, M5.6, M2.13 · [data-model](../architecture/data-model.md#sizes-and-speed)
+- [ ] **M5.8** Check decks on the real catalog: five sample rooms (2 to 10 players, different services and age caps) look right, and 4 players deal in under 150 ms · test · M · needs M5.3, M5.6, M2.13 (the staging load) · [data-model](../architecture/data-model.md#sizes-and-speed)
   Done when: findings written; anything wrong becomes a task.
+- [ ] **M5.9** `api.title_cards` limited to the caller's room (security gap 2): films in its pool only, country and services from the room, rate limited · backend · M · needs M5.6 · [data-model](../architecture/data-model.md#the-apps-api), [security](../architecture/security.md#the-database-gaps-found)
+  Done when: scraping other films is refused.
+- [ ] **M5.10** The lobby shows "Only N films fit" when a start is refused, with a hint to loosen a filter · app · S · needs M5.5, M4.11 · [game-modes](game-modes.md#how-a-game-ends)
+  Done when: a room with too few films shows the count to the host, and the guests' overlay closes.
 
 ## M6 The game
 
@@ -466,13 +472,13 @@ What stops trolls and protects kids on screen, plus the security pass before out
 
 Done when: the security checklist for the closed beta is ticked.
 
-- [ ] **M7.1** Reports: `api.report_member` stores a report, and Harry gets an alert · backend · M · needs M1.9, M9.5 · [store-listing](store-listing.md#passing-review)
-  Done when: a report reaches Harry within minutes.
+- [ ] **M7.1** Reports: `api.report_member` stores a report with a fixed reason and a rate limit; the alert comes with M9.5 · backend · M · needs M1.9 · [store-listing](store-listing.md#passing-review)
+  Done when: a report is stored, a repeat from the same reporter adds no row, and the limit answers `rate_limited`.
 - [ ] **M7.2** Report a player, from the player list · app · M · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: works on both platforms.
 - [ ] **M7.3** No trailer button in rooms with an age cap under 13 · app · S · needs M6.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tested in a capped room.
-- [ ] **M7.4** Walk the security checklist for the closed beta · test · M · needs M1.6, M1.7, M1.8, M1.9, M1.10, M1.11, M1.12, M4.1, M4.2, M4.3, M7.1, M1.2, M4.10, M5.6, M7.3, M8.4 · [security](../architecture/security.md#checklist)
+- [ ] **M7.4** Walk the security checklist for the closed beta · test · M · needs M1.6, M1.7, M1.8, M1.9, M1.10, M1.11, M1.12, M4.1, M4.2, M4.3, M7.1, M1.2, M4.10, M5.6, M7.3, M8.4, M9.5 · [security](../architecture/security.md#checklist)
   Done when: every first-release item is ticked or deferred in decisions.md.
 
 ## M8 Privacy, legal and settings
@@ -518,8 +524,8 @@ Done when: the headline metrics, alerts and backups work, and the load test pass
   Done when: the views return sensible numbers on staging test games.
 - [ ] **M9.4** Server logging without personal data, and Sentry on the server with no user id · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
   Done when: a server error shows in Sentry with no personal data.
-- [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load · backend · M · needs M2.11, M6.6, M9.4, M2.12 · [operations](../architecture/operations.md#monitoring-and-alerts)
-  Done when: a stopped worker raises an alert.
+- [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load, new reports · backend · M · needs M2.11, M6.6, M9.4, M2.12, M7.1 · [operations](../architecture/operations.md#monitoring-and-alerts)
+  Done when: a stopped worker raises an alert, and a new report alerts within 5 minutes.
 - [ ] **M9.6** Backups: the weekly logical dump and a restore drill on staging · ops · M · needs M1.1 · [operations](../architecture/operations.md#backups-and-restore)
   Done when: staging is restored from a dump and works.
 - [ ] **M9.7** The load test on staging: 45 rooms of 4 and 5 rooms of 10 played by bots · test · L · needs M6.19, M6.20 · [operations](../architecture/operations.md#load-test)

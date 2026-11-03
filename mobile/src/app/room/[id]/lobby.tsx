@@ -30,6 +30,7 @@ import { useOnline } from '@/features/network';
 import { toAvatarColor } from '@/features/profile';
 import {
   ROOM_KEY,
+  useExitRoomToHome,
   useMySeat,
   useRoom,
   useRoomConnection,
@@ -113,13 +114,13 @@ export default function RoomLobbyScreen() {
   const { slow } = useDealingTimers(dealing, isHost, () => void callStart());
 
   // Leave.
+  const exitToHome = useExitRoomToHome();
   const leave = async () => {
     const outcome = await runLeave(id ?? '', online);
     if (outcome === 'offline') showToast({ tone: 'warn', title: tc('states.offlineRoom') });
     else if (outcome === 'failed') showToast({ tone: 'warn', title: tc('errors.generic.title') });
     else {
-      router.dismissAll();
-      router.replace('/home');
+      exitToHome();
     }
   };
   const askToLeave = () => {
