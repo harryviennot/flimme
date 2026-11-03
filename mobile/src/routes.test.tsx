@@ -16,7 +16,7 @@ jest.mock('@/api', () => ({
       language: 'en',
       created_at: '2026-11-03T00:00:00Z',
     })),
-    updateProfile: jest.fn(async () => ({ status: 'ok' })),
+    updateProfile: jest.fn(async () => ({ status: 'ok', display_name: 'Léa', avatar_key: 'blue' })),
   },
 }));
 jest.mock('@/features/session', () => ({

@@ -94,7 +94,9 @@ beforeEach(async () => {
   mockReduceMotion = false;
   mockMemory.clear();
   myProfile.mockReset();
-  updateProfile.mockReset().mockResolvedValue({ status: 'ok' });
+  updateProfile
+    .mockReset()
+    .mockResolvedValue({ status: 'ok', display_name: 'Léa', avatar_key: 'blue' });
   jest.mocked(startSession).mockClear();
   await i18n.changeLanguage('en');
 });
