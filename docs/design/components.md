@@ -36,6 +36,8 @@ Pressed: the cap moves down 4 and darkens (`nope.strong`, `marquee.strong`, `lik
 
 "Selectable filter chip." 36 high, `radius.pill`, `body-m-strong`. Default: `bg.raised`, `border.default` hairline, padding 14. Selected: `accent.default`, a 16-point check, padding 10 then 14, gap 6, `text.on-accent`.
 
+`role`: `checkbox` (the default: independent filters such as moods) or `radio` (one choice per row, such as the time budget and the age cap in [host setup](screens/host-setup.md)). The chip is announced with that role and its checked state; for `radio`, the row around it is a `View` with `accessibilityRole="radiogroup"` labelled by the row's eyebrow. The look doesn't change. Gallery: a radio row. Added in M4.9.
+
 ## Tag (`ui/tag`)
 
 "Small uppercase label with optional icon. Wildcard (neon) marks exploration cards." 24 high, padding 8, `radius.xs`, gap 4, `mono-eyebrow`, icon 14. Tones (background, text): neutral `bg.raised`, `text.secondary`; accent `accent.soft`, `accent.text`; like `like.soft`, `like.default`; nope `nope.soft`, `nope.text`; marquee `marquee.soft`, `marquee.default`; wildcard `neon.soft`, `neon.default`.
