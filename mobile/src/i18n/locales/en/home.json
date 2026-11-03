@@ -1,0 +1,22 @@
+{
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening"
+  },
+  "host": {
+    "title": "Host a movie night",
+    "body": "Pick your services, invite your friends. Everyone swipes until you match.",
+    "cta": "Open a room"
+  },
+  "join": {
+    "title": "Got a room code?",
+    "body": "Join friends who already started.",
+    "cta": "Join"
+  },
+  "offline": "You're offline. Connect to host or join.",
+  "a11y": {
+    "profile": "Edit your name and color",
+    "settings": "Settings"
+  }
+}
