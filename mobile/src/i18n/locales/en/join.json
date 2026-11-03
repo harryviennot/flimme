@@ -20,6 +20,16 @@
   "actions": {
     "host": "Host a movie night"
   },
+  "link": {
+    "ticketLeft": "You're invited",
+    "ticketRight": "Tonight",
+    "joining": "Getting you in…",
+    "code": "Room {{code}}",
+    "title": "Join the movie night",
+    "titleHost": "Join {{name}}'s movie night",
+    "join": "Join",
+    "anotherCode": "Enter another code"
+  },
   "a11y": {
     "field": "Room code, 6 digits",
     "progress": "{{digits}}, {{count}} of 6 digits"

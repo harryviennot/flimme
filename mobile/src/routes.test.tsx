@@ -1,7 +1,10 @@
 import '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import { router, Stack } from 'expo-router';
+import { act, renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { ReactNode } from 'react';
 
 // What the screens of wave 2 reach for: the api, the guest session, the connection and the
@@ -102,5 +105,44 @@ describe('routes', () => {
   it('sends a fresh install from the root to the welcome screen', async () => {
     await renderRouter(routes, { initialUrl: '/', wrapper: Providers });
     await waitFor(() => expect(screen).toHavePathname('/welcome'));
+  });
+
+  // The root layout anchors on `/`, so a link opened on a cold start has `/` under the sheet and
+  // closing the sheet lands on Home or Welcome (join-sheet.md#presentation).
+  describe('closing the join sheet after a cold start', () => {
+    const layout = {
+      default: () => <Stack screenOptions={{ headerShown: false }} />,
+      unstable_settings: { initialRouteName: 'index' },
+    };
+
+    it('anchors the real root layout on the index route', () => {
+      const source = readFileSync(resolve(__dirname, 'app', '_layout.tsx'), 'utf8');
+      expect(source).toContain("export const unstable_settings = { initialRouteName: 'index' }");
+    });
+
+    it.each([
+      ['an unnamed profile', '', '/welcome'],
+      ['a named profile', 'Léa', '/home'],
+    ])('lands on the right screen for %s', async (_label, name, path) => {
+      const { api } = jest.requireMock('@/api');
+      api.myProfile.mockResolvedValueOnce({
+        id: 'u1',
+        display_name: name,
+        avatar_key: 'blue',
+        country: 'FR',
+        language: 'en',
+        created_at: '2026-11-03T00:00:00Z',
+      });
+      await renderRouter(
+        { _layout: layout, ...routes },
+        { initialUrl: '/join/123456', wrapper: Providers },
+      );
+      // `not_found` keeps the sheet open: the player closes it.
+      await waitFor(() => expect(screen).toHavePathname('/join/123456'));
+      await act(async () => {
+        router.back();
+      });
+      await waitFor(() => expect(screen).toHavePathname(path));
+    });
   });
 });

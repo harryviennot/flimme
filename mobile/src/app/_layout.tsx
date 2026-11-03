@@ -22,6 +22,10 @@ export { ErrorScreen as ErrorBoundary } from '@/components/shared/error-screen';
 
 initSentry();
 
+// A link opens the join sheet on a cold start with `/` underneath: it redirects to Home or
+// Welcome once the sheet closes, so closing always lands somewhere sensible (join-sheet.md).
+export const unstable_settings = { initialRouteName: 'index' };
+
 function RootLayout() {
   // Fonts are embedded at build time (the expo-font plugin): the first frame has them, so the
   // splash needs no hold.
@@ -56,7 +60,16 @@ function RootLayout() {
                 headerShown: false,
                 contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
               }}
-            />
+            >
+              <Stack.Screen
+                name="join/[code]"
+                options={{
+                  presentation: 'formSheet',
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: [0.7, 1],
+                }}
+              />
+            </Stack>
             <ToastHost />
           </UpdateGate>
         </QueryClientProvider>
