@@ -56,6 +56,17 @@ Show Harry the brief and the spec, and wait for a yes before writing code.
 
 `mise run check` until it passes. The Stop hook runs it too and won't let you finish red. Never skip, disable or delete a test to get green.
 
+**App tasks: try it by touch on the simulator, before review.** Unit tests don't catch what people actually do: on 3 Nov 2026 Harry found most of slice 6 and 7's bugs this way on his phone, after their tests had passed. Run the change on an iPhone simulator with Maestro (`mobile/.maestro/`). First the brief's path, then an explore pass on every screen you touched:
+
+- swipe back from the left edge, and Android's back button, on every screen;
+- double taps, and opening the same link twice;
+- background and foreground, and a cold start from a link;
+- offline, and a call that fails;
+- the smallest screen and the largest text size;
+- odd data: a long name, the full service list, a missing avatar, an empty list.
+
+Point the simulator at staging (the dev menu's Staging switch) unless the task needs SQL that hasn't merged yet, since other agents reset the local Supabase for their tests. Put what you tried and its screenshots in the pull request's "How it was tested". A bug you find is fixed in this task. If the simulator can't run, say so plainly in your hand-back and don't turn on auto-merge: the task isn't done.
+
 ## 8. Review
 
 - **S:** `/code-review` at medium effort.
@@ -69,7 +80,7 @@ Show Harry the brief and the spec, and wait for a yes before writing code.
 - Commits say why, not what. Push with `git push -u origin <branch>`.
 - Title: `<id> <roadmap title>` (CI checks it). Body: the pull request template, filled from the brief, plus "How it was tested" with each command and its result.
 - UI tasks: attach the screenshots and the feel checklist, and tell Harry a feel check is waiting.
-- **If you were told the pull request may merge itself** (Harry said so to the session that started you), turn on auto-merge with `gh pr merge <n> --auto --squash` and finish. Don't wait for CI: GitHub merges once it passes. Otherwise leave the merge to Harry.
+- **If you were told the pull request may merge itself** (Harry said so to the session that started you), turn on auto-merge with `gh pr merge <n> --auto --squash` and finish. An app task only after its touch run (step 7). Don't wait for CI: GitHub merges once it passes. Otherwise leave the merge to Harry.
 - Don't tick the roadmap: an Action does it after the merge.
 
 ## 10. Before you finish

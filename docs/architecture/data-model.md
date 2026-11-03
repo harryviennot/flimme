@@ -857,7 +857,7 @@ The ranked items are the one table that grows fast; they move to object storage 
 | 4 | about 150 ms |
 | 10 | about 220 ms |
 
-The query body is unchanged since that measurement; only its schema moved. The plan's budget is under 150 ms. Two to four players meet it on this machine; ten don't yet. If real data on Supabase hardware is still slow: precompute each room's eligible set once at start, or cap candidates with an HNSW search around the room's average taste before scoring. The server's ranking adds its own time on top, inside the same "well under a second" behind the 15-card buffer.
+The first release (M5.1) changed the query body after that measurement: it no longer joins `title_vectors`, and it computes the crowd percentiles on narrow rows and cuts to the limit before building each seat's fits. M5.8 measures it again on the real catalog. The plan's budget is under 150 ms. Two to four players meet it on this machine; ten don't yet. If real data on Supabase hardware is still slow: precompute each room's eligible set once at start, or cap candidates with an HNSW search around the room's average taste before scoring. The server's ranking adds its own time on top, inside the same "well under a second" behind the 15-card buffer.
 
 ## Retention
 
