@@ -393,6 +393,87 @@ describe('views', () => {
     await expect(api.myProfile()).rejects.toMatchObject({ kind: 'unexpected' });
   });
 
+  const roomFixture = {
+    id: ROOM,
+    code: '482915',
+    mode: 'quick_match',
+    state: 'lobby',
+    country: 'FR',
+    service_rule: 'any_member',
+    offer_kinds: ['subscription', 'free'],
+    runtime_max: null,
+    seen_rule: 'hide_seen',
+    quality: 'standard',
+    max_age: null,
+    reveal: 'party',
+    max_players: 10,
+    provider_ids: [8],
+    stats: null,
+    created_at: '2026-11-03T10:00:00Z',
+    started_at: null,
+    finale_at: null,
+    decided_at: null,
+    ended_at: null,
+  };
+  const seatFixture = {
+    member_id: MEMBER,
+    room_id: ROOM,
+    role: 'host',
+    display_name: 'Léa',
+    avatar_key: 'teal',
+    provider_ids: [],
+    joined_at: '2026-11-03T10:00:00Z',
+    left_at: null,
+    calibrated_at: null,
+    done_at: null,
+    swipe_count: 0,
+    super_likes_left: 1,
+    vetoes_left: 1,
+    is_me: true,
+    is_mine: true,
+  };
+  const denied = () => ({ data: null, error: { message: 'denied', code: '42501' }, status: 403 });
+
+  it('rooms returns the row or null, filtered by id', async () => {
+    const { client, calls } = fake(() => ok([roomFixture]));
+    await expect(createApi(client, { validate: true }).room({ room_id: ROOM })).resolves.toEqual(
+      roomFixture,
+    );
+    expect(calls).toContainEqual({ fn: 'rooms.eq', args: ['id', ROOM] });
+    await expect(createApi(fake(() => ok([])).client).room({ room_id: ROOM })).resolves.toBeNull();
+  });
+
+  it('rooms with a wrong shape is unexpected when checks are on', async () => {
+    const api = createApi(fake(() => ok([{ id: ROOM }])).client, { validate: true });
+    await expect(api.room({ room_id: ROOM })).rejects.toMatchObject({ kind: 'unexpected' });
+  });
+
+  it('room_seats sends the filter and both orders, and returns [] for no rows', async () => {
+    const { client, calls } = fake(() => ok([seatFixture]));
+    await expect(
+      createApi(client, { validate: true }).roomSeats({ room_id: ROOM }),
+    ).resolves.toEqual([seatFixture]);
+    expect(calls).toEqual([
+      { fn: 'room_seats.eq', args: ['room_id', ROOM] },
+      { fn: 'room_seats.order', args: 'joined_at' },
+      { fn: 'room_seats.order', args: 'member_id' },
+    ]);
+    await expect(
+      createApi(fake(() => ok([])).client).roomSeats({ room_id: ROOM }),
+    ).resolves.toEqual([]);
+  });
+
+  it('room_seats with a wrong shape is unexpected when checks are on', async () => {
+    const api = createApi(fake(() => ok([{ member_id: MEMBER }])).client, { validate: true });
+    await expect(api.roomSeats({ room_id: ROOM })).rejects.toMatchObject({ kind: 'unexpected' });
+  });
+
+  it('rooms and room_seats reject as denied on 42501', async () => {
+    const api = createApi(fake(denied).client);
+    await expect(api.room({ room_id: ROOM })).rejects.toMatchObject({ kind: 'denied' });
+    await expect(api.roomSeats({ room_id: ROOM })).rejects.toMatchObject({ kind: 'denied' });
+  });
+
   it('app_config keeps the keys the app reads and ignores the rest', async () => {
     const rows = [
       { key: 'min_app_version', value: { ios: '1.0.0', android: '1.0.0' } },

@@ -23,6 +23,8 @@ import {
   roomPreviewResult,
   leaveRoomResult,
   myProfileRow,
+  roomRow,
+  roomSeatRow,
   countryProvidersSchema,
   type CountryProvider,
   setMyProvidersResult,
@@ -36,6 +38,8 @@ import {
   type RoomPreviewResult,
   type LeaveRoomResult,
   type MyProfile,
+  type RoomRow,
+  type RoomSeat,
   type RoomSettings,
   type SetMyProvidersResult,
   type SetSeatPrefsResult,
@@ -211,6 +215,45 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         }
       }
       return row as MyProfile | null;
+    },
+
+    /** The room, as a member sees it. Null when the view returns no row: not a member, or a removed seat. */
+    async room(args: { room_id: string }): Promise<RoomRow | null> {
+      const rows = await readView(
+        () => client.from('rooms').select('*').eq('id', args.room_id).limit(1),
+        'rooms',
+      );
+      const row = rows?.[0] ?? null;
+      if (row && options.validate) {
+        const parsed = roomRow.safeParse(row);
+        if (!parsed.success) {
+          throw new ApiError('unexpected', 'rooms', `wrong shape: ${parsed.error.message}`);
+        }
+      }
+      return row as RoomRow | null;
+    },
+
+    /** Every seat of the room, oldest first, including seats that left (`left_at` is set). */
+    async roomSeats(args: { room_id: string }): Promise<RoomSeat[]> {
+      const rows = await readView(
+        () =>
+          client
+            .from('room_seats')
+            .select('*')
+            .eq('room_id', args.room_id)
+            .order('joined_at')
+            .order('member_id'),
+        'room_seats',
+      );
+      if (options.validate) {
+        for (const row of rows ?? []) {
+          const parsed = roomSeatRow.safeParse(row);
+          if (!parsed.success) {
+            throw new ApiError('unexpected', 'room_seats', `wrong shape: ${parsed.error.message}`);
+          }
+        }
+      }
+      return (rows ?? []) as RoomSeat[];
     },
 
     /** The services streaming in a country, most shown first. */

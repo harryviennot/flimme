@@ -56,5 +56,7 @@ describe('roomRouteFor', () => {
     expect(roomRouteFor('r1', 'dealing')).toBe('/room/r1/lobby');
     expect(roomRouteFor('r1', 'swiping')).toBe('/room/r1/swipe');
     expect(roomRouteFor('r1', 'finale')).toBe('/room/r1/final-cut');
+    expect(roomRouteFor('r1', 'done')).toBe('/room/r1/winner');
+    expect(roomRouteFor('r1', 'abandoned')).toBe('/room/r1/closed');
   });
 });

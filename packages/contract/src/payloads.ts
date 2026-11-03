@@ -5,6 +5,7 @@
 // the latest migration; a PR that changes a function changes its schema here too.
 import * as z from 'zod/mini';
 
+import type { Json } from './database.types';
 import { ROOM_STATES } from './realtime';
 
 const roomState = z.enum(ROOM_STATES);
@@ -132,6 +133,51 @@ export const myProfileRow = z.object({
   created_at: z.string(),
 });
 export type MyProfile = z.infer<typeof myProfileRow>;
+
+// The `api.rooms` view: what a member of the room reads about it.
+export const roomRow = z.object({
+  id: z.string(),
+  code: z.string(),
+  mode: z.string(),
+  state: roomState,
+  country: z.string(),
+  service_rule: z.enum(['any_member', 'every_member']),
+  offer_kinds: z.array(z.enum(['subscription', 'free', 'ads', 'rent', 'buy'])),
+  runtime_max: z.nullable(z.number()),
+  seen_rule: z.enum(['hide_seen', 'allow_rewatch', 'show_all']),
+  quality: z.enum(['standard', 'hidden_gems', 'guilty_pleasures']),
+  max_age: z.nullable(z.number()),
+  reveal: z.enum(['party', 'blind']),
+  max_players: z.number(),
+  provider_ids: z.array(z.number()),
+  stats: z.nullable(z.unknown()),
+  created_at: z.string(),
+  started_at: z.nullable(z.string()),
+  finale_at: z.nullable(z.string()),
+  decided_at: z.nullable(z.string()),
+  ended_at: z.nullable(z.string()),
+});
+export type RoomRow = Omit<z.infer<typeof roomRow>, 'stats'> & { stats: Json | null };
+
+// The `api.room_seats` view: one row per seat of the room, including seats that left.
+export const roomSeatRow = z.object({
+  member_id: z.string(),
+  room_id: z.string(),
+  role: z.enum(['host', 'guest']),
+  display_name: z.string(),
+  avatar_key: z.string(),
+  provider_ids: z.array(z.number()),
+  joined_at: z.string(),
+  left_at: z.nullable(z.string()),
+  calibrated_at: z.nullable(z.string()),
+  done_at: z.nullable(z.string()),
+  swipe_count: z.number(),
+  super_likes_left: z.number(),
+  vetoes_left: z.number(),
+  is_me: z.nullable(z.boolean()),
+  is_mine: z.nullable(z.boolean()),
+});
+export type RoomSeat = z.infer<typeof roomSeatRow>;
 
 export const countryProviderRow = z.object({
   provider_id: z.number(),
