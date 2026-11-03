@@ -24,6 +24,14 @@ export default function RoomLayout() {
         }}
       />
       <Stack.Screen
+        name="services"
+        options={{
+          presentation: 'formSheet',
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.8],
+        }}
+      />
+      <Stack.Screen
         name="recap"
         options={{
           presentation: 'formSheet',
