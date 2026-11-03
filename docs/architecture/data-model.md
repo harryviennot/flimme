@@ -630,6 +630,8 @@ If nothing has arrived 8 seconds after the tap, the host's phone calls `api.star
 
 That is with `deck_engine` set to `server`. With `sql` (the first release, see [app_config](#7-operations)), nothing is queued: `api.start_game` sends `state_changed` `dealing`, deals the SQL baseline in the same call and answers its `ok` (`started`, no `fallback` field), so `state_changed` `swiping` follows from the same commit. Refills work the same way: the vote at 15 cards left, a late joiner and `api.request_cards` deal the baseline at once. These deals are still logged with `is_fallback` true. A refill tops the seat back up to 25 unvoted cards: first the room's pool films this seat hasn't had yet, in the same shuffled order, then new films. So every seat, and a late joiner after the opening, see one sequence.
 
+A start with fewer than 20 eligible films (M5.5) is not dealt. `internal.deal_cards` checks the request's `candidates` (the size of the set the dealer drew from, before the misery line; the pool's size when it is missing), logs the attempt in `rec.requests` with no pool, deck or item rows, moves the room back to `lobby` with `dealing_at` cleared, sends `state_changed` with `reason` `too_few_films` and `eligible`, and answers `{status: 'too_few_films', eligible}` (plus `fallback` on the 8-second second tap). Only a start: refills and late joiners deal whatever there is.
+
 ### A swipe
 
 ```mermaid
@@ -796,7 +798,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `room_locked` | room | set_room_locked | locked | Refetches the room (only sent when the value changes) |
 | `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
 | `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
-| `state_changed` | room | start_game, deal_cards, finale, end | state | Moves to the next screen ("Shuffling" while dealing) |
+| `state_changed` | room | start_game, deal_cards, finale, end | state, optional reason and eligible (a start sent back to the lobby: `too_few_films`) | Moves to the next screen ("Shuffling" while dealing) |
 | `deck_updated` | room | cast_vote, deal_cards | seat ids | Those seats refetch behind their mounted cards |
 | `near_miss` | room | cast_vote, Party mode only | title, likes, of | "2 of 3 of you liked this" |
 | `match` | room | cast_vote, leave_room, sweeper | title, kind, likes, of, decided | Match screen |

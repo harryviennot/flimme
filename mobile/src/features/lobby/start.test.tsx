@@ -3,11 +3,12 @@ import { act, renderHook } from '@testing-library/react-native';
 import { DEAL_RETRY_MS, DEAL_SLOW_MS, runStart, useDealingTimers } from './start';
 
 describe('runStart', () => {
-  it('re-reads the room after ok, dealing and closed', async () => {
+  it('re-reads the room after ok, dealing, closed and too_few_films', async () => {
     for (const answer of [
       { status: 'ok' as const },
       { status: 'dealing' as const },
       { status: 'closed' as const },
+      { status: 'too_few_films' as const, eligible: 12 },
     ]) {
       await expect(runStart(async () => answer)).resolves.toEqual({ kind: 'reread' });
     }

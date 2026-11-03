@@ -21,6 +21,8 @@ export async function runStart(startGame: () => Promise<StartGameResult>): Promi
       case 'ok':
       case 'dealing':
       case 'closed':
+      // The lobby's own message for too few films is M5.10; until then the room is re-read.
+      case 'too_few_films':
         return { kind: 'reread' };
     }
   } catch {
