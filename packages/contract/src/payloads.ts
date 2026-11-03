@@ -49,6 +49,21 @@ export const joinRoomResult = z.discriminatedUnion('status', [
 ]);
 export type JoinRoomResult = z.infer<typeof joinRoomResult>;
 
+export const roomPreviewResult = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('ok'),
+    state: z.enum(['lobby', 'dealing', 'swiping']),
+    host_name: z.nullable(z.string()),
+    host_avatar_key: z.nullable(z.string()),
+    players: z.number(),
+    max_players: z.number(),
+    seated: z.boolean(),
+  }),
+  z.object({ status: z.literal('full'), max_players: z.number() }),
+  z.object({ status: z.enum(['closed', 'in_finale', 'rate_limited']) }),
+]);
+export type RoomPreviewResult = z.infer<typeof roomPreviewResult>;
+
 export const leaveRoomResult = z.object({ status: z.enum(['ok', 'not_in_room']) });
 export type LeaveRoomResult = z.infer<typeof leaveRoomResult>;
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CREATE_ROOM_ANSWERS,
   JOIN_ROOM_ANSWERS,
+  ROOM_PREVIEW_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
@@ -85,6 +86,22 @@ const cases = [
     },
   },
   {
+    name: 'room_preview',
+    answers: ROOM_PREVIEW_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.roomPreview({ code: '482915', ref: ROOM }),
+    full: {
+      ok: {
+        state: 'lobby',
+        host_name: 'Camille',
+        host_avatar_key: 'blue',
+        players: 3,
+        max_players: 10,
+        seated: false,
+      },
+      full: { max_players: 10 },
+    },
+  },
+  {
     name: 'leave_room',
     answers: LEAVE_ROOM_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.leaveRoom({ room_id: ROOM }),
@@ -160,6 +177,12 @@ describe('arguments', () => {
         p_settings: { runtime_max: 105, max_age: null },
       },
     });
+  });
+
+  it('room_preview sends the code and the reference', async () => {
+    const { client, calls } = fake(() => ok({ status: 'closed' }));
+    await createApi(client).roomPreview({ code: '482915', ref: ROOM });
+    expect(calls[0]).toEqual({ fn: 'room_preview', args: { p_code: '482915', p_ref: ROOM } });
   });
 
   it('join_room sends the reference, how the player came in and when the link was opened', async () => {

@@ -7,6 +7,7 @@
 import {
   CREATE_ROOM_ANSWERS,
   JOIN_ROOM_ANSWERS,
+  ROOM_PREVIEW_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
@@ -19,6 +20,7 @@ import {
   appConfigSchema,
   createRoomResult,
   joinRoomResult,
+  roomPreviewResult,
   leaveRoomResult,
   myProfileRow,
   countryProvidersSchema,
@@ -31,6 +33,7 @@ import {
   type AppConfig,
   type CreateRoomResult,
   type JoinRoomResult,
+  type RoomPreviewResult,
   type LeaveRoomResult,
   type MyProfile,
   type RoomSettings,
@@ -114,6 +117,18 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         },
         JOIN_ROOM_ANSWERS,
         joinRoomResult,
+      );
+    },
+
+    /** What a link tells before joining: the host and the count, never other players. Needs the link's `ref`. */
+    roomPreview(args: { code: string; ref: string }): Promise<RoomPreviewResult> {
+      return callAnswer(
+        client,
+        options,
+        'room_preview',
+        { p_code: args.code, p_ref: args.ref },
+        ROOM_PREVIEW_ANSWERS,
+        roomPreviewResult,
       );
     },
 
