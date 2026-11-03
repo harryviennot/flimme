@@ -553,6 +553,18 @@ describe('the kept room', () => {
     expect(router.replace).toHaveBeenCalledWith(`/room/${ROOM}/lobby`);
   });
 
+  it('still leaves the old room when the new room writes itself as kept before the answer is used', async () => {
+    mockRoomPreview.mockResolvedValue({ ...PREVIEW_OK, seated: true });
+    mockJoinRoom.mockImplementation(async () => {
+      // The new room's layout keeps itself as soon as it mounts.
+      keptRoomStore.getState().keep({ id: ROOM, code: '482913' });
+      return { status: 'ok', room_id: ROOM, state: 'lobby' };
+    });
+    await openOnly({ code: '482913', r: REF });
+    expect(mockLeaveRoom).toHaveBeenCalledTimes(1);
+    expect(mockLeaveRoom).toHaveBeenCalledWith({ room_id: 'room-old' });
+  });
+
   it('leaves nothing when the seated link is the kept room itself', async () => {
     keptRoomStore.getState().keep({ id: ROOM, code: '482913' });
     mockRoomPreview.mockResolvedValue({ ...PREVIEW_OK, seated: true });
