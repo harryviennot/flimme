@@ -6,7 +6,7 @@ name: Staging
 on:
   push:
     branches: [main]
-    paths: ['supabase/migrations/**', 'server/**']
+    paths: ['supabase/migrations/**', 'server/**', 'mobile/**', 'packages/**', 'pnpm-lock.yaml']
   workflow_dispatch:
 
 permissions:
@@ -91,3 +91,45 @@ jobs:
         working-directory: server
         # One machine, never two (a second pipeline worker would only double the TMDB traffic).
         run: flyctl deploy --config fly.workers.staging.toml --remote-only --ha=false --image-label "sha-$GITHUB_SHA"
+
+  app:
+    # Database, then server, then app (operations.md#releasing). A JavaScript-only change reaches
+    # the preview builds as an EAS Update; a changed native fingerprint gets no automatic build
+    # (the free plan has 15 per platform a month): the job summary says to run "Preview build".
+    needs: [database, server]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      # The build and its updates must see the same value: the app config counts in the fingerprint.
+      APP_VARIANT: preview
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm install --global eas-cli@27.2.0
+      - name: Does a preview build carry this commit's native fingerprint?
+        id: plan
+        run: node tools/preview-update-plan.mjs
+      - name: Publish the update to the preview channel
+        if: steps.plan.outputs.platform != 'none'
+        working-directory: mobile
+        env:
+          PLATFORM: ${{ steps.plan.outputs.platform }}
+        run: eas update --channel preview --environment preview --platform "$PLATFORM" --input-dir dist --message "$GITHUB_SHA" --non-interactive
+      # The update's bundle stays in mobile/dist. Until Harry adds SENTRY_AUTH_TOKEN the step is skipped with a warning.
+      - name: Upload the update's source maps to Sentry
+        if: steps.plan.outputs.platform != 'none'
+        working-directory: mobile
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "::warning::No SENTRY_AUTH_TOKEN secret yet, so the update's source maps were not uploaded"
+          else
+            pnpm exec sentry-expo-upload-sourcemaps dist
+          fi
