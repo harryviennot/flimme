@@ -470,3 +470,73 @@ async def test_a_step_that_comes_back_after_a_crash_mends_the_tiers(
     await sweep(database, fake_time, run_id, {"flatrate": [gained]})
 
     assert (await tiers(restore))[gained] == 1
+
+
+async def test_a_failing_tier_refresh_rolls_the_delete_back(
+    database: Database,
+    restore: AsyncConnection,
+    fake_time: FakeTime,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    from server.db import queries
+
+    films = await add_films(restore, 10)
+    await add_offers(restore, films)
+    run_id = await open_run(restore)
+    real = queries.load
+
+    def broken(name: str) -> Any:
+        return "select 1/0 from unnest(%s::bigint[])" if name == "refresh_tiers" else real(name)
+
+    monkeypatch.setattr(queries, "load", broken)
+    transport = Discover({"flatrate": films[1:]}, provider_id=SERVICE)
+    with pytest.raises(Exception, match="division by zero"):
+        await run_sweep(database, tmdb(transport, fake_time), step(run_id), today=TODAY)
+    monkeypatch.undo()
+
+    assert sorted(await offers(restore)) == films  # the unseen offer is still there
+
+
+async def test_two_steps_dropping_the_last_two_offers_of_a_film_leave_it_at_tier_2(
+    database: Database, restore: AsyncConnection, fake_time: FakeTime, pipeline_url: SecretStr
+):
+    import asyncio
+
+    from psycopg import AsyncConnection as Conn
+    from tests.contract.conftest import ADMIN_URL
+
+    films = await add_films(restore, 10)
+    await add_offers(restore, films)  # on SERVICE
+    await add_offers(restore, films[:1], provider=OTHER)  # films[0] is also on OTHER
+    run_id = await open_run(restore, steps=2)
+
+    # The other step, still open: it has deleted OTHER's offer of films[0] and holds the film's
+    # row lock, but has not committed.
+    async with await Conn.connect(ADMIN_URL, autocommit=False) as other:
+        await other.execute(
+            "select id from public.titles where tmdb_id = %s for no key update", (films[0],)
+        )
+        await other.execute(
+            "delete from public.title_availability a using public.titles t"
+            " where t.id = a.title_id and t.tmdb_id = %s and a.provider_id = %s",
+            (films[0], OTHER),
+        )
+        transport = Discover({"flatrate": films[1:]}, provider_id=SERVICE)
+        task = asyncio.create_task(
+            run_sweep(database, tmdb(transport, fake_time), step(run_id), today=TODAY)
+        )
+        for _ in range(200):  # wait until the sweep is queued behind the lock
+            cur = await restore.execute(
+                "select count(*) from pg_stat_activity"
+                " where wait_event_type = 'Lock' and query ilike '%%for no key update%%'"
+            )
+            row = await cur.fetchone()
+            if row and row[0]:
+                break
+            await asyncio.sleep(0.05)
+        else:
+            raise AssertionError("the sweep did not wait for the film's lock")
+        await other.commit()
+        assert await task == Done()
+
+    assert (await tiers(restore))[films[0]] == 2

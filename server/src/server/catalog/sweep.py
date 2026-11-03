@@ -282,6 +282,15 @@ async def _write(
             stats["guard_trips"] = 1
             stats[f"guard_refused_{country}_{provider}"] = stale
         else:
+            # Lock the films first, in id order (so two steps cannot deadlock). Two steps that
+            # drop the last two offers of one film would otherwise each still see the other's
+            # uncommitted row and leave the film at tier 1. After the lock, every later
+            # statement sees what the other step committed. A fetch of the film takes the same
+            # lock through its upsert and touches no other title, so it cannot deadlock either.
+            cur = await conn.execute(
+                queries.load("stale_availability_titles"), (country, provider, started_at)
+            )
+            await conn.execute(queries.load("lock_titles"), ([r[0] for r in await cur.fetchall()],))
             cur = await conn.execute(
                 queries.load("delete_stale_availability"), (country, provider, started_at)
             )
