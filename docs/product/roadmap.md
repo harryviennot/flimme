@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 53 of 244 tasks done.
+Progress: 54 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -315,7 +315,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
 - [ ] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: the gallery's motion section plays each spring and haptic on a phone.
-- [ ] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · M · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
+- [x] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · M · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
   Done when: every first-release route and `/room/[id]/services` opens, and the dev menu switches between the local and staging backends.
 - [x] **M3.16** The consistency checks: theme classes only, no arbitrary values or raw colors, primitives only from `ui/`, the component tiers, strings through `t()`, a gallery entry per component · app · S · needs M3.13 · [groundwork](../architecture/groundwork.md#keeping-every-screen-consistent)
   Done when: each check fails on a purpose-built bad example and passes on the app.
