@@ -1,6 +1,6 @@
 -- The cards a phone renders: my_next_cards and title_cards
--- (data-model.md#the-apps-api). Cards are checked by key, never whole, because
--- the payload changes in roadmap task M5.6. C6 is beyond the 120 checks of
+-- (data-model.md#the-apps-api). Cards are checked by key, never whole
+-- (the payload grew in M5.6; title_cards is scoped to a room since M5.9). C6 is beyond the 120 checks of
 -- data-model.md#what-was-tested.
 
 begin;
@@ -90,7 +90,7 @@ select set_config('tests.asked', array[
 select tests.authenticate_as('p1');
 select is(
   (select array_agg((c->>'title_id')::bigint order by o)
-   from jsonb_array_elements(api.title_cards(current_setting('tests.asked')::bigint[])) with ordinality x(c, o)),
+   from jsonb_array_elements(api.title_cards(tests.room_id(), current_setting('tests.asked')::bigint[])->'cards') with ordinality x(c, o)),
   current_setting('tests.asked')::bigint[],
   'C5 title_cards returns the films in the order asked'
 );

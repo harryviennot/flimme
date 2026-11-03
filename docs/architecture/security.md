@@ -74,7 +74,7 @@ Concrete issues in the draft SQL, with a fix and when it's needed.
 | # | Where | Problem | Fix | When |
 | --- | --- | --- | --- | --- |
 | 1 | Grants for future objects | The script revokes function rights once, at the end, for the functions that exist then. In Postgres a new function is executable by `PUBLIC`, and Supabase also grants new objects in `public` to `anon` and `authenticated` on existing projects. Every function or table added by a later migration starts open | `alter default privileges` to revoke execute on functions from `PUBLIC` in `api`, `internal`, `rec` and `public`, and to revoke Supabase's default table grants in `public`. A CI check that lists tables without row-level security and functions executable by phones that aren't on an allowlist | Beta |
-| 2 | `api.title_cards` | Returns cards for any film ids, 50 per call, for any country, with no limit. A guest can download the whole catalog, availability per country included, in about a thousand calls | Serve only films in the caller's rooms (pool, matches, finalists) and the taste check pool; take the country from the profile or the room, not an argument; rate-limit | Beta |
+| 2 | `api.title_cards` (fixed in M5.9) | Returned cards for any film ids, 50 per call, for any country, with no limit. A guest can download the whole catalog, availability per country included, in about a thousand calls | Serve only films in the caller's rooms (pool, matches, finalists), with the taste check pool served by its own function; take the country from the room, not an argument; rate-limit (done: `title_cards(room, ids, language)`) | Beta |
 | 3 | `internal.is_room_member` | Ignores `left_at`, and there's no way to remove a player. Anyone who ever sat in a room keeps reading its seats, matches and rounds, keeps both Realtime topics, and can keep sending on `:live` | Add `room_members.removed_at`. Removed seats are not members at all; seats that left keep read access (for history and rejoining) but can't send on `:live` | Beta |
 | 4 | `api.update_profile` | `avatar_key` accepts any text, though the column says "preset avatar". Display names are only length-checked | Validate avatars against a list of presets; normalise names ([kids](#keeping-kids-safe-on-screen)) | Beta |
 | 5 | `api.update_room_settings` | Broadcasts the client's raw `p_settings` JSON to every phone in the room, whatever it contains, and doesn't range-check `runtime_max` or `max_age` | Broadcast the saved values, not the input; check ranges | Beta |
@@ -265,7 +265,7 @@ One developer means one person's laptop and accounts are the whole perimeter.
 **Before the closed beta**
 
 - [ ] Default privileges revoked, and a CI check for tables without row-level security and functions open to phones (gap 1)
-- [ ] `api.title_cards` restricted to the caller's rooms and the taste check (gap 2)
+- [x] `api.title_cards` restricted to the caller's room (gap 2, M5.9); the taste check will have its own function
 - [x] `removed_at`, Remove player; removed seats lose read and Realtime access (gap 3)
 - [x] Lock room (M4.23)
 - [ ] Avatars from presets only; display names normalised, with a blocklist (gap 4)

@@ -275,3 +275,11 @@ export type NextCard = z.infer<typeof nextCardRow>;
 
 /** `api.my_next_cards` answers an array of cards, with no status. */
 export const myNextCardsResult = z.array(nextCardRow);
+
+/** `api.title_cards`: the room's films as cards, in the order asked; other films are left out. */
+export const titleCardsResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), cards: z.array(cardRow) }),
+  z.object({ status: z.literal('too_many'), max: z.number() }),
+  z.object({ status: z.literal('rate_limited') }),
+]);
+export type TitleCardsResult = z.infer<typeof titleCardsResult>;
