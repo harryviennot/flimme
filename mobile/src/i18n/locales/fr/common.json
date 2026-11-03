@@ -49,7 +49,7 @@
     "roomCode": "Code de la salle"
   },
   "services": {
-    "tapToAdd": "Touche pour ajouter",
-    "youHaveIt": "Tu l'as"
+    "tapToAdd": "Ajouter",
+    "added": "Ajouté"
   }
 }

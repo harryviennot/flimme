@@ -62,7 +62,7 @@ export function MarqueeBulbs({ count = 16, chasing = false }: MarqueeBulbsProps)
   }, [chasing, phase]);
 
   return (
-    <View className="flex-row gap-3" accessible={false}>
+    <View className="flex-row gap-3 self-center" accessible={false}>
       {Array.from({ length: count }, (_, i) =>
         chasing ? (
           <Bulb key={i} index={i} count={count} phase={phase} />

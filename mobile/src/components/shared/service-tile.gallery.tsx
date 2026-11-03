@@ -9,14 +9,21 @@ function Demo() {
   const toggle = (name: string) =>
     setMine((m) => (m.includes(name) ? m.filter((x) => x !== name) : [...m, name]));
   return (
-    <View className="flex-row flex-wrap gap-2">
-      {['Netflix', 'Prime', 'Canal+', 'Disney+', 'Max', 'Apple TV+'].map((name) => (
-        <ServiceTile
-          key={name}
-          name={name}
-          selected={mine.includes(name)}
-          onPress={() => toggle(name)}
-        />
+    <View className="gap-2">
+      {[
+        ['Netflix', 'Prime', 'Canal+'],
+        ['Disney+', 'Max', 'Apple TV+'],
+      ].map((row) => (
+        <View key={row[0]} className="flex-row gap-2">
+          {row.map((name) => (
+            <ServiceTile
+              key={name}
+              name={name}
+              selected={mine.includes(name)}
+              onPress={() => toggle(name)}
+            />
+          ))}
+        </View>
       ))}
     </View>
   );
