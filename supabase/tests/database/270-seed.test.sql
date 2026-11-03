@@ -27,7 +27,7 @@ select is((select catalog_enabled from public.countries where code = 'FR'), true
 select cmp_ok((select count(*) from public.provider_regions where country = 'FR' and provider_id between 8001 and 8010),
   '=', 10::bigint, 'S1 the 10 seed services are in FR');
 
--- S2: a 4-seat room on two seed services is dealt 30 cards to every seat.
+-- S2: a 4-seat room on two seed services is dealt 25 cards to every seat (M5.2: deck.deal_size).
 select tests.create_room(4, 'quick_match', 'FR', 's');
 select tests.authenticate_as('s1');
 select api.set_seat_prefs(tests.room_id(), array[8001]);
@@ -45,13 +45,13 @@ select is((select state::text from public.rooms where id = tests.room_id()), 'sw
   'S2 the room is swiping after the deal');
 select is((select provider_ids from public.rooms where id = tests.room_id()), '{8001,8002,8008,8009,8010}'::integer[],
   'S2 the room''s services are the seats'' two plus the free services');
-select is((select count(*) from public.room_cards where room_id = tests.room_id()), 30::bigint,
-  'S2 the room is dealt 30 cards');
+select is((select count(*) from public.room_cards where room_id = tests.room_id()), 25::bigint,
+  'S2 the room is dealt 25 cards');
 select is(
   (select array_agg(n) from (select count(*) as n from public.deck_entries
                              where room_id = tests.room_id() group by room_member_id) x),
-  array[30::bigint, 30, 30, 30],
-  'S2 every seat has 30 cards');
+  array[25::bigint, 25, 25, 25],
+  'S2 every seat has 25 cards');
 select ok(
   (select bool_and(exists (select 1 from public.title_availability a
                            where a.title_id = c.title_id and a.country = 'FR'
