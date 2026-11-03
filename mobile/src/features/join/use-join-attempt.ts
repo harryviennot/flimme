@@ -9,7 +9,7 @@ import { MY_PROFILE_KEY } from '@/features/profile';
 import { haptics } from '@/lib/haptics';
 
 import { CODE_LENGTH, digitsOf, readPasted, roomRouteFor } from './link';
-import { leaveOldSeat } from './old-seat';
+import { keptRoomId, leaveOldSeat } from './old-seat';
 import {
   JOIN_ROWS,
   NETWORK_ROW,
@@ -73,6 +73,8 @@ export function useJoinAttempt() {
     async (digits: string) => {
       cancel();
       const id = runId.current;
+      // The kept room now, before the call: the new room's layout overwrites it once mounted.
+      const oldRoomId = keptRoomId();
       if (!onlineRef.current) {
         waitingOnline.current = true;
         setView({ kind: 'message', ...OFFLINE_ROW });
@@ -104,7 +106,7 @@ export function useJoinAttempt() {
         }
         if (row.kind === 'go') {
           if (result.status === 'ok') {
-            leaveOldSeat(result.room_id);
+            leaveOldSeat(result.room_id, oldRoomId);
             router.replace(roomRouteFor(result.room_id, result.state) as never);
           } else {
             waitingName.current = true;
