@@ -10,6 +10,7 @@ import {
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
 } from '../answers';
+import { AVATAR_KEYS } from '../avatars';
 import { ApiError, createApi, type ApiClient } from './index';
 
 type Response = {
@@ -49,7 +50,7 @@ const cases = [
     name: 'update_profile',
     answers: UPDATE_PROFILE_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.updateProfile({ display_name: 'Léa' }),
-    full: { invalid_name: {} },
+    full: { ok: { display_name: 'Léa', avatar_key: 'blue' } },
   },
   {
     name: 'set_my_providers',
@@ -301,5 +302,11 @@ describe('views', () => {
       fake(() => ({ data: null, error: { message: 'denied', code: '42501' }, status: 403 })).client,
     );
     await expect(api.appConfig()).rejects.toMatchObject({ kind: 'denied' });
+  });
+});
+
+describe('avatars', () => {
+  it('pins the six preset keys, in order', () => {
+    expect(AVATAR_KEYS).toEqual(['blue', 'green', 'gold', 'red', 'violet', 'teal']);
   });
 });
