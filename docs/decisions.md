@@ -127,6 +127,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | Poster placeholders (M2.8): the thumbhash encoder is vendored (MIT), with current Pillow | 3 Nov 2026 | [Images](integrations/tmdb.md#images) |
 | Poster placeholders (M2.8): a failed download is retried on the next refresh and counted in `ingest_runs.stats`, not in `errors` | 3 Nov 2026 | [Images](integrations/tmdb.md#images) |
 | Poster placeholders (M2.8): a film whose poster disappears loses its placeholder | 3 Nov 2026 | [Images](integrations/tmdb.md#images) |
+| French calls streaming services *plateformes* (the copy glossary entry is no longer only proposed), so a selected service tile reads "Ajoutée" in French and "Added" in English | 3 Nov 2026 | [Copy glossary](../.claude/skills/copy/SKILL.md), [Components](design/components.md) |
 
 ## Defaults, not yet confirmed
 
