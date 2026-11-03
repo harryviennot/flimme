@@ -28,9 +28,13 @@
     "title": "Join the movie night",
     "titleHost": "Join {{name}}'s movie night",
     "join": "Join",
-    "anotherCode": "Enter another code"
+    "anotherCode": "Enter another code",
+    "players_one": "{{count}} player in",
+    "players_other": "{{count}} players in"
   },
   "a11y": {
+    "hostLine_one": "Host: {{name}}. {{count}} player in",
+    "hostLine_other": "Host: {{name}}. {{count}} players in",
     "field": "Room code, 6 digits",
     "progress": "{{digits}}, {{count}} of 6 digits"
   }

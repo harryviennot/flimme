@@ -10,11 +10,14 @@ import type { AvatarColor } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Screen } from '@/components/ui/screen';
+import { Skeleton } from '@/components/ui/skeleton';
 import { showToast } from '@/components/ui/toast';
 import { Text } from '@/components/ui/text';
-import type { LinkView, NameError } from '@/features/join/use-join-link';
+import type { JoinHost, LinkView, NameError } from '@/features/join/use-join-link';
 import { initialColor, isNameValid, type SubmitOutcome } from '@/features/profile';
 import { layout } from '@/theme/motion';
+
+import { HostLine } from './host-line';
 
 export type JoinSheetProps = {
   view: LinkView;
@@ -23,10 +26,11 @@ export type JoinSheetProps = {
   saving: boolean;
   onClearNameError: () => void;
   onRetry: () => void;
+  onJoin: () => void;
   onSubmit: (name: string, color: AvatarColor) => Promise<SubmitOutcome>;
 };
 
-/** The join sheet's three layouts: joining, first time, refused (join-sheet.md#layout). */
+/** The join sheet's layouts: loading, joining, confirm, first time, refused (join-sheet.md#layout). */
 export function JoinSheet({ view, code, ...rest }: JoinSheetProps) {
   return (
     <KeyboardAvoidingView
@@ -35,14 +39,69 @@ export function JoinSheet({ view, code, ...rest }: JoinSheetProps) {
     >
       <Screen scroll>
         <View className="pt-8 pb-4">
+          {view.kind === 'loading' ? <Loading code={code} /> : null}
           {view.kind === 'joining' ? <Joining code={code} shuffling={view.shuffling} /> : null}
+          {view.kind === 'confirm' ? (
+            <Confirm code={code} view={view} onJoin={rest.onJoin} />
+          ) : null}
           {view.kind === 'first-time' ? (
-            <FirstTime code={code} hostName={view.hostName} {...rest} />
+            <FirstTime code={code} host={view.host} hostName={view.hostName} {...rest} />
           ) : null}
           {view.kind === 'refused' ? <Refused view={view} onRetry={rest.onRetry} /> : null}
         </View>
       </Screen>
     </KeyboardAvoidingView>
+  );
+}
+
+function Ticket({ code }: { code: string }) {
+  const { t } = useTranslation('join');
+  return (
+    <RoomTicket code={code} leftDetail={t('link.ticketLeft')} rightDetail={t('link.ticketRight')} />
+  );
+}
+
+/** The session starting, the profile loading or the preview in flight: no button yet. */
+function Loading({ code }: { code: string }) {
+  return (
+    <View className="items-center gap-6">
+      <Ticket code={code} />
+      <View className="items-center gap-6" accessibilityElementsHidden>
+        <Skeleton className="h-8 w-56 rounded-sm" />
+        <Skeleton className="h-10 w-40 rounded-pill" />
+      </View>
+    </View>
+  );
+}
+
+/** A named player sees whose room it is and taps Join (join-sheet.md#layout). */
+function Confirm({
+  code,
+  view,
+  onJoin,
+}: {
+  code: string;
+  view: Extract<LinkView, { kind: 'confirm' }>;
+  onJoin: () => void;
+}) {
+  const { t } = useTranslation('join');
+  const { host, busy, shuffling } = view;
+  return (
+    <Animated.View entering={layout.fadeIn} className="items-center gap-6">
+      <Ticket code={code} />
+      <Text variant="display-m" align="center" accessibilityRole="header">
+        {host.name ? t('link.titleHost', { name: host.name }) : t('link.title')}
+      </Text>
+      <HostLine host={host} centered />
+      <View className="w-full gap-3">
+        <Button label={t('link.join')} size="l" block loading={busy} onPress={onJoin} />
+        {shuffling ? (
+          <Text variant="body-m" tone="secondary" align="center" accessibilityLiveRegion="polite">
+            {t('shuffling')}
+          </Text>
+        ) : null}
+      </View>
+    </Animated.View>
   );
 }
 
@@ -64,12 +123,13 @@ function Joining({ code, shuffling }: { code: string; shuffling: boolean }) {
 
 function FirstTime({
   code,
+  host,
   hostName,
   nameError,
   saving,
   onClearNameError,
   onSubmit,
-}: Omit<JoinSheetProps, 'view'> & { hostName: string | null }) {
+}: Omit<JoinSheetProps, 'view'> & { host: JoinHost | null; hostName: string | null }) {
   const { t } = useTranslation('join');
   const { t: tn } = useTranslation('onboarding');
   const { t: tc } = useTranslation();
@@ -107,6 +167,7 @@ function FirstTime({
       <Text variant="display-m" accessibilityRole="header">
         {hostName ? t('link.titleHost', { name: hostName }) : t('link.title')}
       </Text>
+      {host ? <HostLine host={host} /> : null}
       <NameForm
         name={name}
         color={color}

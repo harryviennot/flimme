@@ -5,7 +5,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@/api';
 import type { AvatarColor } from '@/components/ui/avatar';
 import { useOnline } from '@/features/network';
-import { applySavedProfile, submitName, type SubmitOutcome } from '@/features/profile';
+import {
+  applySavedProfile,
+  submitName,
+  toAvatarColor,
+  useMyProfile,
+  type SubmitOutcome,
+} from '@/features/profile';
 import { startSession, useSession, useSessionFailed } from '@/features/session';
 import { haptics } from '@/lib/haptics';
 
@@ -17,11 +23,30 @@ import { JOIN_SHEET_ROWS, type SheetRow } from './sheet-rows';
 
 type Refused = Extract<SheetRow, { kind: 'refused' }>;
 
+/** What the preview tells about the room: the host and the count, read once (Q20.5). */
+export type JoinHost = { name: string | null; color: AvatarColor; players: number };
+
 /** What the join sheet shows. */
 export type LinkView =
+  /** The session starting, the profile loading or the preview in flight. */
+  | { kind: 'loading' }
   | { kind: 'joining'; shuffling: boolean }
-  | { kind: 'first-time'; hostName: string | null }
+  /** A named player, before the tap: `busy` once Join is tapped. */
+  | { kind: 'confirm'; host: JoinHost; busy: boolean; shuffling: boolean }
+  | { kind: 'first-time'; host: JoinHost | null; hostName: string | null }
   | { kind: 'refused'; row: Refused; message: JoinMessage; params?: { max: number } };
+
+/** The preview answered `ok` for a player who is not seated: the layout waits on the profile. */
+type Ready = {
+  kind: 'ready';
+  host: JoinHost | null;
+  /** `name_required` from `join_room`, or the host's name when there was no preview. */
+  needName: boolean;
+  hostName: string | null;
+  busy: boolean;
+  shuffling: boolean;
+};
+type State = Exclude<LinkView, { kind: 'confirm' }> | Ready;
 
 export type NameError = 'invalid' | 'notAllowed';
 
@@ -50,15 +75,18 @@ export function useJoinLink(params: Params) {
   const client = useQueryClient();
 
   const [receivedAt] = useState(() => takeLinkReceivedAt());
-  const [view, setView] = useState<LinkView>(
-    link ? { kind: 'joining', shuffling: false } : refusedView('malformed'),
-  );
+  const [state, setState] = useState<State>(link ? openingView(ref) : refusedView('malformed'));
   const [nameError, setNameError] = useState<NameError | null>(null);
   const [saving, setSaving] = useState(false);
 
   const runId = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const waitingOnline = useRef(false);
+  // The host from the preview, and which step to run again (Retry, back online).
+  const hostRef = useRef<JoinHost | null>(null);
+  const step = useRef<'preview' | 'join'>(ref ? 'preview' : 'join');
+  // Join was tapped on Confirm: the button shows the wait, the layout stays.
+  const keepConfirm = useRef(false);
   const onlineRef = useRef(online);
   // The root stack's routes now, read when the answer comes in (a call can outlive renders).
   const rootRoutes = useRef<readonly RootRoute[]>([]);
@@ -71,70 +99,136 @@ export function useJoinLink(params: Params) {
   const refuse = useCallback((state: keyof typeof JOIN_SHEET_ROWS, params?: { max: number }) => {
     const next = refusedView(state, params);
     if (next.kind === 'refused' && next.row.haptic) haptics.error();
-    setView(next);
+    setState(next);
   }, []);
 
-  const attempt = useCallback(async () => {
-    if (!code) return;
+  const attempt = useCallback(
+    async (keep: boolean) => {
+      if (!code) return;
+      keepConfirm.current = keep;
+      runId.current += 1;
+      const id = runId.current;
+      clearTimeout(timer.current);
+      waitingOnline.current = false;
+      if (!onlineRef.current) {
+        waitingOnline.current = true;
+        refuse('offline');
+        return;
+      }
+      setState(waitView(hostRef.current, keep, false));
+      for (let tries = 0; ; tries += 1) {
+        let result;
+        try {
+          result = await api.joinRoom({
+            code,
+            ...(ref ? { ref } : {}),
+            via: 'link',
+            link_opened_at: linkOpenedAt(receivedAt),
+          });
+        } catch {
+          if (id === runId.current) refuse('failed');
+          return;
+        }
+        if (id !== runId.current) return;
+        const row = JOIN_SHEET_ROWS[result.status as keyof typeof JOIN_SHEET_ROWS] as
+          SheetRow | undefined;
+        if (!row) {
+          refuse('failed');
+          return;
+        }
+        if (result.status === 'ok') {
+          enterRoom(roomRouteFor(result.room_id, result.state), result.room_id, rootRoutes.current);
+          return;
+        }
+        if (result.status === 'name_required') {
+          setState({
+            kind: 'ready',
+            host: hostRef.current,
+            needName: true,
+            hostName: result.host_name,
+            busy: false,
+            shuffling: false,
+          });
+          return;
+        }
+        if (row.kind === 'wait') {
+          if (tries >= STARTING_RETRIES) {
+            haptics.error();
+            setState({
+              kind: 'refused',
+              row: JOIN_SHEET_ROWS.failed as Refused,
+              message: 'errors.starting',
+            });
+            return;
+          }
+          setState(waitView(hostRef.current, keep, true));
+          await new Promise<void>((resolve) => {
+            timer.current = setTimeout(resolve, STARTING_RETRY_MS);
+          });
+          if (id !== runId.current) return;
+          continue;
+        }
+        refuse(result.status, result.status === 'full' ? { max: result.max_players } : undefined);
+        return;
+      }
+    },
+    [code, ref, receivedAt, refuse],
+  );
+
+  const preview = useCallback(async () => {
+    if (!code || !ref) return;
     runId.current += 1;
     const id = runId.current;
     clearTimeout(timer.current);
     waitingOnline.current = false;
+    step.current = 'preview';
     if (!onlineRef.current) {
       waitingOnline.current = true;
       refuse('offline');
       return;
     }
-    setView({ kind: 'joining', shuffling: false });
-    for (let tries = 0; ; tries += 1) {
-      let result;
-      try {
-        result = await api.joinRoom({
-          code,
-          ...(ref ? { ref } : {}),
-          via: 'link',
-          link_opened_at: linkOpenedAt(receivedAt),
-        });
-      } catch {
-        if (id === runId.current) refuse('failed');
-        return;
-      }
-      if (id !== runId.current) return;
-      const row = JOIN_SHEET_ROWS[result.status as keyof typeof JOIN_SHEET_ROWS] as
-        SheetRow | undefined;
-      if (!row) {
-        refuse('failed');
-        return;
-      }
-      if (result.status === 'ok') {
-        enterRoom(roomRouteFor(result.room_id, result.state), result.room_id, rootRoutes.current);
-        return;
-      }
-      if (result.status === 'name_required') {
-        setView({ kind: 'first-time', hostName: result.host_name });
-        return;
-      }
-      if (row.kind === 'wait') {
-        if (tries >= STARTING_RETRIES) {
-          haptics.error();
-          setView({
-            kind: 'refused',
-            row: JOIN_SHEET_ROWS.failed as Refused,
-            message: 'errors.starting',
-          });
-          return;
-        }
-        setView({ kind: 'joining', shuffling: true });
-        await new Promise<void>((resolve) => {
-          timer.current = setTimeout(resolve, STARTING_RETRY_MS);
-        });
-        if (id !== runId.current) return;
-        continue;
-      }
+    setState({ kind: 'loading' });
+    let result;
+    try {
+      result = await api.roomPreview({ code, ref });
+    } catch {
+      if (id === runId.current) refuse('failed');
+      return;
+    }
+    if (id !== runId.current) return;
+    if (result.status !== 'ok') {
       refuse(result.status, result.status === 'full' ? { max: result.max_players } : undefined);
       return;
     }
-  }, [code, ref, receivedAt, refuse]);
+    hostRef.current = {
+      name: result.host_name || null,
+      color: toAvatarColor(result.host_avatar_key ?? ''),
+      players: result.players,
+    };
+    step.current = 'join';
+    // Seated: it's their room, straight back in.
+    if (result.seated) void attempt(false);
+    else
+      setState({
+        kind: 'ready',
+        host: hostRef.current,
+        needName: false,
+        hostName: null,
+        busy: false,
+        shuffling: false,
+      });
+  }, [code, ref, refuse, attempt]);
+
+  /** Runs the step the sheet is on: the preview, or the join. */
+  const resume = useCallback(() => {
+    if (step.current === 'preview') void preview();
+    else void attempt(keepConfirm.current);
+  }, [preview, attempt]);
+
+  const start = useCallback(() => {
+    if (ref) void preview();
+    else void attempt(false);
+  }, [ref, preview, attempt]);
 
   const sessionOk = session?.status === 'ok';
   const sessionStatus = session?.status;
@@ -144,7 +238,7 @@ export function useJoinLink(params: Params) {
     if (!link) return;
     if (sessionOk) {
       // Outside the effect body: the call sets state before its first await.
-      void Promise.resolve().then(() => void attempt());
+      void Promise.resolve().then(start);
     } else if (sessionFailed || sessionStatus === 'refused') {
       void Promise.resolve().then(() => refuse('session_failed'));
     } else if (sessionStatus === 'offline') {
@@ -160,12 +254,12 @@ export function useJoinLink(params: Params) {
     if (!online || !waitingOnline.current) return;
     waitingOnline.current = false;
     if (sessionOk) {
-      void Promise.resolve().then(() => void attempt());
+      void Promise.resolve().then(resume);
     } else {
-      void Promise.resolve().then(() => setView({ kind: 'joining', shuffling: false }));
+      void Promise.resolve().then(() => setState(openingView(ref)));
       startSession().catch(() => {});
     }
-  }, [online, sessionOk, attempt]);
+  }, [online, sessionOk, resume, ref]);
 
   useEffect(
     () => () => {
@@ -177,10 +271,10 @@ export function useJoinLink(params: Params) {
 
   const retry = useCallback(() => {
     if (sessionOk) {
-      void attempt();
+      resume();
       return;
     }
-    setView({ kind: 'joining', shuffling: false });
+    setState(openingView(ref));
     startSession()
       .then((answer) => {
         if (answer.status === 'refused') refuse('session_failed');
@@ -190,7 +284,7 @@ export function useJoinLink(params: Params) {
         }
       })
       .catch(() => refuse('session_failed'));
-  }, [sessionOk, attempt, refuse]);
+  }, [sessionOk, resume, refuse, ref]);
 
   /** Join on the first-time layout: saves the profile, then joins again. */
   const submit = useCallback(
@@ -204,7 +298,7 @@ export function useJoinLink(params: Params) {
       switch (outcome.kind) {
         case 'saved':
           applySavedProfile(client, outcome);
-          void attempt();
+          void attempt(false);
           break;
         case 'invalid':
         case 'notAllowed':
@@ -219,9 +313,16 @@ export function useJoinLink(params: Params) {
     [attempt, client],
   );
 
+  /** Join on Confirm: calls `join_room` now, with the link's own `link_opened_at`. */
+  const join = useCallback(() => void attempt(true), [attempt]);
+
+  const profile = useMyProfile(sessionOk);
+  const view = deriveView(state, profile.isPending, profile.data);
+
   return {
     view,
     retry,
+    join,
     submit,
     saving,
     nameError,
@@ -243,8 +344,44 @@ function enterRoom(path: string, roomId: string, routes: readonly RootRoute[]) {
   }
 }
 
-function refusedView(state: keyof typeof JOIN_SHEET_ROWS, params?: { max: number }): LinkView {
+function refusedView(
+  state: keyof typeof JOIN_SHEET_ROWS,
+  params?: { max: number },
+): Extract<LinkView, { kind: 'refused' }> {
   const row = JOIN_SHEET_ROWS[state];
   if (row.kind !== 'refused') throw new Error(`No refusal for ${state}`);
   return { kind: 'refused', row, message: row.message, params };
+}
+
+/** The first view: Joining for a link with no reference (it joins at once), else Loading. */
+function openingView(ref: string | undefined): State {
+  return ref ? { kind: 'loading' } : { kind: 'joining', shuffling: false };
+}
+
+/** The view while `join_room` runs: Confirm keeps its layout, anything else shows Joining. */
+function waitView(host: JoinHost | null, keep: boolean, shuffling: boolean): State {
+  if (keep && host) {
+    return { kind: 'ready', host, needName: false, hostName: null, busy: true, shuffling };
+  }
+  return { kind: 'joining', shuffling };
+}
+
+/**
+ * Confirm or First time, picked from the saved profile (an empty name gets First time), or
+ * Loading while the profile is still being read. Nothing calls `join_room` before a tap.
+ */
+function deriveView(
+  state: State,
+  profilePending: boolean,
+  profile: { display_name: string } | null | undefined,
+): LinkView {
+  if (state.kind !== 'ready') return state;
+  if (profilePending && !state.needName) return { kind: 'loading' };
+  // A profile that couldn't be read (`undefined`) is taken as named: `join_room` says otherwise.
+  const unnamed = state.needName || profile === null || (!!profile && !profile.display_name.trim());
+  if (unnamed) {
+    return { kind: 'first-time', host: state.host, hostName: state.host?.name ?? state.hostName };
+  }
+  if (!state.host) return { kind: 'joining', shuffling: false };
+  return { kind: 'confirm', host: state.host, busy: state.busy, shuffling: state.shuffling };
 }
