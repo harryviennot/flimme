@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 59 of 245 tasks done.
+Progress: 60 of 245 tasks done.
 
 ```mermaid
 flowchart LR
@@ -358,7 +358,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: tested from a cold start on both platforms.
 - [ ] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · M · needs M4.1, M3.6, M1.17 · [groundwork](../architecture/groundwork.md#the-local-environment)
   Done when: `mise run bots` fills a local room with three present players.
-- [ ] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
+- [x] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
   Done when: Home is three taps from a fresh install.
 
 ## M5 Basic deck
