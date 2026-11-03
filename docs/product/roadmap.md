@@ -100,7 +100,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | In progress |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | Not started |
-| [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | Not started |
+| [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | Not started |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 7 | Not started |
 | [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 74 of 253 tasks done.
+Progress: 75 of 253 tasks done.
 
 ```mermaid
 flowchart LR
@@ -472,7 +472,7 @@ What stops trolls and protects kids on screen, plus the security pass before out
 
 Done when: the security checklist for the closed beta is ticked.
 
-- [ ] **M7.1** Reports: `api.report_member` stores a report with a fixed reason and a rate limit; the alert comes with M9.5 · backend · M · needs M1.9 · [store-listing](store-listing.md#passing-review)
+- [x] **M7.1** Reports: `api.report_member` stores a report with a fixed reason and a rate limit; the alert comes with M9.5 · backend · M · needs M1.9 · [store-listing](store-listing.md#passing-review)
   Done when: a report is stored, a repeat from the same reporter adds no row, and the limit answers `rate_limited`.
 - [ ] **M7.2** Report a player, from the player list · app · M · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: works on both platforms.
