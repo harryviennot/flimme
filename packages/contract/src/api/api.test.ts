@@ -78,7 +78,11 @@ const cases = [
     name: 'join_room',
     answers: JOIN_ROOM_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.joinRoom({ code: '482915' }),
-    full: { ok: { room_id: ROOM, member_id: MEMBER, state: 'lobby', rejoined: false } },
+    full: {
+      ok: { room_id: ROOM, member_id: MEMBER, state: 'lobby', rejoined: false },
+      full: { max_players: 10 },
+      name_required: { host_name: 'Camille' },
+    },
   },
   {
     name: 'leave_room',
@@ -156,6 +160,32 @@ describe('arguments', () => {
         p_settings: { runtime_max: 105, max_age: null },
       },
     });
+  });
+
+  it('join_room sends the reference, how the player came in and when the link was opened', async () => {
+    const { client, calls } = fake(() => ok({ status: 'closed' }));
+    await createApi(client).joinRoom({
+      code: '482915',
+      ref: ROOM,
+      via: 'link',
+      link_opened_at: '2026-11-03T12:00:00Z',
+    });
+    expect(calls[0]).toEqual({
+      fn: 'join_room',
+      args: {
+        p_code: '482915',
+        p_ref: ROOM,
+        p_via: 'link',
+        p_link_opened_at: '2026-11-03T12:00:00Z',
+      },
+    });
+  });
+
+  it('name_required may carry no host name', async () => {
+    const { client } = fake(() => ok({ status: 'name_required', host_name: null }));
+    await expect(
+      createApi(client, { validate: true }).joinRoom({ code: '482915' }),
+    ).resolves.toEqual({ status: 'name_required', host_name: null });
   });
 
   it('touch_room returns nothing', async () => {
