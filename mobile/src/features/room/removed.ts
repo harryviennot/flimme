@@ -27,8 +27,10 @@ export function removedExit(
   deps: RemovedExitDeps,
   onlyIfKept: boolean,
 ): void {
-  const mayTell = !told.current && (!onlyIfKept || deps.isKept(roomId));
+  const mayTell = !onlyIfKept || deps.isKept(roomId);
   deps.forget(roomId);
+  // Already told and sent Home by the other path: nothing more to do.
+  if (told.current) return;
   deps.goHome();
   if (mayTell) {
     told.current = true;
