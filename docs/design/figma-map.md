@@ -72,8 +72,8 @@ Copies of the Release screens frames, changed on 30 October 2026 (M0.9) to match
 | 02b New in the first release | `107:1742` | `107:1746` | N1 Join sheet | `107:1747` | New | [join-sheet](screens/join-sheet.md) |
 | | | | N2 Join sheet, refused | `107:2042` | New | [join-sheet](screens/join-sheet.md) |
 | | | | N3 Invite page (web) | `108:1818` | New | [invite-page](screens/invite-page.md) |
-| | | | N4 Host menu | `110:1846` | New | Draft for M4.13, no spec yet |
-| | | | N5 Report | `110:2119` | New | Draft for M7.2, no spec yet |
+| | | | N4 Host menu | `110:1846` | New | [host-menu](screens/host-menu.md) (a draft; the lock toggle moves to the lobby) |
+| | | | N5 Report | `110:2119` | New | [report-sheet](screens/report-sheet.md) (a draft; the reasons follow the spec) |
 | 04 The game | `99:4060` | `99:4064` | 11 Swipe | `99:4065` | `19:599` | No spec yet |
 | | | | 12 Mid-swipe | `99:4093` | `19:938` | No spec yet |
 | | | | 13 Card flipped | `99:4122` | `19:1332` | No spec yet |
