@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { UpdateGate } from '@/components/screens/update/update-gate';
 import { ToastHost } from '@/components/ui/toast';
 import '@/features/settings';
 import { startSession } from '@/features/session';
@@ -49,13 +50,15 @@ function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="light" />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
-            }}
-          />
-          <ToastHost />
+          <UpdateGate>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
+              }}
+            />
+            <ToastHost />
+          </UpdateGate>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

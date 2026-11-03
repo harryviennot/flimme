@@ -1,0 +1,9 @@
+{
+  "splash": {
+    "update": {
+      "title": "Time for an update",
+      "body": "Update Flimme to keep playing.",
+      "action": "Update"
+    }
+  }
+}
