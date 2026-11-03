@@ -26,8 +26,5 @@
     "rateLimited": "Beaucoup de signalements d'un coup. Réessaie plus tard.",
     "offline": "Tu es hors ligne. Ton signalement n'est pas parti.",
     "generic": "Impossible d'envoyer le signalement. Réessaie."
-  },
-  "a11y": {
-    "reason": "Motif : {{title}}"
   }
 }

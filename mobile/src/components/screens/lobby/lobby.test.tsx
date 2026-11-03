@@ -1,4 +1,4 @@
-import '@/i18n';
+import i18n from '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
@@ -598,7 +598,7 @@ describe('the seat sheet', () => {
   it('shows Report to the host, and replaces itself with the report sheet', async () => {
     mockMemberId = 'b';
     await open('Sam');
-    expect(screen.getByText('Disney+')).toBeTruthy();
+    await waitFor(() => expect(screen.getByText('Disney+')).toBeTruthy());
     await fireEvent.press(screen.getByRole('button', { name: 'Report Sam' }));
     expect(mockRouter.replace).toHaveBeenCalledWith('/room/r1/report/b');
   });
@@ -627,7 +627,24 @@ describe('the report sheet', () => {
       expect(screen.getByRole('radio', { name: title })).toBeTruthy();
     }
     expect(screen.getAllByRole('radio')).toHaveLength(3);
+    // No free text anywhere: nothing on the sheet has a value to type into.
+    expect(screen.queryByDisplayValue(/.*/)).toBeNull();
     expect(send()).toBeDisabled();
+  });
+
+  it('lists the same three reasons in French', async () => {
+    await i18n.changeLanguage('fr');
+    try {
+      await render(<RoomReportSheet />, { wrapper: Providers });
+      await waitFor(() => expect(screen.getByText('Signaler Sam')).toBeTruthy());
+      for (const title of ['Prénom choquant', 'Spam ou sabotage', 'Autre chose']) {
+        expect(screen.getByRole('radio', { name: title })).toBeTruthy();
+      }
+      expect(screen.getAllByRole('radio')).toHaveLength(3);
+      expect(screen.getByRole('button', { name: 'Envoyer le signalement' })).toBeTruthy();
+    } finally {
+      await i18n.changeLanguage('en');
+    }
   });
 
   it('sends once with the room, the seat and the reason, then thanks', async () => {
@@ -645,6 +662,9 @@ describe('the report sheet', () => {
     });
     expect(screen.getByText(/remove Sam from the room/)).toBeTruthy();
     expect(reportError).not.toHaveBeenCalled();
+    // Nothing about the report goes to a toast or a haptic either.
+    expect(showToast).not.toHaveBeenCalled();
+    expect(haptics.error).not.toHaveBeenCalled();
   });
 
   it('shows the rate limit line and stays', async () => {

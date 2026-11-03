@@ -26,8 +26,5 @@
     "rateLimited": "That's a lot of reports at once. Try again later.",
     "offline": "You're offline. Your report wasn't sent.",
     "generic": "We couldn't send your report. Try again."
-  },
-  "a11y": {
-    "reason": "Reason: {{title}}"
   }
 }
