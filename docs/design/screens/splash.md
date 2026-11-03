@@ -1,6 +1,6 @@
 # Splash
 
-Screen 01 in the Figma (`9:83`, first release `99:3543`). Route `/` (`app/index.tsx`) behind the native splash. Built in M4.6. Written on 30 October 2026 and updated on 3 November 2026 (slice 4's answers) from [onboarding](../../product/onboarding.md#first-launch), [first launch in the data model](../../architecture/data-model.md#first-launch), [invites and deep links](../../architecture/app-structure.md#invites-and-deep-links) and [empty and error states](../../product/onboarding.md#empty-and-error-states).
+Screen 01 in the Figma (`9:83`, first release `99:3543`). Route `/` (`app/index.tsx`) behind the native splash. Built in M4.6. Written on 30 October 2026 and updated on 3 November 2026 (slice 4's answers, then slice 7's kept room) from [onboarding](../../product/onboarding.md#first-launch), [first launch in the data model](../../architecture/data-model.md#first-launch), [invites and deep links](../../architecture/app-structure.md#invites-and-deep-links) and [empty and error states](../../product/onboarding.md#empty-and-error-states).
 
 ## Purpose
 
@@ -36,9 +36,20 @@ Both come from `mobile/scripts/make-logo.swift` (colours read from tokens.json);
 | --- | --- |
 | The app was opened by an invite link | The link's route, [join sheet](join-sheet.md) |
 | No name yet (`display_name` is empty) | [Welcome](welcome.md) |
+| The phone keeps a room (M4.22, below) | That room, or Home |
 | Otherwise | [Home](home.md) |
 
-The room code kept from last time (rejoining the same seat) is added by M4.10, the room layout, as a row before Home.
+### The kept room (M4.22)
+
+The phone keeps the room it is seated in (the kept room store, M4.10: its id and code). Reopening the app goes **straight back into it, with nothing new on screen**: the hand-off view stays while the phone calls `api.joinRoom({ code, ref: roomId, via: 'rejoin' })`, which gives the same seat back. No "Back to Harry's room" choice: a player mid-game shouldn't need a tap. Sending the room id means a code that a newer room took answers `closed`, never a stranger's room.
+
+| Answer | Goes to | The kept room |
+| --- | --- | --- |
+| `ok` | `replace` with `/room/[id]`; the room layout shows the state's screen (lobby, swiping, the finale) | Kept |
+| Any other answer (`closed`, `full`, `in_finale`, `starting`, `name_required`, `removed`, `locked`) | [Home](home.md), with nothing said | Forgotten |
+| `rate_limited`, offline, or the call failed | Home (its offline `Banner` when offline) | Kept, for the next launch |
+
+A seated player always gets `ok` (in any state up to the finale), so the other answers mean the room ended or the seat is gone. The slow tagline applies to this call as to the rest of the launch.
 
 Connectivity comes from `useOnline()` (`@/features/network`, expo-network), which also feeds TanStack's `onlineManager`.
 
@@ -95,5 +106,10 @@ Harry accepted these on 3 November 2026 (slice 4, [decisions](../../decisions.md
 3. **Connectivity:** expo-network, feeding TanStack's `onlineManager` and `useOnline()`.
 4. **Offline launch:** the last profile read is cached, so a named profile goes to Home offline.
 5. **Country and language:** language whenever it differs from the app's, country only while the profile has none. This replaces "first launch only".
-6. **The kept room code:** moves to M4.10.
+6. **The kept room code:** moves to M4.10, then to M4.22 when M4.10 was split.
 7. **A real launch error:** to Sentry, and the `signInFailed` state with Retry.
+
+Harry accepted these on 3 November 2026 (slice 7, [decisions](../../decisions.md)):
+
+8. **The kept room on launch** (Q22.1): straight back in with nothing on screen, not a "Back to Harry's room" choice on Home.
+9. **The rejoin call and its answers** (Q22.2): `via: 'rejoin'` with the room id; `ok` goes in, any other answer forgets the room and goes Home, offline or a failure goes Home and keeps it.

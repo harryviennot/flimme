@@ -1,6 +1,6 @@
 # Invite sheet
 
-Screen 09 in the Figma (`15:722`). Route `/room/[id]/invite`, a `formSheet` at 80% height over the [lobby](lobby.md) (already set in the room layout). Built in M4.12, with the domain from M0.2. Written on 30 October 2026 from [the link](../../product/onboarding.md#the-link), [hosting](../../product/onboarding.md#hosting) and [invites and deep links](../../architecture/app-structure.md#invites-and-deep-links).
+Screen 09 in the Figma (`15:722`). Route `/room/[id]/invite`, a `formSheet` at 80% height over the [lobby](lobby.md) (already set in the room layout). Built in M4.12, before the invite domain (M4.18). Written on 30 October 2026 and updated on 3 November 2026 (slice 7's answers) from [the link](../../product/onboarding.md#the-link), [hosting](../../product/onboarding.md#hosting) and [invites and deep links](../../architecture/app-structure.md#invites-and-deep-links).
 
 ## Purpose
 
@@ -15,7 +15,18 @@ Get friends in: a QR code to scan with their camera across the couch, the link t
 5. **Helper**, `body-s` tone `muted`, centred: `lobby:invite.helper`.
 6. **`Button` primary L**, icon `share`, `lobby:invite.share`: the system share sheet with `lobby:invite.shareMessage`.
 
-The link is `invite_base_url` from `api.app_config`, then `/join/<code>?r=<room ref>` (M4.1).
+## The link
+
+One builder in `features/invite/` makes the link and the share message, for this sheet and for the lobby's **Share link** (the same link, the same `lobby:invite.shareMessage`).
+
+| `api.app_config` | The link |
+| --- | --- |
+| Has `invite_base_url` (from M4.18, once the domain exists) | `invite_base_url` + `/join/<code>?r=<room id>` |
+| Has none (today) | The build's own scheme: `flimme-dev://join/<code>?r=<room id>`, `flimme-preview://...` or `flimme://...` |
+
+M4.12 adds `invite_base_url` to `AppConfig` as optional; the row arrives with M4.18, and the sheet needs no change then. The link row shows an `https` link without `https://`, and a scheme link whole (cut in the middle).
+
+**Until M4.18, a scheme link is limited:** chat apps (iMessage, WhatsApp) don't make a custom scheme tappable, so a friend reads the code from the message; the camera can't open a universal link; there is no invite page for a friend without the app. The QR code works: M4.12 checks a scheme QR with the camera on an iPhone and an Android. M4.18 checks a link sent by message on a device.
 
 ## When it opens
 
@@ -59,7 +70,7 @@ In the share message the code has a space in the middle ("482 913").
 
 ## Differences from the Figma
 
-- The link becomes `/join/<code>?r=...` instead of `/j/<code>`, on the invite domain (M0.2) instead of moviematch.app.
+- The link becomes `/join/<code>?r=...` instead of `/j/<code>`, on the invite domain (M4.18) instead of moviematch.app; before it, the build's scheme.
 - The helper drops "It closes 20 minutes after the last swipe": no such rule exists ([what onboarding needs elsewhere](../../product/onboarding.md#what-this-needs-elsewhere)).
 - A close button for screen readers; the Figma has the grabber only.
 - The lobby behind the sheet has no sliders action in this release ([host setup](host-setup.md#questions)).
@@ -70,3 +81,7 @@ Harry accepted every default below on 30 October 2026.
 
 1. **Screen brightness.** Raising the brightness while the sheet is open would help a QR scanned across a dim room. Default: no (one more dependency); revisit after the first group test.
 2. **The share message.** Default: the copy above, which is the app structure's English; the French is new.
+
+Harry accepted these on 3 November 2026 (slice 7, Q12.1):
+
+3. **Ship before the domain:** the link falls back to the build's scheme while `app_config` has no `invite_base_url`; what needs the domain waits for M4.18.

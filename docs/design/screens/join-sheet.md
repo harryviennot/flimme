@@ -1,6 +1,6 @@
 # Join sheet
 
-Route `/join/[code]`, the target of every invite link and invite QR code. Built in M4.15, with the room reference from M4.1; the preview before joining is M4.20, on `api.room_preview` from M4.19. Written on 30 October 2026 and updated on 3 November 2026: slice 6's questions (all defaults accepted by Harry), Harry's call that a link confirms before joining (M4.19 and M4.20's questions, defaults accepted), then the leave line naming the host's room. Sources: [app installed](../../product/onboarding.md#app-installed), [the link](../../product/onboarding.md#the-link) and [invites and deep links](../../architecture/app-structure.md#invites-and-deep-links).
+Route `/join/[code]`, the target of every invite link and invite QR code. Built in M4.15, with the room reference from M4.1; the preview before joining is M4.20, on `api.room_preview` from M4.19. Written on 30 October 2026 and updated on 3 November 2026: slice 6's questions (all defaults accepted by Harry), Harry's call that a link confirms before joining (M4.19 and M4.20's questions, defaults accepted), then the leave line naming the host's room, then slice 7's answers for the kept room (M4.22). Sources: [app installed](../../product/onboarding.md#app-installed), [the link](../../product/onboarding.md#the-link) and [invites and deep links](../../architecture/app-structure.md#invites-and-deep-links).
 
 **The Figma.** Frames N1 `107:1747` (First time) and N2 `107:2042` (Refused) on the First release page. N1 predates the preview: it has no host line, and its note says a named player sees only the ticket. This spec wins; the Figma is updated only when a task asks.
 
@@ -40,7 +40,7 @@ A link never stacks room screens. When `join_room` answers `ok`, the sheet enter
 | --- | --- |
 | No room screen | `replace`s itself with the room |
 | This room's screen (the player was in it, left the app and tapped the link again) | Goes back to that screen (`dismissTo`): nothing is pushed, and the room screen goes to the page the room's state says |
-| Another room's screens | Drops them all (`dismissAll`), then `replace`s with the new room. Leaving the old seat is M4.10's (Q2 below, and the [leave line](#the-leave-line-m410)) |
+| Another room's screens | Drops them all (`dismissAll`), then `replace`s with the new room. Leaving the old seat is M4.22's ([leaving the old seat](#leaving-the-old-seat)) |
 
 Found in M4.15's first use on staging: a second tap on the same link pushed a new copy of the room on top of the old one, one more for each tap.
 
@@ -56,7 +56,7 @@ The layout is picked from the saved profile (`useMyProfile`): an empty `display_
 2. Title `display-m`, centred, `accessibilityRole="header"`: `join:link.titleHost` when `host_name` is set, otherwise `join:link.title`.
 3. The host line (below).
 4. `Button` primary L block `join:link.join`. It calls `join_room` ([R3](#answers-apijoin_room-with-the-room-reference)) and shows `loading` until the answer. On `starting`, it stays `loading` and `join:shuffling` shows under it in `body-m` tone `secondary` (a polite live region) while it retries.
-5. The leave line, when M4.10 lands.
+5. The leave line (M4.22).
 
 **The host line** (screen piece `components/screens/join-sheet/host-line.tsx`, used by Confirm and First time; no gallery entry, it's single-use). A row, `gap-3`, `items-center`, centred in Confirm and start-aligned in First time: `Avatar` size `m` with the host's name and `toAvatarColor(host_avatar_key)` (`features/profile/device.ts`), then `join:link.players` in `body-m` tone `secondary` with `count` = `players`. With no `host_name` there is no avatar (it needs an initial), only the count. The row is one accessible element (below).
 
@@ -86,7 +86,13 @@ No ticket here: with the keyboard up, the name field must stay in view. The eyeb
 
 ### The leave line (M4.10)
 
-Specced now, built by M4.10, which knows the room the phone keeps (Q20.6). When the phone keeps an open seat in another room, Confirm and First time show `join:link.leaveRoom` in `body-s` tone `muted`, centred under Join: "You'll leave Harry's room". Rooms have no names, so the line names the kept room by its host, not its code (Harry, 3 November 2026). `name` is the kept room's current host: the seat in `api.room_seats` for that room with `role` `host` and no `left_at` (the player is seated there, so they can read it; the crown moves when a host leaves). When that name isn't known (the read hasn't answered, failed, or the phone is offline), the line is `join:link.leaveOtherRoom`: "You'll leave your other room". Not shown when the kept room is this one (that player is seated and goes straight in), nor on Joining (a link with no `r` joins at once). Joining the new room then leaves the old seat (Q2).
+Built by M4.22 (M4.10 was split; the heading keeps its old name because decisions.md links to it). M4.10 provides the room the phone keeps (Q20.6). When the phone keeps an open seat in another room, Confirm and First time show `join:link.leaveRoom` in `body-s` tone `muted`, centred under Join: "You'll leave Harry's room". Rooms have no names, so the line names the kept room by its host, not its code (Harry, 3 November 2026). `name` is the kept room's current host: the seat in `api.room_seats` for that room with `role` `host` and no `left_at` (the player is seated there, so they can read it; the crown moves when a host leaves). When that name isn't known (the read hasn't answered, failed, or the phone is offline), the line is `join:link.leaveOtherRoom`: "You'll leave your other room". Not shown when the kept room is this one (that player is seated and goes straight in), nor on Joining (a link with no `r` joins at once).
+
+**A kept room that has ended: no line.** When the kept room's read (`api.room`) says `done` or `abandoned`, returns no room, or the player's own seat there has `left_at`, there is nothing to leave: no line, and the kept room is forgotten (Q22.5). While that read is in flight the line is `join:link.leaveOtherRoom`, and it goes away (`layout.fadeOut`) if the read says the room ended.
+
+### Leaving the old seat
+
+After the new room's `join_room` answers `ok`, the phone calls `api.leaveRoom` on the kept room once, without waiting for it and without retries, then keeps the new room instead (Q22.3). Nothing shows whatever happens: `ok` and `not_in_room` are both fine, and if the call fails or the phone goes offline, the old seat goes silent and stops counting after 90 seconds, as any silent seat does. Opening a room as host ([host setup](host-setup.md), `create_room` answers `ok`) leaves the kept room the same way.
 
 ## Preview answers (`api.room_preview`)
 
@@ -146,7 +152,7 @@ The refusal messages are the [code screen's](join-code.md#copy-join-namespace). 
 | `link.join` | Rejoindre | Join |
 | `link.anotherCode` | Entrer un autre code | Enter another code |
 
-New keys (M4.20, and `link.leaveRoom` and `link.leaveOtherRoom` for M4.10):
+New keys (M4.20, and `link.leaveRoom` and `link.leaveOtherRoom` for M4.22):
 
 | Key | French | English |
 | --- | --- | --- |
@@ -180,7 +186,7 @@ The code is shown with a space in the middle ("482 913"), as `RoomTicket` does. 
 Harry accepted every default below on 30 October 2026.
 
 1. **The host's name before joining.** "Join Harry's movie night" needs the host's first name, which `join_room` doesn't return before a seat exists. Default: M4.1 adds the host's display name to the `name_required` answer as `host_name` (names already show to anyone who joins); when it's null the title is `join:link.title`. Since M4.20 the preview gives the host's name to every layout.
-2. **Already in another room.** A player whose phone keeps an open room taps a link to a different one. Default: join the new room and leave the old seat (`api.leave_room`) once the new join answers `ok`. This needs the kept room, which arrives with the room layout (M4.10): M4.10 wires it into this sheet and the code screen, unless M4.15 merges after M4.10 (slice 6, Q8.4). M4.10 also builds the [leave line](#the-leave-line-m410).
+2. **Already in another room.** A player whose phone keeps an open room taps a link to a different one. Default: join the new room and leave the old seat (`api.leave_room`) once the new join answers `ok`. This needs the kept room, which arrives with the room layout (M4.10); M4.22 wires it into this sheet and the code screen and builds the [leave line](#the-leave-line-m410).
 3. **Sheet or full screen on a cold start.** Default: a sheet over Home or Welcome, as above, so the presentation is the same whether the app was open or not.
 
 Harry accepted every default of slice 6's plan on 3 November 2026; this spec now says each one:
@@ -198,5 +204,10 @@ Later on 3 November 2026, after trying invite links on his phone, Harry decided 
 11. **First time from the saved profile** (Q20.3), with `name_required` as a fallback.
 12. **Preview refusals on open** (Q20.4), with Retry when the call fails.
 13. **The count read once** (Q20.5).
-14. **The leave line** (Q20.6) specced here, built by M4.10.
+14. **The leave line** (Q20.6) specced here, built by M4.10 (M4.22 since the split).
 15. **About 5 seconds, `link_opened_at` at the URL's arrival** (Q20.7).
+
+Harry accepted every default of slice 7's plan on 3 November 2026; this spec now says each one:
+
+16. **Leaving the old seat** (Q22.3): once, after the new room's `ok`, without waiting or retrying; a failure leaves a silent seat that stops counting after 90 seconds.
+17. **A kept room that has ended** (Q22.5): no leave line, and the kept room is forgotten.

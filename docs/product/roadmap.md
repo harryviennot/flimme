@@ -97,7 +97,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
-| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 20 | In progress |
+| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 22 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | Not started |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | Not started |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 64 of 248 tasks done.
+Progress: 64 of 250 tasks done.
 
 ```mermaid
 flowchart LR
@@ -344,12 +344,16 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a wrong code, a full room and a started room each show their message.
 - [x] **M4.9** Host setup: the country's services (saved to the profile), age cap, time budget, then "Open the room" · app · M · needs M4.7, M4.4, M2.6 · [onboarding](onboarding.md#hosting)
   Done when: a room opens with those settings.
-- [ ] **M4.10** The room layout: both Realtime topics, presence, the 30-second heartbeat, re-reading on reconnect and foreground, screens by room state, the Reconnecting banner, the splash's room code kept from last time, unknown messages dropped, leaving the old room's seat when a player joins another room · app · L · needs M3.6, M3.7, M3.11, M3.15 · [app-structure](../architecture/app-structure.md#realtime)
+- [ ] **M4.10** The room layout: the room and seat reads, screens by room state, the 30-second heartbeat, re-reading on foreground, the kept room store · app · M · needs M3.6, M3.7, M3.15 · [app-structure](../architecture/app-structure.md#where-state-lives)
+  Done when: a room opens on the screen its state says, a re-read on foreground corrects a stale screen, and a kept room survives a restart.
+- [ ] **M4.21** Realtime in the room: both topics, presence, events, unknown messages dropped, recovery, and the Reconnecting banner · app · M · needs M4.10, M3.11 · [app-structure](../architecture/app-structure.md#realtime), [reconnecting](../design/screens/reconnecting.md)
   Done when: killing the network mid-lobby and restoring it shows the right state.
-- [ ] **M4.11** The lobby: code, players and their services, the host's crown, Start for the host, Leave room; an optional services row for guests · app · M · needs M4.10 · [onboarding](onboarding.md#the-lobby)
+- [ ] **M4.22** The kept room: the splash rejoins it, joining another room leaves the old seat, and the join sheet's leave line · app · M · needs M4.10, M4.20 · [splash](../design/screens/splash.md), [join sheet](../design/screens/join-sheet.md), [app-structure](../architecture/app-structure.md#invites-and-deep-links)
+  Done when: reopening the app returns to a kept room, joining another room leaves the old seat, and the leave line is absent for a room that has ended.
+- [ ] **M4.11** The lobby: code, players and their services, the host's crown, Start for the host, Leave room; an optional services row for guests · app · M · needs M4.21, M4.12, M4.5 · [onboarding](onboarding.md#the-lobby)
   Done when: players appear and leave live on three phones.
-- [ ] **M4.12** The invite sheet: share the link, show the QR code · app · S · needs M4.11, M0.2, M4.1 · [onboarding](onboarding.md#the-link)
-  Done when: sharing works on both platforms.
+- [ ] **M4.12** The invite sheet: share the link, show the QR code · app · S · needs M4.10, M4.1 · [onboarding](onboarding.md#the-link)
+  Done when: sharing works on both platforms. Until M4.18, the link uses the build's own scheme, so https links that chat apps make tappable, the camera opening the app through a universal link, the invite page for guests and the device check of a link sent by message wait for M4.18.
 - [ ] **M4.13** The host menu: Remove player, Lock room · app · M · needs M4.11, M4.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: a removed player sees why and can't come back.
 - [x] **M4.14** The invite page with the code and store buttons, and the verification files in the repo, ready for the domain · ops · M · needs M3.2 · [store-listing](store-listing.md#invite-links-and-the-web-page), [app-structure](../architecture/app-structure.md#invites-and-deep-links)

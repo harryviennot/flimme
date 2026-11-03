@@ -229,7 +229,7 @@ The first release's tasks, grouped into features. Each slice gets one brief; the
 | 4 | First launch | M4.3, M4.6, M4.17, M4.7 | Screens 01 to 04 |
 | 5 | Hosting | M4.4, M4.9 | Screens 06 and 07 |
 | 6 | Joining | M4.1, M4.8, M4.15, M4.14, M4.18, M4.19, M4.20 | Screen 05 and the join sheet |
-| 7 | The lobby | M4.5, M4.10, M4.11, M4.12 | Screens 08, 09 and 24 |
+| 7 | The lobby | M4.5, M4.10, M4.21, M4.22, M4.12, M4.11 | Screens 08, 09 and 24 |
 | 8 | Host powers and reports | M4.2, M4.13, M7.1, M7.2 | The host menu and the report sheet |
 | 9 | The deck | M5.1 to M5.8 | None |
 | 10 | Swiping | M5.7, M6.2, M6.3, M6.9 to M6.12, M6.18, M7.3 | Screens 11 to 13, the hints; the swipe and the flip |
