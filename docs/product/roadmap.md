@@ -22,7 +22,7 @@ The first part lists the milestones, to track the whole project. The second part
 Each task reads like this:
 
 ```
-- [x] **M4.8** Join with a code · app · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
+- [ ] **M4.8** Join with a code · app · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
   Done when: a wrong code, a full room and a started room each show their message.
 ```
 
@@ -34,7 +34,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 2. One task, one branch, one pull request.
 3. Read the linked docs and [decisions.md](../decisions.md) first. Decisions win over a doc when they disagree.
 4. Where a doc states a rule (a match rule, a limit, an access rule), the pull request includes a test for it.
-5. Don't tick the box in the pull request: after the merge, an Action ticks the task named in the title and updates the progress and the milestone's status in [Milestones at a glance](#milestones-at-a-glance) (`tools/roadmap-tick.mjs`). That keeps parallel pull requests from all editing this file.
+5. Don't tick the box in the pull request: after the merge, an Action ticks the task whose ID starts the title (a `Docs:`, `Chore:`, `Fix:` or `Bootstrap` title ticks nothing, whatever IDs it mentions) and updates the progress and the milestone's status in [Milestones at a glance](#milestones-at-a-glance) (`tools/roadmap-tick.mjs`). That keeps parallel pull requests from all editing this file.
 6. If the task forces a choice nobody made, stop and ask Harry, then record the answer in decisions.md. If a doc turns out wrong, fix it in the same pull request and say so.
 
 **Types of work**
@@ -98,19 +98,19 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 22 | In progress |
-| [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | In progress |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | In progress |
+| [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | Not started |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | Not started |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | Not started |
-| [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | In progress |
+| [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | Not started |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 7 | Not started |
-| [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | In progress |
+| [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | Not started |
 | [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the reviewers' demo room are ready on both stores | 9 | Not started |
 | [M12](#m12-closed-beta) | Closed beta | Friend groups and families play, Google's 12 testers have run 14 days, and the go decision is made | 7 | Not started |
 | [M13](#m13-public-launch) | Public launch | Live on both stores in France | 6 | Not started |
 | **After launch** | | | | |
 | [M14](#m14-measure-and-learn) | Measure and learn | Dashboards and funnels drive a weekly review | 5 | Not started |
 | [M15](#m15-accounts-and-follow-up) | Accounts and follow-up | Players can save an account, and "Did you watch it?" is measured | 10 | Not started |
-| [M16](#m16-growth-loop) | Growth loop | The invite page and reactions bring new players | 2 | In progress |
+| [M16](#m16-growth-loop) | Growth loop | The invite page and reactions bring new players | 2 | Not started |
 | [M17](#m17-fresher-decks-and-moods) | Fresher decks and moods | Repeat rate under 10%, moods live, the deck worker dealing | 15 | Not started |
 | [M18](#m18-more-modes-and-host-controls) | More modes and host controls | Final Cut and Date Night modes and the host controls are live | 8 | Not started |
 | [M19](#m19-smart-deck) | Smart deck | Taste-based decks beat the crowd deck in an A/B test | 10 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 71 of 250 tasks done.
+Progress: 64 of 250 tasks done.
 
 ```mermaid
 flowchart LR
@@ -180,7 +180,7 @@ Everything that blocks building or publishing, started first. Several items take
 
 Done when: the name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, and the repository and the agents are set up.
 
-- [x] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
+- [ ] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
   Done when: the name is checked on both stores, in trademark databases and for domains, and recorded in decisions.md.
 - [ ] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the domain resolves and support@ receives mail.
@@ -340,7 +340,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a fresh install lands on Welcome and a named profile lands on Home; the profile has the device's country and language.
 - [x] **M4.7** Home: host a movie night, join with a code · app · S · needs M4.6 · [onboarding](onboarding.md#the-paths-at-a-glance)
   Done when: both buttons lead to their flows.
-- [ ] **M4.8** Join with a code: the keypad and a message for each `join_room` answer · app · M · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
+- [x] **M4.8** Join with a code: the keypad and a message for each `join_room` answer · app · M · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
   Done when: a wrong code, a full room and a started room each show their message.
 - [x] **M4.9** Host setup: the country's services (saved to the profile), age cap, time budget, then "Open the room" · app · M · needs M4.7, M4.4, M2.6 · [onboarding](onboarding.md#hosting)
   Done when: a room opens with those settings.
@@ -364,7 +364,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: `mise run bots` fills a local room with three present players.
 - [x] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
   Done when: Home is three taps from a fresh install.
-- [x] **M4.18** The domain hookup: Associated Domains, Android intent filters, `invite_base_url`, and hosting the invite page and verification files on the domain · ops · S · needs M0.2, M4.14 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
+- [ ] **M4.18** The domain hookup: Associated Domains, Android intent filters, `invite_base_url`, and hosting the invite page and verification files on the domain · ops · S · needs M0.2, M4.14 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
   Done when: a link opens the app when installed and the invite page when not, checked on a device.
 - [x] **M4.19** `api.room_preview(code, ref)`: who invited you, before joining · backend · M · needs M4.1 · [security](../architecture/security.md#room-codes-joining-and-the-host), [data-model](../architecture/data-model.md#the-apps-api)
   Done when: `api.room_preview` answers a link's code and reference with the host's name and avatar, the seated count and whether the room can be joined; a wrong or missing reference reveals nothing; pgTAP covers every rule.
@@ -387,7 +387,7 @@ Done when: a room is dealt in under a second, only with films its players can wa
   Done when: a film swiped "Seen it" doesn't come back in the player's next room.
 - [ ] **M5.5** Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing · backend · M · needs M5.1 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: tested with a room whose services have almost nothing.
-- [x] **M5.6** Card payloads (`api.my_next_cards`, `api.title_cards`): poster, placeholder, year, runtime, genres, TMDB score, director, cast, trailer, the room's services for that film, watch link; `api.title_cards` limited to the caller's rooms (gap 2) · backend · L · needs M2.7, M1.7, M1.9 · [data-model](../architecture/data-model.md#the-apps-api), [security](../architecture/security.md#the-database-gaps-found)
+- [ ] **M5.6** Card payloads (`api.my_next_cards`, `api.title_cards`): poster, placeholder, year, runtime, genres, TMDB score, director, cast, trailer, the room's services for that film, watch link; `api.title_cards` limited to the caller's rooms (gap 2) · backend · L · needs M2.7, M1.7, M1.9 · [data-model](../architecture/data-model.md#the-apps-api), [security](../architecture/security.md#the-database-gaps-found)
   Done when: a card renders from one call, and scraping other films is refused.
 - [ ] **M5.7** `api.cast_vote` accepts a vote on any active card in the room's pool, even if a refill removed it from the seat's deck · backend · L · needs M1.5 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
   Done when: the refill race is covered by a test.
@@ -421,11 +421,11 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 **App**
 
-- [x] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched · app · L · needs M3.12, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [ ] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched · app · L · needs M3.12, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: smooth on a low-end Android and usable with a screen reader.
 - [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · L · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: flipping works mid-stack.
-- [x] **M6.11** The vote queue: persisted, sent in order, retried, swiping offline, undo · app · L · needs M6.9, M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
+- [ ] **M6.11** The vote queue: persisted, sent in order, retried, swiping offline, undo · app · L · needs M6.9, M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
   Done when: votes made in airplane mode all arrive in order.
 - [ ] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · M · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: both answers reach the server.
@@ -491,7 +491,7 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: a bad or expired token is refused in tests; deployed with the worker.
 - [ ] **M8.5** Delete my data: an HTTP API route that deletes the guest's auth user (everything cascades) and their analytics person · server · L · needs M8.4 · [security](../architecture/security.md#account-deletion-and-data-export)
   Done when: after deletion, nothing about the player remains except anonymous seats.
-- [x] **M8.6** `api.export_my_data` matches the first release (profile, services, seen films, votes) · backend · M · needs M1.5 · [privacy](privacy.md#players-rights-in-practice)
+- [ ] **M8.6** `api.export_my_data` matches the first release (profile, services, seen films, votes) · backend · M · needs M1.5 · [privacy](privacy.md#players-rights-in-practice)
   Done when: tested.
 - [ ] **M8.7** Settings: language, analytics opt-out, download my data, delete my data, About with the TMDB logo and notice and the JustWatch credit, policy, terms, support · app · L · needs M8.5, M8.6, M3.8, M8.3 · [privacy](privacy.md#players-rights-in-practice), [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
   Done when: every item works on both platforms.
@@ -533,7 +533,7 @@ Done when: five real movie nights end with a pick.
 
 - [ ] **M10.1** Create the App Store Connect app and the Play Console app: bundle id, package name, French as primary language, Entertainment · publishing · S · needs M0.1, M0.3, M0.4 · [store-listing](store-listing.md#setting-up-the-store-records)
   Done when: both records exist.
-- [x] **M10.2** First production-signed builds to TestFlight internal and Play internal testing · ops · M · needs M10.1, M3.2, M3.9, M6.20, M4.18 · [store-listing](store-listing.md#the-closed-beta)
+- [ ] **M10.2** First production-signed builds to TestFlight internal and Play internal testing · ops · M · needs M10.1, M3.2, M3.9, M6.20, M4.18 · [store-listing](store-listing.md#the-closed-beta)
   Done when: the testers install from TestFlight and Play.
 - [ ] **M10.3** A week of real movie nights with Harry and two or three friends, on the production catalog · product · M · needs M10.2, M2.13 · [store-listing](store-listing.md#the-closed-beta)
   Done when: five nights played; issues filed as tasks.
@@ -657,7 +657,7 @@ Each movie night bringing the next players.
 
 Done when: the invite page brings new players, visible in the funnels. The recap card and Play again moved into the first release on 29 October 2026 (M6.21 to M6.23).
 
-- [x] **M16.4** Invite page polish: Smart App Banner, store badges, credits, the install referrer on Android and the paste button on iOS · ops · needs M4.18 · [onboarding](onboarding.md#app-not-installed)
+- [ ] **M16.4** Invite page polish: Smart App Banner, store badges, credits, the install referrer on Android and the paste button on iOS · ops · needs M4.18 · [onboarding](onboarding.md#app-not-installed)
   Done when: an invited guest without the app reaches the room after installing.
 - [ ] **M16.7** Reactions from a fixed emoji set · app · needs M4.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: reactions pop on every phone.
