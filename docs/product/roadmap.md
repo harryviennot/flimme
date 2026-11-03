@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 68 of 246 tasks done.
+Progress: 69 of 246 tasks done.
 
 ```mermaid
 flowchart LR
@@ -352,7 +352,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: sharing works on both platforms.
 - [ ] **M4.13** The host menu: Remove player, Lock room · app · M · needs M4.11, M4.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: a removed player sees why and can't come back.
-- [ ] **M4.14** The invite page with the code and store buttons, and the verification files in the repo, ready for the domain · ops · M · needs M3.2 · [store-listing](store-listing.md#invite-links-and-the-web-page), [app-structure](../architecture/app-structure.md#invites-and-deep-links)
+- [x] **M4.14** The invite page with the code and store buttons, and the verification files in the repo, ready for the domain · ops · M · needs M3.2 · [store-listing](store-listing.md#invite-links-and-the-web-page), [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the invite page shows the code and the steps, and the verification files are in the repo.
 - [x] **M4.15** The `/join/[code]` route: a link or a QR code from the phone's camera opens the room · app · M · needs M4.8 · [onboarding](onboarding.md#app-installed)
   Done when: tested from a cold start on both platforms, with the `flimme-dev` scheme.
