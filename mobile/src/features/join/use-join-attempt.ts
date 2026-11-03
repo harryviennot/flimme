@@ -9,6 +9,7 @@ import { MY_PROFILE_KEY } from '@/features/profile';
 import { haptics } from '@/lib/haptics';
 
 import { CODE_LENGTH, digitsOf, readPasted, roomRouteFor } from './link';
+import { leaveOldSeat } from './old-seat';
 import {
   JOIN_ROWS,
   NETWORK_ROW,
@@ -103,6 +104,7 @@ export function useJoinAttempt() {
         }
         if (row.kind === 'go') {
           if (result.status === 'ok') {
+            leaveOldSeat(result.room_id);
             router.replace(roomRouteFor(result.room_id, result.state) as never);
           } else {
             waitingName.current = true;

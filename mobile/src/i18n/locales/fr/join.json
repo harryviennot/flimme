@@ -27,6 +27,8 @@
     "code": "Salle {{code}}",
     "title": "Rejoins la soirée film",
     "titleHost": "Rejoins la soirée de {{name}}",
+    "leaveRoom": "Tu quitteras la salle de {{name}}",
+    "leaveOtherRoom": "Tu quitteras ton autre salle",
     "join": "Rejoindre",
     "anotherCode": "Entrer un autre code",
     "players_one": "{{count}} joueur déjà là",

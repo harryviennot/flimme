@@ -74,3 +74,33 @@ describe('launchStep', () => {
     });
   });
 });
+
+describe('launchStep with a kept room', () => {
+  const kept = { id: 'room-1', code: '482913' };
+  const ready = { state: 'ready', profile: named } as const;
+
+  it('rejoins it for a named profile, and says when slow', () => {
+    expect(step({ profile: ready, kept })).toEqual({ rejoin: kept, show: 'loading' });
+    expect(step({ profile: ready, kept, slow: true })).toEqual({ rejoin: kept, show: 'slow' });
+  });
+
+  it('goes to the route of an ok rejoin, and Home after any other answer', () => {
+    expect(
+      step({ profile: ready, kept, rejoin: { state: 'route', route: '/room/room-1/swipe' } }),
+    ).toEqual({ go: '/room/room-1/swipe' });
+    expect(step({ profile: ready, kept, rejoin: { state: 'home' } })).toEqual({ go: '/home' });
+  });
+
+  it('goes Home offline, without a rejoin', () => {
+    expect(step({ profile: ready, kept, online: false })).toEqual({ go: '/home' });
+    expect(step({ profile: ready, kept, session: { status: 'offline' } })).toEqual({
+      go: '/home',
+    });
+  });
+
+  it('ignores the kept room without a name', () => {
+    expect(step({ profile: { state: 'ready', profile: unnamed }, kept })).toEqual({
+      go: '/welcome',
+    });
+  });
+});

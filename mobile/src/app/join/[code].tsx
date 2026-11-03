@@ -12,6 +12,7 @@ export default function JoinFromLinkScreen() {
   return (
     <JoinSheet
       view={join.view}
+      leaveLine={join.leaveLine}
       code={join.code}
       nameError={join.nameError}
       saving={join.saving}
