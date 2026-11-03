@@ -1,6 +1,8 @@
 import { router, usePathname, useRootNavigationState } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
 
+import { releaseRoomGuards } from './leave-guard';
+
 type NavRoute = { name: string; state?: { routes?: readonly NavRoute[] } };
 
 /**
@@ -38,6 +40,8 @@ export function useExitRoomToHome(): () => void {
   }, [pathname]);
   return useCallback(() => {
     if (onHome.current) return;
+    // Going Home is a way out the player chose (Leave) or was forced into: no confirm.
+    releaseRoomGuards();
     if (homeExit(routes.current) === 'dismissTo') router.dismissTo('/home');
     else router.replace('/home');
     onHome.current = true;

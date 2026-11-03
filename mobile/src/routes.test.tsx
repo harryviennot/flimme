@@ -271,6 +271,45 @@ describe('routes', () => {
       layout: { default: () => ReactElement; unstable_settings?: { anchor: string } } = rootLayout,
     ) => renderRouter({ _layout: layout, ...routes }, { initialUrl: url, wrapper: Providers });
 
+    it('a back action asks first and leaves only once confirmed', async () => {
+      const { leaveRoom } = jest.requireMock('@/features/room/leave');
+      leaveRoom.mockClear();
+      const app = await open('/home');
+      await act(async () => {
+        router.push('/host');
+      });
+      await act(async () => {
+        router.replace('/room/abc/lobby');
+      });
+      jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      await waitFor(() => expect(screen.getByText('In the room')).toBeTruthy());
+      // The iOS swipe from the edge and Android's back button are this back action.
+      await act(async () => {
+        router.back();
+      });
+      await waitFor(() => expect(Alert.alert).toHaveBeenCalled());
+      expect(leaveRoom).not.toHaveBeenCalled();
+      expect(screen).toHavePathname('/room/abc/lobby');
+      const buttons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] as {
+        text: string;
+        onPress?: () => void;
+      }[];
+      await act(async () => {
+        buttons.find((b) => b.text === 'Stay')?.onPress?.();
+      });
+      expect(screen).toHavePathname('/room/abc/lobby');
+      await act(async () => {
+        router.back();
+      });
+      const again = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2] as typeof buttons;
+      await act(async () => {
+        again.find((b) => b.text === 'Leave')?.onPress?.();
+      });
+      await waitFor(() => expect(screen).toHavePathname('/home'));
+      expect(leaveRoom).toHaveBeenCalledWith('abc');
+      expectOneHome(app);
+    });
+
     it('after Home, host setup and the room', async () => {
       const app = await open('/home');
       await act(async () => {
@@ -280,12 +319,15 @@ describe('routes', () => {
         router.replace('/room/abc/lobby');
       });
       // Like the host screen: the invite sheet opens over the lobby, and the host closes it.
+      jest.spyOn(Alert, 'alert').mockClear();
       await act(async () => {
         router.push('/room/abc/invite');
       });
       await act(async () => {
         router.back();
       });
+      // Closing the sheet is not leaving: no question.
+      expect(Alert.alert).not.toHaveBeenCalled();
       await leave();
       expectOneHome(app);
     });
