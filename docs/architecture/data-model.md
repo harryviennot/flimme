@@ -587,7 +587,7 @@ sequenceDiagram
 
 ### Create and join
 
-1. The host calls `api.create_room(mode)`: a free 6-digit code, the host seat, the room model, the service list. Later, the hosting cap and the room's tier are decided here.
+1. The host calls `api.create_room(mode, country, settings)`: the optional settings are checked as `update_room_settings` checks them (a refusal is `invalid_settings` with the field, and nothing is created), then a free 6-digit code, the host seat, the room model, the service list. Later, the hosting cap and the room's tier are decided here.
 2. The invite is `/join/482913` as a link and a QR code.
 3. A guest calls `api.join_room(code)`. It counts the attempt first, then answers `ok`, `not_found`, `full`, `starting`, `in_finale`, `name_required` or `rate_limited`. It never raises an error on a wrong code, since an error would roll back the attempt counter. A player who already has a seat gets the same seat back.
 4. Each new seat recomputes the room's services and broadcasts `member_joined`.
@@ -724,7 +724,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | --- | --- |
 | `update_profile(name, avatar, country, language)` | Edits your profile |
 | `set_my_providers(ids)` | Replaces your services |
-| `create_room(mode, country)` | New room, host seat, code |
+| `create_room(mode, country, settings)` | New room with its settings, host seat, code. A refused setting answers `invalid_settings` with the field and creates nothing |
 | `join_room(code)` | Join or rejoin, rate limited |
 | `touch_room(room)` | Heartbeat every 30 seconds |
 | `leave_room(room)` | Leave, hand over host, re-check matches |

@@ -402,7 +402,6 @@ Not applied to [data-model.md](data-model.md) or [schema.sql](schema.sql). For t
 | `api.app_config` | Add `tmdb_image_base`, `letterboxd_export_url` and `invite_base_url` next to `min_app_version`. `tmdb_image_base` landed in M1.13; `invite_base_url` waits for the domain (M0.2), `letterboxd_export_url` for the Letterboxd connect task | So none of them is hard-coded in a build |
 | `api.taste_check_cards()` | Return an empty list when the player doesn't need the taste check | Taste profiles are private, so the phone can't check the confidence itself |
 | Letterboxd fixes | A function to resolve an unmatched film (search, then pick) | `api.my_unmatched_films` lists them, but nothing lets the player fix one |
-| `api.create_room` | Optionally take the room settings | "Open the room" then becomes one call instead of `create_room` followed by `update_room_settings` |
 | `api.cast_vote` | The optional `flipped` argument from the deck engine | Already in the deck engine's list |
 
 ## Sources
