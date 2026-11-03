@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 58 of 245 tasks done.
+Progress: 59 of 245 tasks done.
 
 ```mermaid
 flowchart LR
@@ -330,7 +330,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a link to a closed room can't join the newer room that reused its code.
 - [ ] **M4.2** Host powers: `rooms.locked`, `api.remove_member`, `api.set_room_locked`; a removed player can't rejoin · backend · L · needs M1.8 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: tests cover removing, locking and rejoining.
-- [ ] **M4.3** Names normalised and filtered with an English and French blocklist; avatars from presets only · backend · M · needs M1.5 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
+- [x] **M4.3** Names normalised and filtered with an English and French blocklist; avatars from presets only · backend · M · needs M1.5 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tests refuse blocked names, invisible characters and unknown avatars.
 - [ ] **M4.4** `api.create_room` takes the room settings, so opening a room is one call · backend · S · needs M1.5, M1.10 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
   Done when: a room is created with its settings in one call.
