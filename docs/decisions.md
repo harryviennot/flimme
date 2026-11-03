@@ -202,6 +202,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | Joining (M4.20, Q20.5, default): the count is read on open and not refreshed, since a non-member can't subscribe to the room's topic | 3 Nov 2026 | [Join sheet](design/screens/join-sheet.md) |
 | Joining (M4.20, Q20.6, default): once M4.10 lands, the sheet says "You'll leave room" with the kept room's code under Join for a player with another kept room. The designer specs the line now, and M4.10 builds it | 3 Nov 2026 | [Join sheet](design/screens/join-sheet.md) |
 | Joining (M4.20, Q20.7, default): onboarding keeps "about 5 seconds" for a player who played before, with the steps "Tap the link, Join". `link_opened_at` keeps the URL's arrival time, so "link to first swipe" includes the tap | 3 Nov 2026 | [App installed](product/onboarding.md#app-installed), [Joining with a code](product/onboarding.md#joining-with-a-code-or-a-qr-code) |
+| Joining (M4.10, join sheet): the leave line names the room by its host, "You'll leave Harry's room", not by its code. This replaces the "You'll leave room {{code}}" wording recorded for Q20.6 | 3 Nov 2026 | [The leave line](design/screens/join-sheet.md#the-leave-line-m410) |
 
 ## Defaults, not yet confirmed
 

@@ -314,7 +314,7 @@ A deck that runs out mid-game (the Figma's screen 26) is a game state, in `produ
 | Screen | Change | Why |
 | --- | --- | --- |
 | 02 Welcome | Add **Already have an account? Sign in**. Change "Skips anything someone has already seen" to fit the new default seen rule, for example "Skips films you've seen, unless you all loved them" | Restoring on a new phone; the default is now `allow_rewatch` |
-| New: Join sheet | "Join Harry's movie night": name, color, Join, in one sheet | The invite link path skips Welcome and Home |
+| New: Join sheet | "Join Harry's movie night": the host's name and avatar, "N players in", then Join. A first-time player also sees the name and color in the same sheet | The invite link path skips Welcome and Home, and nothing joins before Join |
 | New: Invite page (web) | The room code and **Get the app** (the store buttons) | Guests without the app |
 | 05 Join with code | Inline error states; a **Paste** button where available | Errors; the install path |
 | 07 Set the vibe | Moods are host only, up to 3; the seen toggle follows the new default | Agreed in the deck engine |
