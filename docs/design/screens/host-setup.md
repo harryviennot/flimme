@@ -82,7 +82,7 @@ Sections are 24 points apart (`gap-6`); eyebrow to content 8.
 
 ## New component
 
-**`ServiceGrid` (`shared/service-grid`).** `ServiceTile`s in rows of three (`gap-2`, 108 points each, as the Figma), wrapping. Props: `services` (id and name), `selected` (ids), `onToggle`, `loading` (shows six `Skeleton` tiles). No data fetching inside. Used here and in the lobby's services sheet ([lobby](lobby.md)), which is why it's shared. Gallery: loading, none selected, three selected, a long list.
+**`ServiceGrid` (`shared/service-grid`).** `ServiceTile`s in rows of three (`gap-2`, each tile a third of the width: 106 points on a 375-wide phone, the Figma's 108 on a large one), wrapping. Props: `services` (id and name), `selected` (ids), `onToggle`, `loading` (shows six `Skeleton` tiles). No data fetching inside. Used here and in the lobby's services sheet ([lobby](lobby.md)), which is why it's shared. Gallery: loading, none selected, three selected, a long list.
 
 ## Differences from the Figma
 

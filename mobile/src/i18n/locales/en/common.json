@@ -50,6 +50,6 @@
   },
   "services": {
     "tapToAdd": "Tap to add",
-    "youHaveIt": "You have it"
+    "added": "Added"
   }
 }

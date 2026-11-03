@@ -22,12 +22,14 @@ export function Input({ label, helper, error, onFocus, onBlur, ...props }: Input
       </Text>
       <View
         className={cn(
-          'h-14 flex-row items-center rounded-md bg-bg-raised px-4',
+          'h-14 flex-row items-center rounded-md bg-bg-raised',
+          // The idle border is 1 point and the others 2: the idle side padding is 1 point
+          // wider, so the value never moves sideways when focus or an error shows.
           error
-            ? 'border-2 border-nope-default'
+            ? 'border-2 border-nope-default px-4'
             : focused
-              ? 'border-2 border-accent-default glow-accent'
-              : 'border border-border-control',
+              ? 'border-2 border-accent-default px-4 glow-accent'
+              : 'border border-border-control px-4.25',
         )}
       >
         <TextInput
@@ -42,7 +44,7 @@ export function Input({ label, helper, error, onFocus, onBlur, ...props }: Input
             setFocused(false);
             onBlur?.(event);
           }}
-          className="flex-1 type-body-l text-text-primary"
+          className="flex-1 type-input text-text-primary"
           placeholderTextColorClassName="accent-text-muted"
           cursorColorClassName="accent-accent-default"
           selectionColorClassName="accent-accent-default"
