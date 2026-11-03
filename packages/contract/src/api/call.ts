@@ -70,6 +70,28 @@ export async function callAnswer<F extends keyof Functions, R extends { status: 
   return data as R;
 }
 
+/**
+ * Calls an `api` function whose result is plain JSON with no status (a list of cards).
+ * Checked against `schema` only when `validate` is on, like the others.
+ */
+export async function callJson<F extends keyof Functions, R>(
+  client: ApiClient,
+  options: ApiOptions,
+  fn: F,
+  args: Functions[F]['Args'],
+  schema: z.ZodMiniType<R>,
+): Promise<R> {
+  const data = await send(client, fn, args);
+  if (options.validate) {
+    const parsed = schema.safeParse(data);
+    if (!parsed.success) {
+      throw new ApiError('unexpected', fn, `wrong shape: ${parsed.error.message}`);
+    }
+    return parsed.data;
+  }
+  return data as R;
+}
+
 /** The same call for a function that returns `void`. */
 export async function callVoid<F extends keyof Functions>(
   client: ApiClient,

@@ -747,7 +747,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `request_cards(room)` | Running low with no refill: queue one, or deal the baseline after 8 seconds. Under `deck_engine` `sql`, deal at once |
 | `cast_vote(room, title, answer, seat, dwell_ms, client_at)` | The vote |
 | `undo_last_vote(room, seat)` | Undo |
-| `my_next_cards(room, limit, seat, language)` | Your next cards, ready to render: title and overview in your language, poster and placeholder, year, runtime, genres, TMDB score, director, cast, trailer, tonight's services for it, watch link, reason label, members' ratings |
+| `my_next_cards(room, limit, seat, language)` | Your next cards, ready to render: title and overview in your language, poster and placeholder, backdrop, year, runtime, genres, TMDB score, director, cast (first 5), trailer (none in rooms capped under 13), tonight's services for it (name and logo, a variant shown as its main service, one entry per service and offer kind), watch link, reason label, members' ratings. Up to 30 cards (the limit is clamped to 1 to 30); a card renders front and back from this one call |
 | `title_cards(ids, language, country)` | The same card payload for any films: winner, finale, calibration |
 | `submit_calibration(answers, room)` | Lobby calibration |
 | `answer_followup(room, watched, reaction)` | "Did you watch it?" |
