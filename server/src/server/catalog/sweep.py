@@ -286,7 +286,9 @@ async def _write(
             # drop the last two offers of one film would otherwise each still see the other's
             # uncommitted row and leave the film at tier 1. After the lock, every later
             # statement sees what the other step committed. A fetch of the film takes the same
-            # lock through its upsert and touches no other title, so it cannot deadlock either.
+            # lock through its upsert and touches no other title, so it cannot deadlock with a
+            # step. A bulk update of many titles (the popularity job) could; Postgres then
+            # aborts one side and the message is retried.
             cur = await conn.execute(
                 queries.load("stale_availability_titles"), (country, provider, started_at)
             )

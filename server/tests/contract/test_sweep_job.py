@@ -535,6 +535,7 @@ async def test_two_steps_dropping_the_last_two_offers_of_a_film_leave_it_at_tier
                 break
             await asyncio.sleep(0.05)
         else:
+            task.cancel()
             raise AssertionError("the sweep did not wait for the film's lock")
         await other.commit()
         assert await task == Done()
