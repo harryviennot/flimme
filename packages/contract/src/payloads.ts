@@ -41,8 +41,10 @@ export const joinRoomResult = z.discriminatedUnion('status', [
     state: roomState,
     rejoined: z.boolean(),
   }),
+  z.object({ status: z.literal('full'), max_players: z.number() }),
+  z.object({ status: z.literal('name_required'), host_name: z.nullable(z.string()) }),
   z.object({
-    status: z.enum(['not_found', 'full', 'starting', 'in_finale', 'name_required', 'rate_limited']),
+    status: z.enum(['not_found', 'closed', 'starting', 'in_finale', 'rate_limited']),
   }),
 ]);
 export type JoinRoomResult = z.infer<typeof joinRoomResult>;
