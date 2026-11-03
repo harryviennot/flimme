@@ -128,7 +128,7 @@ describe('events', () => {
     seats: api.roomSeats.mock.calls.length,
   });
 
-  it.each(['member_joined', 'member_left', 'seat_updated', 'host_changed'])(
+  it.each(['member_joined', 'member_left', 'member_removed', 'seat_updated', 'host_changed'])(
     '%s reads the seats again, not the room',
     async (event) => {
       await opened();

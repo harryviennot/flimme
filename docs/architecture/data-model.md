@@ -454,7 +454,7 @@ The 10-minute limits are my starting values; the plan only gives 8 minutes for 3
 | mood_slugs, genre_ids | | "Tonight I want", a soft boost in their fit |
 | joined_at, left_at | timestamptz | Rejoining clears left_at and keeps the same seat |
 | joined_via, link_opened_at | join_via, timestamptz | How the seat came in (`link`, `code`, `qr`, `rejoin`, `play_again`; null when the app sent none) and, for `link` only, when the phone opened the link (clamped between the room's creation and now). Set once at the first join, kept on a rejoin. Analytics only: `api.room_seats` does not list them |
-| removed_at | timestamptz | Set when the host removes the player (M4.2). A removed seat is not a member: it reads nothing of the room, has no Realtime topic and gets no cards, except its own votes. Null otherwise, and a removed player can't rejoin |
+| removed_at | timestamptz | Set when the host removes the player (`api.remove_member`, M4.2, which also sets `left_at`). A removed seat is not a member: it reads nothing of the room, has no Realtime topic and gets no cards, except its own votes. Null otherwise, and a removed player can't rejoin |
 | last_active_at | timestamptz | Heartbeat. Only seats active in the last 90 seconds count for match rules |
 | calibrated_at, done_at | timestamptz | |
 | swipe_count | integer | Progress ring |
@@ -671,7 +671,8 @@ sequenceDiagram
 
 ### Leaving and coming back
 
-- `api.leave_room` marks the seat, hands the host role to the longest-seated present player (else the longest-seated seat that hasn't left; `internal.next_host_member`), recomputes services and re-checks liked cards: if everyone still here liked a card, that's a match now.
+- `api.leave_room` marks the seat, hands the host role to the longest-seated present player (else the longest-seated seat that hasn't left; `internal.next_host_member`), recomputes services and re-checks liked cards: if everyone still here liked a card, that's a match now (`internal.recheck_room_matches`, shared with removal).
+- `api.remove_member` (host only, any open state) sets `removed_at` and `left_at`, recomputes services, sends `member_removed` and re-checks liked cards the same way. The seat's votes stay in the log but stop counting. `api.join_room` and `api.room_preview` answer `removed` to it, by code or by link, and that is not a failed attempt.
 - A phone that silently disappears stops counting after 90 seconds; the minute sweeper re-checks liked cards in rooms where a seat timed out.
 - Reopening the app calls `api.join_room` with the room's code: same seat, and `api.my_next_cards` returns the rest of the deck.
 
@@ -731,6 +732,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `room_preview(code, ref)` | What an invite link shows before joining: the host's name and avatar and the player count, never other players; needs the `ref`; read only, rate limited |
 | `touch_room(room)` | Heartbeat every 30 seconds |
 | `leave_room(room)` | Leave, hand over host, re-check matches |
+| `remove_member(room, member)` | Host only: remove a player; they can't rejoin |
 | `update_room_settings(room, settings)` | Host, lobby only |
 | `set_seat_prefs(room, services, moods, genres)` | Your settings for tonight |
 | `start_game(room)` | Host: queue the deal; on a second tap after 8 seconds, deal the baseline. Under `deck_engine` `sql`, deal the baseline at once |
@@ -784,6 +786,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | --- | --- | --- | --- | --- |
 | `member_joined` | room | join_room | seat, name, avatar | Adds the avatar |
 | `member_left` | room | leave_room | seat, new host seat | Removes it, moves the crown |
+| `member_removed` | room | remove_member | seat | Refetches seats; the removed phone leaves the room |
 | `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
 | `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state | Moves to the next screen ("Shuffling" while dealing) |

@@ -8,6 +8,7 @@ export const roomLiveTopic = (roomId: string) => `room:${roomId}:live` as const;
 export const ROOM_EVENTS = [
   'member_joined',
   'member_left',
+  'member_removed',
   'seat_updated',
   'settings_changed',
   'state_changed',
@@ -39,6 +40,8 @@ export type RoomState = (typeof ROOM_STATES)[number];
 export type RoomEventPayloads = {
   member_joined: { member_id: string; display_name: string; avatar_key: string };
   member_left: { member_id: string; new_host_member_id: string | null };
+  /** Only the seat id: who removed whom is the host's business, and no reason travels. */
+  member_removed: { member_id: string };
   seat_updated: { member_id: string };
   /** The six settings as saved, read back from the room (api.update_room_settings, M1.10). */
   settings_changed: {
