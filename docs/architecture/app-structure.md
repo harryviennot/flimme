@@ -367,6 +367,9 @@ The two last rows differ because the 5 minute run also paused Realtime, so the s
 - On every `SUBSCRIBED` (first or not): re-read the room, seats, matches, round and next cards (events were lost), and call `track()` again on the live channel.
 - On return to the foreground: re-read, and check each channel's state; recreate it if it is `closed`.
 - Don't call `setAuth` by hand.
+- Treat a `CHANNEL_ERROR` on the very first join like any other: on a project where Realtime has never served a connection, the first join can fail with `MissingPartition` (see below), and the next one works.
+
+**First run on staging (3 November 2026, Harry's iPhone 16 Pro, a development build through a tunnel, real network, ES256 keys).** The first join ever made on staging failed with `CHANNEL_ERROR MissingPartition: Realtime was unable to find the expected messages partition`. Realtime keeps `realtime.messages` in daily partitions and creates them only when a client connects over WebSocket ([Supabase troubleshooting](https://supabase.com/docs/guides/troubleshooting/realtime-warn-sending-broadcast-message)); private channels check access against that table, so the first join raced the partitions' creation. 14 seconds later a new room reached `SUBSCRIBED` on both topics, and so did one 6 minutes later, in under a second, with presence tracked and the channel still up after a short trip to the background. A probe from a laptop confirmed the rest: a public channel is refused (`PrivateOnly: This project only allows private channels`, as the security rules want), and a private room topic the guest isn't a member of is refused with `Unauthorized`. Production will hit the same first-join error once, on its first connection.
 
 **Still to do, by Harry on phones** (the diagnostic route is what to run):
 
