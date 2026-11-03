@@ -42,10 +42,10 @@ env:
 - takeScreenshot: first-launch-3-name-filled
 - tapOn: '(?i)continue'
 
-# Home is up, and there is no way back to Welcome. The name is drawn inside the profile button,
-# whose accessibility label hides it from the tree (see the QA report), so the screenshots show it.
+# Home is up, and there is no way back to Welcome. The profile button reads the greeting and the
+# typed name, so the name is in the accessibility tree.
 - extendedWaitUntil:
-    visible: 'Edit your name and color'
+    visible: '.*Maestro.*'
     timeout: 15000
 - assertVisible: '(?i)open a room'
 - assertVisible: '(?i)join'
@@ -57,6 +57,6 @@ env:
 - extendedWaitUntil:
     visible: '(?i)open a room'
     timeout: 30000
-- assertVisible: 'Edit your name and color'
+- assertVisible: '.*Maestro.*'
 - assertNotVisible: '(?i)get started'
 - takeScreenshot: first-launch-5-relaunch

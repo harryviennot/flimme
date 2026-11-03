@@ -57,7 +57,7 @@ describe('Home', () => {
 
   it('opens the name screen in edit mode and the settings', async () => {
     await renderHome();
-    await fireEvent.press(screen.getByLabelText('Edit your name and color'));
+    await fireEvent.press(screen.getByRole('button', { name: /^Good .*, Léa$/ }));
     expect(router.push).toHaveBeenLastCalledWith('/name?edit=1');
     await fireEvent.press(screen.getByLabelText('Settings'));
     expect(router.push).toHaveBeenLastCalledWith('/settings');
@@ -67,6 +67,17 @@ describe('Home', () => {
     await renderHome();
     expect(screen.getByText('Léa')).toBeOnTheScreen();
     expect(screen.getByText(/^Good (morning|afternoon|evening)$/)).toBeOnTheScreen();
+  });
+
+  it('reads the greeting and the name to a screen reader, with the edit as a hint', async () => {
+    await renderHome();
+    const button = screen.getByRole('button', { name: /^Good (morning|afternoon|evening), Léa$/ });
+    expect(button.props.accessibilityHint).toBe('Edit your name and color');
+    await i18n.changeLanguage('fr');
+    expect(
+      screen.getByRole('button', { name: /^(Bonjour|Bon après-midi|Bonsoir), Léa$/ }).props
+        .accessibilityHint,
+    ).toBe('Modifier ton prénom et ta couleur');
   });
 
   it('draws a picked color, and an unknown avatar key as blue', async () => {

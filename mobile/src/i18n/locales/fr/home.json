@@ -16,7 +16,8 @@
   },
   "offline": "Tu es hors ligne. Reconnecte-toi pour organiser ou rejoindre.",
   "a11y": {
-    "profile": "Modifier ton prénom et ta couleur",
+    "profile": "{{greeting}}, {{name}}",
+    "profileHint": "Modifier ton prénom et ta couleur",
     "settings": "Réglages"
   }
 }

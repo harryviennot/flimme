@@ -38,7 +38,8 @@ There is no empty or error state: Home always has its two buttons.
 | `join.body` | Rejoins tes amis qui ont déjà ouvert une salle. | Join friends who already started. |
 | `join.cta` | Rejoindre | Join |
 | `offline` | Tu es hors ligne. Reconnecte-toi pour organiser ou rejoindre. | You're offline. Connect to host or join. |
-| `a11y.profile` | Modifier ton prénom et ta couleur | Edit your name and color |
+| `a11y.profile` | {{greeting}}, {{name}} (« Bonjour, Léa ») | {{greeting}}, {{name}} ("Good morning, Léa") |
+| `a11y.profileHint` | Modifier ton prénom et ta couleur | Edit your name and color |
 | `a11y.settings` | Réglages | Settings |
 
 The greeting follows the phone's local time: morning from 5:00, afternoon from 12:00, evening from 18:00.
@@ -50,7 +51,7 @@ The greeting follows the phone's local time: morning from 5:00, afternoon from 1
 
 ## Accessibility
 
-- Focus order: the profile button (`home:a11y.profile`), settings (`home:a11y.settings`), the host title (header), its body, Open a room, the join title (header), Join.
+- Focus order: the profile button (`home:a11y.profile`, read as the greeting and the name; `home:a11y.profileHint` says tapping edits them; while the name is unknown, the greeting alone), settings (`home:a11y.settings`), the host title (header), its body, Open a room, the join title (header), Join.
 - Reduce Motion: nothing changes; nothing moves.
 
 ## Differences from the Figma
