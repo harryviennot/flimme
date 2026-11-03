@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 54 of 244 tasks done.
+Progress: 55 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -307,7 +307,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: a test crash shows in Sentry with readable frames.
 - [x] **M3.10** `app_config` at launch and the `min_app_version` gate · app · M · needs M3.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: raising the minimum shows the update screen.
-- [ ] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · M · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
+- [x] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · M · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
   Done when: the findings are written in app-structure.md.
 - [ ] **M3.12** Spike: the card stack at full frame rate on a low-end Android, styled with Uniwind · test · L · needs M3.4 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
   Done when: the findings are written in app-structure.md, and Uniwind is confirmed (or NativeWind 4.2.7 chosen) in decisions.md.
