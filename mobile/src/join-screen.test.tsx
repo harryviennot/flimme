@@ -95,6 +95,15 @@ describe('JoinScreen', () => {
       expect(screen.queryByText(/You'll leave/)).toBeNull();
     });
 
+    it('still leaves the old room when the new room is kept before the answer is used', async () => {
+      mockJoinRoom.mockImplementation(async () => {
+        keptRoomStore.getState().keep({ id: 'room-new', code: '482913' });
+        return { status: 'ok', room_id: 'room-new', state: 'lobby' };
+      });
+      await typeCode();
+      await waitFor(() => expect(mockLeaveRoom).toHaveBeenCalledWith({ room_id: 'room-old' }));
+    });
+
     it('leaves nothing for the same room', async () => {
       mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: 'room-old', state: 'lobby' });
       await typeCode();
