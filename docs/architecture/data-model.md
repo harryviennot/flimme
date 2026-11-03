@@ -786,7 +786,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | --- | --- | --- | --- | --- |
 | `member_joined` | room | join_room | seat, name, avatar | Adds the avatar |
 | `member_left` | room | leave_room | seat, new host seat | Removes it, moves the crown |
-| `member_removed` | room | remove_member | seat | Refetches seats; the removed phone leaves the room |
+| `member_removed` | room | remove_member | seat | Refetches seats (the removed phone's own handling: M4.13) |
 | `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
 | `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state | Moves to the next screen ("Shuffling" while dealing) |
