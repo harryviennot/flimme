@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { AppState, type AppStateStatus, Linking, Platform } from 'react-native';
@@ -130,11 +131,15 @@ describe('UpdateGate', () => {
     expect(screen.getByText('the app')).toBeTruthy();
   });
 
-  it('shows the app when the minimum is malformed', async () => {
+  it('shows the app when the minimum is malformed, and reports it to Sentry', async () => {
+    jest.mocked(Sentry.captureException).mockClear();
     appConfig.mockResolvedValue({ min_app_version: 'soon' } as never);
     await renderGate();
     await settled();
     expect(screen.getByText('the app')).toBeTruthy();
+    expect(Sentry.captureException).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'app_config.min_app_version is malformed' }),
+    );
   });
 
   it('keeps the update screen when a later read fails', async () => {

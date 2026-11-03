@@ -5,16 +5,18 @@ import { AppState, type NativeEventSubscription, Platform } from 'react-native';
 
 import { api } from '@/api';
 import { startSession } from '@/features/session';
+import { reportError } from '@/lib/sentry';
 
 import { parseAppConfig } from './parse';
 import { isBelowMinimum } from './version';
 
 export const appConfigKey = ['app_config'] as const;
 
-// A value in the table the app can't read. It must reach Sentry once M3.9 lands; until then
-// it goes to the development console.
+// A value in the table the app can't read: a backend mistake to fix, so it goes to Sentry
+// (decision of 2 Nov 2026). It names the key and the value, never anything about the player.
 function reportMalformed(problem: string) {
   if (__DEV__) console.warn(problem);
+  reportError(new Error(problem));
 }
 
 /**
