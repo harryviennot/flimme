@@ -23,27 +23,27 @@ export const JOIN_ROOM_ANSWERS = [
   'starting',
   'in_finale',
   'removed',
+  'locked',
   'name_required',
   'rate_limited',
 ] as const;
 export type JoinRoomAnswer = (typeof JOIN_ROOM_ANSWERS)[number];
 /**
- * `closed` is a stale invite link (M4.1); `removed` is a seat the host removed (M4.2).
- * Planned: `locked` arrives with roadmap M4.23.
+ * `closed` is a stale invite link (M4.1); `removed` is a seat the host removed (M4.2); `locked`
+ * is a room the host locked, for a caller with no seat (M4.23).
  */
-export const PLANNED_JOIN_ROOM_ANSWERS = ['locked'] as const;
 
-/** `api.room_preview` answers (M4.19, `removed` M4.2). Planned: `locked` arrives with roadmap M4.23. */
+/** `api.room_preview` answers (M4.19, `removed` M4.2, `locked` M4.23). */
 export const ROOM_PREVIEW_ANSWERS = [
   'ok',
   'closed',
   'removed',
+  'locked',
   'full',
   'in_finale',
   'rate_limited',
 ] as const;
 export type RoomPreviewAnswer = (typeof ROOM_PREVIEW_ANSWERS)[number];
-export const PLANNED_ROOM_PREVIEW_ANSWERS = ['locked'] as const;
 
 /** How a seat came in (`public.join_via`, M4.1); sent as `via`, stored on the seat. */
 export const JOIN_VIAS = ['link', 'code', 'qr', 'rejoin', 'play_again'] as const;
@@ -64,6 +64,10 @@ export type LeaveRoomAnswer = (typeof LEAVE_ROOM_ANSWERS)[number];
 /** `api.remove_member` answers (M4.2): the host removes a player. */
 export const REMOVE_MEMBER_ANSWERS = ['ok', 'not_in_room', 'closed'] as const;
 export type RemoveMemberAnswer = (typeof REMOVE_MEMBER_ANSWERS)[number];
+
+/** `api.set_room_locked` answers (M4.23): the host locks or unlocks the room. */
+export const SET_ROOM_LOCKED_ANSWERS = ['ok', 'closed'] as const;
+export type SetRoomLockedAnswer = (typeof SET_ROOM_LOCKED_ANSWERS)[number];
 
 /** `api.update_room_settings` answers. */
 export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed', 'invalid_settings'] as const;

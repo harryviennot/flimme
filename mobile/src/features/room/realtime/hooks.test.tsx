@@ -139,13 +139,16 @@ describe('events', () => {
     },
   );
 
-  it.each(['settings_changed', 'state_changed'])('%s reads the room again', async (event) => {
-    await opened();
-    const before = calls();
-    await act(async () => events().broadcast?.({ event }));
-    expect(calls().room).toBe(before.room + 1);
-    expect(calls().seats).toBe(before.seats);
-  });
+  it.each(['settings_changed', 'state_changed', 'room_locked'])(
+    '%s reads the room again',
+    async (event) => {
+      await opened();
+      const before = calls();
+      await act(async () => events().broadcast?.({ event }));
+      expect(calls().room).toBe(before.room + 1);
+      expect(calls().seats).toBe(before.seats);
+    },
+  );
 
   it('drops an event it does not know', async () => {
     await opened();

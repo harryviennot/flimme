@@ -30,11 +30,11 @@ Six digits and you're in. The app tries to join as soon as the sixth digit is ty
 | `name_required` | | Stay filled | None | Pushes [the name screen](name.md) with `?code=`. Back here, it joins again by itself only if the profile now has a name; a player who backed out without saving finds the digits filled and no message (deleting a digit and typing it again retries) |
 | `closed` (a pasted link to an ended room) | `join:errors.closed` | Clear | `haptics.error()` | Host a movie night |
 | `removed` | `join:errors.removed` | Clear | `haptics.error()` | Host a movie night |
-| `locked` (planned, M4.23) | `join:errors.locked` | Stay filled | `haptics.error()` | Host a movie night |
+| `locked` | `join:errors.locked` | Stay filled | `haptics.error()` | Host a movie night |
 | Offline before the call | `join:errors.offline` | Stay filled | None | Joins by itself when the connection comes back |
 | The call failed | `join:errors.network` | Stay filled | `haptics.error()` | Retry |
 
-Typing or deleting a digit clears the message. A Jest test walks `JOIN_ROOM_ANSWERS` and `PLANNED_JOIN_ROOM_ANSWERS` and fails if one has no row here. `removed` and `locked` ship in M4.8 against the planned list (`['removed', 'locked']` after M4.1), so they work the day M4.2 and M4.23 make `join_room` return them, with no app change.
+Typing or deleting a digit clears the message. A Jest test walks `JOIN_ROOM_ANSWERS` and fails if one has no row here. `removed` and `locked` ship in M4.8 and work now that M4.2 and M4.23 make `join_room` return them.
 
 **Leaving the old seat (M4.22).** When the phone keeps a seat in another room, an `ok` here leaves it exactly as the [join sheet](join-sheet.md#leaving-the-old-seat) does (once, without waiting or retrying), and the new room becomes the kept one. There is **no leave line**: a typed code joins at once, with nothing to confirm (Q22.4).
 
@@ -102,7 +102,7 @@ Harry accepted every default of slice 6's plan on 3 November 2026; this spec now
 4. **Paste now** (Q8.1): M4.8 installs expo-clipboard, with new development builds.
 5. **A pasted link** (Q8.2) sends `via: 'link'` and the reference, no `link_opened_at`; typed digits send `via: 'code'`.
 6. **Back from the name screen without saving** (Q8.3): join again only when the profile now has a name.
-7. **`removed` and `locked`** (Q1.6) get their messages in M4.8, against `PLANNED_JOIN_ROOM_ANSWERS`.
+7. **`removed` and `locked`** (Q1.6) get their messages in M4.8.
 
 Harry accepted these on 3 November 2026 (slice 7):
 
