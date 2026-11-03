@@ -626,9 +626,9 @@ sequenceDiagram
   RT-->>H: and every other phone
 ```
 
-If nothing has arrived 8 seconds after the tap, the host's phone calls `api.start_game` again and the database deals the SQL baseline itself (`internal.deal_baseline`): the same candidates, the same order for every seat, logged as `sql-baseline` with `is_fallback`.
+If nothing has arrived 8 seconds after the tap, the host's phone calls `api.start_game` again and the database deals the SQL baseline itself (`internal.deal_baseline`): the same candidates, the same order for every seat, logged as `sql-baseline` with `is_fallback`. The SQL deal is a weighted shuffle (M5.2): each film's place is `score / 0.3` plus noise from a hash of `rooms.seed` and the film (`internal.shuffle_key`), so a room's deck is repeatable from its seed. A start deals 25 cards per seat, the same 25 in the same order for every seat: the shared opening of 10, then 15 ranked. Each card's propensity is logged.
 
-That is with `deck_engine` set to `server`. With `sql` (the first release, see [app_config](#7-operations)), nothing is queued: `api.start_game` sends `state_changed` `dealing`, deals the SQL baseline in the same call and answers its `ok` (`started`, no `fallback` field), so `state_changed` `swiping` follows from the same commit. Refills work the same way: the vote at 15 cards left, a late joiner and `api.request_cards` deal the baseline at once. These deals are still logged with `is_fallback` true.
+That is with `deck_engine` set to `server`. With `sql` (the first release, see [app_config](#7-operations)), nothing is queued: `api.start_game` sends `state_changed` `dealing`, deals the SQL baseline in the same call and answers its `ok` (`started`, no `fallback` field), so `state_changed` `swiping` follows from the same commit. Refills work the same way: the vote at 15 cards left, a late joiner and `api.request_cards` deal the baseline at once. These deals are still logged with `is_fallback` true. A refill tops the seat back up to 25 unvoted cards: first the room's pool films this seat hasn't had yet, in the same shuffled order, then new films. So every seat, and a late joiner after the opening, see one sequence.
 
 ### A swipe
 
@@ -670,7 +670,7 @@ sequenceDiagram
 - At 15 cards left the vote queues a refill for that seat. The deck worker updates `room_models` from the votes, retrieves again (now with the live room signal), and calls `deal_cards` with `keep: 3`: the 3 mounted cards and any propagated card stay, the rest is replaced by the new ranking, and new cards are appended.
 - If the phone gets down to 5 cards with nothing new, it calls `api.request_cards`. After 8 seconds without an answer from the server, that deals the SQL baseline for the seat.
 - Late joiners get the active opening cards at join time and a queued refill.
-- With `deck_engine` set to `sql`, each of these refills is the SQL baseline, dealt in the same call ([Start](#start-dealing-the-deck)).
+- With `deck_engine` set to `sql`, each of these refills is the SQL baseline, dealt in the same call ([Start](#start-dealing-the-deck)). A refill tops the seat up to 25 unvoted cards: the room's pool films the seat hasn't had first (so a late joiner gets the others' cards 11 to 25 in the same order), then new films.
 
 ### Leaving and coming back
 
