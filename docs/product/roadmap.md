@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 83 of 253 tasks done.
+Progress: 84 of 253 tasks done.
 
 ```mermaid
 flowchart LR
@@ -395,7 +395,7 @@ Done when: a room is dealt in under a second, only with films its players can wa
   Done when: the refill race is covered by a test.
 - [x] **M5.8** Check decks on the real catalog: five sample rooms (2 to 10 players, different services and age caps) look right, and 4 players deal in under 150 ms · test · M · needs M5.3, M5.6, M2.13 (the staging load) · [data-model](../architecture/data-model.md#sizes-and-speed)
   Done when: findings written; anything wrong becomes a task.
-- [ ] **M5.9** `api.title_cards` limited to the caller's room (security gap 2): films in its pool only, country and services from the room, rate limited · backend · M · needs M5.6 · [data-model](../architecture/data-model.md#the-apps-api), [security](../architecture/security.md#the-database-gaps-found)
+- [x] **M5.9** `api.title_cards` limited to the caller's room (security gap 2): films in its pool only, country and services from the room, rate limited · backend · M · needs M5.6 · [data-model](../architecture/data-model.md#the-apps-api), [security](../architecture/security.md#the-database-gaps-found)
   Done when: scraping other films is refused.
 - [ ] **M5.10** The lobby shows "Only N films fit" when a start is refused, with a hint to loosen a filter · app · S · needs M5.5, M4.11 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: a room with too few films shows the count to the host, and the guests' overlay closes.
