@@ -525,7 +525,7 @@ Done when: five real movie nights end with a pick.
 
 - [ ] **M10.1** Create the App Store Connect app and the Play Console app: bundle id, package name, French as primary language, Entertainment · publishing · S · needs M0.1, M0.3, M0.4 · [store-listing](store-listing.md#setting-up-the-store-records)
   Done when: both records exist.
-- [ ] **M10.2** First production-signed builds to TestFlight internal and Play internal testing · ops · M · needs M10.1, M3.2, M3.9, M6.20, M4.14 · [store-listing](store-listing.md#the-closed-beta)
+- [ ] **M10.2** First production-signed builds to TestFlight internal and Play internal testing · ops · M · needs M10.1, M3.2, M3.9, M6.20, M4.18 · [store-listing](store-listing.md#the-closed-beta)
   Done when: the testers install from TestFlight and Play.
 - [ ] **M10.3** A week of real movie nights with Harry and two or three friends, on the production catalog · product · M · needs M10.2, M2.13 · [store-listing](store-listing.md#the-closed-beta)
   Done when: five nights played; issues filed as tasks.
@@ -649,7 +649,7 @@ Each movie night bringing the next players.
 
 Done when: the invite page brings new players, visible in the funnels. The recap card and Play again moved into the first release on 29 October 2026 (M6.21 to M6.23).
 
-- [ ] **M16.4** Invite page polish: Smart App Banner, store badges, credits, the install referrer on Android and the paste button on iOS · ops · needs M4.14 · [onboarding](onboarding.md#app-not-installed)
+- [ ] **M16.4** Invite page polish: Smart App Banner, store badges, credits, the install referrer on Android and the paste button on iOS · ops · needs M4.18 · [onboarding](onboarding.md#app-not-installed)
   Done when: an invited guest without the app reaches the room after installing.
 - [ ] **M16.7** Reactions from a fixed emoji set · app · needs M4.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: reactions pop on every phone.
