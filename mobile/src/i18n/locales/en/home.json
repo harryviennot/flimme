@@ -16,7 +16,8 @@
   },
   "offline": "You're offline. Connect to host or join.",
   "a11y": {
-    "profile": "Edit your name and color",
+    "profile": "{{greeting}}, {{name}}",
+    "profileHint": "Edit your name and color",
     "settings": "Settings"
   }
 }

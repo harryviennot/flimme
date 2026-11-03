@@ -19,10 +19,16 @@ export type HomeHeaderProps = {
 /** The player's own corner: avatar, greeting and name (edit), and the settings button. */
 export function HomeHeader({ greeting, profile }: HomeHeaderProps) {
   const { t } = useTranslation('home');
+  const greetingText = t(`greeting.${greeting}`);
   return (
     <View className="flex-row items-center justify-between gap-3">
       <Pressable
-        accessibilityLabel={t('a11y.profile')}
+        accessibilityLabel={
+          profile
+            ? t('a11y.profile', { greeting: greetingText, name: profile.displayName })
+            : greetingText
+        }
+        accessibilityHint={t('a11y.profileHint')}
         onPress={() => router.push('/name?edit=1')}
         className="flex-1 flex-row items-center gap-3"
       >
@@ -33,7 +39,7 @@ export function HomeHeader({ greeting, profile }: HomeHeaderProps) {
         />
         <View className="flex-1 gap-1">
           <Text variant="mono-eyebrow" tone="secondary">
-            {t(`greeting.${greeting}`)}
+            {greetingText}
           </Text>
           {profile ? (
             <Text variant="title-l" numberOfLines={1}>
