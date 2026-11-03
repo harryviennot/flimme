@@ -4,11 +4,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { AccessibilityInfo, Alert, BackHandler } from 'react-native';
+import { AccessibilityInfo, Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { api } from '@/api';
 import RoomLobbyScreen from '@/app/room/[id]/lobby';
+import { RoomLeaveGuard } from '@/components/screens/room/leave-guard';
 import RoomServicesScreen from '@/app/room/[id]/services';
 import { showToast } from '@/components/ui/toast';
 import { leaveRoom } from '@/features/room/leave';
@@ -57,13 +58,21 @@ const mockLive = {
 const mockExitToHome = jest.fn();
 jest.mock('@/features/room', () => ({
   ...jest.requireActual('@/features/room/queries'),
+  ...jest.requireActual('@/features/room/leave-guard'),
   useExitRoomToHome: () => mockExitToHome,
   useRoomPresence: () => ({ online: mockLive.online, away: mockLive.away }),
   useRoomConnection: () => ({ banner: mockLive.banner, fresh: mockLive.fresh }),
 }));
 jest.mock('@/components/screens/room/room-banner', () => ({ RoomBanner: () => null }));
 
+// The room guard asks through React Navigation's prevent-remove; the test calls what it was given.
+const mockPrevent: { on: boolean; ask: () => void } = { on: false, ask: () => {} };
 jest.mock('expo-router', () => ({
+  usePreventRemove: (on: boolean, ask: () => void) => {
+    mockPrevent.on = on;
+    mockPrevent.ask = ask;
+    return jest.fn();
+  },
   router: { push: jest.fn(), back: jest.fn(), replace: jest.fn(), dismissAll: jest.fn() },
   useLocalSearchParams: () => ({ id: 'r1' }),
   useFocusEffect: (effect: () => void | (() => void)) => {
@@ -126,7 +135,12 @@ function Providers({ children }: { children: ReactNode }) {
   );
 }
 const show = async () => {
-  await render(<RoomLobbyScreen />, { wrapper: Providers });
+  await render(
+    <RoomLeaveGuard roomId="r1">
+      <RoomLobbyScreen />
+    </RoomLeaveGuard>,
+    { wrapper: Providers },
+  );
 };
 const start = () => screen.getByRole('button', { name: 'Start swiping' });
 
@@ -451,22 +465,25 @@ describe('leaving', () => {
     expect(mockExitToHome).not.toHaveBeenCalled();
   });
 
-  it('opens the same alert on the Android back button', async () => {
-    let pressBack: ((...args: never[]) => boolean | null | undefined) | undefined;
-    jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_, handler) => {
-      pressBack = handler;
-      return { remove: jest.fn() };
-    });
+  it('guards the room once seated, and a back action asks before leaving', async () => {
     await show();
     await screen.findByText('In the room');
+    expect(mockPrevent.on).toBe(true);
     await act(async () => {
-      expect(pressBack?.()).toBe(true);
+      mockPrevent.ask();
     });
     expect(Alert.alert).toHaveBeenCalledWith(
       'Leave the room?',
       'Sam becomes the host.',
       expect.any(Array),
     );
+    expect(leaveRoom).not.toHaveBeenCalled();
+  });
+
+  it('does not guard a phone without a seat', async () => {
+    mockSeats = [sam];
+    await show();
+    await waitFor(() => expect(mockPrevent.on).toBe(false));
   });
 });
 

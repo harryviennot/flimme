@@ -89,7 +89,9 @@ Done saves only what changed: `api.set_my_providers` when the selection differs 
 
 ## Leaving
 
-Back (and Android's back) opens the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`, or for the host `lobby:leave.bodyHost` naming the next host, and the buttons `lobby:leave.stay` and `lobby:leave.confirm` (destructive).
+Every way out of a room screen that is not Leave asks the same question. The room layout wraps its screens in `RoomLeaveGuard` (`components/screens/room/leave-guard.tsx`), which uses `usePreventRemove` while the phone has a seat: the iOS swipe from the left edge and Android's back button are stopped and open the alert below, `Stay` keeps the player in the room, and only a confirmed Leave runs `leaveRoom` and `useExitRoomToHome()`. The gesture stays on (the native stack bounces the screen back, so nothing is disabled). The invite, services and recap sheets are screens inside the room, so swiping one down still just closes it. Flows that really take the phone out of a room (entering another room from a link) release the guard first. The Back button of the `TopBar` opens it too.
+
+The alert is the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`, or for the host `lobby:leave.bodyHost` naming the next host, and the buttons `lobby:leave.stay` and `lobby:leave.confirm` (destructive).
 
 **The next host** is worked out on the phone with M4.5's rule (Q11.3): the longest-seated [present](#present-and-away) player other than the host (`joined_at`, then `member_id`); with nobody else present, the longest-seated seated player, present or not (M4.5's fallback, Q5.1); with nobody else seated, the alert has the title only. The server picks for real; if its pick differs, the crown follows `member_left`'s `new_host_member_id`.
 
