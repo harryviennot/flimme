@@ -81,6 +81,8 @@ export type ButtonProps = {
   block?: boolean;
   /** Defaults to the label. */
   accessibilityLabel?: string;
+  /** What a screen reader adds, e.g. why the button is disabled. */
+  accessibilityHint?: string;
 };
 
 export function Button({
@@ -93,6 +95,7 @@ export function Button({
   loading = false,
   block = size === 'l',
   accessibilityLabel,
+  accessibilityHint,
 }: ButtonProps) {
   const [pressed, setPressed] = useState(false);
   const offset = useSharedValue(0);
@@ -120,6 +123,7 @@ export function Button({
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityHint={accessibilityHint}
       accessibilityState={{ busy: loading }}
       disabled={inactive}
       onPress={onPress}

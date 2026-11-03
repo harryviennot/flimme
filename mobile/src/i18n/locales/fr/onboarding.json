@@ -26,5 +26,19 @@
     },
     "start": "C'est parti",
     "haveCode": "J'ai un code de salle"
+  },
+  "name": {
+    "topBar": "Ton profil",
+    "title": "Comment on t'appelle ?",
+    "colorLabel": "Ta couleur",
+    "nameLabel": "Ton prénom",
+    "helper": "C'est ce que tes amis verront dans la salle.",
+    "note": "Pas de compte, pas d'e-mail. Juste un prénom pour ce soir.",
+    "continue": "Continuer",
+    "errors": {
+      "invalid": "Mets au moins une lettre ou un chiffre.",
+      "notAllowed": "Ce prénom ne passe pas. Choisis-en un autre.",
+      "offline": "Tu es hors ligne. Reconnecte-toi pour continuer."
+    }
   }
 }

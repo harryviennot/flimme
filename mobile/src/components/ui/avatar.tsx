@@ -64,7 +64,7 @@ export function Avatar({ name, color, size = 's', online = false, overlap = fals
       )}
     >
       <Text variant={dims.text} tone="inverse" accessible={false}>
-        {name.trim().charAt(0)}
+        {Array.from(name.trim())[0] ?? ''}
       </Text>
       {online ? (
         <View

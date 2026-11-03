@@ -51,5 +51,14 @@
   "services": {
     "tapToAdd": "Tap to add",
     "added": "Added"
+  },
+  "colors": {
+    "blue": "Blue",
+    "green": "Green",
+    "gold": "Gold",
+    "red": "Red",
+    "violet": "Violet",
+    "teal": "Teal",
+    "selected": "{{color}}, selected"
   }
 }

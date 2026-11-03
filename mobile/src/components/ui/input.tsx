@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { TextInput, View, type TextInputProps } from 'react-native';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { Pressable as FieldPressable, TextInput, View, type TextInputProps } from 'react-native';
 
 import { cn } from '@/lib/cn';
 
@@ -13,14 +13,24 @@ export type InputProps = Omit<TextInputProps, 'style' | 'className' | 'placehold
 };
 
 /** Figma "Input": a labelled text field (names). Focused glows; an error turns it red. */
-export function Input({ label, helper, error, onFocus, onBlur, ...props }: InputProps) {
+export function Input({ label, helper, error, onFocus, onBlur, autoFocus, ...props }: InputProps) {
   const [focused, setFocused] = useState(false);
+  const field = useRef<ComponentRef<typeof TextInput>>(null);
+  // Focus on open, and again if the caller turns it on later (a screen reader check that
+  // answers after the first frame). Not the TextInput's own autoFocus, which only runs once.
+  useEffect(() => {
+    if (autoFocus) field.current?.focus();
+  }, [autoFocus]);
   return (
     <View className="gap-2 self-stretch">
       <Text variant="mono-eyebrow" tone="secondary">
         {label}
       </Text>
-      <View
+      {/* The whole 56-point field focuses the input, not only the text. */}
+      <FieldPressable
+        testID="input-field"
+        accessible={false}
+        onPress={() => field.current?.focus()}
         className={cn(
           'h-14 flex-row items-center rounded-md bg-bg-raised',
           // The idle border is 1 point and the others 2: the idle side padding is 1 point
@@ -34,6 +44,7 @@ export function Input({ label, helper, error, onFocus, onBlur, ...props }: Input
       >
         <TextInput
           {...props}
+          ref={field}
           accessibilityLabel={label}
           accessibilityHint={error ?? helper}
           onFocus={(event) => {
@@ -49,7 +60,7 @@ export function Input({ label, helper, error, onFocus, onBlur, ...props }: Input
           cursorColorClassName="accent-accent-default"
           selectionColorClassName="accent-accent-default"
         />
-      </View>
+      </FieldPressable>
       {error || helper ? (
         <Text variant="body-s" tone={error ? 'nope' : 'muted'}>
           {error ?? helper}
