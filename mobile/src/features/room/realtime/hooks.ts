@@ -167,8 +167,23 @@ export function useRoomPresence(roomId: string | undefined): {
     () => (seats ?? []).filter((seat) => seat.left_at === null).map((seat) => seat.member_id),
     [seats],
   );
-  const now = useNow(state, (at) => presenceOf(state, ids, mine, at).nextChange, ids);
-  const result = presenceOf(state, ids, mine, now);
+  // A seat that joined late is not away until 90 s after it joined (lobby.md#present-and-away).
+  const joinedAt = useMemo(
+    () =>
+      new Map(
+        (seats ?? []).flatMap((seat) => {
+          const at = Date.parse(seat.joined_at);
+          return Number.isNaN(at) ? [] : [[seat.member_id, at] as const];
+        }),
+      ),
+    [seats],
+  );
+  const now = useNow(
+    state,
+    (at) => presenceOf(state, ids, mine, at, joinedAt).nextChange,
+    joinedAt,
+  );
+  const result = presenceOf(state, ids, mine, now, joinedAt);
   return { online: result.online, away: result.away };
 }
 

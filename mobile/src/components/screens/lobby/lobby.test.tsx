@@ -164,6 +164,10 @@ describe('the seats', () => {
     expect(screen.getByText('Jo')).toBeTruthy();
     expect(screen.queryByText('Max')).toBeNull();
     expect(screen.getByText('Host')).toBeTruthy();
+    const order = ['Léa (you)', 'Sam', 'Jo'].map(
+      (n) => screen.toJSON() && JSON.stringify(screen.toJSON()).indexOf(n),
+    );
+    expect(order).toEqual([...order].sort((a, b) => Number(a) - Number(b)));
   });
 
   it('skips unknown service ids and says when none is known', async () => {
