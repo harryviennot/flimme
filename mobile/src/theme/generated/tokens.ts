@@ -98,136 +98,136 @@ export const tokens = {
   },
   "typography": {
     "display-xl": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 72,
       "lineHeight": 72,
       "letterSpacing": 0.72,
       "textTransform": "uppercase"
     },
     "display-l": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 48,
       "lineHeight": 48,
       "letterSpacing": 0.48,
       "textTransform": "uppercase"
     },
     "display-m": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 34,
       "lineHeight": 34,
       "letterSpacing": 0.34,
       "textTransform": "uppercase"
     },
     "display-s": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 24,
       "lineHeight": 26,
       "letterSpacing": 0.48,
       "textTransform": "uppercase"
     },
     "title-l": {
-      "fontFamily": "SchibstedGrotesk_600SemiBold",
+      "fontFamily": "SchibstedGrotesk-SemiBold",
       "fontSize": 22,
       "lineHeight": 28,
       "letterSpacing": 0
     },
     "title-m": {
-      "fontFamily": "SchibstedGrotesk_600SemiBold",
+      "fontFamily": "SchibstedGrotesk-SemiBold",
       "fontSize": 17,
       "lineHeight": 22,
       "letterSpacing": 0
     },
     "body-l": {
-      "fontFamily": "SchibstedGrotesk_400Regular",
+      "fontFamily": "SchibstedGrotesk-Regular",
       "fontSize": 17,
       "lineHeight": 26,
       "letterSpacing": 0
     },
     "input": {
-      "fontFamily": "SchibstedGrotesk_400Regular",
+      "fontFamily": "SchibstedGrotesk-Regular",
       "fontSize": 17,
       "letterSpacing": 0
     },
     "body-m": {
-      "fontFamily": "SchibstedGrotesk_400Regular",
+      "fontFamily": "SchibstedGrotesk-Regular",
       "fontSize": 15,
       "lineHeight": 22,
       "letterSpacing": 0
     },
     "body-m-strong": {
-      "fontFamily": "SchibstedGrotesk_600SemiBold",
+      "fontFamily": "SchibstedGrotesk-SemiBold",
       "fontSize": 15,
       "lineHeight": 22,
       "letterSpacing": 0
     },
     "body-s": {
-      "fontFamily": "SchibstedGrotesk_400Regular",
+      "fontFamily": "SchibstedGrotesk-Regular",
       "fontSize": 13,
       "lineHeight": 18,
       "letterSpacing": 0
     },
     "mono-data": {
-      "fontFamily": "IBMPlexMono_500Medium",
+      "fontFamily": "IBMPlexMono-Medium",
       "fontSize": 13,
       "lineHeight": 18,
       "letterSpacing": 0
     },
     "mono-eyebrow": {
-      "fontFamily": "IBMPlexMono_500Medium",
+      "fontFamily": "IBMPlexMono-Medium",
       "fontSize": 11,
       "lineHeight": 14,
       "letterSpacing": 1.1,
       "textTransform": "uppercase"
     },
     "mono-code": {
-      "fontFamily": "IBMPlexMono_600SemiBold",
+      "fontFamily": "IBMPlexMono-SemiBold",
       "fontSize": 15,
       "lineHeight": 20,
       "letterSpacing": 0.9
     },
     "label-button-l": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 22,
       "lineHeight": 22,
       "letterSpacing": 0.88,
       "textTransform": "uppercase"
     },
     "label-button-s": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 17,
       "lineHeight": 18,
       "letterSpacing": 0.68,
       "textTransform": "uppercase"
     },
     "display-ticket": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 60,
       "lineHeight": 60,
       "letterSpacing": 4.8
     },
     "display-stamp": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 52,
       "lineHeight": 52,
       "letterSpacing": 0.52,
       "textTransform": "uppercase"
     },
     "avatar-s": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 14,
       "lineHeight": 18,
       "letterSpacing": 0.28,
       "textTransform": "uppercase"
     },
     "avatar-m": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 20,
       "lineHeight": 24,
       "letterSpacing": 0.4,
       "textTransform": "uppercase"
     },
     "avatar-l": {
-      "fontFamily": "Staatliches_400Regular",
+      "fontFamily": "Staatliches-Regular",
       "fontSize": 30,
       "lineHeight": 34,
       "letterSpacing": 0.6,

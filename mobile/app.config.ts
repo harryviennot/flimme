@@ -1,5 +1,7 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
+import fontList from './src/theme/fonts.json';
+
 type Variant = 'development' | 'preview' | 'production';
 
 // The app is called Flimme (decided on 29 October 2026). The bundle id can't change
@@ -111,6 +113,22 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // Android it also keeps only these languages' resources in native libraries, so system text
       // inside the app matches the app: English on a device in any other language.
       ['expo-localization', { supportedLocales: ['fr', 'en'] }],
+      // Fonts are embedded at build time, so the first frame already has them (no system-font
+      // flash) and nothing loads at runtime. iOS names a font by the PostScript name inside the
+      // file; Android by the file name, so each Android entry sets that same PostScript name as
+      // its family. The list is src/theme/fonts.json.
+      [
+        'expo-font',
+        {
+          ios: { fonts: fontList.fonts.map((f) => `./${f.file}`) },
+          android: {
+            fonts: fontList.fonts.map((f) => ({
+              fontFamily: f.postScriptName,
+              fontDefinitions: [{ path: `./${f.file}`, weight: f.weight }],
+            })),
+          },
+        },
+      ],
       'expo-sqlite',
       // Keeps the session key out of Android Auto Backup (security.md#the-app). The app never asks
       // for biometrics, so no Face ID text (see the blocked Android permissions too).
