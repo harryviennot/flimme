@@ -79,10 +79,10 @@ select is(
   (select count(*) from public.titles t
    join public.title_availability a on a.title_id = t.id and a.provider_id = 9001
         and a.country = 'FR' and a.kind = 'subscription'
-   join public.title_vectors v on v.title_id = t.id
-   where t.original_title like 'Catalog Film %'),
+   where t.original_title like 'Catalog Film %' and t.poster_path is not null
+     and not exists (select 1 from public.title_vectors v where v.title_id = t.id)),
   30::bigint,
-  'create_catalog gives every film a subscription row for the service in the country, and a vector'
+  'create_catalog gives every film a subscription row for the service in the country and a poster, and no vector'
 );
 select is(
   (select bool_and(x.popularity < x.previous) from (
