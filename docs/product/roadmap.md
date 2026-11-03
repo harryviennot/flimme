@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 77 of 253 tasks done.
+Progress: 78 of 253 tasks done.
 
 ```mermaid
 flowchart LR
@@ -474,7 +474,7 @@ Done when: the security checklist for the closed beta is ticked.
 
 - [x] **M7.1** Reports: `api.report_member` stores a report with a fixed reason and a rate limit; the alert comes with M9.5 · backend · M · needs M1.9 · [store-listing](store-listing.md#passing-review)
   Done when: a report is stored, a repeat from the same reporter adds no row, and the limit answers `rate_limited`.
-- [ ] **M7.2** Report a player, from the player list · app · M · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [x] **M7.2** Report a player, from the player list · app · M · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: works on both platforms.
 - [ ] **M7.3** No trailer button in rooms with an age cap under 13 · app · S · needs M6.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tested in a capped room.
