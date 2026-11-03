@@ -1,0 +1,45 @@
+# Slice 5, host setup: Home, Host, pick a seeded service, Open the room, and the room's screens
+# (placeholders until M4.11 and M4.12). Needs the local stack with the seed (services 8001 to
+# 8007 are listed for France: Lumo, Orbite, ...). Run: `maestro test mobile/.maestro/host.yaml`
+# with the development build installed and Metro running (`-e METRO_URL=http://localhost:8094`).
+appId: com.harryviennot.flimme.dev
+env:
+  METRO_URL: http://localhost:8094
+---
+- runFlow: subflows/open-app-fresh.yaml
+
+# A fresh player needs a name before Home.
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Maestro'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+
+# Home to Host setup. No service is picked on a fresh profile: Open the room waits.
+- tapOn: '(?i)open a room'
+- extendedWaitUntil:
+    visible: '(?i)set up tonight'
+    timeout: 15000
+- extendedWaitUntil:
+    visible: 'Lumo'
+    timeout: 15000
+- assertVisible: '(?i)pick at least one service'
+- takeScreenshot: host-1-nothing-picked
+
+# One service, a time budget and an age cap.
+- tapOn: 'Lumo'
+- assertNotVisible: '(?i)pick at least one service'
+- tapOn: '(?i)under 2 h'
+- tapOn: '12\+'
+- takeScreenshot: host-2-picked
+
+# Open the room: the lobby, with the invite sheet over it.
+- tapOn: '(?i)open the room'
+- extendedWaitUntil:
+    visible: '(?i)invite friends'
+    timeout: 20000
+- takeScreenshot: host-3-room-opened
