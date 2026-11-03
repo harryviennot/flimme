@@ -100,14 +100,14 @@ export const tokens = {
     "display-xl": {
       "fontFamily": "Staatliches_400Regular",
       "fontSize": 72,
-      "lineHeight": 64,
+      "lineHeight": 72,
       "letterSpacing": 0.72,
       "textTransform": "uppercase"
     },
     "display-l": {
       "fontFamily": "Staatliches_400Regular",
       "fontSize": 48,
-      "lineHeight": 46,
+      "lineHeight": 48,
       "letterSpacing": 0.48,
       "textTransform": "uppercase"
     },
@@ -141,6 +141,11 @@ export const tokens = {
       "fontFamily": "SchibstedGrotesk_400Regular",
       "fontSize": 17,
       "lineHeight": 26,
+      "letterSpacing": 0
+    },
+    "input": {
+      "fontFamily": "SchibstedGrotesk_400Regular",
+      "fontSize": 17,
       "letterSpacing": 0
     },
     "body-m": {
@@ -203,7 +208,7 @@ export const tokens = {
     "display-stamp": {
       "fontFamily": "Staatliches_400Regular",
       "fontSize": 52,
-      "lineHeight": 46,
+      "lineHeight": 52,
       "letterSpacing": 0.52,
       "textTransform": "uppercase"
     },

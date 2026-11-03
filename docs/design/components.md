@@ -4,7 +4,7 @@ The Figma library's components as built in code, with what the Figma says about 
 
 ## Button (`ui/button`)
 
-"Arcade button. Default has a 4 px lip. Pressed drops the lip and darkens; in code, move the button down 4 px for duration/fast and spring back with easing/arcade. Disabled uses state/disabled and text/disabled."
+"Arcade button. Default has a 4 px lip. Pressed drops the lip and darkens; in code, move the button down 4 px for duration/fast and spring back with easing/arcade. Disabled uses state/disabled and text/disabled; it draws no lip but keeps the 4 points of space, so the button does not change height when it becomes enabled."
 
 | | Face | Lip | Label |
 | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ Pressed: the cap moves down 4 and darkens (`nope.strong`, `marquee.strong`, `lik
 
 ## Avatar (`ui/avatar`)
 
-"Player avatar. 10 colors for up to 10 players, assigned in join order and never repeated in a room." Sizes S 28, M 40, L 64; the initial in Staatliches at 14, 20 and 30 (raw, `avatar-s/m/l`), `text.inverse`. Colors: blue, green, gold, red, violet, teal, pink, orange, sky, lime (`color.avatar.*`). Online dot: `like.default` with a 2-point `bg.canvas` ring (8, 12 or 16).
+"Player avatar. Players pick one of 6 colors, and two players in a room may share one" (decisions.md, 30 Oct 2026; the picker is `AvatarPicker`). The Figma defines 10 swatches, all in the gallery. Sizes S 28, M 40, L 64; the initial in Staatliches at 14, 20 and 30 (raw, `avatar-s/m/l`), `text.inverse`. Colors: blue, green, gold, red, violet, teal, pink, orange, sky, lime (`color.avatar.*`). Online dot: `like.default` with a 2-point `bg.canvas` ring (8, 12 or 16).
 
 ## Input (`ui/input`)
 
@@ -80,11 +80,11 @@ Pressed: the cap moves down 4 and darkens (`nope.strong`, `marquee.strong`, `lik
 
 ## Room ticket (`shared/room-ticket`)
 
-"Cinema ticket that shows the room code. Use on lobby, invite and recap." `bg.surface`, a `marquee.strong` hairline, `radius.lg`, `elevation-card`. "Room code" in `mono-eyebrow` `marquee.default`; the code in Staatliches 60 with 8% tracking (raw, `display-ticket`); a dashed perforation with half-circle notches; details `mono-data` `text.secondary`.
+"Cinema ticket that shows the room code. Use on lobby, invite and recap." `bg.surface`, a `marquee.strong` hairline, `radius.lg`, `elevation-card`. "Room code" in `mono-eyebrow` `marquee.default`; the code in Staatliches 60 with 8% tracking (raw, `display-ticket`; the tracking after the last digit is pulled back so the code is centred); a dashed perforation with round notches that cover the border and bulge past the card edge (the card does not clip); details `mono-data` `text.secondary`.
 
 ## Service tile (`shared/service-tile`)
 
-"Selectable streaming service." 108 wide, padding 12, `radius.md`, gap 4. Default: `bg.surface`, `border.default` hairline, "Tap to add" in `text.muted`. Selected: `accent.soft`, 2-point `accent.default` border, a 16-point check, "You have it" in `accent.text`. Name `title-m`.
+"Selectable streaming service." Fills its grid cell (three per row with a gap of 8: 106 on a 375-wide phone, 108 on a 430-wide one; never a fixed width, so a small iPhone fits), padding 12 (the unselected tile's 1-point border is made up with 1 more point of padding, so both states are the same height; the name shrinks to 80% before it is cut), `radius.md`, gap 4. Default: `bg.surface`, `border.default` hairline, "Tap to add" in `text.muted`. Selected: `accent.soft`, 2-point `accent.default` border, a 16-point check, "Added" in `accent.text` ("You have it" did not fit a 106-point tile). Name `title-m`.
 
 ## Movie card (`shared/movie-card`)
 

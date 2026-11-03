@@ -12,7 +12,8 @@ import { Text, type TextTone } from './text';
 
 // The arcade button (Figma "Button"): a face on a hard 4-point lip. Pressing moves the
 // face down 4 points over duration/fast and darkens it; releasing springs back with
-// easing/arcade. Disabled has no lip.
+// easing/arcade. Disabled shows no lip but keeps its 4 points of space, so a button that
+// becomes enabled never moves the layout.
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'marquee';
 export type ButtonSize = 'l' | 's';
@@ -100,7 +101,9 @@ export function Button({
   const look = looks[variant];
   const dims = sizes[size];
   const inactive = disabled || loading;
-  const hasLip = !!look.lip && !disabled;
+  // The lip's space belongs to the variant; the lip itself is drawn only while enabled.
+  const lipSpace = !!look.lip;
+  const hasLip = lipSpace && !disabled;
   const tone: TextTone = disabled
     ? 'disabled'
     : pressed && look.pressedTone
@@ -128,7 +131,7 @@ export function Button({
         setPressed(false);
         if (hasLip) offset.set(withTiming(0, timing.release));
       }}
-      className={cn('relative', block ? 'self-stretch' : 'self-start', hasLip && 'pb-1')}
+      className={cn('relative', block ? 'self-stretch' : 'self-start', lipSpace && 'pb-1')}
     >
       {hasLip ? (
         <View className={cn('absolute inset-x-0 top-1 bottom-0', dims.lip, look.lip)} />

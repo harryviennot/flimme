@@ -137,7 +137,7 @@ export function SwipeAction({
   const glowing = lit && !pressed;
 
   return (
-    <View className="items-center gap-2">
+    <View className="items-center gap-2 self-stretch">
       <Pressable
         accessibilityLabel={label}
         haptic={look.haptic}
@@ -181,6 +181,11 @@ export function SwipeAction({
       {hideLabel ? null : (
         <Text
           variant="mono-eyebrow"
+          align="center"
+          className="self-stretch"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
           tone={glowing && (kind === 'undo' || kind === 'seen') ? 'accent' : look.tone}
         >
           {label}
