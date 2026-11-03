@@ -116,3 +116,21 @@ def test_backfill_without_a_tmdb_token_exits_1_and_says_so(
     message = capsys.readouterr().err
     assert "TMDB_READ_TOKEN" in message
     assert "secret-password" not in message
+
+
+def test_httpx_and_httpcore_log_at_warning_so_a_full_load_does_not_print_every_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import logging
+
+    from server.cli import configure_logging
+
+    # Under pytest the root logger is already set up, so check the loggers' own levels and put
+    # them back afterwards.
+    for name in ("httpx", "httpcore"):
+        monkeypatch.setattr(logging.getLogger(name), "level", logging.NOTSET)
+
+    configure_logging()
+
+    assert logging.getLogger("httpx").level == logging.WARNING
+    assert logging.getLogger("httpcore").level == logging.WARNING

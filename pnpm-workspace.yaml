@@ -4,6 +4,7 @@ packages:
 
 onlyBuiltDependencies:
   - lefthook
+  - '@sentry/cli'
   - '@parcel/watcher'
   - unrs-resolver
 

@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 45 of 244 tasks done.
+Progress: 47 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -303,9 +303,9 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: a persisted store survives a restart.
 - [x] **M3.8** Translations: i18next with French and English, the device language, English as fallback · app · S · needs M3.1 · [app-structure](../architecture/app-structure.md#translations)
   Done when: switching the device language switches the app.
-- [ ] **M3.9** Sentry with no personal data and no user id, source maps from EAS · app · M · needs M3.2 · [app-structure](../architecture/app-structure.md#analytics-and-crash-reports)
+- [x] **M3.9** Sentry with no personal data and no user id, source maps from EAS · app · M · needs M3.2 · [app-structure](../architecture/app-structure.md#analytics-and-crash-reports)
   Done when: a test crash shows in Sentry with readable frames.
-- [ ] **M3.10** `app_config` at launch and the `min_app_version` gate · app · M · needs M3.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
+- [x] **M3.10** `app_config` at launch and the `min_app_version` gate · app · M · needs M3.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: raising the minimum shows the update screen.
 - [ ] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · M · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
   Done when: the findings are written in app-structure.md.
