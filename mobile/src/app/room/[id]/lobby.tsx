@@ -18,7 +18,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { showToast } from '@/components/ui/toast';
 import { TopBar } from '@/components/ui/top-bar';
-import type { AvatarColor } from '@/components/ui/avatar';
 import { useCountryProviders } from '@/features/host/queries';
 import { useInvite } from '@/features/invite/invite-link';
 import { useSeatAnnouncements } from '@/features/lobby/announce';
@@ -28,6 +27,7 @@ import { useGameModes } from '@/features/lobby/queries';
 import { hostSeat, nextHost, presentSeats, seatedSeats, startGate } from '@/features/lobby/seats';
 import { runStart, useDealingTimers } from '@/features/lobby/start';
 import { useOnline } from '@/features/network';
+import { toAvatarColor } from '@/features/profile';
 import {
   ROOM_KEY,
   useExitRoomToHome,
@@ -277,7 +277,7 @@ export default function RoomLobbyScreen() {
                 <SeatRow
                   key={seat.member_id}
                   name={seat.display_name}
-                  color={seat.avatar_key as AvatarColor}
+                  color={toAvatarColor(seat.avatar_key)}
                   services={namesOf(seat.provider_ids)}
                   isHost={seat.role === 'host'}
                   isMe={seat.is_me === true}

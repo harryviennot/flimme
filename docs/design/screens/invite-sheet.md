@@ -40,6 +40,17 @@ M4.12 adds `invite_base_url` to `AppConfig` as optional; the row arrives with M4
 | The link isn't known yet (`app_config` loading) | `Skeleton` in the QR's place and the link row's; copy and share disabled |
 | `app_config` failed | `EmptyState` `error` in the QR's place, `lobby:invite.error`, `common:actions.retry` |
 | Offline | Everything still works: the QR and the link are drawn on the phone, and the share sheet queues the message |
+| The room is locked | See [locked](#locked) |
+
+## Locked
+
+The sheet stays reachable while `api.rooms.locked` is true (slice 8, Q13.4), so the host knows why a friend can't get in. It changes in three ways:
+
+- The QR panel and the link row take `opacity-disabled`; copy and share still work (a link shared now works once the room is unlocked).
+- The helper becomes a row, `gap-2`, centred: `Icon` `lock` (16, `marquee-default`) and `lobby:invite.locked` in `body-s` tone `marquee`.
+- **Host only:** a `Button` secondary S, icon `lock`, `lobby:invite.unlock`, under the helper. It calls `api.setRoomLocked({ room_id, locked: false })` with the lock row's answers ([host menu](host-menu.md#lock-room)); on `ok` the sheet goes back to its usual look when `room_locked` re-reads the room.
+
+Guests see the same sheet without the button, with `lobby:invite.lockedGuest` as the helper. The change comes and goes with `layout.fadeIn` if the lock flips while the sheet is open.
 
 ## Copy (`lobby` namespace)
 
@@ -54,6 +65,9 @@ M4.12 adds `invite_base_url` to `AppConfig` as optional; the row arrives with M4
 | `invite.qr` | QR code de l'invitation. Tes amis le scannent avec leur appareil photo. | Invite QR code. Friends scan it with their camera. |
 | `invite.link` | Lien d'invitation | Invite link |
 | `invite.error` | Impossible de préparer le lien. | We couldn't get the link ready. |
+| `invite.locked` | La salle est verrouillée : personne de nouveau ne peut entrer. | The room is locked: nobody new can join. |
+| `invite.lockedGuest` | La salle est verrouillée. Demande à l'hôte de l'ouvrir. | The room is locked. Ask the host to unlock it. |
+| `invite.unlock` | Déverrouiller | Unlock |
 
 In the share message the code has a space in the middle ("482 913").
 
@@ -64,7 +78,7 @@ In the share message the code has a space in the middle ("482 913").
 
 ## Accessibility
 
-- Focus goes to the title. Order: title, the QR (an image labelled `lobby:invite.qr`), the link (`lobby:invite.link`, then the link), copy (`lobby:invite.copy`), the helper, Share invite, close.
+- Focus goes to the title. Order: title, the QR (an image labelled `lobby:invite.qr`), the link (`lobby:invite.link`, then the link), copy (`lobby:invite.copy`), the helper, Unlock (host, while locked), Share invite, close.
 - The sheet closes with the system's escape gesture as well as the grabber and the close button.
 - Reduce Motion: the QR is simply there.
 
@@ -85,3 +99,7 @@ Harry accepted every default below on 30 October 2026.
 Harry accepted these on 3 November 2026 (slice 7, Q12.1):
 
 3. **Ship before the domain:** the link falls back to the build's scheme while `app_config` has no `invite_base_url`; what needs the domain waits for M4.18.
+
+Harry accepted this on 3 November 2026 (slice 8, Q13.4):
+
+4. **Inviting while locked:** the sheet stays reachable and says the room is locked; the host can unlock from it (M4.13).
