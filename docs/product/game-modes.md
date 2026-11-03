@@ -139,7 +139,7 @@ When the finale starts is in [The finale](#the-finale); the card counts and time
 | **Reconnecting** | Same code, same seat. Votes made offline are queued and retried: a retry the server already has returns "duplicate", a vote after the room was decided returns "closed" and the phone shows the result. The deck continues where it was |
 | **Leaving** (the leave button) | The seat stops counting at once. Liked films are re-checked: if everyone still here liked one, that's a match now |
 | **Going silent** (phone locked, app killed, no network) | The seat stops counting after 90 seconds for presence and the finale's card count. **Default to confirm:** a silence alone never creates a match until it has lasted 3 minutes, so someone answering a message doesn't come back to a decided room |
-| **The host leaves** | The host role moves to the longest-seated player who is present (today: the longest-seated, present or not) |
+| **The host leaves** | The host role moves to the longest-seated player who is present. If nobody else is present, it goes to the longest-seated seat that has not left; if nobody else is seated, no seat holds it |
 | **The host goes silent in the lobby** | After 2 minutes, the host role moves the same way, so the room can still start |
 | **Fewer than 2 players present while swiping** | If it lasts 5 minutes, the room is abandoned. If someone comes back before that, the game carries on |
 
