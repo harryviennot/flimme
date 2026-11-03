@@ -274,12 +274,12 @@ Done when: production holds France's watchable films, and the daily sweep has ru
   Done when: each job runs on schedule on staging.
 - [x] **M2.12** Deploy the pipeline worker on Fly.io next to each database (London for staging, Frankfurt for production), with its secrets · ops · M · needs M2.2, M1.15 · [server-structure](../architecture/server-structure.md#deploying), [operations](../architecture/operations.md#secrets)
   Done when: the worker runs in both environments and restarts on failure.
-- [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12, M2.15 · [tmdb](../integrations/tmdb.md#the-first-full-load)
+- [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
   Done when: about 40,000 to 60,000 films, and every listed French service has availability rows.
 - [ ] **M2.14** Spot-check 30 French films against TMDB's watch pages and JustWatch · test · S · needs M2.13 · [streaming-availability](../integrations/streaming-availability.md#the-sources-compared)
   Done when: mismatches are under 5% or explained.
 - [ ] **M2.15** Move the Supabase organization to Pro: Micro compute on both projects, the spend cap on · ops · S · needs M1.1 · [operations](../architecture/operations.md#environments)
-  Done when: both projects are on Pro with Micro compute, and the spend cap is on.
+  Done when: both projects are on Pro with Micro compute, and the spend cap is on. Do it when a database passes 400 MB, or before M10.3.
 
 ## M3 App foundation
 
