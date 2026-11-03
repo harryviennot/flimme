@@ -9,6 +9,7 @@ import type { ReactNode } from 'react';
 
 // What the screens of wave 2 reach for: the api, the guest session, the connection and the
 // on-device store. M4.17 and M4.7 add their own answers to these mocks.
+const mockRoomState = { current: 'lobby' };
 jest.mock('@/api', () => ({
   api: {
     myProfile: jest.fn(async () => ({
@@ -19,6 +20,16 @@ jest.mock('@/api', () => ({
       language: 'en',
       created_at: '2026-11-03T00:00:00Z',
     })),
+    // The room layout's reads: a seated player in a room whose state the test picks.
+    room: jest.fn(async ({ room_id }: { room_id: string }) => ({
+      id: room_id,
+      code: '482913',
+      state: mockRoomState.current,
+    })),
+    roomSeats: jest.fn(async ({ room_id }: { room_id: string }) => [
+      { member_id: 'm1', room_id, left_at: null, is_me: true, role: 'host' },
+    ]),
+    touchRoom: jest.fn(async () => undefined),
     joinRoom: jest.fn(async () => ({ status: 'not_found' })),
     countryProviders: jest.fn(async () => [
       { provider_id: 8, name: 'Netflix', logo_path: null, display_priority: 1 },
@@ -108,6 +119,15 @@ const paths = [
 
 describe('routes', () => {
   it.each(paths)('%s opens', async (path) => {
+    // A room screen opens when the room is in the state that screen is for.
+    const screens: Record<string, string> = {
+      swipe: 'swiping',
+      'final-cut': 'finale',
+      winner: 'done',
+      recap: 'done',
+      closed: 'abandoned',
+    };
+    mockRoomState.current = screens[path.split('/')[3] ?? ''] ?? 'lobby';
     await renderRouter(routes, { initialUrl: path, wrapper: Providers });
     expect(screen).toHavePathname(path);
     expect(screen.queryByText(/unmatched route/i)).toBeNull();

@@ -123,7 +123,8 @@ stateDiagram-v2
 | Server data | TanStack Query, one query per `api` view or read function, kept fresh by Realtime events | Profile, room, seats, matches, rounds, Letterboxd status, app config |
 | The card stack | A Zustand store, not persisted: the 3 mounted cards, the buffer behind them, the swipe in progress, the flip state | |
 | The vote queue | A Zustand store persisted to `expo-sqlite`'s key-value store, so it survives a restart | Swipes not yet confirmed by the server |
-| Session and UI | Zustand: connection status, the current room id and code, the last answered taste check card | |
+| Session and UI | Zustand: connection status, the last answered taste check card | |
+| The kept room | A Zustand store persisted under `flimme.room` (`features/room/kept-room.ts`): the room's id and code, set while the room is in play and the seat is held, forgotten when the room is done or abandoned, when the player isn't seated, and when they leave | Offered back after a restart (M4.22) |
 | Auth session | Supabase's auth storage: encrypted (AES-256-GCM) into `expo-sqlite`'s key-value store, with the key in SecureStore (`lib/session-storage.ts`) | |
 
 Cards are not TanStack queries: the deck changes under the phone (refills, propagated likes) and the stack needs to replace only what's behind the mounted cards. Everything else is a query, so screens get loading and error states for free.
