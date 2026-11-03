@@ -72,7 +72,15 @@ jest.mock('expo-router', () => ({
 }));
 
 type M = jest.Mock;
-const mockApi = api as unknown as Record<string, M>;
+type ApiName =
+  | 'room'
+  | 'roomSeats'
+  | 'countryProviders'
+  | 'gameModes'
+  | 'startGame'
+  | 'setMyProviders'
+  | 'setSeatPrefs';
+const mockApi = api as unknown as Record<ApiName, M>;
 const mockRouter = router as unknown as Record<string, M>;
 
 function seat(id: string, name: string, joined: string, extra: Record<string, unknown> = {}) {
@@ -401,7 +409,7 @@ describe('leaving', () => {
     await show();
     await askToLeave();
     await act(async () => {
-      alertButtons()[1].onPress?.();
+      alertButtons()[1]?.onPress?.();
     });
     expect(leaveRoom).toHaveBeenCalledWith('r1');
     expect(mockRouter.dismissAll).toHaveBeenCalled();
@@ -413,7 +421,7 @@ describe('leaving', () => {
     await show();
     await askToLeave();
     await act(async () => {
-      alertButtons()[1].onPress?.();
+      alertButtons()[1]?.onPress?.();
     });
     expect(leaveRoom).not.toHaveBeenCalled();
     expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ tone: 'warn' }));
@@ -425,14 +433,14 @@ describe('leaving', () => {
     await show();
     await askToLeave();
     await act(async () => {
-      alertButtons()[1].onPress?.();
+      alertButtons()[1]?.onPress?.();
     });
     expect(showToast).toHaveBeenCalledWith({ tone: 'warn', title: 'The projector jammed' });
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
 
   it('opens the same alert on the Android back button', async () => {
-    let pressBack: (() => boolean) | undefined;
+    let pressBack: ((...args: never[]) => boolean | null | undefined) | undefined;
     jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_, handler) => {
       pressBack = handler;
       return { remove: jest.fn() };
@@ -491,8 +499,8 @@ describe('the services sheet', () => {
     await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
     expect(mockApi.setMyProviders).toHaveBeenCalledWith({ provider_ids: [337, 8] });
     expect(mockApi.setSeatPrefs).toHaveBeenCalledWith({ room_id: 'r1', provider_ids: [337, 8] });
-    expect(mockApi.setMyProviders.mock.invocationCallOrder[0]).toBeLessThan(
-      mockApi.setSeatPrefs.mock.invocationCallOrder[0],
+    expect(mockApi.setMyProviders.mock.invocationCallOrder[0] ?? 0).toBeLessThan(
+      mockApi.setSeatPrefs.mock.invocationCallOrder[0] ?? 0,
     );
   });
 
