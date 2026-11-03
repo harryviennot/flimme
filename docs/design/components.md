@@ -54,6 +54,10 @@ Pressed: the cap moves down 4 and darkens (`nope.strong`, `marquee.strong`, `lik
 
 "Single digit of a room code." 48 by 60, `radius.md`, `bg.sunken`. Empty: `border.control` hairline and a 12 by 2 `text.muted` dash. Active: 2-point `accent.default` border, a 14-point glow (raw, `glow-focus`), a 2 by 30 caret. Filled: `border.strong` hairline, the digit in `display-m`.
 
+## Hidden input (`ui/hidden-input`)
+
+An invisible input that owns a value and draws nothing: it fills its `relative` parent at `opacity-0`, caret hidden, autocomplete and autocorrect off. Props: `value`, `onChangeText`, `accessibilityLabel`, `accessibilityValueText`, `maxLength`, `keyboardType`, and a `ref` with `focus()`. It is the one accessible element of what the screen draws over it (the code field's boxes, [Join with a code](screens/join-code.md#layout)).
+
 ## Toggle (`ui/toggle`)
 
 "On/off switch." 52 by 32, `radius.pill`. On: `accent.default` track, white 24-point knob 4 from the right. Off: `bg.raised` track with a `border.control` hairline, `text.secondary` knob.
