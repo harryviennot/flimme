@@ -10,7 +10,7 @@ Two clear paths: host a movie night, or join one with a code. A returning host i
 
 `Screen` with `scroll`, no `TopBar`.
 
-1. **Header row:** a `Pressable` holding `Avatar` M (the player's color) beside the greeting (`mono-eyebrow`, tone `secondary`) and the name (`title-l`); it opens [the name screen](name.md) with `?edit=1`. On the right, `IconButton` filled `settings` to `/settings`.
+1. **Header row:** a `Pressable` holding `Avatar` M (the player's color, from `toAvatarColor(profile.avatar_key)` in `@/features/profile`: a key outside the six, such as `default` or an old value, draws as `blue`) beside the greeting (`mono-eyebrow`, tone `secondary`) and the name (`title-l`); it opens [the name screen](name.md) with `?edit=1`. On the right, `IconButton` filled `settings` to `/settings`.
 2. **Host card** (`screens/home/host-card.tsx`): `bg-bg-surface`, a `border-marquee-strong` hairline, `rounded-lg`, `p-5`, `gap-3`. `MarqueeBulbs` (still) across the top, `display-m` title, `body-m` secondary body, then `Button` primary L with icon `plus`, to [host setup](host-setup.md).
 3. **Join card** (`screens/home/join-card.tsx`): `bg-bg-surface`, a `border-border-default` hairline, `rounded-lg`, `p-4`, a row: `display-s` title and `body-s` muted line on the left, `Button` secondary S on the right, to [the code](join-code.md).
 
