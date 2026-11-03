@@ -543,6 +543,24 @@ describe('the kept room', () => {
     expect(mockLeaveRoom).toHaveBeenCalledTimes(1);
   });
 
+  it('leaves the kept room when the preview says seated in another room, with no line', async () => {
+    mockRoomPreview.mockResolvedValue({ ...PREVIEW_OK, seated: true });
+    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+    await openOnly({ code: '482913', r: REF });
+    expect(screen.queryByText(/You'll leave/)).toBeNull();
+    expect(mockLeaveRoom).toHaveBeenCalledTimes(1);
+    expect(mockLeaveRoom).toHaveBeenCalledWith({ room_id: 'room-old' });
+    expect(router.replace).toHaveBeenCalledWith(`/room/${ROOM}/lobby`);
+  });
+
+  it('leaves nothing when the seated link is the kept room itself', async () => {
+    keptRoomStore.getState().keep({ id: ROOM, code: '482913' });
+    mockRoomPreview.mockResolvedValue({ ...PREVIEW_OK, seated: true });
+    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+    await openOnly({ code: '482913', r: REF });
+    expect(mockLeaveRoom).not.toHaveBeenCalled();
+  });
+
   it('leaves nothing for the same room', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: 'room-old', state: 'lobby' });
     await open({ code: '482913' });
