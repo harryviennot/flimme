@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 52 of 244 tasks done.
+Progress: 53 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -260,7 +260,7 @@ Done when: production holds France's watchable films, and the daily sweep has ru
   Done when: migrated and tested; free services count for rooms when the switch is on.
 - [x] **M2.5** Reference data job: genres, countries, services and their regions, certification ages, image configuration · server · M · needs M2.2, M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#what-we-use-tmdb-for)
   Done when: the tables fill from TMDB on staging.
-- [ ] **M2.6** Curate France's services: listed services, variants under their main service, free services, display order; check the ids for Canal+, TF1+, M6+ and Arte · content · M · needs M2.5 · [tmdb](../integrations/tmdb.md#services-variants-and-channels)
+- [x] **M2.6** Curate France's services: listed services, variants under their main service, free services, display order; check the ids for Canal+, TF1+, M6+ and Arte · content · M · needs M2.5 · [tmdb](../integrations/tmdb.md#services-variants-and-channels)
   Done when: France's picker list is set in `provider_regions`.
 - [x] **M2.7** Film fetch, one request per film: details, French and English text, credits, certifications with the US fallback, trailer, watch providers, watch link, quality score · server · L · needs M2.2, M2.3, M2.4, M1.15 · [tmdb](../integrations/tmdb.md#one-request-per-film)
   Done when: a fetched film fills every table it should, in tests and on staging.
