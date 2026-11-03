@@ -65,7 +65,7 @@ Show Harry the brief and the spec, and wait for a yes before writing code.
 - the smallest screen and the largest text size;
 - odd data: a long name, the full service list, a missing avatar, an empty list.
 
-Point the simulator at staging (the dev menu's Staging switch) unless the task needs SQL that hasn't merged yet, since other agents reset the local Supabase for their tests. Put what you tried and its screenshots in the pull request's "How it was tested". A bug you find is fixed in this task. If the simulator can't run, say so plainly in your hand-back and don't turn on auto-merge: the task isn't done.
+Point the simulator at staging unless the task needs SQL that hasn't merged yet, since other agents reset the local Supabase for their tests. A worktree has no `mobile/.env.local`, so start Metro with `EXPO_PUBLIC_STAGING_SUPABASE_URL` and `EXPO_PUBLIC_STAGING_SUPABASE_PUBLISHABLE_KEY` in its environment (the session that started you gives the values; the key is the public one), then switch the dev menu to Staging. Put what you tried and its screenshots in the pull request's "How it was tested". A bug you find is fixed in this task. If the simulator can't run, say so plainly in your hand-back and don't turn on auto-merge: the task isn't done.
 
 ## 8. Review
 
