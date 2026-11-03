@@ -1,6 +1,6 @@
 # Welcome
 
-Screen 02 in the Figma (`9:134`). Route `/welcome`. Built in M4.6. Written on 30 October 2026 from [onboarding](../../product/onboarding.md#first-launch) and [the first release](../../product/roadmap.md#the-first-release-whats-in-what-waits).
+Screen 02 in the Figma (`9:134`, first release `99:3582`). Route `/welcome`. Built in M4.6. Written on 30 October 2026 and updated on 3 November 2026 from [onboarding](../../product/onboarding.md#first-launch) and [the first release](../../product/roadmap.md#the-first-release-whats-in-what-waits).
 
 ## Purpose
 
@@ -10,7 +10,7 @@ One screen that says what the game is in three promises, with two ways out: star
 
 `Screen` without a header, `scroll` for small phones, the buttons in the `footer`.
 
-1. **Hero** (`screens/welcome/hero.tsx`): three fictional posters from `mobile/assets/posters/` in `Poster`, fanned behind each other (the middle one in front, the side ones rotated -8 and 8 degrees, raw in the Figma, so a token first), and a 44-point `bg-like-default` disc with a filled `heart` icon in `text.inverse` on the front poster's corner.
+1. **Hero** (`screens/welcome/hero.tsx`): three fictional posters from `mobile/assets/posters/` in `Poster`, fanned behind each other, as in the first-release Figma: `southbound-summer.png` on the left, `neon-harbor.png` in the middle and in front, `signal-and-noise.png` on the right. The side ones turn by `rotation.poster-fan` (8 degrees, in `tokens.rotation`): minus that on the left, plus on the right. A 44-point `bg-like-default` disc with a filled `heart` icon in `text.inverse` sits on the front poster's corner.
 2. **Title**, `Text variant="display-l"`, `onboarding:welcome.title`.
 3. **Body**, `body-l`, tone `secondary`, `onboarding:welcome.body`.
 4. **Three promises**, a column with `gap-3`: each a row of a 36-point `bg-bg-raised` `rounded-sm` box holding an `Icon` (20, `accent-text`) and a `body-m` line. Icons: `users`, `tv`, `eye`.
