@@ -45,7 +45,15 @@ export const joinRoomResult = z.discriminatedUnion('status', [
   z.object({ status: z.literal('full'), max_players: z.number() }),
   z.object({ status: z.literal('name_required'), host_name: z.nullable(z.string()) }),
   z.object({
-    status: z.enum(['not_found', 'closed', 'starting', 'in_finale', 'removed', 'rate_limited']),
+    status: z.enum([
+      'not_found',
+      'closed',
+      'starting',
+      'in_finale',
+      'removed',
+      'locked',
+      'rate_limited',
+    ]),
   }),
 ]);
 export type JoinRoomResult = z.infer<typeof joinRoomResult>;
@@ -61,7 +69,7 @@ export const roomPreviewResult = z.discriminatedUnion('status', [
     seated: z.boolean(),
   }),
   z.object({ status: z.literal('full'), max_players: z.number() }),
-  z.object({ status: z.enum(['closed', 'removed', 'in_finale', 'rate_limited']) }),
+  z.object({ status: z.enum(['closed', 'removed', 'locked', 'in_finale', 'rate_limited']) }),
 ]);
 export type RoomPreviewResult = z.infer<typeof roomPreviewResult>;
 
@@ -75,6 +83,13 @@ export type LeaveRoomResult = z.infer<typeof leaveRoomResult>;
 
 export const removeMemberResult = z.object({ status: z.enum(['ok', 'not_in_room', 'closed']) });
 export type RemoveMemberResult = z.infer<typeof removeMemberResult>;
+
+// ok carries the saved value.
+export const setRoomLockedResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), locked: z.boolean() }),
+  z.object({ status: z.literal('closed') }),
+]);
+export type SetRoomLockedResult = z.infer<typeof setRoomLockedResult>;
 
 /** The host's settings: any subset; `runtime_max` and `max_age` take null to clear. */
 export type RoomSettings = {
@@ -167,6 +182,7 @@ export const roomRow = z.object({
   finale_at: z.nullable(z.string()),
   decided_at: z.nullable(z.string()),
   ended_at: z.nullable(z.string()),
+  locked: z.boolean(),
 });
 export type RoomRow = Omit<z.infer<typeof roomRow>, 'stats'> & { stats: Json | null };
 

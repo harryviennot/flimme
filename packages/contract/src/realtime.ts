@@ -9,6 +9,7 @@ export const ROOM_EVENTS = [
   'member_joined',
   'member_left',
   'member_removed',
+  'room_locked',
   'seat_updated',
   'settings_changed',
   'state_changed',
@@ -42,6 +43,8 @@ export type RoomEventPayloads = {
   member_left: { member_id: string; new_host_member_id: string | null };
   /** Only the seat id: who removed whom is the host's business, and no reason travels. */
   member_removed: { member_id: string };
+  /** The saved value; only sent when it changed (api.set_room_locked, M4.23). */
+  room_locked: { locked: boolean };
   seat_updated: { member_id: string };
   /** The six settings as saved, read back from the room (api.update_room_settings, M1.10). */
   settings_changed: {

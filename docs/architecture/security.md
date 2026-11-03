@@ -267,7 +267,7 @@ One developer means one person's laptop and accounts are the whole perimeter.
 - [ ] Default privileges revoked, and a CI check for tables without row-level security and functions open to phones (gap 1)
 - [ ] `api.title_cards` restricted to the caller's rooms and the taste check (gap 2)
 - [x] `removed_at`, Remove player; removed seats lose read and Realtime access (gap 3)
-- [ ] Lock room (M4.23)
+- [x] Lock room (M4.23)
 - [ ] Avatars from presets only; display names normalised, with a blocklist (gap 4)
 - [ ] `api.update_room_settings` broadcasts saved values and checks ranges (gap 5)
 - [ ] `internal.rate_limit` on joining, calibration, export and the new write functions, per profile and per IP (gaps 6 and 7)

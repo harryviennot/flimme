@@ -428,6 +428,7 @@ The 10-minute limits are my starting values; the plan only gives 8 minutes for 3
 | max_age | smallint | Age cap from certifications |
 | reveal | reveal_mode | `party` (near-miss teasers) or `blind` |
 | max_players | smallint | 10 at launch |
+| locked | boolean | The host locked the room: no new seats, by code or by link (`api.set_room_locked`, M4.23). Seats that left still rejoin. The lock stays when the host leaves |
 | provider_ids | integer[] | Tonight's services, recomputed from the seats on every change, plus the country's free services while `include_free_services` is on |
 | include_free_services | boolean | Default true: the country's `free_for_all` services count for the room. The host's switch comes with M4.4 |
 | rule | jsonb | The mode's match_rules rows, frozen at start |
@@ -625,9 +626,9 @@ sequenceDiagram
   RT-->>H: and every other phone
 ```
 
-If nothing has arrived 8 seconds after the tap, the host's phone calls `api.start_game` again and the database deals the SQL baseline itself (`internal.deal_baseline`): the same candidates, the same order for every seat, logged as `sql-baseline` with `is_fallback`.
+If nothing has arrived 8 seconds after the tap, the host's phone calls `api.start_game` again and the database deals the SQL baseline itself (`internal.deal_baseline`): the same candidates, the same order for every seat, logged as `sql-baseline` with `is_fallback`. The SQL deal is a weighted shuffle (M5.2): each film's place is `score / 0.3` plus noise from a hash of `rooms.seed` and the film (`internal.shuffle_key`), so a room's deck is repeatable from its seed. A start deals 25 cards per seat, the same 25 in the same order for every seat: the shared opening of 10, then 15 ranked. Each card's propensity is logged.
 
-That is with `deck_engine` set to `server`. With `sql` (the first release, see [app_config](#7-operations)), nothing is queued: `api.start_game` sends `state_changed` `dealing`, deals the SQL baseline in the same call and answers its `ok` (`started`, no `fallback` field), so `state_changed` `swiping` follows from the same commit. Refills work the same way: the vote at 15 cards left, a late joiner and `api.request_cards` deal the baseline at once. These deals are still logged with `is_fallback` true.
+That is with `deck_engine` set to `server`. With `sql` (the first release, see [app_config](#7-operations)), nothing is queued: `api.start_game` sends `state_changed` `dealing`, deals the SQL baseline in the same call and answers its `ok` (`started`, no `fallback` field), so `state_changed` `swiping` follows from the same commit. Refills work the same way: the vote at 15 cards left, a late joiner and `api.request_cards` deal the baseline at once. These deals are still logged with `is_fallback` true. A refill tops the seat back up to 25 unvoted cards: first the room's pool films this seat hasn't had yet, in the same shuffled order, then new films. So every seat, and a late joiner after the opening, see one sequence.
 
 ### A swipe
 
@@ -669,12 +670,13 @@ sequenceDiagram
 - At 15 cards left the vote queues a refill for that seat. The deck worker updates `room_models` from the votes, retrieves again (now with the live room signal), and calls `deal_cards` with `keep: 3`: the 3 mounted cards and any propagated card stay, the rest is replaced by the new ranking, and new cards are appended.
 - If the phone gets down to 5 cards with nothing new, it calls `api.request_cards`. After 8 seconds without an answer from the server, that deals the SQL baseline for the seat.
 - Late joiners get the active opening cards at join time and a queued refill.
-- With `deck_engine` set to `sql`, each of these refills is the SQL baseline, dealt in the same call ([Start](#start-dealing-the-deck)).
+- With `deck_engine` set to `sql`, each of these refills is the SQL baseline, dealt in the same call ([Start](#start-dealing-the-deck)). A refill tops the seat up to 25 unvoted cards: the room's pool films the seat hasn't had first (so a late joiner gets the others' cards 11 to 25 in the same order), then new films.
 
 ### Leaving and coming back
 
 - `api.leave_room` marks the seat, hands the host role to the longest-seated present player (else the longest-seated seat that hasn't left; `internal.next_host_member`), recomputes services and re-checks liked cards: if everyone still here liked a card, that's a match now (`internal.recheck_room_matches`, shared with removal).
 - `api.remove_member` (host only, any open state) sets `removed_at` and `left_at`, recomputes services, sends `member_removed` and re-checks liked cards the same way. The seat's votes stay in the log but stop counting. `api.join_room` and `api.room_preview` answer `removed` to it, by code or by link, and that is not a failed attempt.
+- A locked room (`rooms.locked`) answers `locked` to `api.join_room` and `api.room_preview` for a caller with no seat: after the rejoin check and `removed`, before `starting`, `in_finale`, `name_required` and `full`, and never a failed attempt. A seat that left still rejoins. A player who rejoins a room where no seated seat holds the host role takes the role and `rooms.host_id` (Q23.3), so a locked room can always be unlocked.
 - A phone that silently disappears stops counting after 90 seconds; the minute sweeper re-checks liked cards in rooms where a seat timed out.
 - Reopening the app calls `api.join_room` with the room's code: same seat, and `api.my_next_cards` returns the rest of the deck.
 
@@ -736,6 +738,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `touch_room(room)` | Heartbeat every 30 seconds |
 | `leave_room(room)` | Leave, hand over host, re-check matches |
 | `remove_member(room, member)` | Host only: remove a player; they can't rejoin |
+| `set_room_locked(room, locked)` | Host only, any open state: lock or unlock the room; a locked room takes no new seat |
 | `update_room_settings(room, settings)` | Host, lobby only |
 | `set_seat_prefs(room, services, moods, genres)` | Your settings for tonight |
 | `start_game(room)` | Host: queue the deal; on a second tap after 8 seconds, deal the baseline. Under `deck_engine` `sql`, deal the baseline at once |
@@ -790,6 +793,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `member_joined` | room | join_room | seat, name, avatar | Adds the avatar |
 | `member_left` | room | leave_room | seat, new host seat | Removes it, moves the crown |
 | `member_removed` | room | remove_member | seat | Refetches seats (the removed phone's own handling: M4.13) |
+| `room_locked` | room | set_room_locked | locked | Refetches the room (only sent when the value changes) |
 | `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
 | `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state | Moves to the next screen ("Shuffling" while dealing) |
