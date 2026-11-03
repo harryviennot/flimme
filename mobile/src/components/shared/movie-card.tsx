@@ -98,10 +98,26 @@ export function MovieCard(props: MovieCardProps) {
   );
 }
 
-function Frame({ children, border }: { children: React.ReactNode; border: string }) {
+function Frame({
+  children,
+  border,
+  ring,
+}: {
+  children: React.ReactNode;
+  border: string;
+  /** A 3-point colour border drawn over the card's hairline (the stamps). */
+  ring?: string;
+}) {
   return (
-    <View className={cn('flex-1 overflow-hidden rounded-xl bg-bg-surface elevation-card', border)}>
-      {children}
+    <View className="flex-1">
+      <View
+        className={cn('flex-1 overflow-hidden rounded-xl bg-bg-surface elevation-card', border)}
+      >
+        {children}
+      </View>
+      {ring ? (
+        <View pointerEvents="none" className={cn('absolute inset-0 rounded-xl border-3', ring)} />
+      ) : null}
     </View>
   );
 }
@@ -126,10 +142,13 @@ function Services({ services }: { services: string[] }) {
 
 function Front({ title, meta, poster, thumbhash, reason, services, stamp }: MovieCardProps) {
   const { t } = useTranslation();
-  // The stamp's colour border is an overlay, so the card's own border (and everything
-  // placed inside it) never changes width when a stamp shows.
+  // The stamp's 3-point colour border is drawn over the card's hairline, so the card's own
+  // border (and everything placed inside it) never changes width when a stamp shows.
   return (
-    <Frame border="border border-border-default">
+    <Frame
+      border="border border-border-default"
+      ring={stamp ? (stamp === 'like' ? 'border-like-default' : 'border-nope-default') : undefined}
+    >
       <Poster source={poster} thumbhash={thumbhash} />
       <View className="absolute inset-x-0 bottom-0" style={{ height: '64%' }}>
         <GradientFill gradient="card-scrim" />
@@ -145,15 +164,6 @@ function Front({ title, meta, poster, thumbhash, reason, services, stamp }: Movi
         </Text>
         <Services services={services} />
       </View>
-      {stamp ? (
-        <View
-          pointerEvents="none"
-          className={cn(
-            'absolute inset-0 rounded-xl border-2',
-            stamp === 'like' ? 'border-like-default' : 'border-nope-default',
-          )}
-        />
-      ) : null}
       {stamp ? (
         <View
           className={cn(

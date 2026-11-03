@@ -34,21 +34,21 @@ export function ServiceTile({ name, selected = false, onPress }: ServiceTileProp
           : 'border border-border-default bg-bg-surface p-2.75',
       )}
     >
-      <View className="flex-row items-center justify-between">
-        <Text
-          variant="title-m"
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.8}
-          className="flex-1"
-        >
-          {name}
-        </Text>
-        {selected ? <Icon name="check" size={16} color="accent-text" /> : null}
-      </View>
-      <Text variant="body-s" tone={selected ? 'accent' : 'muted'} numberOfLines={1}>
-        {t(selected ? 'services.added' : 'services.tapToAdd')}
+      <Text variant="title-m" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+        {name}
       </Text>
+      {/* The check sits beside "Added", not on the name line: names keep the full width. */}
+      <View className="flex-row items-center gap-1">
+        {selected ? <Icon name="check" size={16} color="accent-text" /> : null}
+        <Text
+          variant="body-s"
+          tone={selected ? 'accent' : 'muted'}
+          numberOfLines={1}
+          className="shrink"
+        >
+          {t(selected ? 'services.added' : 'services.tapToAdd')}
+        </Text>
+      </View>
     </Pressable>
   );
 }
