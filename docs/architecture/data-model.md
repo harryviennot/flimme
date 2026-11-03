@@ -639,7 +639,7 @@ sequenceDiagram
   P->>P: card flies off, next card is already mounted
   P->>DB: cast_vote(room, title, like)
   DB->>DB: lock the room row
-  DB->>DB: check the seat and that the card was dealt to it
+  DB->>DB: check the seat and that the card is in the room's pool, restoring the seat's deck entry if a re-rank removed it
   DB->>DB: insert the vote, bump counters, log the swipe
   DB->>DB: count likes among seats present in the last 90 s
   alt the rule is met
