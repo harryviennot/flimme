@@ -4,7 +4,8 @@ export const CODE_LENGTH = 6;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Any scheme and host, then exactly /join/<6 digits>, an optional query, an optional fragment.
-const LINK = /^(?:[a-z][a-z0-9+.-]*:)?(?:\/\/[^/?#\s]+)?\/join\/(\d{6})\/?(?:\?([^#\s]*))?(?:#\S*)?$/i;
+const LINK =
+  /^(?:[a-z][a-z0-9+.-]*:)?(?:\/\/[^/?#\s]+)?\/join\/(\d{6})\/?(?:\?([^#\s]*))?(?:#\S*)?$/i;
 
 /** Keeps the digits of what was typed or pasted, at most six. */
 export function digitsOf(text: string): string {
@@ -19,7 +20,7 @@ export function digitsOf(text: string): string {
 export function parseInviteLink(text: string): { code: string; ref?: string } | null {
   const match = LINK.exec(text.trim());
   if (!match) return null;
-  const code = match[1];
+  const code = match[1] ?? '';
   const query = match[2];
   if (!query) return { code };
   let ref: string | undefined;

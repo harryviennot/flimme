@@ -1,5 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
+// The hidden input that owns the value is the one accessible element (join-code.md#layout).
+// eslint-disable-next-line no-restricted-imports
 import { AccessibilityInfo, TextInput, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -10,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { PinBox } from '@/components/ui/pin-box';
-import { CODE_LENGTH } from '@/features/join';
+import { CODE_LENGTH } from '@/features/join/link';
 import { tokens } from '@/theme/generated/tokens';
 import { duration, timing } from '@/theme/motion';
 
@@ -32,9 +34,15 @@ const SHAKE_MS = duration.instant * 4;
  * Six boxes over a hidden number-pad input that owns the value. The input is the one
  * accessible element (join-code.md#accessibility); the boxes are only drawn.
  */
-export function CodeField({ code, onChangeCode, error = false, shaking = false, onShakeEnd }: CodeFieldProps) {
+export function CodeField({
+  code,
+  onChangeCode,
+  error = false,
+  shaking = false,
+  onShakeEnd,
+}: CodeFieldProps) {
   const { t } = useTranslation('join');
-  const input = useRef<TextInput>(null);
+  const input = useRef<ComponentRef<typeof TextInput>>(null);
   const reduceMotion = useReducedMotion();
   const offset = useSharedValue(0);
   const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: offset.value }] }));
@@ -78,14 +86,14 @@ export function CodeField({ code, onChangeCode, error = false, shaking = false, 
 
   return (
     <View>
-      <Animated.View style={rowStyle} className="flex-row gap-2" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+      <Animated.View
+        style={rowStyle}
+        className="flex-row gap-2"
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
+      >
         {Array.from({ length: CODE_LENGTH }, (_, i) => (
-          <PinBox
-            key={i}
-            digit={code[i]}
-            active={i === code.length}
-            error={error}
-          />
+          <PinBox key={i} digit={code[i]} active={i === code.length} error={error} />
         ))}
       </Animated.View>
       <TextInput
@@ -99,7 +107,9 @@ export function CodeField({ code, onChangeCode, error = false, shaking = false, 
         caretHidden
         textContentType="none"
         accessibilityLabel={t('a11y.field')}
-        accessibilityValue={{ text: t('a11y.progress', { digits: code.split('').join(' '), count: code.length }) }}
+        accessibilityValue={{
+          text: t('a11y.progress', { digits: code.split('').join(' '), count: code.length }),
+        }}
         className="absolute inset-0 opacity-0"
       />
     </View>

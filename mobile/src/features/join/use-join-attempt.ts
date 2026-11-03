@@ -52,8 +52,10 @@ export function useJoinAttempt() {
   const waitingName = useRef(false);
   const onlineRef = useRef(online);
   const profileRef = useRef(profile);
-  onlineRef.current = online;
-  profileRef.current = profile;
+  useEffect(() => {
+    onlineRef.current = online;
+    profileRef.current = profile;
+  });
 
   const updateCode = useCallback((next: string) => {
     codeRef.current = next;
@@ -199,6 +201,14 @@ export function useJoinAttempt() {
 
   useEffect(() => cancel, [cancel]);
 
-  return { code, view, shaking, error: view.kind === 'message' && view.message !== 'errors.offline',
-    setCode, paste, finishShake, retry };
+  return {
+    code,
+    view,
+    shaking,
+    error: view.kind === 'message' && view.message !== 'errors.offline',
+    setCode,
+    paste,
+    finishShake,
+    retry,
+  };
 }

@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useState } from 'react';
 
-import '@/i18n';
+import i18n from '@/i18n';
 
 import { PinBox } from '@/components/ui/pin-box';
 
@@ -10,7 +10,9 @@ import { CodeField } from './code-field';
 let mockReduce = false;
 jest.mock('react-native-reanimated', () => {
   const actual = jest.requireActual('react-native-reanimated');
-  return { ...actual, default: actual.default, useReducedMotion: () => mockReduce };
+  return new Proxy(actual, {
+    get: (target, key) => (key === 'useReducedMotion' ? () => mockReduce : target[key]),
+  });
 });
 
 function Harness({ shaking = false, onShakeEnd = jest.fn(), initial = '' }) {
@@ -26,7 +28,8 @@ function Harness({ shaking = false, onShakeEnd = jest.fn(), initial = '' }) {
   );
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  await i18n.changeLanguage('fr');
   mockReduce = false;
   jest.useFakeTimers();
 });

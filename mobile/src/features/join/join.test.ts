@@ -21,7 +21,10 @@ let mockFocus: (() => void) | undefined;
 const mockReplace = jest.fn();
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
-  router: { replace: (...a: unknown[]) => mockReplace(...a), push: (...a: unknown[]) => mockPush(...a) },
+  router: {
+    replace: (...a: unknown[]) => mockReplace(...a),
+    push: (...a: unknown[]) => mockPush(...a),
+  },
   useFocusEffect: (cb: () => void) => {
     mockFocus = cb;
   },
@@ -131,7 +134,13 @@ describe('useJoinAttempt', () => {
     });
     expect(result.current.code).toBe('482913');
 
-    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: 'r1', member_id: 'm', state: 'swiping', rejoined: false });
+    mockJoinRoom.mockResolvedValue({
+      status: 'ok',
+      room_id: 'r1',
+      member_id: 'm',
+      state: 'swiping',
+      rejoined: false,
+    });
     await act(async () => result.current.retry());
     expect(mockReplace).toHaveBeenCalledWith('/room/r1/swipe');
   });
@@ -139,7 +148,13 @@ describe('useJoinAttempt', () => {
   it('joins when the game finishes starting', async () => {
     mockJoinRoom
       .mockResolvedValueOnce({ status: 'starting' })
-      .mockResolvedValue({ status: 'ok', room_id: 'r1', member_id: 'm', state: 'lobby', rejoined: true });
+      .mockResolvedValue({
+        status: 'ok',
+        room_id: 'r1',
+        member_id: 'm',
+        state: 'lobby',
+        rejoined: true,
+      });
     const { result } = await renderHook(() => useJoinAttempt());
     await type(result, '482913');
     await act(async () => {
@@ -154,7 +169,13 @@ describe('useJoinAttempt', () => {
     ['swiping', '/room/r1/swipe'],
     ['finale', '/room/r1/final-cut'],
   ])('ok in %s replaces to %s', async (state, route) => {
-    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: 'r1', member_id: 'm', state, rejoined: false });
+    mockJoinRoom.mockResolvedValue({
+      status: 'ok',
+      room_id: 'r1',
+      member_id: 'm',
+      state,
+      rejoined: false,
+    });
     const { result } = await renderHook(() => useJoinAttempt());
     await type(result, '482913');
     expect(mockReplace).toHaveBeenCalledWith(route);
@@ -174,7 +195,13 @@ describe('useJoinAttempt', () => {
     expect(result.current.code).toBe('482913');
 
     // Saved a name, then came back.
-    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: 'r1', member_id: 'm', state: 'lobby', rejoined: false });
+    mockJoinRoom.mockResolvedValue({
+      status: 'ok',
+      room_id: 'r1',
+      member_id: 'm',
+      state: 'lobby',
+      rejoined: false,
+    });
     await act(async () => result.current.setCode('48291'));
     await act(async () => result.current.setCode('482913'));
     expect(mockJoinRoom).toHaveBeenCalledTimes(2);
@@ -185,7 +212,13 @@ describe('useJoinAttempt', () => {
     const { result, rerender } = await renderHook(() => useJoinAttempt());
     await type(result, '482913');
     mockProfile = { display_name: 'Coco' };
-    mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: 'r1', member_id: 'm', state: 'lobby', rejoined: false });
+    mockJoinRoom.mockResolvedValue({
+      status: 'ok',
+      room_id: 'r1',
+      member_id: 'm',
+      state: 'lobby',
+      rejoined: false,
+    });
     await rerender({});
     await act(async () => mockFocus?.());
     expect(mockJoinRoom).toHaveBeenCalledTimes(2);
@@ -209,7 +242,11 @@ describe('useJoinAttempt', () => {
     mockJoinRoom.mockRejectedValue(new ApiError('network', 'join_room', 'down'));
     const { result } = await renderHook(() => useJoinAttempt());
     await type(result, '482913');
-    expect(result.current.view).toEqual({ kind: 'message', message: 'errors.network', next: 'retry' });
+    expect(result.current.view).toEqual({
+      kind: 'message',
+      message: 'errors.network',
+      next: 'retry',
+    });
     expect(haptics.error).toHaveBeenCalledTimes(1);
     expect(result.current.code).toBe('482913');
     mockJoinRoom.mockResolvedValue({ status: 'full', max_players: 10 });
