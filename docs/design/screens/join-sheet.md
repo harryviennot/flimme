@@ -26,6 +26,18 @@ The link is `https://<domain>/join/<code>?r=<ref>` (or `flimme://join/<code>?r=<
 
 **What the call sends.** `api.joinRoom({ code, ref, via: 'link', link_opened_at })`. `link_opened_at` is the moment the app received the URL (the initial URL on a cold start, or the URL event when the app was running), recorded with `Date.now()` at that moment and sent as `new Date(serverNow(receivedAt)).toISOString()` (`mobile/src/lib/server-time.ts`). The `starting` retries and Retry send the same value. On a cold start the phone may not know the server's clock yet, so the value is the phone's own; the server clamps it to the room's lifetime anyway (M4.1).
 
+## A link to a room you are in
+
+A link never stacks room screens. When `join_room` answers `ok` (a seated player answers `ok` with `rejoined`), the sheet enters the room by what the stack already holds:
+
+| The stack holds | The sheet |
+| --- | --- |
+| No room screen | `replace`s itself with the room |
+| This room's screen (the player was in it, left the app and tapped the link again) | Goes back to that screen (`dismissTo`): nothing is pushed, and the room screen goes to the page the room's state says |
+| Another room's screens | Drops them all (`dismissAll`), then `replace`s with the new room. Leaving the old seat is M4.10's (Q2 below) |
+
+Found in M4.15's first use on staging: a second tap on the same link pushed a new copy of the room on top of the old one, one more for each tap.
+
 ## Layout
 
 **Joining** (the player has a name): `RoomTicket` with the code, left detail `join:link.ticketLeft`, right detail `join:link.ticketRight`, then `join:link.joining` in `body-m` tone `secondary`. `api.join_room(code, ref)` runs at once; `ok` replaces the sheet with `/room/[id]`. Usually under a second, so no spinner.

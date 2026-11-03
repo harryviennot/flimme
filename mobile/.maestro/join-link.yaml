@@ -1,0 +1,92 @@
+# Slice 6, an invite link on a cold start: the link opens the join sheet over the app, a
+# first-time player names themselves and joins, and lands on the lobby (a placeholder until
+# M4.11). Then the same link as a named player (straight in), and a malformed link (the refused
+# sheet; closing it lands on Home). Needs the local stack: seed the open room first with
+#   mobile/.maestro/scripts/seed-open-room.sh      (a room with the code 482913)
+# The link has no room reference, so it joins by code. The development scheme stands in for the
+# domain (M4.18). A development build asks which Metro to use on a cold start from a link: the
+# flow picks the one in METRO_URL from "Recently opened".
+# Run: `maestro test mobile/.maestro/join-link.yaml -e METRO_URL=http://localhost:8094` with the
+# development build installed and Metro running.
+appId: com.harryviennot.flimme.dev
+env:
+  METRO_URL: http://localhost:8094
+---
+# Open the app once on a fresh install so Metro is in "Recently opened".
+- runFlow: subflows/open-app-fresh.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+
+# First time on this phone: no name yet.
+- stopApp
+- openLink: flimme-dev://join/482913
+- runFlow:
+    when:
+      visible: 'Open'
+    commands:
+      - tapOn: 'Open'
+- tapOn: ${METRO_URL}
+- extendedWaitUntil:
+    visible: '(?i)join .*movie night|join the movie night'
+    timeout: 40000
+- takeScreenshot: join-link-1-first-time
+- inputText: 'Coco'
+- tapOn: 'Join'
+- extendedWaitUntil:
+    visible: '(?i)lobby'
+    timeout: 20000
+- takeScreenshot: join-link-2-lobby
+
+# Played before: the same link goes straight to the room.
+- stopApp
+- openLink: flimme-dev://join/482913
+- runFlow:
+    when:
+      visible: 'Open'
+    commands:
+      - tapOn: 'Open'
+- tapOn: ${METRO_URL}
+- extendedWaitUntil:
+    visible: '(?i)lobby'
+    timeout: 40000
+
+# The same link tapped again, twice, while the app is on the room: the sheet closes on the same
+# room each time and nothing is pushed on top. Maestro cannot count screens (routes.test.tsx
+# does), so this checks that the sheet is gone and the lobby is showing each time.
+- repeat:
+    times: 2
+    commands:
+      - openLink: flimme-dev://join/482913
+      - runFlow:
+          when:
+            visible: 'Open'
+          commands:
+            - tapOn: 'Open'
+      - extendedWaitUntil:
+          notVisible: '(?i)getting you in.*'
+          timeout: 15000
+      - assertVisible: '(?i)lobby'
+      - assertNotVisible: '(?i)join .*movie night'
+- takeScreenshot: join-link-2b-lobby-after-repeat
+
+# A malformed link: the refused sheet, and closing it lands on Home (the profile has a name by
+# now; an unnamed one would land on Welcome).
+- stopApp
+- openLink: flimme-dev://join/48291
+- runFlow:
+    when:
+      visible: 'Open'
+    commands:
+      - tapOn: 'Open'
+- tapOn: ${METRO_URL}
+- extendedWaitUntil:
+    visible: '(?i)this movie night has ended.*'
+    timeout: 40000
+- takeScreenshot: join-link-3-malformed
+- swipe:
+    start: 50%,30%
+    end: 50%,90%
+- extendedWaitUntil:
+    visible: '(?i)got a room code.*'
+    timeout: 15000

@@ -1,7 +1,10 @@
 import '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import { router, Stack } from 'expo-router';
+import { act, renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { ReactNode } from 'react';
 
 // What the screens of wave 2 reach for: the api, the guest session, the connection and the
@@ -73,6 +76,17 @@ const routes = {
 };
 /* eslint-enable @typescript-eslint/no-require-imports */
 
+// Like the real root layout: a stack anchored on `/`.
+const rootLayout = {
+  default: () => <Stack screenOptions={{ headerShown: false }} />,
+  unstable_settings: { anchor: 'index' },
+};
+
+/** How many room screens the navigation state holds. */
+function roomScreens(app: { getRouterState: () => unknown }): number {
+  return (JSON.stringify(app.getRouterState()).match(/"name":"room\/\[id\]"/g) ?? []).length;
+}
+
 const paths = [
   '/welcome',
   '/name',
@@ -102,5 +116,61 @@ describe('routes', () => {
   it('sends a fresh install from the root to the welcome screen', async () => {
     await renderRouter(routes, { initialUrl: '/', wrapper: Providers });
     await waitFor(() => expect(screen).toHavePathname('/welcome'));
+  });
+
+  it('a second link to the room you are in leaves one room screen', async () => {
+    const { api } = jest.requireMock('@/api');
+    api.joinRoom.mockResolvedValueOnce({
+      status: 'ok',
+      room_id: 'abc',
+      state: 'lobby',
+      rejoined: true,
+    });
+    const app = await renderRouter(
+      { _layout: rootLayout, ...routes },
+      { initialUrl: '/room/abc/lobby', wrapper: Providers },
+    );
+    expect(roomScreens(app)).toBe(1);
+    await act(async () => {
+      router.push('/join/123456');
+    });
+    await waitFor(() => expect(screen).toHavePathname('/room/abc/lobby'));
+    // The sheet is gone and no second copy of the room was pushed.
+    expect(roomScreens(app)).toBe(1);
+    expect(JSON.stringify(app.getRouterState())).not.toContain('"name":"join/[code]"');
+  });
+
+  // The root layout anchors on `/`, so a link opened on a cold start has `/` under the sheet and
+  // closing the sheet lands on Home or Welcome (join-sheet.md#presentation).
+  describe('closing the join sheet after a cold start', () => {
+    it('anchors the real root layout on the index route', () => {
+      const source = readFileSync(resolve(__dirname, 'app', '_layout.tsx'), 'utf8');
+      expect(source).toContain("export const unstable_settings = { anchor: 'index' }");
+    });
+
+    it.each([
+      ['an unnamed profile', '', '/welcome'],
+      ['a named profile', 'Léa', '/home'],
+    ])('lands on the right screen for %s', async (_label, name, path) => {
+      const { api } = jest.requireMock('@/api');
+      api.myProfile.mockResolvedValueOnce({
+        id: 'u1',
+        display_name: name,
+        avatar_key: 'blue',
+        country: 'FR',
+        language: 'en',
+        created_at: '2026-11-03T00:00:00Z',
+      });
+      await renderRouter(
+        { _layout: rootLayout, ...routes },
+        { initialUrl: '/join/123456', wrapper: Providers },
+      );
+      // `not_found` keeps the sheet open: the player closes it.
+      await waitFor(() => expect(screen).toHavePathname('/join/123456'));
+      await act(async () => {
+        router.back();
+      });
+      await waitFor(() => expect(screen).toHavePathname(path));
+    });
   });
 });

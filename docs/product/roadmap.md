@@ -22,7 +22,7 @@ The first part lists the milestones, to track the whole project. The second part
 Each task reads like this:
 
 ```
-- [ ] **M4.8** Join with a code · app · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
+- [x] **M4.8** Join with a code · app · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
   Done when: a wrong code, a full room and a started room each show their message.
 ```
 
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 67 of 246 tasks done.
+Progress: 68 of 246 tasks done.
 
 ```mermaid
 flowchart LR
@@ -354,7 +354,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a removed player sees why and can't come back.
 - [ ] **M4.14** The invite page with the code and store buttons, and the verification files in the repo, ready for the domain · ops · M · needs M3.2 · [store-listing](store-listing.md#invite-links-and-the-web-page), [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the invite page shows the code and the steps, and the verification files are in the repo.
-- [ ] **M4.15** The `/join/[code]` route: a link or a QR code from the phone's camera opens the room · app · M · needs M4.8 · [onboarding](onboarding.md#app-installed)
+- [x] **M4.15** The `/join/[code]` route: a link or a QR code from the phone's camera opens the room · app · M · needs M4.8 · [onboarding](onboarding.md#app-installed)
   Done when: tested from a cold start on both platforms, with the `flimme-dev` scheme.
 - [ ] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · M · needs M4.1, M3.6, M1.17 · [groundwork](../architecture/groundwork.md#the-local-environment)
   Done when: `mise run bots` fills a local room with three present players.
