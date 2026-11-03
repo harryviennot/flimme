@@ -11,8 +11,10 @@
 set local lock_timeout = '5s';
 set local statement_timeout = '30s';
 
+-- Safe: nothing but pgTAP calls the old function (Q9.1).
 -- squawk-ignore ban-drop-function
 drop function api.title_cards(bigint[], text, char);
+-- Safe: nothing but pgTAP calls the old function (Q9.1).
 -- squawk-ignore ban-drop-function
 drop function internal.card_payloads(bigint[], text, char, integer[]);
 
