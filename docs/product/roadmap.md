@@ -97,7 +97,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
-| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 18 | In progress |
+| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 20 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | In progress |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | Not started |
@@ -329,7 +329,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
 - [x] **M4.1** Invite links carry a room reference; `api.join_room` takes it, answers `closed` for a stale link, and stores how the player came in (`via`, `link_opened_at`) · backend · M · needs M1.5 · [onboarding](onboarding.md#the-link), [analytics](analytics.md#changes-this-asks-elsewhere)
   Done when: a link to a closed room can't join the newer room that reused its code.
 - [ ] **M4.2** Host powers: `rooms.locked`, `api.remove_member`, `api.set_room_locked`; a removed player can't rejoin · backend · L · needs M1.8 · [security](../architecture/security.md#room-codes-joining-and-the-host)
-  Done when: tests cover removing, locking and rejoining.
+  Done when: tests cover removing, locking and rejoining. It also adds `removed` and `locked` to `api.room_preview` (M4.19), as it adds them to `join_room`.
 - [x] **M4.3** Names normalised and filtered with an English and French blocklist; avatars from presets only · backend · M · needs M1.5 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tests refuse blocked names, invisible characters and unknown avatars.
 - [x] **M4.4** `api.create_room` takes the room settings, so opening a room is one call · backend · S · needs M1.5, M1.10 · [app-structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)
@@ -362,6 +362,10 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: Home is three taps from a fresh install.
 - [x] **M4.18** The domain hookup: Associated Domains, Android intent filters, `invite_base_url`, and hosting the invite page and verification files on the domain · ops · S · needs M0.2, M4.14 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
   Done when: a link opens the app when installed and the invite page when not, checked on a device.
+- [ ] **M4.19** `api.room_preview(code, ref)`: who invited you, before joining · backend · M · needs M4.1 · [security](../architecture/security.md#room-codes-joining-and-the-host), [data-model](../architecture/data-model.md#the-apps-api)
+  Done when: `api.room_preview` answers a link's code and reference with the host's name and avatar, the seated count and whether the room can be joined; a wrong or missing reference reveals nothing; pgTAP covers every rule.
+- [ ] **M4.20** The join sheet confirms before joining, with the host and the player count from the preview · app · M · needs M4.19, M4.15, M4.14 · [join sheet](../design/screens/join-sheet.md), [onboarding](onboarding.md#app-installed)
+  Done when: opening a link with a reference shows the ticket, the host and "N players in" with Join, and nothing joins before the tap; a first-time player sees the same above `NameForm`.
 
 ## M5 Basic deck
 
