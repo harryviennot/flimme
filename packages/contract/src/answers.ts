@@ -29,6 +29,11 @@ export type JoinRoomAnswer = (typeof JOIN_ROOM_ANSWERS)[number];
 /** `closed` is a stale invite link (M4.1). Planned: `removed` and `locked` arrive with roadmap M4.2. */
 export const PLANNED_JOIN_ROOM_ANSWERS = ['removed', 'locked'] as const;
 
+/** `api.room_preview` answers (M4.19). Planned: `removed` and `locked` arrive with roadmap M4.2. */
+export const ROOM_PREVIEW_ANSWERS = ['ok', 'closed', 'full', 'in_finale', 'rate_limited'] as const;
+export type RoomPreviewAnswer = (typeof ROOM_PREVIEW_ANSWERS)[number];
+export const PLANNED_ROOM_PREVIEW_ANSWERS = ['removed', 'locked'] as const;
+
 /** How a seat came in (`public.join_via`, M4.1); sent as `via`, stored on the seat. */
 export const JOIN_VIAS = ['link', 'code', 'qr', 'rejoin', 'play_again'] as const;
 export type JoinVia = (typeof JOIN_VIAS)[number];
