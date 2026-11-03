@@ -10,12 +10,13 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 
 `Screen` with `scroll`. Header: `TopBar` with back (leave, below), title `lobby:topBar`, and the action `share` (`lobby:a11y.invite`), which opens the [invite sheet](invite-sheet.md). Right under the `TopBar`, the `RoomBanner` ([Reconnecting](reconnecting.md#layout)).
 
-1. **`RoomTicket`**: the code, left detail `lobby:ticket.players` (the [present](#present-and-away) seats of the room's maximum), right detail `lobby:ticket.host`.
+1. **`RoomTicket`**: the code, left detail `lobby:ticket.players` (the [present](#present-and-away) seats of the room's maximum), right detail `lobby:ticket.host`. While `api.rooms.locked` is true, `locked` draws its lock tag ([host menu](host-menu.md#lock-room)).
 2. **Two buttons** in a row, each half the width: `Button` secondary S, icon `link`, `lobby:shareLink` (the system share sheet straight away, with the [invite sheet's](invite-sheet.md) message); `Button` secondary S, icon `qr`, `lobby:showQr` (the invite sheet).
 3. **The rules line**, `body-s` tone `secondary`: `lobby:rules.quickMatch`. For guests who didn't choose the mode; everyone sees it.
 4. **Eyebrow** `lobby:inTheRoom`, then **the seats** in one `bg-bg-surface` group with a `border-border-default` hairline and `rounded-lg`, one `SeatRow` per seat with `left_at` null (`api.roomSeats` also returns seats that left; they never show), in join order (`joined_at`, then `member_id`). `SeatRow` is new: `screens/lobby/seat-row.tsx`, spec below.
 5. **The room's services**, `body-s` tone `muted`: `lobby:roomServices`, the [names](#service-names) of `api.rooms.provider_ids`, listed with `Intl.ListFormat`. No line while no name is known.
 6. **Guests only: `ListRow`** icon `tv`, label `lobby:yourServices.label`, value the guest's services or `lobby:yourServices.optional`, chevron. It opens the services sheet (below).
+7. **Host only: the lock row**, a `ListRow` with a `Toggle` and its helper line ([host menu](host-menu.md#lock-room), M4.13).
 
 **Footer, host:** `Button` primary L, icon `play`, `lobby:start.cta`, and under it one `body-s` muted line: `lobby:start.needPlayers` while fewer than the mode's minimum are [present](#present-and-away) (the button disabled), or `lobby:start.away` when some seats are away (the button enabled). The server counts presence its own way (`last_active_at`), so it can still answer `not_enough_players` (below).
 
@@ -30,7 +31,7 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 - `Avatar` M in the seat's color, with `online` while the seat is in the live channel's presence now ([present and away](#present-and-away)).
 - Name in `body-m-strong`, with `lobby:seat.you` for the player's own seat; under it the seat's services by [name](#service-names), joined with `Intl.ListFormat`, in `mono-data` tone `muted` (or `lobby:seat.noServices` when none has a name). Services show for everyone: it's how a host spots a seat padding the deck ([security](../../architecture/security.md#room-codes-joining-and-the-host)).
 - On the right, at most one `Tag`: the host gets tone `marquee`, icon `crown`, `lobby:seat.host`; an [away](#present-and-away) seat gets tone `neutral`, `lobby:seat.away`, and its name turns tone `muted`.
-- Props: `name`, `color`, `services`, `isHost`, `isMe`, `present`, and an optional `onPress` that only the host menu uses (slice 8, M4.13).
+- Props: `name`, `color`, `services`, `isHost`, `isMe`, `present`, and `onPress`. Every row but the player's own opens the [seat sheet](host-menu.md#the-seat-sheet) (Report for everyone from M7.2, Remove for the host from M4.13); the own row has no `onPress` and isn't a button.
 
 ## Present and away
 
@@ -40,6 +41,7 @@ Phones can't read `last_active_at`, so the lobby's rule comes from the live chan
 - **Away**: the seat has been missing from presence for 90 seconds. A seat is never shown as away until 90 seconds after the later of this phone's last `SUBSCRIBED` and the seat's `joined_at`, so a phone that just reconnected doesn't mark everyone away and a late joiner isn't away for a few seconds.
 - **Present**: seated and not away. The ticket's count, `start.needPlayers`, `start.away` and the next host in the leave alert all use it.
 - The player's own seat is always online and present on their phone.
+- Presence (and anything else on `:live`) from a key that isn't a listed seat is ignored: a removed seat's phone may still be connected for a moment ([security](../../architecture/security.md#room-codes-joining-and-the-host)).
 
 ## Service names
 
@@ -77,6 +79,8 @@ Done saves only what changed: `api.set_my_providers` when the selection differs 
 | --- | --- |
 | `member_joined` | The seats are re-read; the new row comes in, its avatar with `layout.popIn`; the ticket's count changes |
 | `member_left` | The row leaves with `layout.fadeOut` |
+| `member_removed` | The seats are re-read; the row leaves as for `member_left` (nothing says it was removed). On the removed phone: [the removed side](host-menu.md#the-removed-players-side) |
+| `room_locked` | The room is re-read; the ticket's lock tag comes or goes |
 | `seat_updated` | The row's services change |
 | `settings_changed` | The room is re-read (the services line) |
 | `host_changed`, or `member_left` with `new_host_member_id` | The crown moves. On the new host's phone: `showToast` info `lobby:youreHost.*`, and the footer becomes Start |
@@ -103,7 +107,8 @@ Back (and Android's back) opens the system alert `lobby:leave.title`, with `lobb
 | Only the host | One row, then a row inside the group: `Icon` `users` and `lobby:alone` in `body-s` muted |
 | Full (10 of 10) | The same lobby; the count says it |
 | Reconnecting or offline | See [Reconnecting](reconnecting.md); Start is disabled until the room is fresh again |
-| The player's seat is gone (removed) | Slice 8 (M4.13) |
+| The player's seat is gone (removed) | Home, with `showToast` info `join:errors.removed`; the kept room is forgotten ([host menu](host-menu.md#the-removed-players-side)) |
+| Locked | The ticket's lock tag, for everyone; the host's toggle on ([host menu](host-menu.md#lock-room)) |
 
 ## Copy (`lobby` namespace)
 
@@ -161,7 +166,7 @@ The away names are listed with `Intl.ListFormat`. The host alone leaving has no 
 
 ## Accessibility
 
-- Focus order: back (`lobby:a11y.leave`), title, invite, the ticket (read as "Room code 4 8 2 9 1 3, 3 of 10 players, host Harry"), Share link, Show QR, the rules line, "In the room" (header), each seat as one element ("Sam, here, Netflix, Disney+"; the host's says "host"), the room's services, your services, Start (its helper as the hint).
+- Focus order: back (`lobby:a11y.leave`), title, invite, the ticket (read as "Room code 4 8 2 9 1 3, 3 of 10 players, host Harry"), Share link, Show QR, the rules line, "In the room" (header), each seat as one element ("Sam, here, Netflix, Disney+"; the host's says "host"), the room's services, your services (guests) or the lock row (host), Start (its helper as the hint). Each other player's seat is a button that opens the seat sheet.
 - Arrivals and departures are announced politely (`lobby:a11y.joined`, `lobby:a11y.left`), at most one announcement a second.
 - The shuffling overlay takes focus and reads `lobby:shuffling`.
 - Reduce Motion: rows and the overlay appear without movement.
