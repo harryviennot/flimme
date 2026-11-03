@@ -2,6 +2,9 @@
 -- (data-model.md#a-swipe). api.cast_vote is replaced whole from the M1.13 version; only the
 -- user_titles upsert after the vote insert is new.
 
+set local lock_timeout = '3s';
+set local statement_timeout = '30s';
+
 create or replace function api.cast_vote(
   p_room_id uuid,
   p_title_id bigint,
@@ -166,3 +169,8 @@ begin
 
   return jsonb_build_object('status', 'ok')
     || jsonb_build_object('match', coalesce(v_check->'match', 'false'::jsonb))
+    || case when v_check->>'match' = 'true' then jsonb_build_object('kind', v_check->'kind', 'decided', v_check->'decided')
+            else '{}'::jsonb end
+    || case when v_round is not null then jsonb_build_object('finale_round_id', v_round) else '{}'::jsonb end;
+end
+$$;

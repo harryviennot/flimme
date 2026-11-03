@@ -2,7 +2,7 @@
 -- (data-model.md#a-swipe, deck-engine.md#signals, game-modes.md#the-answers).
 
 begin;
-select plan(27);
+select plan(22);
 
 select tests.create_catalog(30);
 select tests.deal_game(3, 'p', 'swiping');
@@ -39,20 +39,22 @@ select set_config('tests.code_b', (select code from public.rooms where id = curr
 select tests.authenticate_as('p2');
 select api.join_room(current_setting('tests.code_b'));
 select api.set_seat_prefs(current_setting('tests.room_b')::uuid, '{9001}');
+select tests.clear_authentication();
+select is((select count(*) from internal.deck_candidates(current_setting('tests.room_b')::uuid, 300, 0) c
+           where c.title_id in (tests.film(1), tests.film(2), tests.film(3))),
+  0::bigint, 'T3 the films p1 saw are not among the new room''s candidates (hide_seen)');
+select is((select count(*) from internal.deck_candidates(current_setting('tests.room_b')::uuid, 300, 0) c where c.title_id = tests.film(4)),
+  1::bigint, 'T3 control: a film nobody saw is a candidate');
+
 select tests.authenticate_as('p1');
 select is(api.start_game(current_setting('tests.room_b')::uuid)->>'status', 'ok', 'T3 control: the new room starts');
 select tests.clear_authentication();
 select cmp_ok((select count(*) from public.deck_entries d join public.room_members m on m.id = d.room_member_id
                where d.room_id = current_setting('tests.room_b')::uuid and m.profile_id = tests.uid('p1')),
   '>', 0::bigint, 'T3 control: p1 has cards in the new room');
-select is((select count(*) from internal.deck_candidates(current_setting('tests.room_b')::uuid) c
-           where c.title_id in (tests.film(1), tests.film(2), tests.film(3))),
-  0::bigint, 'T3 the films p1 saw are not among the new room''s candidates (hide_seen)');
 select is((select count(*) from public.deck_entries d
            where d.room_id = current_setting('tests.room_b')::uuid and d.title_id in (tests.film(1), tests.film(2), tests.film(3))),
   0::bigint, 'T3 the films p1 saw are in nobody''s dealt cards in the new room');
-select is((select count(*) from internal.deck_candidates(current_setting('tests.room_b')::uuid) c where c.title_id = tests.film(4)),
-  1::bigint, 'T3 control: a film nobody saw is a candidate');
 
 -- T4: the mark is p1's, not the film's.
 update public.rooms set state = 'done' where id = current_setting('tests.room_b')::uuid;
@@ -61,8 +63,11 @@ select set_config('tests.room_c', (api.create_room('quick_match', 'FR')->>'room_
 select set_config('tests.code_c', (select code from public.rooms where id = current_setting('tests.room_c')::uuid), true);
 select tests.authenticate_as('p3');
 select api.join_room(current_setting('tests.code_c'));
+select api.set_seat_prefs(current_setting('tests.room_c')::uuid, '{9001}');
+select tests.authenticate_as('p2');
+select api.set_seat_prefs(current_setting('tests.room_c')::uuid, '{9001}');
 select tests.clear_authentication();
-select is((select count(*) from internal.deck_candidates(current_setting('tests.room_c')::uuid) c where c.title_id = tests.film(1)),
+select is((select count(*) from internal.deck_candidates(current_setting('tests.room_c')::uuid, 300, 0) c where c.title_id = tests.film(1)),
   1::bigint, 'T4 without p1 in the room, the film can be dealt');
 
 -- Back to room A for the swipe rules.
@@ -92,9 +97,10 @@ select is((select count(*) from public.user_titles where profile_id = tests.uid(
   'T7 a like, a nope and a super like write no user_titles row');
 
 -- T8: a seat with no profile saves nothing.
-update public.room_members set profile_id = null where id = tests.member_id('p3', tests.room_id());
+select set_config('tests.seat_p3', tests.member_id('p3', tests.room_id())::text, true);
+update public.room_members set profile_id = null where id = current_setting('tests.seat_p3')::uuid;
 select tests.authenticate_as('p3');
-select is(api.cast_vote(tests.room_id(), tests.film(11), 'seen', tests.member_id('p3', tests.room_id()))->>'status', 'ok',
+select is(api.cast_vote(tests.room_id(), tests.film(11), 'seen', current_setting('tests.seat_p3')::uuid)->>'status', 'ok',
   'T8 the vote of a seat with no profile answers ok');
 select tests.clear_authentication();
 select is((select count(*) from public.user_titles where title_id = tests.film(11)), 0::bigint,
@@ -102,10 +108,8 @@ select is((select count(*) from public.user_titles where title_id = tests.film(1
 
 -- T9: privacy.
 select tests.authenticate_as('p2');
-select is((select count(*) from public.user_titles where profile_id = tests.uid('p1')), 0::bigint,
-  'T9 p2 can''t read p1''s rows');
-select is((select count(*) from public.user_titles where profile_id = tests.uid('p2')), 2::bigint,
-  'T9 control: p2 reads their own rows');
+select throws_ok($$select count(*) from public.user_titles$$, '42501', null,
+  'T9 p2 can''t read user_titles (no one reads another player''s marks)');
 select tests.authenticate_as('p1');
 create temp table t9_export as select api.export_my_data() as e;
 select tests.clear_authentication();
