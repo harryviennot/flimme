@@ -54,8 +54,10 @@ const mockLive = {
   banner: null as null | 'offline',
   fresh: true,
 };
+const mockExitToHome = jest.fn();
 jest.mock('@/features/room', () => ({
   ...jest.requireActual('@/features/room/queries'),
+  useExitRoomToHome: () => mockExitToHome,
   useRoomPresence: () => ({ online: mockLive.online, away: mockLive.away }),
   useRoomConnection: () => ({ banner: mockLive.banner, fresh: mockLive.fresh }),
 }));
@@ -416,15 +418,14 @@ describe('leaving', () => {
     expect(Alert.alert).toHaveBeenCalledWith('Leave the room?', undefined, expect.any(Array));
   });
 
-  it('leaves, drops the room stack and shows Home', async () => {
+  it('leaves, then goes Home through the one helper', async () => {
     await show();
     await askToLeave();
     await act(async () => {
       alertButtons()[1]?.onPress?.();
     });
     expect(leaveRoom).toHaveBeenCalledWith('r1');
-    expect(mockRouter.dismissAll).toHaveBeenCalled();
-    expect(mockRouter.replace).toHaveBeenCalledWith('/home');
+    expect(mockExitToHome).toHaveBeenCalledTimes(1);
   });
 
   it('toasts and stays offline, without calling', async () => {
@@ -436,7 +437,7 @@ describe('leaving', () => {
     });
     expect(leaveRoom).not.toHaveBeenCalled();
     expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ tone: 'warn' }));
-    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(mockExitToHome).not.toHaveBeenCalled();
   });
 
   it('stays with a toast when the call throws', async () => {
@@ -447,7 +448,7 @@ describe('leaving', () => {
       alertButtons()[1]?.onPress?.();
     });
     expect(showToast).toHaveBeenCalledWith({ tone: 'warn', title: 'The projector jammed' });
-    expect(mockRouter.replace).not.toHaveBeenCalled();
+    expect(mockExitToHome).not.toHaveBeenCalled();
   });
 
   it('opens the same alert on the Android back button', async () => {
