@@ -170,6 +170,13 @@ describe('the seats', () => {
     expect(order).toEqual([...order].sort((a, b) => Number(a) - Number(b)));
   });
 
+  it('draws a seat whose avatar key is "default" blue', async () => {
+    mockSeats = [lea, seat('b', 'Sam', '02', { avatar_key: 'default' })];
+    await show();
+    await waitFor(() => expect(screen.getByText('Sam')).toBeTruthy());
+    expect(screen.getByLabelText('Sam').props.className).toContain('bg-avatar-blue');
+  });
+
   it('skips unknown service ids and says when none is known', async () => {
     await show();
     await waitFor(() => expect(screen.getByText('Netflix')).toBeTruthy());
