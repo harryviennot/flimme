@@ -9,8 +9,10 @@ import {
   roomScreenFor,
   useHeartbeat,
   useKeptRoom,
+  RoomRealtimeProvider,
   useRefreshOnForeground,
   useRoom,
+  useRoomChannels,
   useRoomSeats,
 } from '@/features/room';
 import { useOnline } from '@/features/network';
@@ -41,6 +43,7 @@ export default function RoomLayout() {
 
   useHeartbeat(id, room.data !== null);
   useRefreshOnForeground(id);
+  const realtime = useRoomChannels(id);
 
   useEffect(() => {
     if (!id) return;
@@ -73,38 +76,40 @@ export default function RoomLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        // Once swiping starts, leaving is an explicit "Leave room", never a back swipe.
-        gestureEnabled: false,
-        contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
-      }}
-    >
-      <Stack.Screen
-        name="invite"
-        options={{
-          presentation: 'formSheet',
-          sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.8],
+    <RoomRealtimeProvider value={realtime}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          // Once swiping starts, leaving is an explicit "Leave room", never a back swipe.
+          gestureEnabled: false,
+          contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
         }}
-      />
-      <Stack.Screen
-        name="services"
-        options={{
-          presentation: 'formSheet',
-          sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.8],
-        }}
-      />
-      <Stack.Screen
-        name="recap"
-        options={{
-          presentation: 'formSheet',
-          sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.9],
-        }}
-      />
-    </Stack>
+      >
+        <Stack.Screen
+          name="invite"
+          options={{
+            presentation: 'formSheet',
+            sheetGrabberVisible: true,
+            sheetAllowedDetents: [0.8],
+          }}
+        />
+        <Stack.Screen
+          name="services"
+          options={{
+            presentation: 'formSheet',
+            sheetGrabberVisible: true,
+            sheetAllowedDetents: [0.8],
+          }}
+        />
+        <Stack.Screen
+          name="recap"
+          options={{
+            presentation: 'formSheet',
+            sheetGrabberVisible: true,
+            sheetAllowedDetents: [0.9],
+          }}
+        />
+      </Stack>
+    </RoomRealtimeProvider>
   );
 }

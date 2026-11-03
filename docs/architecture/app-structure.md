@@ -204,6 +204,8 @@ Permissions on a private channel are checked when it connects and when a new tok
 
 While in a room and in the foreground, the phone calls `api.touch_room` every 30 seconds, so its seat counts as present.
 
+The code is `mobile/src/features/room/realtime/` (M4.21): `controller.ts` opens and recovers the two channels, `derive.ts` turns their state into the banner, `fresh` and away, and `hooks.ts` is what screens call. The recipe is in [reconnecting](../design/screens/reconnecting.md#the-connection-recipe).
+
 ## The vote queue
 
 Every answer (nope, like, super like, seen it) goes through one persisted queue.
@@ -372,7 +374,7 @@ The two last rows differ because the 5 minute run also paused Realtime, so the s
 
 **First run on staging (3 November 2026, Harry's iPhone 16 Pro, a development build through a tunnel, real network, ES256 keys).** The first join ever made on staging failed with `CHANNEL_ERROR MissingPartition: Realtime was unable to find the expected messages partition`. Realtime keeps `realtime.messages` in daily partitions and creates them only when a client connects over WebSocket ([Supabase troubleshooting](https://supabase.com/docs/guides/troubleshooting/realtime-warn-sending-broadcast-message)); private channels check access against that table, so the first join raced the partitions' creation. 14 seconds later a new room reached `SUBSCRIBED` on both topics, and so did one 6 minutes later, in under a second, with presence tracked and the channel still up after a short trip to the background. A probe from a laptop confirmed the rest: a public channel is refused (`PrivateOnly: This project only allows private channels`, as the security rules want), and a private room topic the guest isn't a member of is refused with `Unauthorized`. Production will hit the same first-join error once, on its first connection.
 
-**Still to do, by Harry on phones** (the diagnostic route is what to run):
+**Still to do, by Harry on phones** (M4.21 now runs this in the room itself: kill the network mid-lobby, restore it, and note the statuses in the pull request; the diagnostic route is also there):
 
 1. Airplane mode for 10 s, 60 s and 5 min on an iPhone and an Android, with the two-phone setup above and a short `jwt_expiry` (or staging). Expect the table above, and in particular whether a real network loss gives `CHANNEL_ERROR` or `CLOSED`, and whether a refresh fails with a network error and is retried.
 2. The phone in the background for 1 and 10 minutes on iOS and Android (home button, then back): are the statuses the same, and does the channel survive a token that expired while the JavaScript was suspended?

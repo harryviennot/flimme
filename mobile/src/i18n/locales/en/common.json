@@ -9,6 +9,8 @@
     "loading": "Loading",
     "offline": "Offline",
     "reconnecting": "Reconnecting…",
+    "stillTrying": "Still reconnecting. Your seat is kept.",
+    "offlineRoom": "You're offline. The room catches up when you're back.",
     "offlineVotes_one": "Offline: {{count}} swipe waiting",
     "offlineVotes_other": "Offline: {{count}} swipes waiting"
   },

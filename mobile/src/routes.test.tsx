@@ -44,6 +44,26 @@ jest.mock('@/features/session', () => ({
   useSessionFailed: () => false,
 }));
 jest.mock('@/features/network', () => ({ useOnline: () => true, watchNetwork: jest.fn() }));
+// The room layout opens Realtime channels on this client; tests have no network.
+jest.mock('@/lib/supabase', () => {
+  const channel = {
+    on: () => channel,
+    subscribe: () => channel,
+    presenceState: () => ({}),
+    track: async () => 'ok',
+    state: 'joined',
+  };
+  return {
+    supabase: {
+      channel: () => channel,
+      removeChannel: async () => 'ok',
+      auth: {
+        getSession: async () => ({ data: { session: null } }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      },
+    },
+  };
+});
 jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn() },
 }));
