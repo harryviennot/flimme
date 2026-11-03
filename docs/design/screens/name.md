@@ -6,13 +6,14 @@ Screen 03 in the Figma (`9:362`). Route `/name`. Built in M4.17, with the name r
 
 A name and a color are all a player needs to host or join. One field, one row of colors, one button.
 
-It opens from three places:
+It opens from four places:
 
 | From | Route | After Continue |
 | --- | --- | --- |
 | Welcome's Get started | `/name` | Home (`replace`) |
-| A code typed before naming (`join_room` answered `name_required`) | `/name?code=482913` | Back to [the code](join-code.md), which joins again with the same code |
+| A code typed before naming (`join_room` answered `name_required`) | `/name?code=482913` | Back to [the code](join-code.md), which joins again with the same code (only if the profile now has a name) |
 | Home's avatar (edit) | `/name?edit=1` | Back to Home |
+| [Host setup](host-setup.md)'s Open the room, when `create_room` answered `name_required` (a race: Home needs a name) | `/name?edit=1` | Back to host setup, choices kept; the host taps Open again |
 
 The [join sheet](join-sheet.md) uses the same form (`NameForm`) for players arriving by link.
 
