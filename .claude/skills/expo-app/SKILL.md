@@ -41,6 +41,10 @@ Expo SDK 58 (React Native 0.88, React 19.3), Expo Router with routes in `mobile/
 
 Every `api` function answers with a status (`packages/contract/src/answers.ts`). Each status has a message or a behaviour; a test walks every status of a function the screen uses. Real errors go to Sentry: `src/api/` reports `ApiError` kinds `denied` and `unexpected` (not `network`) through `reportError` from `@/lib/sentry`, and `ErrorScreen` reports what a route throws. Never call `Sentry.setUser` or put a code, name, email or id in an error message: `lib/sentry-scrub.ts` is the last defence, not the first. `/dev` is the dev menu (backend switch, haptics and sound, gallery, crash): a new dev tool adds a row there. Never put a test file inside `src/app/`: Expo Router bundles every file there as a route, so route tests live in `src/routes.test.tsx`. `/dev/crash` (development and preview builds) crashes the app on purpose to prove readable frames.
 
+## The web export
+
+`npx expo export -p web` (single-page output) serves only the invite page: `app/_layout.web.tsx` is the web root layout (no session, update gate or Sentry, so a visitor never creates a guest account; it loads the fonts with `useFonts(webFonts)` from `src/theme/web-fonts.ts`) and `app/join/[code].web.tsx` is the invite route. Every other path shows the broken-link state. Files in `mobile/public/` ship as they are (`index.html` is the HTML template with the link preview tags; `.well-known/` holds the verification files). A static host must serve `/.well-known/apple-app-site-association` as `application/json` without a redirect, and fall back to `index.html` for other paths.
+
 ## Session, profile and connection
 
 - `useSession()` / `useSessionFailed()` (`features/session`): the guest sign-in's answer, and whether it threw (reported once inside `startSession`; callers use `.catch(() => {})`). `useMyProfile()` (`features/profile`, key `['my_profile']`) is seeded from the copy kept on the device and stale from the start; `useOnline()` (`features/network`) comes from expo-network and also drives TanStack's `onlineManager`. A screen that needs the player's name reads `useMyProfile()`, never the api.

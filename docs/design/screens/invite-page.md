@@ -19,6 +19,8 @@ One centred column, the phone layout (at most the width of a phone, centred on a
 7. **`Button` ghost L `web:invite.open`:** opens `flimme://join/<code>?r=<ref>`, for players who have the app but landed here from a messenger's in-app browser.
 8. **Footer**, `body-s` tone `muted`: `web:credits.tmdb`, `web:credits.justwatch`, and the privacy policy link (`web:privacy`) from M8.1, once the policy is published. Until then the credits stay and the link is left out.
 
+The page needs JavaScript (the export is a single-page app) and has no fallback without it, since nearly every phone browser runs it (Harry, 3 November 2026). The link preview that iMessage and WhatsApp build reads the Open Graph tags in the exported HTML (`public/index.html`), which need no JavaScript: a title and a description in both languages, neither naming the host.
+
 Plus, in the page head: `<html lang>` from the chosen language, a title and description that don't name the host, and from M10.1 the Smart App Banner (`apple-itunes-app` with `app-argument` set to the link), which needs the App Store id.
 
 ## States

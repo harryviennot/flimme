@@ -1,0 +1,25 @@
+{
+  "invite": {
+    "title": "On t'invite à choisir le film du soir",
+    "steps": {
+      "get": "Installe Flimme.",
+      "open": "Ouvre-la et touche « J'ai un code de salle ».",
+      "code": "Tape {{code}}. Ou touche à nouveau ton lien d'invitation."
+    },
+    "stepsLabel": "Comment rejoindre",
+    "copy": "Copier le lien",
+    "copied": "Copié",
+    "open": "Déjà Flimme ? Ouvre l'app",
+    "broken": "Ce lien d'invitation est incomplet. Demande le code à l'hôte.",
+    "metaTitle": "Rejoins la soirée film sur Flimme",
+    "metaDescription": "Installe Flimme, tape le code de la salle et choisissez le film du soir ensemble."
+  },
+  "badges": {
+    "appStore": "Télécharger dans l'App Store",
+    "googlePlay": "Disponible sur Google Play"
+  },
+  "credits": {
+    "tmdb": "Ce produit utilise l'API TMDB mais n'est ni approuvé ni certifié par TMDB.",
+    "justwatch": "Disponibilités fournies par JustWatch."
+  }
+}
