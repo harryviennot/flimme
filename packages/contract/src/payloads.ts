@@ -131,6 +131,12 @@ export const startGameResult = z.discriminatedUnion('status', [
   // `state` is missing when the room moved on while it was being dealt.
   z.object({ status: z.literal('closed'), state: z.optional(roomState) }),
   z.object({ status: z.literal('not_enough_players'), need: z.number() }),
+  // Fewer than 20 films fit tonight's filters: the room is back in the lobby (M5.5).
+  z.object({
+    status: z.literal('too_few_films'),
+    eligible: z.number(),
+    fallback: z.optional(z.boolean()),
+  }),
 ]);
 export type StartGameResult = z.infer<typeof startGameResult>;
 
@@ -225,3 +231,47 @@ export const gameModeRow = z.object({
 });
 export const gameModesSchema = z.array(gameModeRow);
 export type GameMode = z.infer<typeof gameModeRow>;
+
+// A card as `api.my_next_cards` sends it (data-model.md#the-apps-api): everything the card stack
+// draws, front and back, from one call. Paths only; phones build URLs from tmdb_image_base.
+// No like, nope or seen counts, scores or fits: nobody sees who noped a film.
+export const OFFER_KINDS = ['subscription', 'free', 'ads', 'rent', 'buy'] as const;
+export const cardProviderRow = z.object({
+  provider_id: z.number(),
+  kind: z.enum(OFFER_KINDS),
+  name: z.string(),
+  logo_path: z.nullable(z.string()),
+});
+export const cardRow = z.object({
+  title_id: z.number(),
+  tmdb_id: z.number(),
+  title: z.string(),
+  overview: z.nullable(z.string()),
+  year: z.nullable(z.number()),
+  runtime_min: z.nullable(z.number()),
+  genre_ids: z.array(z.number()),
+  tmdb_score: z.nullable(z.number()),
+  tmdb_votes: z.number(),
+  poster_path: z.nullable(z.string()),
+  poster_placeholder: z.nullable(z.string()),
+  backdrop_path: z.nullable(z.string()),
+  trailer_key: z.nullable(z.string()),
+  directors: z.array(z.string()),
+  cast: z.array(z.string()),
+  providers: z.array(cardProviderRow),
+  watch_link: z.nullable(z.string()),
+});
+export type Card = z.infer<typeof cardRow>;
+
+export const DECK_SOURCES = ['opening', 'ranked', 'propagated', 'wildcard'] as const;
+export const nextCardRow = z.object({
+  ...cardRow.shape,
+  deck_source: z.enum(DECK_SOURCES),
+  reason_code: z.nullable(z.string()),
+  reason_params: z.record(z.string(), z.unknown()),
+  member_ratings: z.array(z.object({ member_id: z.string(), rating: z.number() })),
+});
+export type NextCard = z.infer<typeof nextCardRow>;
+
+/** `api.my_next_cards` answers an array of cards, with no status. */
+export const myNextCardsResult = z.array(nextCardRow);

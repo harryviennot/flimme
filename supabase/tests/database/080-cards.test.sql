@@ -53,7 +53,7 @@ select ok(current_setting('tests.cards')::jsonb->0->'directors' @> '["Dora Direc
 select ok(current_setting('tests.cards')::jsonb->0->'cast' @> '["Alma Actor", "Bo Actor"]'::jsonb,
   'C2 the first card carries its cast');
 select is(current_setting('tests.cards')::jsonb->0->'providers',
-  '[{"provider_id": 9001, "kind": "subscription"}]'::jsonb,
+  '[{"provider_id": 9001, "kind": "subscription", "name": "Catalog Service 9001", "logo_path": null}]'::jsonb,
   'C2 the first card lists only tonight''s services, not the one nobody in the room has');
 select is(current_setting('tests.cards')::jsonb->0->>'watch_link', 'https://example.test/watch/1',
   'C2 the first card carries its watch link');

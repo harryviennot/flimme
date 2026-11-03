@@ -34,6 +34,8 @@ import {
   roomSeatRow,
   countryProvidersSchema,
   gameModesSchema,
+  myNextCardsResult,
+  type NextCard,
   type CountryProvider,
   type GameMode,
   setMyProvidersResult,
@@ -59,7 +61,7 @@ import {
   type UpdateProfileResult,
   type UpdateRoomSettingsResult,
 } from '../payloads';
-import { callAnswer, callVoid, readView, type ApiClient, type ApiOptions } from './call';
+import { callAnswer, callJson, callVoid, readView, type ApiClient, type ApiOptions } from './call';
 import { ApiError } from './errors';
 
 export { ApiError, type ApiErrorKind } from './errors';
@@ -249,6 +251,30 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id },
         START_GAME_ANSWERS,
         startGameResult,
+      );
+    },
+
+    /**
+     * The seat's next cards, each ready to render front and back (up to 30, in deck order).
+     * An array with no status; a removed seat gets an empty one.
+     */
+    myNextCards(args: {
+      room_id: string;
+      limit?: number;
+      member_id?: string;
+      language?: string;
+    }): Promise<NextCard[]> {
+      return callJson(
+        client,
+        options,
+        'my_next_cards',
+        {
+          p_room_id: args.room_id,
+          p_limit: args.limit,
+          p_member_id: args.member_id,
+          p_language: args.language,
+        },
+        myNextCardsResult,
       );
     },
 

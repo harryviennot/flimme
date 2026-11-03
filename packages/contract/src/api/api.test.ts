@@ -151,6 +151,7 @@ const cases = [
       ok: { request_id: null, started: false, seats: 0 },
       closed: { state: 'swiping' },
       not_enough_players: { need: 2 },
+      too_few_films: { eligible: 12 },
     },
   },
 ] as const;
@@ -554,6 +555,67 @@ describe('views', () => {
       fake(() => ({ data: null, error: { message: 'denied', code: '42501' }, status: 403 })).client,
     );
     await expect(api.appConfig()).rejects.toMatchObject({ kind: 'denied' });
+  });
+});
+
+describe('my_next_cards', () => {
+  const card = {
+    title_id: 1,
+    tmdb_id: 60000001,
+    title: 'Film Fictif',
+    overview: null,
+    year: 2001,
+    runtime_min: 100,
+    genre_ids: [18],
+    tmdb_score: 7.5,
+    tmdb_votes: 1000,
+    poster_path: '/p.jpg',
+    poster_placeholder: null,
+    backdrop_path: '/b.jpg',
+    trailer_key: null,
+    directors: ['Dora Director'],
+    cast: ['Alma Actor'],
+    providers: [{ provider_id: 8, kind: 'subscription', name: 'Service', logo_path: null }],
+    watch_link: null,
+    deck_source: 'opening',
+    reason_code: null,
+    reason_params: {},
+    member_ratings: [{ member_id: MEMBER, rating: 4.5 }],
+  };
+
+  it('a sample card parses and the arguments are mapped', async () => {
+    const { client, calls } = fake(() => ok([card]));
+    const cards = await createApi(client, { validate: true }).myNextCards({
+      room_id: ROOM,
+      limit: 5,
+    });
+    expect(cards).toEqual([card]);
+    expect(calls[0]).toEqual({
+      fn: 'my_next_cards',
+      args: { p_room_id: ROOM, p_limit: 5, p_member_id: undefined, p_language: undefined },
+    });
+  });
+
+  it('an empty array is a removed seat, not an error', async () => {
+    const { client } = fake(() => ok([]));
+    await expect(
+      createApi(client, { validate: true }).myNextCards({ room_id: ROOM }),
+    ).resolves.toEqual([]);
+  });
+
+  it('a card missing a key is unexpected when checks are on', async () => {
+    const { backdrop_path: _backdrop, ...incomplete } = card;
+    const { client } = fake(() => ok([incomplete]));
+    await expect(
+      createApi(client, { validate: true }).myNextCards({ room_id: ROOM }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
+  });
+
+  it('a database error rejects', async () => {
+    const { client } = fake(() => ({ data: null, error: { message: 'boom', code: '42501' } }));
+    await expect(createApi(client).myNextCards({ room_id: ROOM })).rejects.toMatchObject({
+      kind: 'denied',
+    });
   });
 });
 
