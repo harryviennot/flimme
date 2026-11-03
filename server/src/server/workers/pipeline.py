@@ -17,6 +17,7 @@ from server.catalog.fetch import run_fetch
 from server.catalog.placeholders import Posters
 from server.catalog.popularity import ExportLoader, ExportSource, run_popularity_daily
 from server.catalog.reference import run_reference_weekly
+from server.catalog.refresh import run_changes_daily, run_details_monthly, run_details_weekly
 from server.catalog.sweep import run_availability_sweep, run_sweep
 from server.catalog.tmdb import TmdbClient
 from server.config import Process, Settings
@@ -80,11 +81,29 @@ async def _availability_sweep(context: Context) -> Outcome:
     return await run_availability_sweep(context.database)
 
 
-# job name -> runner. M2.11 adds its jobs here.
+async def _changes_daily(context: Context) -> Outcome:
+    if context.tmdb is None:
+        raise RuntimeError("TMDB_READ_TOKEN is not set")
+    return await run_changes_daily(context.database, context.tmdb)
+
+
+async def _details_weekly(context: Context) -> Outcome:
+    # Sending the fetches needs no TMDB token; the fetches do.
+    return await run_details_weekly(context.database)
+
+
+async def _details_monthly(context: Context) -> Outcome:
+    return await run_details_monthly(context.database)
+
+
+# job name -> runner: all six jobs of the schedule (migration catalog_schedule).
 JOBS: dict[str, JobRunner] = {
     "reference_weekly": _reference_weekly,
     "popularity_daily": _popularity_daily,
     "availability_sweep": _availability_sweep,
+    "changes_daily": _changes_daily,
+    "details_weekly": _details_weekly,
+    "details_monthly": _details_monthly,
 }
 
 

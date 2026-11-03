@@ -561,8 +561,7 @@ sequenceDiagram
   participant W as pipeline worker
   participant T as TMDB
   participant DB as Postgres
-  C->>Q: 03:00 enqueue tier 1 titles and the TMDB changes feed
-  C->>Q: Sunday enqueue tier 2 titles
+  C->>Q: daily changes feed, weekly tier 1 titles, monthly tier 2 and inactive titles
   loop small batches, 15 to 20 requests per second
     Q->>W: next batch of TMDB ids
     W->>T: details with append_to_response
@@ -575,9 +574,8 @@ sequenceDiagram
 ```
 
 - The first load of 40,000 titles is a one-off run of the same worker code from a laptop or CI, about 35 to 45 minutes at a polite rate.
-- Availability rows a refresh no longer sees are deleted. Titles that drop out of TMDB are marked `is_active = false`.
-
-> This schedule is replaced by [tmdb.md](../integrations/tmdb.md#keeping-it-fresh): a daily availability sweep per country, and full fetches weekly for watchable films and monthly for the rest.
+- Availability rows a refresh no longer sees are deleted. Titles that drop out of TMDB are marked `is_active = false`, and 6 months later the monthly job clears them to a bare row (id, `media_type`, `tmdb_id`, `is_active`, `tmdb_missing_since`).
+- The jobs and their times: [Queues and scheduled jobs](#queues-and-scheduled-jobs). What each one fetches: [tmdb.md](../integrations/tmdb.md#keeping-it-fresh).
 
 ### First launch
 
@@ -819,9 +817,18 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 | --- | --- |
 | Every minute | `sweep_rooms` (to write): finales by time, stage deadlines, re-check matches after a seat times out, abandon expired lobbies |
 | Hourly | `internal.enqueue_due_letterboxd_syncs()`: queue accounts with no successful sync in 14 days, for players who have played in the last 12 months. Any sync resets the clock, so frequent players never reach it |
-| 03:00 daily | Queue tier 1 titles and the TMDB changes feed |
-| 04:00 Sunday | Queue tier 2 titles |
 | 04:30 daily | Retention cleanup |
+
+The catalog's six jobs (migration `catalog_schedule`, times in UTC, which is what Supabase Cron uses). Each one only queues a `job` message on `catalog_refresh`; the pipeline worker runs it ([tmdb.md](../integrations/tmdb.md#keeping-it-fresh)):
+
+| When (UTC) | Cron job | What it queues |
+| --- | --- | --- |
+| Sunday 01:00 | `catalog_reference_weekly` | Genres, providers, certifications |
+| 02:00 daily | `catalog_availability_sweep` | The sweep per enabled country (03:00 Paris in winter, 04:00 in summer) |
+| 05:00 daily | `catalog_changes_daily` | The changes feed since the last finished run, up to 14 days, then a fetch of each film in the catalog |
+| 08:30 daily | `catalog_popularity_daily` | Popularity from TMDB's export file, new top films |
+| Monday 03:00 | `catalog_details_weekly` | Scores from the current average vote, then a full fetch of tier 1 films |
+| 1st, 04:00 | `catalog_details_monthly` | Clears films missing for 6 months, then a full fetch of tier 2 and inactive films |
 
 The trainer's nightly run (title stats, training data export, training) is scheduled on the server host, since it is a long batch job rather than a message.
 
