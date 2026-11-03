@@ -1,6 +1,6 @@
 -- Synthetic seed data (roadmap task M1.14): France, 10 made-up streaming services,
 -- French age ratings, 12 invented genres and 500 invented films, each with French
--- and English text, a certification, 2 or 3 offers and one placeholder vector.
+-- and English text, a poster path, a certification, 2 or 3 offers and one placeholder vector.
 --
 -- Synthetic only. No TMDB data may ever be committed here: TMDB's terms allow
 -- keeping its data for 6 months at most, and a seed file in git is a copy kept
@@ -11,8 +11,8 @@
 --
 -- The films come from generate_series, with pseudo-random values taken from
 -- md5 of the film number, so every load gives the same rows. The vectors are
--- placeholders, not real embeddings: the SQL deal only ranks films that have a
--- vector (internal.deck_candidates joins title_vectors). No moods, taste check
+-- placeholders, not real embeddings (the SQL deal does not use them; the real
+-- catalog has none). The deal needs a poster path, so every film has one. No moods, taste check
 -- films or test profiles: the first release has none, guests sign in anonymously.
 --
 -- What the spread guarantees (supabase/tests/database/270-seed.test.sql): every
@@ -101,11 +101,11 @@ from f cross join syl;
 
 insert into public.titles
   (media_type, tmdb_id, original_title, original_language, release_date, runtime_min, genre_ids,
-   popularity, vote_average, vote_count, quality_score)
+   popularity, vote_average, vote_count, quality_score, poster_path)
 select 'movie', s.tmdb_id,
   'The ' || s.adj_en || ' ' || s.place,
   s.original_language, s.release_date, s.runtime_min, s.genre_ids,
-  s.popularity, s.score, s.vote_count, s.score
+  s.popularity, s.score, s.vote_count, s.score, '/seed-' || s.i || '.jpg'
 from seed_films s order by s.i;
 
 insert into public.title_translations (title_id, language, title, overview)
