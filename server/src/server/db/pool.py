@@ -35,10 +35,14 @@ class Database:
         url: SecretStr,
         *,
         connections: int = PIPELINE_CONNECTIONS,
+        pool_size: int | None = None,
         statement_timeout_s: int = PIPELINE_STATEMENT_TIMEOUT_S,
         role: str | None = None,
     ) -> "Database":
         """Open the pool (one connection short of `connections`) and check the database is there.
+
+        `pool_size` sets the pool's size directly, for a process that keeps no reader connection
+        (`server backfill`); the default is `connections - 1`.
 
         `role` is for the contract tests only: they log in as a superuser and `set role` to the
         server login, so no password is ever set on a shared local database.
@@ -51,7 +55,7 @@ class Database:
         pool = AsyncConnectionPool[AsyncConnection](
             url.get_secret_value(),
             min_size=1,
-            max_size=connections - 1,
+            max_size=connections - 1 if pool_size is None else pool_size,
             kwargs={"autocommit": True},
             configure=configure,
             check=AsyncConnectionPool.check_connection,

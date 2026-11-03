@@ -9,6 +9,8 @@ The same worker code, run once from a laptop or CI:
    queue uses, at the TMDB client's 20 requests a second. The floor judges each one.
 4. A SQL pass sets C and every `quality_score`. C is computed once, after every film is in,
    and never stored (decision Q18).
+5. Placeholders (M2.8): every film with a poster and no placeholder gets one, so a run that
+   was interrupted or had failed downloads is mended by running `backfill` again.
 
 It can resume. The run's `ingest_runs.cursor` holds `export_day` (the file the candidates came
 from, so the order cannot change under it) and `position` (how many candidates are done). An
@@ -20,14 +22,17 @@ database that holds the synthetic seed works, because the seed's genre slugs are
 """
 
 import logging
-from dataclasses import dataclass
+import time
+from collections import Counter
+from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
 
 from psycopg.types.json import Jsonb
 
 from server.catalog.curation import Curation, load_curation
-from server.catalog.fetch import QUALITY_M, run_fetch
+from server.catalog.fetch import CONCURRENCY, PHASES, QUALITY_M, run_fetch
+from server.catalog.placeholders import Posters, fill_missing_placeholders
 from server.catalog.popularity import (
     FETCH_BATCH,
     TOP_CANDIDATES,
@@ -49,6 +54,21 @@ log = logging.getLogger(__name__)
 QUALITY_CHUNK = 5_000
 
 
+# Films side by side, each holding a connection only for its write, plus one for the run's own
+# bookkeeping. Backfill is its own process with no reader connection, so this is the whole pool.
+BACKFILL_POOL_SIZE = CONCURRENCY + 1
+
+# What counts as a film dealt with, for the films-a-second figure.
+_FILM_COUNTS = ("films_written", "films_not_found", "films_below_floor", "films_failed")
+_PHASE_NAMES = {
+    "ms_tmdb": "tmdb",
+    "ms_poster": "poster",
+    "ms_pool_wait": "waiting for a connection",
+    "ms_read": "reads",
+    "ms_write": "write",
+}
+
+
 class BackfillFailed(Exception):
     """The backfill cannot go on until someone looks. The message is safe to print."""
 
@@ -60,6 +80,27 @@ class BackfillResult:
     resumed: bool
     average: float | None  # C, when there was one
     quality_scores: int
+    films: int = 0  # dealt with by this process (a resumed run counts only its own part)
+    fetch_seconds: float = 0.0  # wall time of the fetching
+    phase_ms: dict[str, int] = field(default_factory=dict)  # PHASES, summed over the films
+
+
+def summary_line(result: BackfillResult) -> str:
+    """One line for the person who ran it: the pace, and each phase's share of the time spent.
+    Totals only, nothing about any film."""
+    pace = result.films / result.fetch_seconds if result.fetch_seconds > 0 else 0.0
+    line = (
+        f"server backfill: {result.films} films in {result.fetch_seconds:.0f} s, "
+        f"{pace:.1f} films a second."
+    )
+    spent = sum(result.phase_ms.values())
+    if spent > 0:
+        shares = ", ".join(
+            f"{_PHASE_NAMES[phase]} {100 * result.phase_ms.get(phase, 0) / spent:.0f}%"
+            for phase in PHASES
+        )
+        line += f" Time per film: {shares}."
+    return line
 
 
 async def run_backfill(
@@ -71,6 +112,7 @@ async def run_backfill(
     limit: int | None = None,
     chunk_size: int = FETCH_BATCH,
     quality_chunk: int = QUALITY_CHUNK,
+    posters: Posters | None = None,
 ) -> BackfillResult:
     """Raises `BackfillFailed` when the reference step or the export file fails, and lets a
     TMDB or database failure escape: the run stays open and the next call resumes it."""
@@ -98,26 +140,45 @@ async def run_backfill(
 
     known = await known_title_ids(database)
     before = tmdb.stats
+    totals: Counter[str] = Counter()
+    fetch_started = time.perf_counter()
     for start in range(position, len(candidates), chunk_size):
         chunk = candidates[start : start + chunk_size]
         to_fetch = [tmdb_id for tmdb_id in chunk if tmdb_id not in known]
         for ids in batches(to_fetch, FETCH_BATCH):
             await run_fetch(
-                database, tmdb, FetchMessage(run_id=run_id, tmdb_ids=ids, reason="candidate")
+                database,
+                tmdb,
+                FetchMessage(run_id=run_id, tmdb_ids=ids, reason="candidate"),
+                posters,
+                totals,
             )
         cursor = {**cursor, "position": start + len(chunk)}
         await _set_cursor(database, run_id, cursor)
         log.info("backfill run=%s position=%s of %s", run_id, cursor["position"], len(candidates))
 
+    fetch_seconds = time.perf_counter() - fetch_started
+    films = sum(totals[key] for key in _FILM_COUNTS)
+    phase_ms = {phase: totals[phase] for phase in PHASES}
     average, scored = await set_quality_scores(database, quality_chunk)
     after = tmdb.stats
-    stats = {key: after[key] - before[key] for key in after} | {"quality_scores_set": scored}
+    stats = {key: after[key] - before[key] for key in after} | {
+        "quality_scores_set": scored,
+        "fetch_wall_ms": round(
+            fetch_seconds * 1000
+        ),  # this process only; ms_* add up across resumes
+    }
+    if posters is not None:
+        filled = await fill_missing_placeholders(database, posters)
+        stats |= {"placeholders_filled": filled.set, "placeholder_errors": filled.errors}
     note = f"export of {cursor['export_day']}, {len(candidates)} candidates"
     async with database.connection() as conn:
         await conn.execute(
             queries.load("finish_run_keeping_counts"), (note, Jsonb(cursor), Jsonb(stats), run_id)
         )
-    return BackfillResult(run_id, len(candidates), resumed, average, scored)
+    return BackfillResult(
+        run_id, len(candidates), resumed, average, scored, films, fetch_seconds, phase_ms
+    )
 
 
 async def set_quality_scores(
@@ -151,11 +212,17 @@ async def backfill_from_settings(settings: Settings, limit: int | None) -> Backf
     """What the `server backfill` command runs: its own connections and TMDB client."""
     if settings.tmdb_token is None:
         raise BackfillFailed("TMDB_READ_TOKEN is not set")
-    database = await Database.open(settings.database_url_for(Process.PIPELINE))
+    database = await Database.open(
+        settings.database_url_for(Process.PIPELINE), pool_size=BACKFILL_POOL_SIZE
+    )
     tmdb = TmdbClient(settings.tmdb_token.get_secret_value())
+    posters = Posters()
     try:
-        return await run_backfill(database, tmdb, load_curation(), ExportSource(), limit=limit)
+        return await run_backfill(
+            database, tmdb, load_curation(), ExportSource(), limit=limit, posters=posters
+        )
     finally:
+        await posters.aclose()
         await tmdb.aclose()
         await database.close()
 

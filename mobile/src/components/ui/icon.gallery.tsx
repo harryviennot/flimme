@@ -13,7 +13,7 @@ export const gallery: GalleryEntry = {
   render: () => (
     <View className="flex-row flex-wrap gap-4">
       {(Object.keys(icons) as IconName[]).map((name) => (
-        <View key={name} className="w-16 items-center gap-1">
+        <View key={name} className="w-24 items-center gap-1">
           <Icon name={name} />
           <Text variant="body-s" tone="muted" numberOfLines={1}>
             {name}

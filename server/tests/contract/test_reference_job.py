@@ -88,6 +88,11 @@ async def restore(admin: AsyncConnection) -> AsyncIterator[AsyncConnection]:
             )
 
 
+def without_services() -> Curation:
+    """The committed file minus its service lists, so these tests keep the flags they set up."""
+    return load_curation().model_copy(update={"services": {}})
+
+
 def make_tmdb(
     transport_class: Any, reply: Any, fake_time: Any, *, configuration: str = "configuration.json"
 ) -> TmdbClient:
@@ -174,7 +179,7 @@ async def test_a_provider_upsert_keeps_the_curated_flags(
         " values (60000101, 'FR', 50, true, true)"
     )
     await run_reference_weekly(
-        database, make_tmdb(transport_class, reply, fake_time), load_curation()
+        database, make_tmdb(transport_class, reply, fake_time), without_services()
     )
 
     cur = await restore.execute(
@@ -212,7 +217,7 @@ async def test_a_curated_service_missing_from_tmdb_stays_and_a_warning_is_logged
     )
     with caplog.at_level(logging.WARNING, logger="server.catalog.reference"):
         await run_reference_weekly(
-            database, make_tmdb(transport_class, reply, fake_time), load_curation()
+            database, make_tmdb(transport_class, reply, fake_time), without_services()
         )
 
     cur = await restore.execute(
@@ -298,6 +303,39 @@ async def test_a_missing_image_size_fails_the_run_with_an_error_in_ingest_runs(
         "select count(*) from public.genres where id >= %s", (FIRST_TEST_GENRE,)
     )
     assert await cur.fetchone() == (0,)
+
+
+async def test_after_the_job_the_french_picker_returns_exactly_the_listed_set(
+    database: Database, restore: AsyncConnection, transport_class, reply, fake_time
+):
+    """M2.6: the committed list, applied to rows that TMDB's reference data has filled."""
+    france = load_curation().services["FR"]
+    wanted = sorted({*france.listed, *france.free, *france.variants})
+    cur = await restore.execute("select id from public.providers where id = any(%s)", (wanted,))
+    present = {row[0] for row in await cur.fetchall()}
+    created = [i for i in wanted if i not in present]
+    try:
+        for provider in created:
+            await restore.execute(
+                "insert into public.providers (id, name) values (%s, 'Invented')", (provider,)
+            )
+            await restore.execute(
+                "insert into public.provider_regions (provider_id, country) values (%s, 'FR')",
+                (provider,),
+            )
+        await run_reference_weekly(
+            database, make_tmdb(transport_class, reply, fake_time), load_curation()
+        )
+        cur = await restore.execute(
+            "select provider_id from api.country_providers where country = 'FR'"
+            " order by provider_id"
+        )
+        assert [row[0] for row in await cur.fetchall()] == sorted(france.listed)
+    finally:
+        await restore.execute(
+            "delete from public.provider_regions where provider_id = any(%s)", (created,)
+        )
+        await restore.execute("delete from public.providers where id = any(%s)", (created,))
 
 
 async def test_the_run_row_ends_with_finished_at_and_counts(

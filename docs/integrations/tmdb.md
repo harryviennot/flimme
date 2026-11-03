@@ -117,9 +117,9 @@ GET /3/discover/movie
     &vote_count.gte=30&include_adult=false&sort_by=popularity.desc&page={1..n}
 ```
 
-- 20 films a page, up to 500 pages, so 10,000 films per query. (The 500-page cap is reported on TMDB's forum, not in its reference.) A service with more films than that is split by release year.
+- 20 films a page, up to 500 pages, so 10,000 films per query. (The 500-page cap is reported on TMDB's forum, not in its reference.) A service with more films than that is split by release year (`primary_release_year`, one query per year).
 - The result is the complete list of (film, service, kind) for the country. It's compared with `title_availability`: new rows are added, rows no longer seen are deleted, and `checked_at` is updated.
-- A service's rows are only deleted if its sweep finished completely. If one run would remove more than 20% of a service's films in a country, it isn't applied and an alert goes out: a glitch upstream must not empty decks.
+- A service's rows are only deleted if its sweep finished completely. If one run would remove more than 20% of a service's films in a country, it isn't applied and an alert goes out: a glitch upstream must not empty decks. The share is counted in offers (rows) of that service in that country. The refused removal is recorded in the run's `stats` (`guard_trips`, and `guard_refused_<country>_<provider>` with the rows it would have removed); offers that were seen are still added. A refused removal is not retried by itself: the stale rows keep their old `checked_at`, so the guard sees them again every night. If the drop is real, a person deletes those rows by hand.
 - Films not yet in the catalog are queued for a full fetch.
 
 **Offer kinds.** TMDB's `flatrate` becomes `subscription`; `free` and `ads` keep their names. Rent and buy are neither swept nor stored at launch: on the TMDB France page checked today, one recent film had 11 rental and 11 purchase offers, so storing them would add about 20 rows per film per country for a "rent it" option that doesn't exist yet.
@@ -179,6 +179,8 @@ The same worker code, run once from a laptop or CI, as the data model plans:
 1. **Reference data:** genres, the providers and display priorities of enabled countries, certification lists. The listed services, variants, free services and `certification_ages` are seeded by hand.
 2. **Candidates:** the top 60,000 from the export file, plus the first availability sweep.
 3. **Full fetch** of every candidate at 20 requests per second: about 60,000 requests, under an hour. It can resume: `ingest_runs.cursor` holds the position.
+   A measured run is the proof: `server backfill` ends with a line giving films a second and each phase's share of the time (TMDB, poster, waiting for a connection, reads, write), and the totals stay in `ingest_runs.stats` (`ms_*`). The writes go down in pipeline mode, one transaction per film, and the process's pool holds one connection per film in flight plus one.
+   That is 9 sessions through the Supabase pooler in session mode, whose pool size (15 by default) is the real cap: stop the other workers during a backfill, or raise the pooler size. The first run on staging also confirms that pipeline mode passes through the pooler.
 4. **The floor, tiers and quality score.** C is computed once every film is in.
 5. **Embeddings, mood scores and thumbhashes.**
 

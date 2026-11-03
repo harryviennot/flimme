@@ -119,6 +119,14 @@ def load_settings(command: str, process: Process) -> Settings | None:
     return settings
 
 
+def configure_logging() -> None:
+    """INFO for our own loggers. `httpx` and `httpcore` log every request at INFO, which on the
+    first full load is about 120,000 lines (and a line is a URL), so they speak at WARNING."""
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    for noisy in ("httpx", "httpcore"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
+
 def run_pipeline_worker() -> int:
     settings = load_settings("pipeline-worker", Process.PIPELINE)
     if settings is None:
@@ -128,7 +136,7 @@ def run_pipeline_worker() -> int:
 
     from server.workers.pipeline import run_pipeline_worker as serve
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    configure_logging()
     asyncio.run(serve(settings))
     return 0
 
@@ -144,9 +152,9 @@ def run_backfill(limit: int | None) -> int:
 
     import asyncio
 
-    from server.catalog.backfill import BackfillFailed, backfill_from_settings
+    from server.catalog.backfill import BackfillFailed, backfill_from_settings, summary_line
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    configure_logging()
     try:
         result = asyncio.run(backfill_from_settings(settings, limit))
     except BackfillFailed as error:
@@ -163,6 +171,7 @@ def run_backfill(limit: int | None) -> int:
         f"server backfill: run {result.run_id} done, {result.candidates} candidates, "
         f"{result.quality_scores} quality scores set."
     )
+    print(summary_line(result))
     return 0
 
 

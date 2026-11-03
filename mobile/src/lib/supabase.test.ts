@@ -16,6 +16,18 @@ const noStorage = {
   removeItem: async () => {},
 };
 
+describe('one session per backend', () => {
+  it('keeps the local and staging sessions under different storage keys', async () => {
+    const local = createApiClient('http://127.0.0.1:54321', 'sb_publishable_test', noStorage);
+    const staging = createApiClient('https://abcd.supabase.co', 'sb_publishable_test', noStorage);
+    const keyOf = (client: typeof local) =>
+      (client.auth as unknown as { storageKey: string }).storageKey;
+    expect(keyOf(local)).not.toBe(keyOf(staging));
+    await local.auth.stopAutoRefresh();
+    await staging.auth.stopAutoRefresh();
+  });
+});
+
 describe('the Supabase client', () => {
   it('reads the api schema', async () => {
     const fetchMock = jest

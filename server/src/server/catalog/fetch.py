@@ -16,7 +16,10 @@ offer or a language TMDB dropped disappears, and running the message again chang
   film only if it is released, at least 40 minutes long, has at least 30 votes and is not
   adult (decision Q19: the others are not stored). A film already stored is never removed by
   it, and refreshes (`changes`, `weekly`, `monthly`) are not judged by it.
-- Nothing goes to `embed_titles` and no placeholder is made here (M2.8, M19.2).
+- The poster placeholder (M2.8) is made only when `poster_path` changed (or the film is new),
+  from the w92 poster. A failed download keeps the old value and counts `placeholder_errors`.
+  Without a `Posters` (tests, mostly) none is made.
+- Nothing goes to `embed_titles` here (M19.2).
 
 A film whose response cannot be read is counted as an error and skipped; the others in the
 message still go through. Logs carry TMDB ids only.
@@ -24,8 +27,10 @@ message still go through. Logs carry TMDB ids only.
 
 import asyncio
 import logging
+import time
 from collections import Counter
-from collections.abc import Mapping, Sequence
+from collections.abc import AsyncIterator, Mapping, Sequence
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from typing import Any, Literal
@@ -34,6 +39,7 @@ from psycopg import AsyncConnection
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from server.catalog.placeholders import Posters
 from server.catalog.tmdb import NotFound, TmdbClient
 from server.db import queries
 from server.db.payloads import FetchMessage
@@ -60,6 +66,11 @@ CERTIFICATION_TYPES: tuple[tuple[int, ...] | None, ...] = ((3,), (4,), (6,), Non
 FALLBACK_COUNTRY = "US"
 # Films of one message in flight at once (the TMDB client has its own limit as well).
 CONCURRENCY = 8
+
+# Where a film's time goes, added up in milliseconds into the run's stats (and so into the
+# summary `server backfill` prints). With films side by side the sum is larger than the wall
+# time; the shares are what to read.
+PHASES = ("ms_tmdb", "ms_poster", "ms_pool_wait", "ms_read", "ms_write")
 
 # The floor, the lowest any deck uses (tmdb.md#which-films-are-in-the-catalog).
 MIN_RUNTIME_MIN = 40
@@ -542,29 +553,43 @@ def _offers(providers: _WatchProviders, context: FetchContext) -> tuple[OfferRow
 # --- Load and write.
 
 
+async def read_swept_set(conn: AsyncConnection) -> tuple[list[str], dict[str, frozenset[int]]]:
+    """The enabled countries and, for each, the services whose offers we store: listed or free
+    services and the variants of either. The sweep and the film fetch both use it."""
+    cur = await conn.execute(queries.load("enabled_countries"))
+    countries = [row[0] for row in await cur.fetchall()]
+    cur = await conn.execute(queries.load("swept_services"), (countries,))
+    swept: dict[str, set[int]] = {}
+    for country, provider_id in await cur.fetchall():
+        swept.setdefault(country, set()).add(provider_id)
+    return countries, {country: frozenset(ids) for country, ids in swept.items()}
+
+
 async def load_context(database: Database, tmdb_ids: Sequence[int]) -> FetchContext:
     async with database.connection() as conn:
-        cur = await conn.execute(queries.load("enabled_countries"))
-        countries = [row[0] for row in await cur.fetchall()]
-        cur = await conn.execute(queries.load("swept_services"), (countries,))
-        swept: dict[str, set[int]] = {}
-        for country, provider_id in await cur.fetchall():
-            swept.setdefault(country, set()).add(provider_id)
+        countries, swept = await read_swept_set(conn)
         cur = await conn.execute(queries.load("certification_ages_all"))
         ages = {(country, cert): age for country, cert, age in await cur.fetchall()}
         cur = await conn.execute(queries.load("catalog_average"), (list(tmdb_ids),))
         average = await cur.fetchone()
     return FetchContext(
         enabled_countries=frozenset(countries),
-        swept={country: frozenset(ids) for country, ids in swept.items()},
+        swept=swept,
         ages=ages,
         catalog_average=average[0] if average else None,
     )
 
 
-async def run_fetch(database: Database, tmdb: TmdbClient, message: FetchMessage) -> Outcome:
+async def run_fetch(
+    database: Database,
+    tmdb: TmdbClient,
+    message: FetchMessage,
+    posters: Posters | None = None,
+    totals: Counter[str] | None = None,
+) -> Outcome:
     """Fetch the message's films and write them. `TmdbRetryLater` (and any database failure)
-    escapes, so the message comes back; what was already written is safe to write again."""
+    escapes, so the message comes back; what was already written is safe to write again.
+    `totals`, when given, gets this message's counts added once it succeeded."""
     context = await load_context(database, message.tmdb_ids)
     counts: Counter[str] = Counter()
     errors = 0
@@ -574,7 +599,7 @@ async def run_fetch(database: Database, tmdb: TmdbClient, message: FetchMessage)
     async def one(tmdb_id: int) -> None:
         nonlocal errors
         async with gate:
-            failed = await _fetch_one(database, tmdb, context, tmdb_id, counts, floor)
+            failed = await _fetch_one(database, tmdb, context, tmdb_id, counts, floor, posters)
         errors += failed
 
     try:
@@ -585,6 +610,8 @@ async def run_fetch(database: Database, tmdb: TmdbClient, message: FetchMessage)
         # Not counted: the message comes back and counts these films when it succeeds.
         raise group_error.exceptions[0] from None
     await _count(database, message.run_id, counts, errors)
+    if totals is not None:
+        totals.update(counts)
     return Done()
 
 
@@ -595,11 +622,15 @@ async def _fetch_one(
     tmdb_id: int,
     counts: Counter[str],
     floor: bool,
+    posters: Posters | None,
 ) -> int:
-    """Returns 1 if the film could not be read, else 0."""
+    """Returns 1 if the film could not be read, else 0. A connection is held for a statement or
+    a transaction only, never while waiting for TMDB or the poster."""
+    started = time.perf_counter()
     body = await tmdb.get(f"/movie/{tmdb_id}", REQUEST_PARAMS)
+    _add_time(counts, "ms_tmdb", started)
     if isinstance(body, NotFound):
-        async with database.connection() as conn:
+        async with _connection(database, counts) as conn:
             await conn.execute(queries.load("mark_title_missing"), (tmdb_id,))
         counts["films_not_found"] += 1
         return 0
@@ -613,27 +644,88 @@ async def _fetch_one(
         log.warning("film response unreadable tmdb_id=%s problems=%s", tmdb_id, problems)
         counts["films_failed"] += 1
         return 1
-    if floor and rows.floor_failures and not await _is_stored(database, tmdb_id):
+    if floor and rows.floor_failures and not await _is_stored(database, tmdb_id, counts):
         counts["films_below_floor"] += 1
         for rule in rows.floor_failures:
             counts[f"floor_{rule}"] += 1
         return 0
-    async with database.connection() as conn, conn.transaction():
-        compared, disagreements = await _write(conn, rows)
+    placeholder = await _placeholder(database, posters, rows.title, counts)
+    async with _connection(database, counts) as conn:
+        started = time.perf_counter()
+        async with conn.transaction():
+            compared, disagreements = await _write(conn, rows)
+            if placeholder is not _KEEP:
+                await conn.execute(
+                    queries.load("set_poster_placeholder"), (placeholder, rows.title.tmdb_id)
+                )
+        _add_time(counts, "ms_write", started)
     counts["films_written"] += 1
     counts["offers_compared"] += compared
     counts["availability_disagreements"] += disagreements
     return 0
 
 
-async def _is_stored(database: Database, tmdb_id: int) -> bool:
+_KEEP: Any = object()  # "leave the stored placeholder as it is"
+
+
+def _add_time(counts: Counter[str], phase: str, started: float) -> None:
+    counts[phase] += round((time.perf_counter() - started) * 1000)
+
+
+@asynccontextmanager
+async def _connection(database: Database, counts: Counter[str]) -> AsyncIterator[AsyncConnection]:
+    """A pooled connection; the wait for one is counted apart from what is done with it."""
+    started = time.perf_counter()
     async with database.connection() as conn:
+        _add_time(counts, "ms_pool_wait", started)
+        yield conn
+
+
+async def _placeholder(
+    database: Database, posters: Posters | None, title: TitleRow, counts: Counter[str]
+) -> str | None:
+    """The placeholder to write, or `_KEEP`. Computed only when the poster path is not the one
+    stored (or the stored one never got a placeholder, so a failed download heals on the next
+    fetch); a poster that is gone clears it; a failed download keeps the old value."""
+    if posters is None:
+        return _KEEP
+    async with _connection(database, counts) as conn:
+        started = time.perf_counter()
+        cur = await conn.execute(queries.load("title_poster_state"), (title.tmdb_id,))
+        stored = await cur.fetchone()
+        _add_time(counts, "ms_read", started)
+    if stored is not None and stored[0] == title.poster_path and stored[1] is not None:
+        return _KEEP
+    if title.poster_path is None:
+        return None
+    started = time.perf_counter()
+    made = await posters.placeholder(title.poster_path)
+    _add_time(counts, "ms_poster", started)
+    if made is None:
+        log.warning("placeholder failed tmdb_id=%s", title.tmdb_id)
+        counts["placeholder_errors"] += 1
+        return _KEEP
+    counts["placeholders_made"] += 1
+    return made
+
+
+async def _is_stored(database: Database, tmdb_id: int, counts: Counter[str]) -> bool:
+    async with _connection(database, counts) as conn:
+        started = time.perf_counter()
         cur = await conn.execute(queries.load("title_is_stored"), (tmdb_id,))
-        return await cur.fetchone() is not None
+        found = await cur.fetchone() is not None
+        _add_time(counts, "ms_read", started)
+        return found
 
 
 async def _write(conn: AsyncConnection, rows: FilmRows) -> tuple[int, int]:
-    """One film, one transaction. Returns (offers compared, offers that disagreed)."""
+    """One film, one transaction (the caller opens it). Returns (offers compared, offers that
+    disagreed).
+
+    Everything after the two statements whose answers we need goes down the connection in
+    pipeline mode: the statements are sent without waiting for each reply, so a write costs
+    about three round trips instead of one per keyword, person and row. A statement that fails
+    surfaces when the pipeline ends, inside the caller's transaction, which rolls back whole."""
     title = rows.title
     cur = await conn.execute(queries.load("upsert_title"), title.__dict__)
     found = await cur.fetchone()
@@ -641,16 +733,24 @@ async def _write(conn: AsyncConnection, rows: FilmRows) -> tuple[int, int]:
     title_id: int = found[0]
     already_known = not found[1]
 
-    # People and keywords in id order, so two films written at once take their locks alike.
-    for keyword in rows.keywords:
-        await conn.execute(queries.load("upsert_keyword"), (keyword.id, keyword.name))
-    for person in rows.people:
-        await conn.execute(
-            queries.load("upsert_person"),
-            (person.id, person.name, person.profile_path, person.popularity),
-        )
+    before: set[tuple[str, int, str]] = set()
+    if already_known:
+        existing = await conn.execute(queries.load("title_availability_of"), (title_id,))
+        before = {
+            (country, provider, kind) for country, provider, kind in await existing.fetchall()
+        }
+    after = {(o.country, o.provider_id, o.kind) for o in rows.offers}
 
-    async with conn.cursor() as cursor:
+    async with conn.pipeline(), conn.cursor() as cursor:
+        # People and keywords in id order, so two films written at once take their locks alike.
+        for keyword in rows.keywords:
+            await conn.execute(queries.load("upsert_keyword"), (keyword.id, keyword.name))
+        for person in rows.people:
+            await conn.execute(
+                queries.load("upsert_person"),
+                (person.id, person.name, person.profile_path, person.popularity),
+            )
+
         await conn.execute(queries.load("delete_translations"), (title_id,))
         await cursor.executemany(
             queries.load("insert_translation"),
@@ -672,20 +772,11 @@ async def _write(conn: AsyncConnection, rows: FilmRows) -> tuple[int, int]:
                 for c in rows.certifications
             ],
         )
-
-        before: set[tuple[str, int, str]] = set()
-        if already_known:
-            existing = await conn.execute(queries.load("title_availability_of"), (title_id,))
-            before = {
-                (country, provider, kind) for country, provider, kind in await existing.fetchall()
-            }
-        after = {(o.country, o.provider_id, o.kind) for o in rows.offers}
         await conn.execute(queries.load("delete_availability"), (title_id,))
         await cursor.executemany(
             queries.load("insert_availability"),
             [(title_id, country, provider, kind) for country, provider, kind in sorted(after)],
         )
-
         await conn.execute(queries.load("delete_watch_links"), (title_id,))
         await cursor.executemany(
             queries.load("insert_watch_link"),

@@ -14,8 +14,11 @@ from pydantic import ValidationError
 
 from server.catalog.curation import Curation, load_curation
 from server.catalog.fetch import run_fetch
+from server.catalog.placeholders import Posters
 from server.catalog.popularity import ExportLoader, ExportSource, run_popularity_daily
 from server.catalog.reference import run_reference_weekly
+from server.catalog.refresh import run_changes_daily, run_details_monthly, run_details_weekly
+from server.catalog.sweep import run_availability_sweep, run_sweep
 from server.catalog.tmdb import TmdbClient
 from server.config import Process, Settings
 from server.db.payloads import (
@@ -23,6 +26,7 @@ from server.db.payloads import (
     CatalogRefreshMessage,
     FetchMessage,
     JobMessage,
+    SweepMessage,
 )
 from server.db.pool import Database
 from server.db.queues import PgmqClient
@@ -42,8 +46,8 @@ CATALOG_REFRESH = QueueSpec("catalog_refresh", vt_s=300, poison_after=5, concurr
 
 KindHandler = Callable[[CatalogRefreshMessage, Delivery], Awaitable[Outcome]]
 
-# kind ("job", "fetch", "sweep") -> handler. `job` and `fetch` are added in
-# run_pipeline_worker (they need the context); M2.10 adds `sweep`.
+# kind ("job", "fetch", "sweep") -> handler. All three are added in run_pipeline_worker (they
+# need the context).
 HANDLERS: dict[str, KindHandler] = {}
 
 
@@ -55,6 +59,7 @@ class Context:
     tmdb: TmdbClient | None
     curation: Curation
     exports: ExportLoader = field(default_factory=ExportSource)
+    posters: Posters | None = None  # makes poster placeholders; None makes none
 
 
 JobRunner = Callable[[Context], Awaitable[Outcome]]
@@ -71,10 +76,34 @@ async def _popularity_daily(context: Context) -> Outcome:
     return await run_popularity_daily(context.database, context.exports)
 
 
-# job name -> runner. M2.10 and M2.11 add their jobs here.
+async def _availability_sweep(context: Context) -> Outcome:
+    # Opening the run and sending the steps needs no TMDB token; the steps do.
+    return await run_availability_sweep(context.database)
+
+
+async def _changes_daily(context: Context) -> Outcome:
+    if context.tmdb is None:
+        raise RuntimeError("TMDB_READ_TOKEN is not set")
+    return await run_changes_daily(context.database, context.tmdb)
+
+
+async def _details_weekly(context: Context) -> Outcome:
+    # Sending the fetches needs no TMDB token; the fetches do.
+    return await run_details_weekly(context.database)
+
+
+async def _details_monthly(context: Context) -> Outcome:
+    return await run_details_monthly(context.database)
+
+
+# job name -> runner: all six jobs of the schedule (migration catalog_schedule).
 JOBS: dict[str, JobRunner] = {
     "reference_weekly": _reference_weekly,
     "popularity_daily": _popularity_daily,
+    "availability_sweep": _availability_sweep,
+    "changes_daily": _changes_daily,
+    "details_weekly": _details_weekly,
+    "details_monthly": _details_monthly,
 }
 
 
@@ -94,7 +123,17 @@ def make_fetch_handler(context: Context) -> KindHandler:
         assert isinstance(message, FetchMessage)
         if context.tmdb is None:
             raise RuntimeError("TMDB_READ_TOKEN is not set")
-        return await run_fetch(context.database, context.tmdb, message)
+        return await run_fetch(context.database, context.tmdb, message, context.posters)
+
+    return handle
+
+
+def make_sweep_handler(context: Context) -> KindHandler:
+    async def handle(message: CatalogRefreshMessage, delivery: Delivery) -> Outcome:
+        assert isinstance(message, SweepMessage)
+        if context.tmdb is None:
+            raise RuntimeError("TMDB_READ_TOKEN is not set")
+        return await run_sweep(context.database, context.tmdb, message)
 
     return handle
 
@@ -123,11 +162,13 @@ async def run_pipeline_worker(settings: Settings) -> None:
     database = await Database.open(settings.database_url_for(Process.PIPELINE))
     client = PgmqClient(database)
     tmdb = TmdbClient(settings.tmdb_token.get_secret_value()) if settings.tmdb_token else None
-    context = Context(database, tmdb, load_curation())
+    posters = Posters()
+    context = Context(database, tmdb, load_curation(), posters=posters)
     handlers = {
         **HANDLERS,
         "job": make_job_handler(context),
         "fetch": make_fetch_handler(context),
+        "sweep": make_sweep_handler(context),
     }
     stop = asyncio.Event()
     remove_signal_handlers = install_signal_handlers(stop)
@@ -137,6 +178,7 @@ async def run_pipeline_worker(settings: Settings) -> None:
     finally:
         remove_signal_handlers()
         await client.close()
+        await posters.aclose()
         if tmdb is not None:
             await tmdb.aclose()
         await database.close()

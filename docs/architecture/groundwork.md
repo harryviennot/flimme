@@ -248,8 +248,8 @@ The Figma's design system page is complete enough to build from: colors, 13 type
 1. **`theme/tokens.json` holds every token**, in the W3C design tokens format. The designer agent fills it once from the Figma variables through the Figma MCP (Figma's REST API for variables needs an Enterprise plan). From then on the file is the source; when a token changes, the Figma is updated to match.
 2. **`mise run tokens` generates** the Tailwind theme and `tokens.ts` from it. CI fails if they're out of date.
 3. **The theme replaces Tailwind's defaults** (palette, spacing scale, radii, fonts) rather than extending them, so `bg-red-500` or `p-7` mean nothing, and a lint rule flags any class the theme doesn't define.
-4. **One `Text` component** with the Figma's 13 type styles as variants (`<Text variant="display-l">`). Nothing else sets a font family, size or line height.
-5. **Fonts:** Staatliches, Schibsted Grotesk and IBM Plex Mono, all under the SIL Open Font License, embedded at build time with the `expo-font` config plugin so no screen flashes the wrong font. Their licence files sit next to them.
+4. **One `Text` component** with the Figma's 15 type styles as variants (`<Text variant="display-l">`), plus the component styles (the ticket, the stamp, the avatar initials, the input). Nothing else sets a font family, size or line height.
+5. **Fonts:** Staatliches, Schibsted Grotesk and IBM Plex Mono, all under the SIL Open Font License, embedded at build time with the `expo-font` config plugin so no screen flashes the wrong font. Their licence files sit next to them in `mobile/assets/fonts/`, and the list lives in `mobile/src/theme/fonts.json` (the plugin config, the theme names and the tests read it).
 6. **Icons:** the 38 Figma icons exported as SVG into one typed `<Icon name="heart" />` (react-native-svg), so a missing icon is a type error.
 
 ### Components
@@ -304,7 +304,7 @@ Built before any screen:
 - **The root layout's providers:** gestures, safe areas, TanStack Query, translations, fonts, Sentry, an error screen, the toast host.
 - **Every route** in [app-structure.md](app-structure.md#screens-and-navigation) created as a placeholder from day one, including the room layout that picks the screen from the room's state. Links and navigation work from the start, and each feature fills its screen in place.
 - **`app.config.ts`** with the three variants (bundle ids, names, icons with a visible DEV or PREVIEW badge, so builds can't be confused), dark only, the fingerprint runtime version.
-- **A dev menu** in development builds: local or staging backend, reset the hints and onboarding, clear the vote queue, open the gallery, show the room's state.
+- **A dev menu** in development builds: local or staging backend, reset the hints and onboarding, clear the vote queue, open the gallery, show the room's state. It is `src/app/dev/index.tsx`, opened from "Flimme dev menu" in the Expo dev menu or with `flimme-dev:///dev`. The backend choice is a persisted store (`features/dev`) that `lib/config.ts` reads before the Supabase client exists, only when `__DEV__`; staging needs `EXPO_PUBLIC_STAGING_SUPABASE_URL` and `EXPO_PUBLIC_STAGING_SUPABASE_PUBLISHABLE_KEY` (public, set in `.env.local` or EAS), else its option is off and says why. Switching reloads the JavaScript. Each Supabase URL has its own session storage key. Later tasks add their entries (hints, vote queue, room state) when those things exist.
 - **App config at launch:** `api.app_config` read once (minimum version, image base, feature switches), so a feature can ship switched off.
 - **Server time:** countdowns such as the Final Cut's 60 seconds run from the server's deadline, corrected by the phone's clock offset, so a phone with a wrong clock doesn't close early.
 - **Translations:** French written first, English next to it, plurals through i18next.

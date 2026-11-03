@@ -4,8 +4,8 @@ import { cn } from '@/lib/cn';
 
 import { Text } from './text';
 
-// Figma "Avatar": a coloured disc with the player's initial. Ten colours for up to ten
-// players, assigned in join order and never repeated in a room.
+// Figma "Avatar": a coloured disc with the player's initial. The Figma defines ten colours;
+// players pick one of six, and two players in a room may share one (decisions.md, 30 Oct 2026).
 
 export const AVATAR_COLORS = [
   'blue',

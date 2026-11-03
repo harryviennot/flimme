@@ -35,10 +35,11 @@ Expo SDK 58 (React Native 0.88, React 19.3), Expo Router with routes in `mobile/
 - Server data: TanStack Query, one query per `api` view or read function, kept fresh by Realtime events.
 - The card stack and the vote queue: Zustand stores (the queue persisted to expo-sqlite).
 - Never put cards in TanStack Query: the deck changes under the phone.
+- Zustand stores live in `src/features/<feature>/store.ts`. A persisted one uses `persistOptions({ name, version, migrate, partialize })` from `src/lib/persisted-store.ts` (name `flimme.<store>`, synchronous reads over `lib/storage.ts`, so the first render has the values). Export a `create...Store(kv?)` factory so tests can recreate the store over the same kv store. See `features/settings/`.
 
 ## Answers and errors
 
-Every `api` function answers with a status (`packages/contract/src/answers.ts`). Each status has a message or a behaviour; a test walks every status of a function the screen uses. Real errors go to Sentry.
+Every `api` function answers with a status (`packages/contract/src/answers.ts`). Each status has a message or a behaviour; a test walks every status of a function the screen uses. Real errors go to Sentry: `src/api/` reports `ApiError` kinds `denied` and `unexpected` (not `network`) through `reportError` from `@/lib/sentry`, and `ErrorScreen` reports what a route throws. Never call `Sentry.setUser` or put a code, name, email or id in an error message: `lib/sentry-scrub.ts` is the last defence, not the first. `/dev` is the dev menu (backend switch, haptics and sound, gallery, crash): a new dev tool adds a row there. Never put a test file inside `src/app/`: Expo Router bundles every file there as a route, so route tests live in `src/routes.test.tsx`. `/dev/crash` (development and preview builds) crashes the app on purpose to prove readable frames.
 
 ## Translations
 

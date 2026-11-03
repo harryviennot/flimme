@@ -30,10 +30,12 @@ export function OptionCard({
       accessibilityState={{ selected }}
       onPress={onPress}
       className={cn(
-        'flex-row items-center gap-3.5 self-stretch rounded-lg p-4',
+        'flex-row items-center gap-3.5 self-stretch rounded-lg',
+        // The unselected border is 1 point and the selected 2: its padding is 1 point
+        // larger, so the card's size never changes when selected.
         selected
-          ? 'border-2 border-accent-default bg-accent-soft'
-          : 'border border-border-default bg-bg-surface',
+          ? 'border-2 border-accent-default bg-accent-soft p-4'
+          : 'border border-border-default bg-bg-surface p-4.25',
       )}
     >
       <View
