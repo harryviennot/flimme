@@ -4,7 +4,7 @@ import { openRoomRealtime, type RealtimeClient } from './controller';
 import { bannerFor, isFresh, presenceOf } from './derive';
 
 class FakeChannel {
-  state = 'joined';
+  state = 'closed';
   presence: Record<string, unknown> = {};
   track = jest.fn(async () => 'ok');
   broadcast: ((m: { event: string; payload?: unknown }) => void) | null = null;
@@ -101,6 +101,29 @@ describe('opening and closing', () => {
   });
 });
 
+describe('reopening a room at once', () => {
+  it('waits for the channel that is still leaving, then asks for a new one', async () => {
+    const t = setup();
+    const leaving = t.events();
+    t.rt.close();
+    leaving.state = 'leaving';
+    t.client.channel.mockImplementationOnce(() => leaving as unknown as RealtimeChannel);
+    const before = t.channels.length;
+    const again = openRoomRealtime({
+      client: t.client as unknown as RealtimeClient,
+      roomId: 'room-1',
+      memberId: 'seat-1',
+      onSubscribed: jest.fn(),
+    });
+    await flush();
+    const fresh = t.channels.slice(before).filter((c) => c.topic === 'room:room-1');
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0]).not.toBe(leaving);
+    expect(fresh[0]?.status).not.toBeNull();
+    again.close();
+  });
+});
+
 describe('events', () => {
   it('drops an event that is not known', () => {
     const t = setup();
@@ -183,6 +206,8 @@ describe('statuses', () => {
 
   it('recreates a closed channel at once when the app returns, and leaves joined ones', async () => {
     const t = setup();
+    t.events().state = 'joined';
+    t.live().state = 'joined';
     t.rt.recreateClosed();
     await flush();
     expect(t.channels).toHaveLength(2);
@@ -261,6 +286,20 @@ describe('presence', () => {
     jest.advanceTimersByTime(1000);
     const result = presenceOf(t.rt.getState(), seats, 'seat-1', Date.now());
     expect([...result.away]).toEqual(['seat-2']);
+  });
+
+  it('counts the 90 s from the sync that dropped the seat, however long it was there', () => {
+    const t = setup();
+    t.live().status!('SUBSCRIBED');
+    t.live().presence = { 'seat-2': [{}] };
+    t.live().sync!();
+    jest.advanceTimersByTime(600_000);
+    t.live().presence = {};
+    t.live().sync!();
+    jest.advanceTimersByTime(89_000);
+    expect(presenceOf(t.rt.getState(), seats, 'seat-1', Date.now()).away.size).toBe(0);
+    jest.advanceTimersByTime(1000);
+    expect(presenceOf(t.rt.getState(), seats, 'seat-1', Date.now()).away.size).toBe(1);
   });
 
   it('counts a seat never seen from the first SUBSCRIBED', () => {

@@ -46,7 +46,7 @@ function makeClient() {
         },
         presenceState: () => ({}),
         track: async () => 'ok',
-        state: 'joined',
+        state: 'closed',
       };
       made.push(fake);
       (fake as unknown as { channel: unknown }).channel = channel;

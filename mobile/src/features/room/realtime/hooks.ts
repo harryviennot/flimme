@@ -120,19 +120,23 @@ function useRealtimeState(realtime: RoomRealtime | null): RoomRealtimeState {
  * The clock for time-based answers (the banner, away). It reads again right after `state`
  * changes and at the moment `nextChange` (ms from the reading) says the answer changes.
  */
-function useNow(state: RoomRealtimeState, nextChange: (now: number) => number | null): number {
+function useNow(
+  state: RoomRealtimeState,
+  nextChange: (now: number) => number | null,
+  also?: unknown,
+): number {
   const [now, setNow] = useState(() => Date.now());
   const next = useEffectEvent(nextChange);
   useEffect(() => {
     const timer = setTimeout(() => setNow(Date.now()), 0);
     return () => clearTimeout(timer);
-  }, [state]);
+  }, [state, also]);
   useEffect(() => {
     const ms = next(Date.now());
     if (ms === null) return;
     const timer = setTimeout(() => setNow(Date.now()), ms + 1);
     return () => clearTimeout(timer);
-  }, [state, now]);
+  }, [state, now, also]);
   return now;
 }
 
@@ -163,7 +167,7 @@ export function useRoomPresence(roomId: string | undefined): {
     () => (seats ?? []).filter((seat) => seat.left_at === null).map((seat) => seat.member_id),
     [seats],
   );
-  const now = useNow(state, (at) => presenceOf(state, ids, mine, at).nextChange);
+  const now = useNow(state, (at) => presenceOf(state, ids, mine, at).nextChange, ids);
   const result = presenceOf(state, ids, mine, now);
   return { online: result.online, away: result.away };
 }

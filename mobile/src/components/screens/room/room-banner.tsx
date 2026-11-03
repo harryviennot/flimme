@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, Platform } from 'react-native';
 
@@ -17,8 +17,11 @@ export function RoomBanner({ roomId }: { roomId: string }) {
   // Screen readers on iOS don't read live regions: say it once when the banner appears, not
   // again when its message changes on a retry.
   const message = banner ? t(`states.${banner === 'offline' ? 'offlineRoom' : banner}`) : '';
+  const announce = useEffectEvent(() => {
+    if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(message);
+  });
   useEffect(() => {
-    if (shown && Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(message);
+    if (shown) announce();
   }, [shown]);
 
   if (!banner) return null;

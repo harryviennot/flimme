@@ -75,6 +75,7 @@ type Slot = {
   timer: ReturnType<typeof setTimeout> | undefined;
   hadProblem: boolean;
   joinedBefore: boolean;
+  creating: boolean;
 };
 
 const KNOWN = new Set<string>(ROOM_EVENTS);
@@ -127,6 +128,7 @@ export function openRoomRealtime(options: RoomRealtimeOptions): RoomRealtime {
       timer: undefined,
       hadProblem: false,
       joinedBefore: false,
+      creating: false,
     };
   }
 
@@ -148,6 +150,8 @@ export function openRoomRealtime(options: RoomRealtimeOptions): RoomRealtime {
     const keys = Object.keys(channel.presenceState());
     const at = now();
     const lastSeen = new Map(state.lastSeen);
+    // A seat that just dropped was here until now: its 90 seconds start at this sync.
+    state.present.forEach((key) => lastSeen.set(key, at));
     keys.forEach((key) => lastSeen.set(key, at));
     set({ present: new Set(keys), lastSeen });
   }
@@ -198,10 +202,27 @@ export function openRoomRealtime(options: RoomRealtimeOptions): RoomRealtime {
     }
   }
 
-  function create(slot: Slot) {
+  async function create(slot: Slot) {
     const config: Record<string, unknown> = { private: true };
     if (slot.kind === 'live') config.presence = { key: memberId };
-    const channel = client.channel(slot.topic, { config });
+    slot.creating = true;
+    let channel = client.channel(slot.topic, { config });
+    if (channel.state !== 'closed') {
+      // supabase-js hands back the channel of the same topic while it is still leaving, and
+      // subscribing to it does nothing. Let it finish leaving, then ask for a new one.
+      removedByUs.add(channel);
+      try {
+        await client.removeChannel(channel);
+      } catch {
+        // The channel is gone either way.
+      }
+      if (closed) {
+        slot.creating = false;
+        return;
+      }
+      channel = client.channel(slot.topic, { config });
+    }
+    slot.creating = false;
     slot.channel = channel;
     if (slot.kind === 'events') {
       channel.on('broadcast', { event: '*' }, (message: { event: string; payload?: unknown }) => {
@@ -226,7 +247,7 @@ export function openRoomRealtime(options: RoomRealtimeOptions): RoomRealtime {
   async function recreate(slot: Slot) {
     clearTimeout(slot.timer);
     slot.timer = undefined;
-    if (closed || slot.channel) return;
+    if (closed || slot.channel || slot.creating) return;
     let valid = false;
     try {
       // getSession refreshes an expired token before it answers.
@@ -235,13 +256,13 @@ export function openRoomRealtime(options: RoomRealtimeOptions): RoomRealtime {
     } catch {
       valid = false;
     }
-    if (closed || slot.channel) return;
+    if (closed || slot.channel || slot.creating) return;
     if (!valid) {
       scheduleRecreate(slot);
       return;
     }
     set({ [slot.kind]: 'connecting' } as Partial<RoomRealtimeState>);
-    create(slot);
+    void create(slot);
   }
 
   const authWatch = client.auth.onAuthStateChange((event) => {
@@ -252,8 +273,8 @@ export function openRoomRealtime(options: RoomRealtimeOptions): RoomRealtime {
     });
   });
 
-  create(slots.events);
-  create(slots.live);
+  void create(slots.events);
+  void create(slots.live);
 
   return {
     getState: () => state,
