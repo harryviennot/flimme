@@ -115,6 +115,19 @@ describe('host setup', () => {
     keptRoomStore.getState().forget();
   });
 
+  it('still leaves the old room when the new room is kept before the answer is used', async () => {
+    keptRoomStore.getState().keep({ id: 'old-room', code: '654321' });
+    mockApi.createRoom.mockImplementation(async () => {
+      keptRoomStore.getState().keep({ id: 'r1', code: '123456' });
+      return { status: 'ok', room_id: 'r1', code: '123456' };
+    });
+    await show();
+    await waitFor(() => expect(open()).toBeEnabled());
+    await fireEvent.press(open());
+    await waitFor(() => expect(mockApi.leaveRoom).toHaveBeenCalledWith({ room_id: 'old-room' }));
+    keptRoomStore.getState().forget();
+  });
+
   it('leaves nothing when no room is kept', async () => {
     await show();
     await waitFor(() => expect(open()).toBeEnabled());

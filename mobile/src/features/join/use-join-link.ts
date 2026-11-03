@@ -19,7 +19,7 @@ import { linkOpenedAt, takeLinkReceivedAt } from './link-received';
 import { roomEntry, type RootRoute } from './enter-room';
 import { useLeaveLine } from './leave-line';
 import { parseInviteLink, roomRouteFor } from './link';
-import { leaveOldSeat } from './old-seat';
+import { keptRoomId, leaveOldSeat } from './old-seat';
 import { STARTING_RETRIES, STARTING_RETRY_MS, type JoinMessage } from './rows';
 import { JOIN_SHEET_ROWS, type SheetRow } from './sheet-rows';
 
@@ -81,6 +81,8 @@ export function useJoinLink(params: Params) {
   const [nameError, setNameError] = useState<NameError | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // The kept room when the sheet opened: nothing opened since can have overwritten it.
+  const keptAtOpen = useRef(keptRoomId());
   const runId = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const waitingOnline = useRef(false);
@@ -108,6 +110,8 @@ export function useJoinLink(params: Params) {
     async (keep: boolean) => {
       if (!code) return;
       keepConfirm.current = keep;
+      // The kept room now, before the call: the new room's layout overwrites it once mounted.
+      const oldRoomId = keptAtOpen.current ?? keptRoomId();
       runId.current += 1;
       const id = runId.current;
       clearTimeout(timer.current);
@@ -139,7 +143,7 @@ export function useJoinLink(params: Params) {
           return;
         }
         if (result.status === 'ok') {
-          leaveOldSeat(result.room_id);
+          leaveOldSeat(result.room_id, oldRoomId);
           enterRoom(roomRouteFor(result.room_id, result.state), result.room_id, rootRoutes.current);
           return;
         }

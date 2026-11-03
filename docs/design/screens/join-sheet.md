@@ -92,7 +92,7 @@ Built by M4.22 (M4.10 was split; the heading keeps its old name because decision
 
 ### Leaving the old seat
 
-One room at a time: this holds on every path into a room that isn't the kept one, including a link whose preview says the player is already seated (the sheet joins at once, with no Confirm and no leave line, because there is no sheet to show it on). That path calls `join_room` like any other, so the kept room is left the same way after `ok`. A link to the kept room itself leaves nothing.
+One room at a time: this holds on every path into a room that isn't the kept one, including a link whose preview says the player is already seated (the sheet joins at once, with no Confirm and no leave line, because there is no sheet to show it on). That path calls `join_room` like any other, so the kept room is left the same way after `ok`. A link to the kept room itself leaves nothing. The kept room's id is read before the call (for the join sheet, when the sheet opens), never after the answer: the new room's layout writes itself as the kept room as soon as it mounts, so a late read would see the new room and leave nothing.
 
 After the new room's `join_room` answers `ok`, the phone calls `api.leaveRoom` on the kept room once, without waiting for it and without retries, then keeps the new room instead (Q22.3). Nothing shows whatever happens: `ok` and `not_in_room` are both fine, and if the call fails or the phone goes offline, the old seat goes silent and stops counting after 90 seconds, as any silent seat does. Opening a room as host ([host setup](host-setup.md), `create_room` answers `ok`) leaves the kept room the same way.
 
