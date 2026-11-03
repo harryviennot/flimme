@@ -34,7 +34,7 @@ Send calls `api.reportMember({ room_id, member_id, reason })`. Send shows `loadi
 | `ok` (new, or a repeat: the server keeps one per pair and still says `ok`) | The thank-you state (below) |
 | `rate_limited` | The cards and Send stay; under Send a `body-s` tone `nope` line `report:errors.rateLimited`; `haptics.error()` |
 | `not_in_room` (this phone's seat was removed meanwhile, or the seat isn't in this room) | The sheet closes. If this phone was removed, the [removed side](host-menu.md#the-removed-players-side) takes over |
-| Offline | `showToast` warn `report:errors.offline`; the sheet stays with the reason picked, Send works again |
+| Offline | Send is disabled (as the lobby's Start is) and `report:errors.offline` shows under it, in `body-s` tone `muted`; the reason stays picked, Send works again when the phone is back online (changed in M7.2: nothing is sent offline, so there is nothing to toast) |
 | The call failed (online) | `showToast` warn `report:errors.generic`; the sheet stays, Send works again |
 
 A `22023` (reporting yourself) is a bug: the own row has no sheet. It goes to Sentry and shows as the failed row.
@@ -50,7 +50,7 @@ What happens next is nothing anyone can see: no hiding, no automatic removal, no
 | Change | The sheet |
 | --- | --- |
 | The reported seat leaves or is removed | Stays: a seat that left can still be reported (Q1.3) |
-| The game starts | Stays over the swipe screen (the room layout's rule); sending still works in any state |
+| The game starts | Closes, like the invite and services sheets: the room layout allows the seat and report sheets over the lobby and the dealing only (`SHEETS` in `features/room/screens.ts`, changed in M7.2 to follow the brief) |
 | This phone is removed | Closes; the removed side takes over |
 
 ## Copy (`report` namespace, new)

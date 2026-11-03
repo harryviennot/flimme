@@ -52,7 +52,12 @@
     "start": "We couldn't start the game. Try again.",
     "services": "We couldn't save your services. Try again."
   },
+  "seatSheet": {
+    "report": "Report"
+  },
   "a11y": {
+    "seat": "Open options for {{name}}",
+    "report": "Report {{name}}",
     "invite": "Invite friends",
     "joined": "{{name}} is here",
     "left": "{{name}} left",

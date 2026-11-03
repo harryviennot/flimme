@@ -1,0 +1,33 @@
+{
+  "title": "Report {{name}}",
+  "helper": "Only the Flimme team sees this. Nobody in the room is told.",
+  "reasons": {
+    "offensiveName": {
+      "title": "Offensive name",
+      "description": "Insults, hate or anything out of line"
+    },
+    "spam": {
+      "title": "Spam or trolling",
+      "description": "Ruining the game on purpose"
+    },
+    "other": {
+      "title": "Something else",
+      "description": "Another problem with this player"
+    }
+  },
+  "send": "Send report",
+  "thanks": {
+    "title": "Thanks",
+    "body": "We'll take a look. Nothing changes in the room.",
+    "bodyHost": "We'll take a look. Meanwhile, you can also remove {{name}} from the room.",
+    "done": "Done"
+  },
+  "errors": {
+    "rateLimited": "That's a lot of reports at once. Try again later.",
+    "offline": "You're offline. Your report wasn't sent.",
+    "generic": "We couldn't send your report. Try again."
+  },
+  "a11y": {
+    "reason": "Reason: {{title}}"
+  }
+}

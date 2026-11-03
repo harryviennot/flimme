@@ -22,7 +22,7 @@ export type SeatRowProps = {
   away: boolean;
   /** No hairline under the last row of the group. */
   last?: boolean;
-  /** Only the host menu uses it (M4.13). */
+  /** Opens the seat sheet. Given for every seat but the player's own (Report, and Remove for the host). */
   onPress?: () => void;
 };
 
@@ -77,7 +77,12 @@ export function SeatRow({
   return (
     <Animated.View entering={layout.fadeIn} exiting={layout.fadeOut}>
       {onPress ? (
-        <Pressable accessibilityLabel={label} onPress={onPress} className={row}>
+        <Pressable
+          accessibilityLabel={label}
+          accessibilityHint={t('a11y.seat', { name })}
+          onPress={onPress}
+          className={row}
+        >
           {content}
         </Pressable>
       ) : (

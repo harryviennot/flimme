@@ -4,7 +4,7 @@ import type { RoomState } from '@flimme/contract';
 export type RoomScreen = 'lobby' | 'swipe' | 'final-cut' | 'winner' | 'closed';
 
 /** The sheets that may sit over a state's screen. */
-export type RoomSheet = 'invite' | 'services' | 'recap';
+export type RoomSheet = 'invite' | 'services' | 'seat' | 'report' | 'recap';
 
 /**
  * The screen a room state calls for (app-structure.md#screens-and-navigation). `dealing` shows
@@ -27,8 +27,8 @@ export function roomScreenFor(state: RoomState): RoomScreen {
 }
 
 const SHEETS: Record<RoomState, readonly RoomSheet[]> = {
-  lobby: ['invite', 'services'],
-  dealing: ['invite', 'services'],
+  lobby: ['invite', 'services', 'seat', 'report'],
+  dealing: ['invite', 'services', 'seat', 'report'],
   swiping: [],
   finale: [],
   done: ['recap'],
@@ -42,5 +42,11 @@ export function isAllowed(state: RoomState, screen: string): boolean {
 
 /** Whether a route name of the room layout is a sheet over another screen. */
 export function isSheet(screen: string): screen is RoomSheet {
-  return screen === 'invite' || screen === 'services' || screen === 'recap';
+  return (
+    screen === 'invite' ||
+    screen === 'services' ||
+    screen === 'seat' ||
+    screen === 'report' ||
+    screen === 'recap'
+  );
 }
