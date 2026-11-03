@@ -137,6 +137,14 @@ export type SubmitCalibrationAnswer = (typeof SUBMIT_CALIBRATION_ANSWERS)[number
 export const EXPORT_MY_DATA_ANSWERS = ['ok', 'rate_limited'] as const;
 export type ExportMyDataAnswer = (typeof EXPORT_MY_DATA_ANSWERS)[number];
 
+/**
+ * `api.title_cards` answers (M5.9): `ok` comes with the cards, `too_many` with `max` (50 films a call,
+ * refused and not truncated), `rate_limited` is 30 calls per 10 minutes. A caller with no seat in the
+ * room raises (denied), it is not an answer.
+ */
+export const TITLE_CARDS_ANSWERS = ['ok', 'too_many', 'rate_limited'] as const;
+export type TitleCardsAnswer = (typeof TITLE_CARDS_ANSWERS)[number];
+
 /** `api.answer_followup` answers. */
 export const ANSWER_FOLLOWUP_ANSWERS = ['ok', 'not_found'] as const;
 export type AnswerFollowupAnswer = (typeof ANSWER_FOLLOWUP_ANSWERS)[number];

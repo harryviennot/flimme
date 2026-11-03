@@ -748,7 +748,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `cast_vote(room, title, answer, seat, dwell_ms, client_at)` | The vote |
 | `undo_last_vote(room, seat)` | Undo |
 | `my_next_cards(room, limit, seat, language)` | Your next cards, ready to render: title and overview in your language, poster and placeholder, backdrop, year, runtime, genres, TMDB score, director, cast (first 5), trailer (none in rooms capped under 13), tonight's services for it (name and logo, a variant shown as its main service, one entry per service and offer kind), watch link, reason label, members' ratings. Up to 30 cards (the limit is clamped to 1 to 30); a card renders front and back from this one call |
-| `title_cards(ids, language, country)` | The same card payload for any films: winner, finale, calibration |
+| `title_cards(room, ids, language)` | The same card payload for films in the room's pool, in the order asked (the winner screen and the finale); other films are left out. Country, services and age cap come from the room. Answers `ok` with `cards`, `too_many` (over 50, `max`) or `rate_limited` (30 calls per 10 minutes per profile); a caller with no seat, or a removed one, is refused. The taste check has its own `taste_check_cards` |
 | `submit_calibration(answers, room)` | Lobby calibration |
 | `answer_followup(room, watched, reaction)` | "Did you watch it?" |
 | `disconnect_letterboxd()` | Removes your Letterboxd link and everything that came with it |
@@ -870,6 +870,25 @@ The ranked items are the one table that grows fast; they move to object storage 
 | 10 | about 220 ms |
 
 The first release (M5.1) changed the query body after that measurement: it no longer joins `title_vectors`, and it computes the crowd percentiles on narrow rows and cuts to the limit before building each seat's fits. M5.8 measures it again on the real catalog. The plan's budget is under 150 ms. Two to four players meet it on this machine; ten don't yet. If real data on Supabase hardware is still slow: precompute each room's eligible set once at start, or cap candidates with an HNSW search around the room's average taste before scoring. The server's ranking adds its own time on top, inside the same "well under a second" behind the 15-card buffer.
+
+**Check on the real catalog (M5.8).** `supabase/checks/deck-check.sql` counts the catalog, deals five sample rooms and times room 2, then undoes every write. Harry runs it in staging's SQL editor (agents hold no database credentials): paste the file, run it, copy the result grid back. The committed findings hold ids, counts, years and timings, never titles (rule 7). Locally, run `set deckcheck.min_films = 100;` first, because the seed is under the 40,000 films gate.
+
+| Rooms | Players | Services | Time | Age cap |
+| --- | --- | --- | --- | --- |
+| 1 | 2 | first listed | any | none |
+| 2 (timed) | 4 | first three | under 2 h | none (Adults) |
+| 3 | 6 | first two | under 1 h 45 | 12 |
+| 4 | 10 | every listed | any | All ages (0) |
+| 5 | 3 | none (free services only) | any | 10 |
+
+Every room also has the country's free services. Results: not run yet (staging, Free plan; M5.8 follow-up).
+
+- Catalog counts: pending.
+- Eligible films per room: pending.
+- The checks (services, age cap, time budget, one film per franchise in any 10 cards, identical openings): pending.
+- `deck_candidates(room, 300)` for 4 players, median of three: pending (budget 150 ms; on Free the figure is indicative, and it is re-timed after Pro only if it misses).
+- `deal_baseline` for 4 players: pending (budget under 1 s).
+- Opening overlap between two seeds: pending.
 
 ## Retention
 
