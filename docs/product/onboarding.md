@@ -333,7 +333,7 @@ M0.9 (30 October 2026) drew these changes for the first release on the Figma's *
 
 Notes for other docs, not applied there:
 
-- **Data model:** the invite link carries a room reference, and `api.join_room` takes it as an optional argument, answering `closed` when the code now belongs to another room. Today a stale code either finds nothing or finds a newer room.
+- **Data model (done in M4.1):** the invite link carries a room reference, and `api.join_room` takes it as an optional argument, answering `closed` when the code now belongs to another room. Today a stale code either finds nothing or finds a newer room.
 - **Data model:** when does a room close? The Figma says "20 minutes after the last swipe"; the data model only abandons lobbies after 3 hours and ends rooms on a pick. Rooms where everyone has drifted away mid-game need a rule.
 - **Supabase settings:** enable manual linking (for saving accounts); turn on the bot check for anonymous sign-ins, which Supabase strongly recommends; and look at the anonymous sign-in limit, 30 per hour per IP address by default (checked today), since a party or a venue shares one network.
 - **Analytics doc, when written:** the events in [Measuring it](#measuring-it).

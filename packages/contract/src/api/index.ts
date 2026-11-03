@@ -13,6 +13,7 @@ import {
   START_GAME_ANSWERS,
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
+  type JoinVia,
 } from '../answers';
 import {
   appConfigSchema,
@@ -90,12 +91,23 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
       );
     },
 
-    joinRoom(args: { code: string }): Promise<JoinRoomResult> {
+    /** `ref` is the room id from an invite link; `link_opened_at` is only kept for `via` link. */
+    joinRoom(args: {
+      code: string;
+      ref?: string;
+      via?: JoinVia;
+      link_opened_at?: string;
+    }): Promise<JoinRoomResult> {
       return callAnswer(
         client,
         options,
         'join_room',
-        { p_code: args.code },
+        {
+          p_code: args.code,
+          p_ref: args.ref,
+          p_via: args.via,
+          p_link_opened_at: args.link_opened_at,
+        },
         JOIN_ROOM_ANSWERS,
         joinRoomResult,
       );

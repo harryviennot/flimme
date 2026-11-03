@@ -17,6 +17,7 @@ export type CreateRoomAnswer = (typeof CREATE_ROOM_ANSWERS)[number];
 export const JOIN_ROOM_ANSWERS = [
   'ok',
   'not_found',
+  'closed',
   'full',
   'starting',
   'in_finale',
@@ -24,8 +25,12 @@ export const JOIN_ROOM_ANSWERS = [
   'rate_limited',
 ] as const;
 export type JoinRoomAnswer = (typeof JOIN_ROOM_ANSWERS)[number];
-/** Planned: `closed` is a stale invite link (roadmap M4.1). */
-export const PLANNED_JOIN_ROOM_ANSWERS = ['closed'] as const;
+/** `closed` is a stale invite link (M4.1). Planned: `removed` and `locked` arrive with roadmap M4.2. */
+export const PLANNED_JOIN_ROOM_ANSWERS = ['removed', 'locked'] as const;
+
+/** How a seat came in (`public.join_via`, M4.1); sent as `via`, stored on the seat. */
+export const JOIN_VIAS = ['link', 'code', 'qr', 'rejoin', 'play_again'] as const;
+export type JoinVia = (typeof JOIN_VIAS)[number];
 
 /** `api.leave_room` answers. */
 export const LEAVE_ROOM_ANSWERS = ['ok', 'not_in_room'] as const;

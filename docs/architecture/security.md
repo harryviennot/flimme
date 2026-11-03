@@ -271,7 +271,7 @@ One developer means one person's laptop and accounts are the whole perimeter.
 - [ ] Phones drop unknown Realtime messages (gap 12)
 - [ ] Supabase settings as listed: only `api` exposed, GraphQL off, public Realtime access off, ES256 signing keys, publishable and secret keys
 - [ ] HTTP API: token checks, request limits, safe feed fetching, a matching budget
-- [ ] Room references on invite links
+- [x] Room references on invite links
 - [ ] Age caps hold in the taste check and labels; no trailers under 13
 - [ ] 2FA on every account; no secret in the app or the repos; secret scanning on
 

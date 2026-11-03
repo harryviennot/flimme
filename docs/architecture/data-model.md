@@ -453,6 +453,7 @@ The 10-minute limits are my starting values; the plan only gives 8 minutes for 3
 | provider_ids | integer[] | This player's services tonight, prefilled from their profile |
 | mood_slugs, genre_ids | | "Tonight I want", a soft boost in their fit |
 | joined_at, left_at | timestamptz | Rejoining clears left_at and keeps the same seat |
+| joined_via, link_opened_at | join_via, timestamptz | How the seat came in (`link`, `code`, `qr`, `rejoin`, `play_again`; null when the app sent none) and, for `link` only, when the phone opened the link (clamped between the room's creation and now). Set once at the first join, kept on a rejoin. Analytics only: `api.room_seats` does not list them |
 | removed_at | timestamptz | Set when the host removes the player (M4.2). A removed seat is not a member: it reads nothing of the room, has no Realtime topic and gets no cards, except its own votes. Null otherwise, and a removed player can't rejoin |
 | last_active_at | timestamptz | Heartbeat. Only seats active in the last 90 seconds count for match rules |
 | calibrated_at, done_at | timestamptz | |
@@ -589,7 +590,7 @@ sequenceDiagram
 
 1. The host calls `api.create_room(mode)`: a free 6-digit code, the host seat, the room model, the service list. Later, the hosting cap and the room's tier are decided here.
 2. The invite is `/join/482913` as a link and a QR code.
-3. A guest calls `api.join_room(code)`. It counts the attempt first, then answers `ok`, `not_found`, `full`, `starting`, `in_finale`, `name_required` or `rate_limited`. It never raises an error on a wrong code, since an error would roll back the attempt counter. A player who already has a seat gets the same seat back.
+3. A guest calls `api.join_room(code, ref, via, link_opened_at)`; only the code is required. It counts the attempt first, then answers `ok`, `not_found`, `closed`, `full` (with the room's `max_players`), `starting`, `in_finale`, `name_required` (with the host's `host_name`) or `rate_limited`. With a `ref` (the `rooms.id` an invite link carries), any call where no open room has both that code and that id answers `closed`, and counts as a failed attempt like `not_found`; `not_found` comes back only without a `ref`. An unknown `via` raises `22023` before any limit counts. It never raises an error on a wrong code, since an error would roll back the attempt counter. A player who already has a seat gets the same seat back.
 4. Each new seat recomputes the room's services and broadcasts `member_joined`.
 
 ### Lobby
@@ -725,7 +726,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `update_profile(name, avatar, country, language)` | Edits your profile |
 | `set_my_providers(ids)` | Replaces your services |
 | `create_room(mode, country)` | New room, host seat, code |
-| `join_room(code)` | Join or rejoin, rate limited |
+| `join_room(code, ref, via, link_opened_at)` | Join or rejoin, rate limited; `ref` makes a stale invite link answer `closed` |
 | `touch_room(room)` | Heartbeat every 30 seconds |
 | `leave_room(room)` | Leave, hand over host, re-check matches |
 | `update_room_settings(room, settings)` | Host, lobby only |

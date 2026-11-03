@@ -261,7 +261,7 @@ export type Database = {
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
 "join_room":
-{ Args: { "p_code": string }; Returns: Json
+{ Args: { "p_code": string,"p_link_opened_at"?: string,"p_ref"?: string,"p_via"?: string }; Returns: Json
                            },
 "leave_room":
 { Args: { "p_room_id": string }; Returns: Json
