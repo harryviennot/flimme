@@ -5,7 +5,7 @@
 //   node tools/sim/run.mjs --games 300      fewer games per cell, faster and noisier
 //   node tools/sim/run.mjs --seed 7         another seed (the default is 1)
 //   node tools/sim/run.mjs --only finale    one section: headline, cards, limits, finale,
-//                                           majority, suggested, sensitivity
+//                                           majority, suggested, sensitivity, nearmiss
 import { hash, playGame } from './game.mjs';
 
 const args = process.argv.slice(2);
@@ -97,6 +97,15 @@ function cell(ruleName, n, world) {
     finaleLikedBy: mean(finales, (r) => r.pickLikedBy),
     missed: mean(finales, (r) => r.missed),
     likeRate: games.reduce((a, r) => a + r.liked, 0) / games.reduce((a, r) => a + r.swipes, 0),
+    nearSent: mean(games, (r) => r.near.sent),
+    nearDead:
+      games.reduce((a, r) => a + r.near.dead, 0) / games.reduce((a, r) => a + r.near.sent, 0),
+    nearClose: mean(games, (r) => r.near.close),
+    withClose: share(games, (r) => r.near.close > 0),
+    firstClose: (() => {
+      const list = games.filter((r) => r.near.firstClose !== null).map((r) => r.near.firstClose);
+      return list.length ? list.sort((a, b) => a - b)[Math.floor(list.length / 2)] : NaN;
+    })(),
   };
   cache.set(id, out);
   return out;
@@ -229,6 +238,24 @@ const sections = {
         ['Final Cut decides, suggested', 'suggested', (c) => pct(c.finale)],
         ['Players who like the pick, proposed', 'proposed', (c) => pct(c.likedBy)],
         ['Players who like the pick, suggested', 'suggested', (c) => pct(c.likedBy)],
+      ]);
+    }
+  },
+  nearmiss: () => {
+    // The decided values (the suggested set). Near misses don't change the game here:
+    // these count what the players would be shown.
+    const num = (x) => (Number.isNaN(x) ? 'n/a' : x.toFixed(1));
+    for (const level of LEVELS) {
+      grid('Near misses per game, decided values', level, [
+        ['Sent today (2 likes or more, no match)', 'suggested', (c) => num(c.nearSent)],
+        ['Of those, on a film that can no longer match', 'suggested', (c) => pct(c.nearDead)],
+        ['Proposed: one like short and still possible', 'suggested', (c) => num(c.nearClose)],
+        ['Games with at least one, proposed', 'suggested', (c) => pct(c.withClose)],
+        [
+          'Median time of the first, proposed',
+          'suggested',
+          (c) => (Number.isNaN(c.firstClose) ? 'n/a' : clock(c.firstClose)),
+        ],
       ]);
     }
   },
