@@ -1,4 +1,4 @@
-import { ApiError, JOIN_ROOM_ANSWERS, PLANNED_JOIN_ROOM_ANSWERS } from '@flimme/contract';
+import { ApiError, JOIN_ROOM_ANSWERS } from '@flimme/contract';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react-native';
 
@@ -58,8 +58,8 @@ async function type(result: { current: ReturnType<typeof useJoinAttempt> }, text
 }
 
 describe('the answer rows', () => {
-  it('has a row for every answer, planned ones included', () => {
-    for (const answer of [...JOIN_ROOM_ANSWERS, ...PLANNED_JOIN_ROOM_ANSWERS]) {
+  it('has a row for every answer', () => {
+    for (const answer of JOIN_ROOM_ANSWERS) {
       expect(JOIN_ROWS[answer]).toBeDefined();
     }
   });

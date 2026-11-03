@@ -1,11 +1,11 @@
-import type { JoinRoomAnswer, PLANNED_JOIN_ROOM_ANSWERS } from '@flimme/contract';
+import type { JoinRoomAnswer } from '@flimme/contract';
 
 import type { IconName } from '@/components/ui/icon';
 
 import type { JoinMessage } from './rows';
 
 // One row per answer the join sheet can get, as in docs/design/screens/join-sheet.md#answers-apijoin_room.
-// A test walks JOIN_ROOM_ANSWERS and PLANNED_JOIN_ROOM_ANSWERS, and the types fail on a new
+// A test walks JOIN_ROOM_ANSWERS, and the types fail on a new
 // answer without a row.
 
 export type SheetRow =
@@ -26,7 +26,6 @@ export type SheetRow =
       next: 'host' | 'retry' | 'auto';
     };
 
-type PlannedAnswer = (typeof PLANNED_JOIN_ROOM_ANSWERS)[number];
 /** What the sheet answers that is not an answer of `join_room`. */
 export type SheetState = 'malformed' | 'offline' | 'failed' | 'session_failed';
 
@@ -37,7 +36,7 @@ const refused = (
   haptic = true,
 ): SheetRow => ({ kind: 'refused', message, icon, haptic, error: next !== 'auto', next });
 
-export const JOIN_SHEET_ROWS: Record<JoinRoomAnswer | PlannedAnswer | SheetState, SheetRow> = {
+export const JOIN_SHEET_ROWS: Record<JoinRoomAnswer | SheetState, SheetRow> = {
   ok: { kind: 'go', to: 'room' },
   name_required: { kind: 'go', to: 'first-time' },
   starting: { kind: 'wait' },

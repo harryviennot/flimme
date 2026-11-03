@@ -22,6 +22,7 @@ The event list lives in `packages/contract/src/realtime.ts`. Adding an event mea
 | --- | --- | --- |
 | `member_joined`, `member_left`, `seat_updated` | Seats change | Refetches seats |
 | `settings_changed` | The host changes settings | Refetches the room |
+| `room_locked` | The host locks or unlocks the room (only when the value changes) | Refetches the room |
 | `state_changed` | lobby, dealing, swiping, finale, done, abandoned | Refetches the room; the room layout moves to that state's screen |
 | `host_changed` | The host role moves | Refetches seats |
 | `deck_updated` | A seat's deck was re-ranked (carries the seat id) | That seat refetches its next cards and replaces what's behind the 3 mounted ones |
