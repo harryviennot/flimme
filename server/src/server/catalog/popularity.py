@@ -12,8 +12,8 @@ of the films we hold out. `ExportSource` downloads the file to a temporary one a
 without holding it in memory. `run_popularity_daily` then:
 
 1. updates `titles.popularity` across the catalog, in chunks that fit the 60 s timeout,
-2. queues the top ids that are not in `titles` yet as `fetch` messages (reason `candidate`),
-   at most 100 to a message.
+2. queues the top ids that are not in `titles` yet and do not already wait in the queue as
+   `fetch` messages (reason `candidate`), at most 100 to a message, all on one connection.
 
 The floor judges them when they are fetched (fetch.py): a candidate under it is not stored, so
 the few that fail are queued again each day (decision Q19, measured in M2.13). Running the job
@@ -34,10 +34,11 @@ from pathlib import Path
 from typing import Any, Protocol
 
 import httpx
+from psycopg import AsyncConnection
 from psycopg.types.json import Jsonb
 
 from server.db import queries
-from server.db.contract import enqueue
+from server.db.contract import enqueue_many
 from server.db.payloads import FetchMessage
 from server.db.pool import Database
 from server.workers.runner import Done, Outcome
@@ -53,6 +54,8 @@ EXPORT_DAYS_TRIED = 3
 DOWNLOAD_TIMEOUT_S = 120.0
 FETCH_BATCH = 100  # a fetch message holds at most 100 ids
 UPDATE_CHUNK = 5_000
+QUEUED_CHUNK = 5_000  # ids per look at the queue
+ENQUEUE_PIPELINE = 50  # messages per round trip
 
 
 class ExportUnavailable(Exception):
@@ -237,6 +240,15 @@ async def run_popularity_daily(
     return Done()
 
 
+async def _already_queued(conn: AsyncConnection, tmdb_ids: Sequence[int]) -> set[int]:
+    """Candidates that already wait in a `fetch` message, so a retry does not queue them twice."""
+    waiting: set[int] = set()
+    for chunk in batches(tmdb_ids, QUEUED_CHUNK):
+        cur = await conn.execute(queries.load("pending_fetch_ids"), (chunk,))
+        waiting |= {row[0] for row in await cur.fetchall()}
+    return waiting
+
+
 async def _popularity(
     database: Database, source: ExportLoader, run_id: int, top_n: int, stats: dict[str, int]
 ) -> str:
@@ -244,12 +256,16 @@ async def _popularity(
     export = await source.load(top_n, known)
     stats["popularity_updated"] = await update_popularity(database, export.popularity)
     new = [tmdb_id for tmdb_id in export.top if tmdb_id not in known]
-    for ids in batches(new, FETCH_BATCH):
-        async with database.connection() as conn:
-            await enqueue(
-                conn,
-                "catalog_refresh",
-                FetchMessage(run_id=run_id, tmdb_ids=ids, reason="candidate"),
-            )
+    # One connection for the whole fan-out. A checkout per message waited behind the fetch
+    # handlers it had just fed and took over 30 minutes on an empty catalog (3 Nov).
+    async with database.connection() as conn:
+        waiting = await _already_queued(conn, new)
+        new = [tmdb_id for tmdb_id in new if tmdb_id not in waiting]
+        messages = [
+            FetchMessage(run_id=run_id, tmdb_ids=ids, reason="candidate")
+            for ids in batches(new, FETCH_BATCH)
+        ]
+        for group in batches(messages, ENQUEUE_PIPELINE):
+            await enqueue_many(conn, "catalog_refresh", group)
     stats["candidates_queued"] = len(new)
     return f"export of {export.day.isoformat()}"

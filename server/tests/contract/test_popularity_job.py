@@ -177,3 +177,67 @@ async def test_running_it_twice_changes_no_popularity_the_second_time(
     )
     first, second = (row[0] for row in await cur.fetchall())
     assert first["popularity_updated"] == 1 and second["popularity_updated"] == 0
+
+
+class CountingDatabase(Database):
+    """Counts pool checkouts: the fan-out must not cost one checkout per message."""
+
+    checkouts = 0
+
+    def connection(self):  # type: ignore[no-untyped-def]
+        self.checkouts += 1
+        return super().connection()
+
+
+async def test_the_fan_out_takes_a_few_checkouts_whatever_the_number_of_messages(
+    database: Database, restore: AsyncConnection, admin: AsyncConnection
+):
+    # Production (3 Nov): one checkout per message, each queued behind the fetch handlers the
+    # job had just fed, took over 30 minutes for 600 messages.
+    counting = CountingDatabase(
+        database._url,  # noqa: SLF001
+        database._pool,  # noqa: SLF001
+        database._statement_timeout_s,  # noqa: SLF001
+        database._role,  # noqa: SLF001
+    )
+    await run_popularity_daily(
+        counting, source([(FIRST + i, 5_000.0 - i) for i in range(400)]), top_n=1_000
+    )
+    small = counting.checkouts
+    assert len(await queued(admin)) == 4
+    await admin.execute("truncate pgmq.q_catalog_refresh")
+
+    counting.checkouts = 0
+    await run_popularity_daily(
+        counting, source([(FIRST + i, 5_000.0 - i) for i in range(600)]), top_n=1_000
+    )
+    assert len(await queued(admin)) == 6
+    assert counting.checkouts == small
+
+
+async def test_a_retry_after_a_half_finished_fan_out_queues_each_candidate_once(
+    database: Database,
+    restore: AsyncConnection,
+    admin: AsyncConnection,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    from server.catalog import popularity
+    from server.db.contract import enqueue_many
+
+    entries = [(FIRST + i, 5_000.0 - i) for i in range(500)]  # 5 messages
+    real = enqueue_many
+
+    async def dies_halfway(conn: AsyncConnection, queue: str, messages: list[Any]) -> None:
+        await real(conn, queue, messages[: len(messages) // 2])
+        raise RuntimeError("worker killed")
+
+    monkeypatch.setattr(popularity, "enqueue_many", dies_halfway)
+    with pytest.raises(RuntimeError):
+        await run_popularity_daily(database, source(entries), top_n=1_000)
+    assert 0 < len(await queued(admin)) < 5
+
+    monkeypatch.setattr(popularity, "enqueue_many", real)
+    await run_popularity_daily(database, source(entries), top_n=1_000)
+
+    ids = [i for m in await queued(admin) for i in m["tmdb_ids"]]
+    assert sorted(ids) == [FIRST + i for i in range(500)]
