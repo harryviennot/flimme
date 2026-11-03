@@ -127,7 +127,7 @@ The setup script can't read the environment's secrets, and needs none: tests use
 | `production.yml` | By hand, with Harry's approval | The same, to production |
 | `nightly.yml` | Every night | Maestro flows on EAS against staging, a bot game, a dependency audit |
 | `backup.yml` | Weekly | The logical dump of production |
-| `roadmap.yml` | Merge to `main` | Ticks the task named in the title and updates the progress line |
+| `roadmap.yml` | Merge to `main` | Ticks the task whose id starts the title (other titles tick nothing) and updates the progress line |
 
 - **Path filters** keep a docs-only or app-only pull request from starting the database. With about 140 pull requests in the first release, they're what keeps CI near GitHub's free 2,000 minutes a month for private repositories; beyond that, Linux minutes cost a few dollars a month.
 - **Actions pinned to commit SHAs** (M1.15), kept current by Dependabot.
