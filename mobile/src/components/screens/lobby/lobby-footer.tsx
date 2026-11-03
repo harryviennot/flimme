@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
+import type { Ref } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
+import type { PressableNode } from '@/components/ui/pressable';
 import { MarqueeBulbs } from '@/components/ui/marquee-bulbs';
 import { Text } from '@/components/ui/text';
 
@@ -14,6 +16,10 @@ export type LobbyFooterProps =
       helper: string | null;
       /** Why the button is disabled when no line says so (the banner's message). */
       hint?: string;
+      /** Focus goes back here after a refused Start (lobby.md#accessibility). */
+      startRef?: Ref<PressableNode>;
+      /** The line answers the host's tap: Android reads it at once (iOS gets an announcement). */
+      assertive?: boolean;
       onStart: () => void;
     }
   | { role: 'guest'; hostName: string };
@@ -41,10 +47,16 @@ export function LobbyFooter(props: LobbyFooterProps) {
         disabled={props.disabled}
         loading={props.starting}
         accessibilityHint={props.helper ?? props.hint}
+        focusRef={props.startRef}
         onPress={props.onStart}
       />
       {props.helper ? (
-        <Text variant="body-s" tone="muted" align="center">
+        <Text
+          variant="body-s"
+          tone="muted"
+          align="center"
+          accessibilityLiveRegion={props.assertive ? 'assertive' : 'none'}
+        >
           {props.helper}
         </Text>
       ) : null}

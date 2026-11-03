@@ -31,6 +31,9 @@
   "start": {
     "cta": "Start swiping",
     "needPlayers": "You need {{count}} players here to start.",
+    "tooFew_one": "Only {{count}} film fits tonight. Ask everyone to add their services.",
+    "tooFew_other": "Only {{count}} films fit tonight. Ask everyone to add their services.",
+    "tooFewNone": "No film fits tonight. Ask everyone to add their services.",
     "away_one": "{{names}} is away. You can start without them.",
     "away_other": "{{names}} are away. You can start without them."
   },

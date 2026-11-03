@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type Ref } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
@@ -7,7 +7,7 @@ import { tokens, type ColorToken } from '@/theme/generated/tokens';
 import { timing } from '@/theme/motion';
 
 import { Icon, type IconName } from './icon';
-import { Pressable } from './pressable';
+import { Pressable, type PressableNode } from './pressable';
 import { Text, type TextTone } from './text';
 
 // The arcade button (Figma "Button"): a face on a hard 4-point lip. Pressing moves the
@@ -83,6 +83,8 @@ export type ButtonProps = {
   accessibilityLabel?: string;
   /** What a screen reader adds, e.g. why the button is disabled. */
   accessibilityHint?: string;
+  /** Lets a screen move a screen reader's focus here (the lobby does after a refused Start). */
+  focusRef?: Ref<PressableNode>;
 };
 
 export function Button({
@@ -96,6 +98,7 @@ export function Button({
   block = size === 'l',
   accessibilityLabel,
   accessibilityHint,
+  focusRef,
 }: ButtonProps) {
   const [pressed, setPressed] = useState(false);
   const offset = useSharedValue(0);
@@ -122,6 +125,7 @@ export function Button({
 
   return (
     <Pressable
+      ref={focusRef}
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ busy: loading }}

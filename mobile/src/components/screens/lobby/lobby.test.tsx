@@ -65,10 +65,19 @@ const mockLive = {
   fresh: true,
 };
 const mockExitToHome = jest.fn();
+// The handlers the lobby registered for room events; a test calls them like the channel would.
+const mockEvents: Record<string, (payload: unknown) => void> = {};
+const emitStateChanged = (payload: unknown) => {
+  if (!mockEvents.state_changed) throw new Error('the lobby did not listen for state_changed');
+  mockEvents.state_changed(payload);
+};
 jest.mock('@/features/room', () => ({
   ...jest.requireActual('@/features/room/queries'),
   ...jest.requireActual('@/features/room/leave-guard'),
   useExitRoomToHome: () => mockExitToHome,
+  useRoomEvent: (_id: string, event: string, handler: (payload: unknown) => void) => {
+    mockEvents[event] = handler;
+  },
   useRoomPresence: () => ({ online: mockLive.online, away: mockLive.away }),
   useRoomConnection: () => ({ banner: mockLive.banner, fresh: mockLive.fresh }),
 }));
@@ -295,6 +304,105 @@ describe('the host footer', () => {
     await waitFor(() => expect(start()).toBeEnabled());
     await fireEvent.press(start());
     await waitFor(() => expect(mockApi.startGame).toHaveBeenCalledTimes(2));
+  });
+});
+
+describe('too few films', () => {
+  const tooFew = (eligible: number) =>
+    mockApi.startGame.mockResolvedValue({ status: 'too_few_films', eligible });
+
+  it('shows the count under Start with an error haptic, and Start stays enabled', async () => {
+    tooFew(12);
+    await show();
+    await waitFor(() => expect(start()).toBeEnabled());
+    await fireEvent.press(start());
+    await waitFor(() =>
+      expect(
+        screen.getByText('Only 12 films fit tonight. Ask everyone to add their services.'),
+      ).toBeTruthy(),
+    );
+    expect(haptics.error).toHaveBeenCalledTimes(1);
+    expect(start()).toBeEnabled();
+  });
+
+  it('uses the singular for 1 and its own line for 0', async () => {
+    tooFew(1);
+    await show();
+    await waitFor(() => expect(start()).toBeEnabled());
+    await fireEvent.press(start());
+    await waitFor(() =>
+      expect(
+        screen.getByText('Only 1 film fits tonight. Ask everyone to add their services.'),
+      ).toBeTruthy(),
+    );
+    tooFew(0);
+    await fireEvent.press(start());
+    await waitFor(() =>
+      expect(
+        screen.getByText('No film fits tonight. Ask everyone to add their services.'),
+      ).toBeTruthy(),
+    );
+  });
+
+  it('clears on the next Start tap and the new answer decides', async () => {
+    tooFew(12);
+    await show();
+    await waitFor(() => expect(start()).toBeEnabled());
+    await fireEvent.press(start());
+    await waitFor(() => expect(screen.getByText(/Only 12 films fit/)).toBeTruthy());
+    let release: (value: unknown) => void = () => {};
+    mockApi.startGame.mockReturnValue(new Promise((resolve) => (release = resolve)));
+    await fireEvent.press(start());
+    expect(screen.queryByText(/Only 12 films fit/)).toBeNull();
+    await act(async () => release({ status: 'ok' }));
+    expect(screen.queryByText(/films fit/)).toBeNull();
+  });
+
+  it('shows the count a state_changed brings after a dealing answer, on the host only', async () => {
+    await show();
+    await waitFor(() => expect(start()).toBeEnabled());
+    await act(async () => {
+      emitStateChanged({ state: 'lobby', reason: 'too_few_films', eligible: 7 });
+    });
+    expect(
+      screen.getByText('Only 7 films fit tonight. Ask everyone to add their services.'),
+    ).toBeTruthy();
+    expect(haptics.error).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      emitStateChanged({ state: 'swiping' });
+    });
+    expect(screen.getByText(/Only 7 films fit/)).toBeTruthy();
+  });
+
+  it('shows nothing on a guest, whose overlay closes when the room is back in the lobby', async () => {
+    mockSeats = [
+      { ...lea, is_me: false },
+      { ...sam, is_me: true },
+    ];
+    mockState = 'dealing';
+    await show();
+    await waitFor(() => expect(screen.getByText('Shuffling the deck…')).toBeTruthy());
+    mockState = 'lobby';
+    await act(async () => {
+      emitStateChanged({ state: 'lobby', reason: 'too_few_films', eligible: 7 });
+      await client.invalidateQueries();
+    });
+    await waitFor(() => expect(screen.queryByText('Shuffling the deck…')).toBeNull());
+    expect(screen.getByText('Waiting for Léa to start…')).toBeTruthy();
+    expect(screen.queryByText(/films fit/)).toBeNull();
+    expect(haptics.error).not.toHaveBeenCalled();
+  });
+
+  it('puts the players-needed line before the too-few line', async () => {
+    mockApi.startGame.mockResolvedValue({ status: 'too_few_films', eligible: 5 });
+    await show();
+    await waitFor(() => expect(start()).toBeEnabled());
+    await fireEvent.press(start());
+    await waitFor(() => expect(screen.getByText(/Only 5 films fit/)).toBeTruthy());
+    mockApi.startGame.mockResolvedValue({ status: 'not_enough_players', need: 3 });
+    await fireEvent.press(start());
+    await waitFor(() => expect(screen.getByText('You need 3 players here to start.')).toBeTruthy());
+    expect(screen.queryByText(/films fit/)).toBeNull();
   });
 });
 

@@ -1,17 +1,25 @@
 import { act, renderHook } from '@testing-library/react-native';
 
-import { DEAL_RETRY_MS, DEAL_SLOW_MS, runStart, useDealingTimers } from './start';
+import { DEAL_RETRY_MS, DEAL_SLOW_MS, runStart, tooFewFromEvent, useDealingTimers } from './start';
 
 describe('runStart', () => {
-  it('re-reads the room after ok, dealing, closed and too_few_films', async () => {
+  it('re-reads the room after ok, dealing and closed', async () => {
     for (const answer of [
       { status: 'ok' as const },
       { status: 'dealing' as const },
       { status: 'closed' as const },
-      { status: 'too_few_films' as const, eligible: 12 },
     ]) {
       await expect(runStart(async () => answer)).resolves.toEqual({ kind: 'reread' });
     }
+  });
+
+  it('carries the count from too_few_films, with and without fallback', async () => {
+    await expect(
+      runStart(async () => ({ status: 'too_few_films' as const, eligible: 12 })),
+    ).resolves.toEqual({ kind: 'too_few', eligible: 12 });
+    await expect(
+      runStart(async () => ({ status: 'too_few_films' as const, eligible: 0, fallback: true })),
+    ).resolves.toEqual({ kind: 'too_few', eligible: 0 });
   });
 
   it('carries the need from not_enough_players', async () => {
@@ -26,6 +34,22 @@ describe('runStart', () => {
         throw new Error('network');
       }),
     ).resolves.toEqual({ kind: 'failed' });
+  });
+});
+
+describe('tooFewFromEvent', () => {
+  it('reads the count from a state_changed that went back to the lobby', () => {
+    expect(tooFewFromEvent({ state: 'lobby', reason: 'too_few_films', eligible: 7 })).toBe(7);
+    expect(tooFewFromEvent({ state: 'lobby', reason: 'too_few_films', eligible: 0 })).toBe(0);
+  });
+
+  it('ignores every other state change and malformed payloads', () => {
+    expect(tooFewFromEvent({ state: 'swiping' })).toBeNull();
+    expect(tooFewFromEvent({ state: 'lobby', reason: 'too_few_films' })).toBeNull();
+    expect(tooFewFromEvent({ state: 'lobby', reason: 'too_few_films', eligible: -1 })).toBeNull();
+    expect(tooFewFromEvent({ state: 'lobby', reason: 'too_few_films', eligible: 2.5 })).toBeNull();
+    expect(tooFewFromEvent(null)).toBeNull();
+    expect(tooFewFromEvent('lobby')).toBeNull();
   });
 });
 
