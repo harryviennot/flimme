@@ -47,6 +47,19 @@ describe('parseAppConfig', () => {
     expect(report).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps an https invite base and reports anything else', () => {
+    const report = jest.fn();
+    expect(parseAppConfig({ invite_base_url: 'https://flimme.app' }, report)).toEqual({
+      invite_base_url: 'https://flimme.app',
+    });
+    expect(report).not.toHaveBeenCalled();
+    for (const bad of ['http://flimme.app', 'flimme://x', 3, null, {}]) {
+      const r = jest.fn();
+      expect(parseAppConfig({ invite_base_url: bad }, r)).toEqual({});
+      expect(r).toHaveBeenCalledTimes(1);
+    }
+  });
+
   it('answers an empty config for something that is not an object', () => {
     expect(parseAppConfig(null)).toEqual({});
     expect(parseAppConfig('x')).toEqual({});

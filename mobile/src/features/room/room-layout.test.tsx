@@ -34,6 +34,8 @@ jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
 }));
 jest.mock('@/lib/sentry', () => ({ reportError: jest.fn() }));
+// The invite sheet reads app_config, which starts the guest session: keep the real one out.
+jest.mock('@/features/session', () => ({ startSession: jest.fn(async () => ({ status: 'no' })) }));
 
 const { api } = jest.requireMock('@/api');
 

@@ -1,0 +1,13 @@
+{
+  "invite": {
+    "title": "Invite tes amis",
+    "helper": "Toute personne avec le lien peut rejoindre cette salle.",
+    "copy": "Copier le lien",
+    "copied": "Lien copié",
+    "share": "Partager l'invitation",
+    "shareMessage": "Rejoins ma salle : {{link}} (code {{code}})",
+    "qr": "QR code de l'invitation. Tes amis le scannent avec leur appareil photo.",
+    "link": "Lien d'invitation",
+    "error": "Impossible de préparer le lien."
+  }
+}

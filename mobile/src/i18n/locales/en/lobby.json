@@ -1,0 +1,13 @@
+{
+  "invite": {
+    "title": "Invite friends",
+    "helper": "Anyone with the link can join this room.",
+    "copy": "Copy the link",
+    "copied": "Link copied",
+    "share": "Share invite",
+    "shareMessage": "Join my room: {{link}} (code {{code}})",
+    "qr": "Invite QR code. Friends scan it with their camera.",
+    "link": "Invite link",
+    "error": "We couldn't get the link ready."
+  }
+}
