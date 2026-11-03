@@ -67,3 +67,23 @@ async def test_the_popularity_job_has_a_runner():
     from server.workers.pipeline import JOBS
 
     assert "popularity_daily" in JOBS
+
+
+def test_the_availability_sweep_job_has_a_runner_and_the_sweep_kind_a_handler():
+    from server.workers.pipeline import JOBS, make_sweep_handler
+
+    assert "availability_sweep" in JOBS
+    assert callable(make_sweep_handler)
+
+
+def test_all_six_scheduled_jobs_have_a_runner():
+    from server.workers.pipeline import JOBS
+
+    assert set(JOBS) == {
+        "reference_weekly",
+        "availability_sweep",
+        "changes_daily",
+        "popularity_daily",
+        "details_weekly",
+        "details_monthly",
+    }

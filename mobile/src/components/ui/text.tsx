@@ -1,6 +1,7 @@
 import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
 
 import { cn } from '@/lib/cn';
+import { tokens } from '@/theme/generated/tokens';
 
 // The only place that sets type. The variants are the Figma's 15 text styles, plus five
 // component-specific ones the Figma sets by hand.
@@ -70,6 +71,21 @@ const maxScale: Record<TextVariant, number> = {
   'avatar-l': 1,
 };
 
+// Staatliches is caps only, and its line box leaves room below the baseline for descenders
+// (hhea ascent 950, descent 300, cap height 696 per 1000 units). React Native centres the
+// line box, not the capitals, so the letters sit high. iOS puts the baseline `descent` above
+// the bottom of the line box, which puts the middle of the caps at
+// `lineHeight - (descent + cap / 2) * fontSize` from the top. Moving the text down by the
+// gap to the box's middle centres the capitals. The font files stay untouched (OFL).
+const STAATLICHES_DESCENT_PLUS_HALF_CAP = 0.3 + 0.696 / 2;
+
+/** Points to move a text down so its capitals sit in the middle of its box (0 for other fonts). */
+export function opticalOffset(variant: TextVariant): number {
+  const { fontFamily, fontSize, lineHeight } = tokens.typography[variant];
+  if (!fontFamily.startsWith('Staatliches')) return 0;
+  return Math.max(0, fontSize * STAATLICHES_DESCENT_PLUS_HALF_CAP - lineHeight / 2);
+}
+
 export type TextVariant = keyof typeof variants;
 export type TextTone = keyof typeof tones;
 
@@ -89,10 +105,12 @@ export function Text({
   maxFontSizeMultiplier,
   ...props
 }: TextProps) {
+  const offset = opticalOffset(variant);
   return (
     <RNText
       {...props}
       maxFontSizeMultiplier={maxFontSizeMultiplier ?? maxScale[variant]}
+      style={offset ? { transform: [{ translateY: offset }] } : undefined}
       className={cn(variants[variant], tones[tone], align && aligns[align], className)}
     />
   );

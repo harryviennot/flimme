@@ -14,6 +14,7 @@ Dark cinema marquee: arcade buttons with a hard 4-point lip, neon glows, spotlig
 - **Spacing** is Tailwind's 4-point scale (`p-4` is 16, `gap-3.5` is 14). **Radii:** `rounded-xs` 4, `sm` 8, `md` 12, `lg` 16, `xl` 24, `pill`.
 - **Effects** are utilities: `lip-accent`, `lip-neutral`, `elevation-card`, `elevation-sheet`, `glow-accent`, `glow-like`, `glow-nope`, `glow-marquee`, `glow-focus`, `focus-ring`. Gradients: `gradient-card-scrim`, `gradient-marquee-sunset` (or `GradientFill`), spotlights through `Spotlight` (radial, SVG).
 - **Strokes:** `border` (1), `border-2`, `stroke-badge` (1.5). **Opacity:** `opacity-disabled`, `opacity-stack-near`, `opacity-stack-far`.
+- **Fonts** are embedded at build time (`expo-font` plugin, list in `mobile/src/theme/fonts.json`, files and OFL licences in `mobile/assets/fonts/`); theme family names are the fonts' PostScript names. A new weight means a new entry in that JSON, then `pnpm tokens`.
 - **Never:** arbitrary values (`p-[13px]`), hex colors, `fontSize` or `fontFamily` in styles. Need a value that doesn't exist? Add it to tokens.json with a `$description`, run `pnpm tokens` (from mobile/), and say so in the pull request.
 - **Animated styles** use Reanimated with values from `tokens.ts` and `@/theme/motion`, never by swapping classes on every frame. `useSharedValue` changes go through `.set()` (the React Compiler forbids `.value =` in handlers).
 - Third-party components without `className`: `withUniwind(Component)` from `uniwind`, or a `style` with tokens.

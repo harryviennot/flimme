@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 47 of 244 tasks done.
+Progress: 52 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -268,18 +268,18 @@ Done when: production holds France's watchable films, and the daily sweep has ru
   Done when: every film with a poster has a placeholder.
 - [x] **M2.9** Which films: popularity from the daily export file, the floor, and the `backfill` command · server · M · needs M2.7, M1.15 · [tmdb](../integrations/tmdb.md#which-films-are-in-the-catalog)
   Done when: `backfill` loads the top films on staging.
-- [ ] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · L · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
+- [x] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · L · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
   Done when: a sweep updates `title_availability`, and a simulated glitch is refused by the guard.
-- [ ] **M2.11** The refresh schedule: the changes feed, weekly and monthly fetches, the 6-month rule, enqueued by Supabase Cron · server · M · needs M2.9, M2.10 · [tmdb](../integrations/tmdb.md#keeping-it-fresh)
+- [x] **M2.11** The refresh schedule: the changes feed, weekly and monthly fetches, the 6-month rule, enqueued by Supabase Cron · server · M · needs M2.9, M2.10 · [tmdb](../integrations/tmdb.md#keeping-it-fresh)
   Done when: each job runs on schedule on staging.
 - [x] **M2.12** Deploy the pipeline worker on Fly.io next to each database (London for staging, Frankfurt for production), with its secrets · ops · M · needs M2.2, M1.15 · [server-structure](../architecture/server-structure.md#deploying), [operations](../architecture/operations.md#secrets)
   Done when: the worker runs in both environments and restarts on failure.
-- [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12, M2.15 · [tmdb](../integrations/tmdb.md#the-first-full-load)
+- [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
   Done when: about 40,000 to 60,000 films, and every listed French service has availability rows.
 - [ ] **M2.14** Spot-check 30 French films against TMDB's watch pages and JustWatch · test · S · needs M2.13 · [streaming-availability](../integrations/streaming-availability.md#the-sources-compared)
   Done when: mismatches are under 5% or explained.
 - [ ] **M2.15** Move the Supabase organization to Pro: Micro compute on both projects, the spend cap on · ops · S · needs M1.1 · [operations](../architecture/operations.md#environments)
-  Done when: both projects are on Pro with Micro compute, and the spend cap is on.
+  Done when: both projects are on Pro with Micro compute, and the spend cap is on. Do it when a database passes 400 MB, or before M10.3.
 
 ## M3 App foundation
 
@@ -291,9 +291,9 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: the project runs in a development build on both platforms.
 - [x] **M3.2** EAS: build profiles (development, preview, production), fingerprint runtime versions, update channels · ops · M · needs M3.1, M0.6 · [app-structure](../architecture/app-structure.md#builds-updates-and-versions)
   Done when: each profile builds.
-- [ ] **M3.3** App CI: lint and tests on every pull request, preview builds on demand · ops · S · needs M3.1 · [operations](../architecture/operations.md#continuous-integration)
+- [x] **M3.3** App CI: lint and tests on every pull request, preview builds on demand · ops · S · needs M3.1 · [operations](../architecture/operations.md#continuous-integration)
   Done when: a failing test blocks a pull request.
-- [ ] **M3.4** Design tokens from the Figma: `tokens.json`, the generated Uniwind theme and `tokens.ts`, the three fonts, the 38 icons · design · S · needs M3.1 · [groundwork](../architecture/groundwork.md#tokens)
+- [x] **M3.4** Design tokens from the Figma: `tokens.json`, the generated Uniwind theme and `tokens.ts`, the three fonts, the 38 icons · design · S · needs M3.1 · [groundwork](../architecture/groundwork.md#tokens)
   Done when: `pnpm tokens --check` passes and every type style renders in the gallery.
 - [x] **M3.5** Supabase client: guest sign-in at start, the session stored encrypted with its key in SecureStore and out of backups · app · M · needs M3.1 · [app-structure](../architecture/app-structure.md#sign-in), [security](../architecture/security.md#the-app)
   Done when: a fresh install gets a guest user that survives a restart.
@@ -311,7 +311,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: the findings are written in app-structure.md.
 - [ ] **M3.12** Spike: the card stack at full frame rate on a low-end Android, styled with Uniwind · test · L · needs M3.4 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
   Done when: the findings are written in app-structure.md, and Uniwind is confirmed (or NativeWind 4.2.7 chosen) in decisions.md.
-- [ ] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
+- [x] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
   Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
 - [ ] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: the gallery's motion section plays each spring and haptic on a phone.

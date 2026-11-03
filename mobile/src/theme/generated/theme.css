@@ -78,131 +78,136 @@
 }
 
 @utility type-display-xl {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 72px;
-  line-height: 64px;
+  line-height: 72px;
   letter-spacing: 0.72px;
   text-transform: uppercase;
 }
 @utility type-display-l {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 48px;
-  line-height: 46px;
+  line-height: 48px;
   letter-spacing: 0.48px;
   text-transform: uppercase;
 }
 @utility type-display-m {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 34px;
   line-height: 34px;
   letter-spacing: 0.34px;
   text-transform: uppercase;
 }
 @utility type-display-s {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 24px;
   line-height: 26px;
   letter-spacing: 0.48px;
   text-transform: uppercase;
 }
 @utility type-title-l {
-  font-family: SchibstedGrotesk_600SemiBold;
+  font-family: SchibstedGrotesk-SemiBold;
   font-size: 22px;
   line-height: 28px;
   letter-spacing: 0px;
 }
 @utility type-title-m {
-  font-family: SchibstedGrotesk_600SemiBold;
+  font-family: SchibstedGrotesk-SemiBold;
   font-size: 17px;
   line-height: 22px;
   letter-spacing: 0px;
 }
 @utility type-body-l {
-  font-family: SchibstedGrotesk_400Regular;
+  font-family: SchibstedGrotesk-Regular;
   font-size: 17px;
   line-height: 26px;
   letter-spacing: 0px;
 }
+@utility type-input {
+  font-family: SchibstedGrotesk-Regular;
+  font-size: 17px;
+  letter-spacing: 0px;
+}
 @utility type-body-m {
-  font-family: SchibstedGrotesk_400Regular;
+  font-family: SchibstedGrotesk-Regular;
   font-size: 15px;
   line-height: 22px;
   letter-spacing: 0px;
 }
 @utility type-body-m-strong {
-  font-family: SchibstedGrotesk_600SemiBold;
+  font-family: SchibstedGrotesk-SemiBold;
   font-size: 15px;
   line-height: 22px;
   letter-spacing: 0px;
 }
 @utility type-body-s {
-  font-family: SchibstedGrotesk_400Regular;
+  font-family: SchibstedGrotesk-Regular;
   font-size: 13px;
   line-height: 18px;
   letter-spacing: 0px;
 }
 @utility type-mono-data {
-  font-family: IBMPlexMono_500Medium;
+  font-family: IBMPlexMono-Medium;
   font-size: 13px;
   line-height: 18px;
   letter-spacing: 0px;
 }
 @utility type-mono-eyebrow {
-  font-family: IBMPlexMono_500Medium;
+  font-family: IBMPlexMono-Medium;
   font-size: 11px;
   line-height: 14px;
   letter-spacing: 1.1px;
   text-transform: uppercase;
 }
 @utility type-mono-code {
-  font-family: IBMPlexMono_600SemiBold;
+  font-family: IBMPlexMono-SemiBold;
   font-size: 15px;
   line-height: 20px;
   letter-spacing: 0.9px;
 }
 @utility type-label-button-l {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 22px;
   line-height: 22px;
   letter-spacing: 0.88px;
   text-transform: uppercase;
 }
 @utility type-label-button-s {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 17px;
   line-height: 18px;
   letter-spacing: 0.68px;
   text-transform: uppercase;
 }
 @utility type-display-ticket {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 60px;
   line-height: 60px;
   letter-spacing: 4.8px;
 }
 @utility type-display-stamp {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 52px;
-  line-height: 46px;
+  line-height: 52px;
   letter-spacing: 0.52px;
   text-transform: uppercase;
 }
 @utility type-avatar-s {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 14px;
   line-height: 18px;
   letter-spacing: 0.28px;
   text-transform: uppercase;
 }
 @utility type-avatar-m {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 20px;
   line-height: 24px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
 }
 @utility type-avatar-l {
-  font-family: Staatliches_400Regular;
+  font-family: Staatliches-Regular;
   font-size: 30px;
   line-height: 34px;
   letter-spacing: 0.6px;

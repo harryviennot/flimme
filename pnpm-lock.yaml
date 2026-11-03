@@ -25,15 +25,6 @@ importers:
 
   mobile:
     dependencies:
-      '@expo-google-fonts/ibm-plex-mono':
-        specifier: ^0.4.1
-        version: 0.4.1
-      '@expo-google-fonts/schibsted-grotesk':
-        specifier: ^0.4.2
-        version: 0.4.2
-      '@expo-google-fonts/staatliches':
-        specifier: ^0.4.1
-        version: 0.4.1
       '@flimme/contract':
         specifier: workspace:*
         version: link:../packages/contract
@@ -751,15 +742,6 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-
-  '@expo-google-fonts/ibm-plex-mono@0.4.1':
-    resolution: {integrity: sha512-/yYz1mPZq8Nd4tSiH0SBDPEdJUqiOGBwVgSrQvLuw7SPh6C7ezBzmi6eFyHY4QaQwjHDmOLSBKsxzq8ZDFXVAg==}
-
-  '@expo-google-fonts/schibsted-grotesk@0.4.2':
-    resolution: {integrity: sha512-OqscHDqXmG/noftZFsGvGXiYoJGIZ1HFKXO7dNNEuitIKVA/qzNhrfoBK7upnxsVlC/AubnYEWeTS5QNw2A+HA==}
-
-  '@expo-google-fonts/staatliches@0.4.1':
-    resolution: {integrity: sha512-KeiYmvjQIyVhhJ5YvrbicfKW8UYPxGFH//i37j5IeJFeqS30WD9grhx+JWGaqWA+AoMB2TxeYiFcsMKhmBKmQQ==}
 
   '@expo/cli@58.1.18':
     resolution: {integrity: sha512-voZUcir9mEwvLKBNqQM6Jy2Yp67z8ONmcINXb6ZrLMayb7yxzwvEnN0eeH8ADzUABKL288pv1eJ1WRqtYxXQ/Q==}
@@ -6754,12 +6736,6 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
-
-  '@expo-google-fonts/ibm-plex-mono@0.4.1': {}
-
-  '@expo-google-fonts/schibsted-grotesk@0.4.2': {}
-
-  '@expo-google-fonts/staatliches@0.4.1': {}
 
   '@expo/cli@58.1.18(@expo/dom-webview@58.0.2)(@expo/metro-runtime@58.0.15)(expo-constants@58.0.14)(expo-font@58.0.11(expo@58.0.22)(react-native@0.88.1(@babel/core@7.29.7)(@react-native/metro-config@0.88.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0))(expo-router@58.0.29)(expo@58.0.22)(react-dom@19.3.0(react@19.3.0))(react-native@0.88.1(@babel/core@7.29.7)(@react-native/metro-config@0.88.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)(typescript@6.0.3)':
     dependencies:

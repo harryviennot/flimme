@@ -23,7 +23,7 @@ The [join sheet](join-sheet.md) uses the same form (`NameForm`) for players arri
 1. **Title**, `display-l`, `onboarding:name.title`.
 2. **`NameForm`** (new, `shared/`, spec below):
    - eyebrow `onboarding:name.colorLabel`, then **`AvatarPicker`** (new, `ui/`): 6 `Avatar` M swatches showing the typed name's initial, one row, spread across the width.
-   - **`Input`** with label `onboarding:name.nameLabel` and helper `onboarding:name.helper`; `maxLength` 24, autocapitalised, no autocorrect, `textContentType="nickname"`. Focused on open (unless a screen reader is on).
+   - **`Input`** with label `onboarding:name.nameLabel` and helper `onboarding:name.helper`; `maxLength` 24, autocapitalised, no autocorrect, `textContentType="nickname"`. Focused on open (unless a screen reader is on). The whole 56-point field is tappable: a tap in its padding or border focuses the input, not only a tap on the text.
 3. **Note**, `body-s`, tone `muted`, `onboarding:name.note`.
 4. **Footer:** `Button` primary L `onboarding:name.continue`, disabled until the trimmed name has 1 to 24 characters, `loading` while saving.
 

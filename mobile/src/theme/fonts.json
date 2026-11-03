@@ -1,0 +1,47 @@
+{
+  "$comment": "The embedded fonts: the single list behind app.config.ts (the expo-font plugin), scripts/tokens.mjs (the family names in the theme) and the font tests. postScriptName is the name both platforms resolve: iOS reads it from the TTF, Android gets it from the plugin's fontFamily. The files are copied unmodified from the Google Fonts releases (SIL OFL, the licence sits next to them).",
+  "fonts": [
+    {
+      "family": "Staatliches",
+      "weight": 400,
+      "postScriptName": "Staatliches-Regular",
+      "file": "assets/fonts/Staatliches-Regular.ttf",
+      "licence": "assets/fonts/Staatliches-OFL.txt"
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 400,
+      "postScriptName": "SchibstedGrotesk-Regular",
+      "file": "assets/fonts/SchibstedGrotesk-Regular.ttf",
+      "licence": "assets/fonts/SchibstedGrotesk-OFL.txt"
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 500,
+      "postScriptName": "SchibstedGrotesk-Medium",
+      "file": "assets/fonts/SchibstedGrotesk-Medium.ttf",
+      "licence": "assets/fonts/SchibstedGrotesk-OFL.txt"
+    },
+    {
+      "family": "Schibsted Grotesk",
+      "weight": 600,
+      "postScriptName": "SchibstedGrotesk-SemiBold",
+      "file": "assets/fonts/SchibstedGrotesk-SemiBold.ttf",
+      "licence": "assets/fonts/SchibstedGrotesk-OFL.txt"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "weight": 500,
+      "postScriptName": "IBMPlexMono-Medium",
+      "file": "assets/fonts/IBMPlexMono-Medium.ttf",
+      "licence": "assets/fonts/IBMPlexMono-OFL.txt"
+    },
+    {
+      "family": "IBM Plex Mono",
+      "weight": 600,
+      "postScriptName": "IBMPlexMono-SemiBold",
+      "file": "assets/fonts/IBMPlexMono-SemiBold.ttf",
+      "licence": "assets/fonts/IBMPlexMono-OFL.txt"
+    }
+  ]
+}
