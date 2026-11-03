@@ -14,11 +14,9 @@ const services = [
 describe('ServiceGrid', () => {
   it('shows six placeholders and no tile while loading', async () => {
     await render(<ServiceGrid services={services} selected={[]} onToggle={jest.fn()} loading />);
-    expect(
-      screen
-        .getByTestId('service-grid-loading')
-        .findAllByProps({ className: 'h-17 flex-1 rounded-md' }).length,
-    ).toBeGreaterThan(0);
+    const rows = screen.getAllByTestId('service-grid-loading-row');
+    expect(rows).toHaveLength(2);
+    for (const row of rows) expect(row.children).toHaveLength(3);
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
   });
 

@@ -17,7 +17,7 @@ describe('Chip', () => {
         <Chip role="radio" label="Any length" />
       </View>,
     );
-    expect(screen.getByRole('radiogroup', { name: 'Time budget' })).toBeTruthy();
+    expect(screen.getByLabelText('Time budget').props.accessibilityRole).toBe('radiogroup');
     expect(screen.getByRole('radio', { name: 'Under 2 h' })).toBeSelected();
     expect(screen.getByRole('radio', { name: 'Any length' })).not.toBeSelected();
     await fireEvent.press(screen.getByRole('radio', { name: 'Under 2 h' }));

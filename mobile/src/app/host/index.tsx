@@ -38,7 +38,8 @@ export default function HostScreen() {
   const { t: tc } = useTranslation();
   const client = useQueryClient();
   const online = useOnline();
-  const country = useMyProfile().data?.country ?? null;
+  const profile = useMyProfile();
+  const country = profile.data?.country ?? null;
 
   const providers = useCountryProviders(country);
   const mine = useMyProviders(Boolean(country));
@@ -59,7 +60,8 @@ export default function HostScreen() {
   const selection = picked ?? start;
   const ready = providers.isSuccess && mine.isSuccess;
   const failed = providers.isError || mine.isError;
-  const unsupported = !country || refused || (providers.isSuccess && listed.length === 0);
+  const unsupported =
+    (!profile.isPending && !country) || refused || (providers.isSuccess && listed.length === 0);
 
   const toggle = (id: number) =>
     setPicked(selection.includes(id) ? selection.filter((x) => x !== id) : [...selection, id]);
@@ -181,7 +183,7 @@ export default function HostScreen() {
           </Text>
           {failed ? (
             <EmptyState
-              icon="alert-triangle"
+              icon="alert"
               error
               title={t('errors.services')}
               action={{ label: tc('actions.retry'), onPress: retry }}

@@ -33,7 +33,7 @@ export function ServiceGrid({ services, selected, onToggle, loading = false }: S
     return (
       <View className="gap-2" testID="service-grid-loading">
         {[0, 1].map((row) => (
-          <View key={row} className="flex-row gap-2">
+          <View key={row} testID="service-grid-loading-row" className="flex-row gap-2">
             {[0, 1, 2].map((cell) => (
               <Skeleton key={cell} className="h-17 flex-1 rounded-md" />
             ))}
@@ -44,8 +44,8 @@ export function ServiceGrid({ services, selected, onToggle, loading = false }: S
   }
   return (
     <View className="gap-2">
-      {chunk(services).map((row) => (
-        <View key={row[0].id} className="flex-row gap-2">
+      {chunk(services).map((row, index) => (
+        <View key={index} className="flex-row gap-2">
           {row.map((service) => (
             <ServiceTile
               key={service.id}
