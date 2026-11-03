@@ -7,9 +7,15 @@ import { QrPanel } from '@/components/screens/invite/qr-panel';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { IconButton } from '@/components/ui/icon-button';
+import { Icon } from '@/components/ui/icon';
 import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
+import { useRoomLock } from '@/features/lobby/use-room-lock';
+import { useMySeat } from '@/features/room';
+import { cn } from '@/lib/cn';
+import { layout } from '@/theme/motion';
+import Animated from 'react-native-reanimated';
 import { displayLink, useInvite } from '@/features/invite/invite-link';
 
 export default function RoomInviteScreen() {
@@ -17,6 +23,8 @@ export default function RoomInviteScreen() {
   const { t } = useTranslation('lobby');
   const { t: tc } = useTranslation('common');
   const invite = useInvite(id);
+  const lock = useRoomLock(id);
+  const isHost = useMySeat(id)?.role === 'host';
   const ready = invite.state === 'ready' && invite.link !== undefined;
 
   return (
@@ -44,8 +52,10 @@ export default function RoomInviteScreen() {
           />
         ) : ready ? (
           <>
-            <QrPanel link={invite.link ?? ''} />
-            <View className="w-full">
+            <View className={cn(lock.locked && 'opacity-disabled')}>
+              <QrPanel link={invite.link ?? ''} />
+            </View>
+            <View className={cn('w-full', lock.locked && 'opacity-disabled')}>
               <LinkRow display={displayLink(invite.link ?? '')} onCopy={() => void invite.copy()} />
             </View>
           </>
@@ -55,9 +65,30 @@ export default function RoomInviteScreen() {
             <Skeleton className="h-16 w-full rounded-md" />
           </>
         )}
-        <Text variant="body-s" tone="muted" align="center">
-          {t('invite.helper')}
-        </Text>
+        {lock.locked ? (
+          <Animated.View entering={layout.fadeIn} className="items-center gap-3">
+            <View className="flex-row items-center gap-2">
+              <Icon name="lock" size={16} color="marquee-default" />
+              <Text variant="body-s" tone="marquee" align="center">
+                {isHost ? t('invite.locked') : t('invite.lockedGuest')}
+              </Text>
+            </View>
+            {isHost ? (
+              <Button
+                label={t('invite.unlock')}
+                icon="lock"
+                variant="secondary"
+                size="s"
+                disabled={lock.disabled}
+                onPress={() => void lock.set(false)}
+              />
+            ) : null}
+          </Animated.View>
+        ) : (
+          <Text variant="body-s" tone="muted" align="center">
+            {t('invite.helper')}
+          </Text>
+        )}
         <Button
           label={t('invite.share')}
           icon="share"

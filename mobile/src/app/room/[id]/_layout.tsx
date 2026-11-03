@@ -13,6 +13,8 @@ import {
   useKeptRoom,
   RoomRealtimeProvider,
   useRefreshOnForeground,
+  useRemovedExit,
+  useRemovedListener,
   useRoom,
   useRoomChannels,
   useRoomSeats,
@@ -32,6 +34,7 @@ export default function RoomLayout() {
   const seats = useRoomSeats(id);
   const { keep, forget } = useKeptRoom();
   const exitToHome = useExitRoomToHome();
+  const exitRemoved = useRemovedExit(id);
 
   const settled = !room.isFetching && !seats.isFetching;
   const mine = mySeatOf(seats.data);
@@ -47,18 +50,25 @@ export default function RoomLayout() {
   useHeartbeat(id, room.data !== null);
   useRefreshOnForeground(id);
   const realtime = useRoomChannels(id);
+  // `member_removed` naming this seat: the usual way a removed phone learns, while it hears.
+  useRemovedListener(realtime, mine?.member_id, () => exitRemoved(false));
 
   useEffect(() => {
     if (!id) return;
     if (notSeated) {
-      forget(id);
-      exitToHome();
+      // A null room read is a removed seat (a seat that left still reads the room): say why.
+      // Otherwise the seat left by itself and Home says nothing.
+      if (room.data === null) exitRemoved(true);
+      else {
+        forget(id);
+        exitToHome();
+      }
       return;
     }
     if (!state || !code || !mine) return;
     if (state === 'done' || state === 'abandoned') forget(id);
     else keep({ id, code });
-  }, [id, notSeated, state, code, mine, keep, forget, exitToHome]);
+  }, [id, notSeated, state, code, mine, keep, forget, exitToHome, exitRemoved, room.data]);
 
   useEffect(() => {
     if (!id || !state || !current || isAllowed(state, current)) return;
@@ -93,6 +103,8 @@ export default function RoomLayout() {
             name="invite"
             options={{
               presentation: 'formSheet',
+              // The stack turns gestures off for the room; a sheet still swipes down.
+              gestureEnabled: true,
               sheetGrabberVisible: true,
               sheetAllowedDetents: [0.8],
             }}
@@ -101,6 +113,8 @@ export default function RoomLayout() {
             name="services"
             options={{
               presentation: 'formSheet',
+              // The stack turns gestures off for the room; a sheet still swipes down.
+              gestureEnabled: true,
               sheetGrabberVisible: true,
               sheetAllowedDetents: [0.8],
             }}

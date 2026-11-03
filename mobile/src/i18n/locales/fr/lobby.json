@@ -50,9 +50,12 @@
   },
   "errors": {
     "start": "Impossible de lancer la séance. Réessaie.",
-    "services": "Impossible d'enregistrer tes plateformes. Réessaie."
+    "services": "Impossible d'enregistrer tes plateformes. Réessaie.",
+    "remove": "Impossible de retirer ce joueur. Réessaie.",
+    "lock": "Impossible de changer le verrou. Réessaie."
   },
   "seatSheet": {
+    "remove": "Retirer de la salle",
     "report": "Signaler"
   },
   "a11y": {
@@ -65,7 +68,8 @@
     "ticket": "Code de la salle {{code}}, {{count}} sur {{max}} joueurs, hôte {{host}}",
     "seatHere": "{{name}}, présent",
     "seatAway": "{{name}}, pas là",
-    "seatHost": "hôte"
+    "seatHost": "hôte",
+    "remove": "Retirer {{name}} de la salle"
   },
   "invite": {
     "title": "Invite tes amis",
@@ -76,6 +80,18 @@
     "shareMessage": "Rejoins ma salle : {{link}} (code {{code}})",
     "qr": "QR code de l'invitation. Tes amis le scannent avec leur appareil photo.",
     "link": "Lien d'invitation",
-    "error": "Impossible de préparer le lien."
+    "error": "Impossible de préparer le lien.",
+    "locked": "La salle est verrouillée : personne de nouveau ne peut entrer.",
+    "lockedGuest": "La salle est verrouillée. Demande à l'hôte de l'ouvrir.",
+    "unlock": "Déverrouiller"
+  },
+  "remove": {
+    "title": "Retirer {{name}} ?",
+    "body": "{{name}} ne pourra pas revenir dans cette salle.",
+    "confirm": "Retirer"
+  },
+  "lock": {
+    "label": "Verrouiller la salle",
+    "helper": "Personne de nouveau ne peut entrer. Ceux qui sont déjà venus peuvent revenir."
   }
 }

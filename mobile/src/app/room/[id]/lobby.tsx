@@ -12,6 +12,7 @@ import { RoomBanner } from '@/components/screens/room/room-banner';
 import { RoomTicket } from '@/components/shared/room-ticket';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
+import { Toggle } from '@/components/ui/toggle';
 import { ListRow } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,6 +26,7 @@ import { useAskToLeave } from '@/features/lobby/leave-context';
 import { formatList, serviceNames } from '@/features/lobby/names';
 import { useGameModes } from '@/features/lobby/queries';
 import { hostSeat, presentSeats, seatedSeats, startGate } from '@/features/lobby/seats';
+import { useRoomLock } from '@/features/lobby/use-room-lock';
 import { runStart, useDealingTimers } from '@/features/lobby/start';
 import { useOnline } from '@/features/network';
 import { toAvatarColor } from '@/features/profile';
@@ -53,6 +55,7 @@ export default function RoomLobbyScreen() {
   const providers = useCountryProviders(room?.country).data;
   const modes = useGameModes().data;
   const invite = useInvite(id);
+  const lock = useRoomLock(id);
 
   const seated = useMemo(() => seatedSeats(seatsRead.data), [seatsRead.data]);
   const host = hostSeat(seated);
@@ -190,17 +193,20 @@ export default function RoomLobbyScreen() {
         <View className="gap-4 pt-4 pb-4">
           <View
             accessible
-            accessibilityLabel={t('a11y.ticket', {
-              code: room.code.split('').join(' '),
-              count: present.length,
-              max: room.max_players,
-              host: hostName,
-            })}
+            accessibilityLabel={
+              t('a11y.ticket', {
+                code: room.code.split('').join(' '),
+                count: present.length,
+                max: room.max_players,
+                host: hostName,
+              }) + (room.locked ? `, ${tc('ticket.lockedA11y')}` : '')
+            }
           >
             <RoomTicket
               code={room.code}
               leftDetail={t('ticket.players', { count: present.length, max: room.max_players })}
               rightDetail={t('ticket.host', { name: hostName })}
+              locked={room.locked}
             />
           </View>
 
@@ -274,7 +280,27 @@ export default function RoomLobbyScreen() {
             </Text>
           ) : null}
 
-          {isHost ? null : (
+          {isHost ? (
+            <View className="gap-2">
+              <View className="overflow-hidden rounded-lg border border-border-default bg-bg-surface">
+                <ListRow
+                  icon="lock"
+                  label={t('lock.label')}
+                  trailing={
+                    <Toggle
+                      value={lock.locked}
+                      onValueChange={(next) => void lock.set(next)}
+                      accessibilityLabel={t('lock.label')}
+                      disabled={lock.disabled}
+                    />
+                  }
+                />
+              </View>
+              <Text variant="body-s" tone="muted">
+                {t('lock.helper')}
+              </Text>
+            </View>
+          ) : (
             <View className="overflow-hidden rounded-lg border border-border-default bg-bg-surface">
               <ListRow
                 icon="tv"

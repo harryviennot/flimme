@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 81 of 253 tasks done.
+Progress: 82 of 253 tasks done.
 
 ```mermaid
 flowchart LR
@@ -356,7 +356,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: players appear and leave live on three phones.
 - [x] **M4.12** The invite sheet: share the link, show the QR code · app · S · needs M4.10, M4.1 · [onboarding](onboarding.md#the-link)
   Done when: sharing works on both platforms. Until M4.18, the link uses the build's own scheme, so https links that chat apps make tappable, the camera opening the app through a universal link, the invite page for guests and the device check of a link sent by message wait for M4.18.
-- [ ] **M4.13** The host menu: Remove player, Lock room · app · M · needs M4.11, M4.2, M4.23, M7.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [x] **M4.13** The host menu: Remove player, Lock room · app · M · needs M4.11, M4.2, M4.23, M7.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: a removed player sees why and can't come back.
 - [x] **M4.14** The invite page with the code and store buttons, and the verification files in the repo, ready for the domain · ops · M · needs M3.2 · [store-listing](store-listing.md#invite-links-and-the-web-page), [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the invite page shows the code and the steps, and the verification files are in the repo.

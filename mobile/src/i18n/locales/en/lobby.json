@@ -50,9 +50,12 @@
   },
   "errors": {
     "start": "We couldn't start the game. Try again.",
-    "services": "We couldn't save your services. Try again."
+    "services": "We couldn't save your services. Try again.",
+    "remove": "We couldn't remove this player. Try again.",
+    "lock": "We couldn't change the lock. Try again."
   },
   "seatSheet": {
+    "remove": "Remove from room",
     "report": "Report"
   },
   "a11y": {
@@ -65,7 +68,8 @@
     "ticket": "Room code {{code}}, {{count}} of {{max}} players, host {{host}}",
     "seatHere": "{{name}}, here",
     "seatAway": "{{name}}, away",
-    "seatHost": "host"
+    "seatHost": "host",
+    "remove": "Remove {{name}} from the room"
   },
   "invite": {
     "title": "Invite friends",
@@ -76,6 +80,18 @@
     "shareMessage": "Join my room: {{link}} (code {{code}})",
     "qr": "Invite QR code. Friends scan it with their camera.",
     "link": "Invite link",
-    "error": "We couldn't get the link ready."
+    "error": "We couldn't get the link ready.",
+    "locked": "The room is locked: nobody new can join.",
+    "lockedGuest": "The room is locked. Ask the host to unlock it.",
+    "unlock": "Unlock"
+  },
+  "remove": {
+    "title": "Remove {{name}}?",
+    "body": "{{name}} won't be able to come back to this room.",
+    "confirm": "Remove"
+  },
+  "lock": {
+    "label": "Lock the room",
+    "helper": "Nobody new can join. Anyone who's been in can come back."
   }
 }

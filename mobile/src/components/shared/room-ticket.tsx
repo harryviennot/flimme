@@ -1,9 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import Svg, { Line } from 'react-native-svg';
 
+import { Tag } from '@/components/ui/tag';
 import { Text } from '@/components/ui/text';
 import { tokens } from '@/theme/generated/tokens';
+import { layout } from '@/theme/motion';
 
 export type RoomTicketProps = {
   /** Six digits. Shown as "482 913". */
@@ -12,17 +15,28 @@ export type RoomTicketProps = {
   leftDetail: string;
   /** "Host · Harry" */
   rightDetail: string;
+  /** The host locked the room: a tag at the top right (host-menu.md#lock-room). */
+  locked?: boolean;
 };
 
 /**
  * Figma "Room ticket": the room code as a cinema ticket, readable across a couch. The card does
  * not clip: the notches cover the border and bulge past the card edge, as in the Figma.
  */
-export function RoomTicket({ code, leftDetail, rightDetail }: RoomTicketProps) {
+export function RoomTicket({ code, leftDetail, rightDetail, locked }: RoomTicketProps) {
   const { t } = useTranslation();
   const spaced = code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code;
   return (
     <View className="self-stretch rounded-lg border border-marquee-strong bg-bg-surface elevation-card">
+      {locked ? (
+        <Animated.View
+          entering={layout.fadeIn}
+          exiting={layout.fadeOut}
+          className="absolute top-3 right-3 z-10"
+        >
+          <Tag label={t('ticket.locked')} tone="neutral" icon="lock" />
+        </Animated.View>
+      ) : null}
       <View className="items-center gap-1 px-5 pt-5.5 pb-2">
         <Text variant="mono-eyebrow" tone="marquee">
           {t('ticket.roomCode')}

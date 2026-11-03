@@ -15,6 +15,7 @@ export {
   type KeptRoom,
 } from './kept-room';
 export { homeExit, useExitRoomToHome, type HomeExit } from './exit-home';
+export { removedExit, useRemovedExit, useRemovedListener } from './removed';
 export { leaveRoom } from './leave';
 export { registerRoomGuard, releaseRoomGuards } from './leave-guard';
 export { mySeatOf, ROOM_KEY, SEATS_KEY, useMySeat, useRoom, useRoomSeats } from './queries';

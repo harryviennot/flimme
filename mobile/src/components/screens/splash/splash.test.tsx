@@ -10,6 +10,7 @@ import i18n from '@/i18n';
 import { keptRoomStore } from '@/features/room/kept-room';
 import { saveCachedProfile } from '@/features/profile';
 import { startSession } from '@/features/session';
+import { showToast } from '@/components/ui/toast';
 import { duration } from '@/theme/motion';
 
 import { SLOW_AFTER_MS } from '@/features/launch/use-launch';
@@ -24,6 +25,10 @@ const mockMemory = new Map<string, string>();
 
 jest.mock('@/api', () => ({
   api: { myProfile: jest.fn(), updateProfile: jest.fn(), joinRoom: jest.fn() },
+}));
+jest.mock('@/components/ui/toast', () => ({
+  ...jest.requireActual('@/components/ui/toast'),
+  showToast: jest.fn(),
 }));
 jest.mock('@/features/session', () => ({
   startSession: jest.fn(() => Promise.resolve()),
@@ -98,6 +103,7 @@ beforeEach(async () => {
   mockMemory.clear();
   myProfile.mockReset();
   joinRoom.mockReset();
+  jest.mocked(showToast).mockClear();
   keptRoomStore.getState().forget();
   updateProfile
     .mockReset()
@@ -151,13 +157,26 @@ describe('the kept room', () => {
     expect(room()).toEqual(kept);
   });
 
-  it.each(['closed', 'not_found', 'full', 'in_finale'])(
+  it('goes Home with the removed message and forgets the room on removed', async () => {
+    joinRoom.mockResolvedValue({ status: 'removed' } as never);
+    await renderSplash();
+    expect(screen.getByText('redirect:/home')).toBeTruthy();
+    expect(room()).toBeNull();
+    expect(showToast).toHaveBeenCalledTimes(1);
+    expect(showToast).toHaveBeenCalledWith({
+      tone: 'info',
+      title: 'The host removed you from this room.',
+    });
+  });
+
+  it.each(['closed', 'not_found', 'full', 'in_finale', 'locked'])(
     'goes Home and forgets the room on %s',
     async (status) => {
       joinRoom.mockResolvedValue({ status } as never);
       await renderSplash();
       expect(screen.getByText('redirect:/home')).toBeTruthy();
       expect(room()).toBeNull();
+      expect(showToast).not.toHaveBeenCalled();
     },
   );
 

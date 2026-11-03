@@ -1,7 +1,9 @@
 import { ApiError } from '@flimme/contract';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { api } from '@/api';
+import { showToast } from '@/components/ui/toast';
 import { roomRouteFor } from '@/features/join/link';
 import { useOnline } from '@/features/network';
 import { useDeviceSync, useMyProfile } from '@/features/profile';
@@ -24,6 +26,7 @@ export function useLaunch(): { step: LaunchStep; retry: () => void } {
   const online = useOnline();
   const [slow, setSlow] = useState(false);
   const { room: kept, forget } = useKeptRoom();
+  const { t: tj } = useTranslation('join');
   const [rejoin, setRejoin] = useState<RejoinRead>({ state: 'none' });
 
   const query = useMyProfile(session?.status === 'ok');
@@ -62,13 +65,17 @@ export function useLaunch(): { step: LaunchStep; retry: () => void } {
           return;
         }
         if (result.status !== 'rate_limited') forget(rejoinId);
+        // A removed seat is told why, once, on Home (splash.md#the-kept-room-m422).
+        if (result.status === 'removed') {
+          showToast({ tone: 'info', title: tj('errors.removed') });
+        }
         setRejoin({ state: 'home' });
       })
       .catch(() => alive && setRejoin({ state: 'home' }));
     return () => {
       alive = false;
     };
-  }, [rejoinId, rejoinCode, forget]);
+  }, [rejoinId, rejoinCode, forget, tj]);
 
   const retry = useCallback(() => {
     // A real error is reported inside startSession and kept for the state above.
