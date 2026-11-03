@@ -228,7 +228,7 @@ The first release's tasks, grouped into features. Each slice gets one brief; the
 | 3 | App shell | M3.1 to M3.15 | Design system and motion tokens (M3.4) |
 | 4 | First launch | M4.3, M4.6, M4.17, M4.7 | Screens 01 to 04 |
 | 5 | Hosting | M4.4, M4.9 | Screens 06 and 07 |
-| 6 | Joining | M4.1, M4.8, M4.15, M4.14, M4.18 | Screen 05 and the join sheet |
+| 6 | Joining | M4.1, M4.8, M4.15, M4.14, M4.18, M4.19, M4.20 | Screen 05 and the join sheet |
 | 7 | The lobby | M4.5, M4.10, M4.11, M4.12 | Screens 08, 09 and 24 |
 | 8 | Host powers and reports | M4.2, M4.13, M7.1, M7.2 | The host menu and the report sheet |
 | 9 | The deck | M5.1 to M5.8 | None |
