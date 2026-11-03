@@ -81,7 +81,13 @@ export type SetSeatPrefsAnswer = (typeof SET_SEAT_PREFS_ANSWERS)[number];
  * at once under `deck_engine` `sql` (M1.13), or the 8-second fallback (with `fallback`).
  * The app treats it like `dealing` and follows `state_changed`.
  */
-export const START_GAME_ANSWERS = ['ok', 'dealing', 'closed', 'not_enough_players'] as const;
+export const START_GAME_ANSWERS = [
+  'ok',
+  'dealing',
+  'closed',
+  'not_enough_players',
+  'too_few_films',
+] as const;
 export type StartGameAnswer = (typeof START_GAME_ANSWERS)[number];
 
 /**

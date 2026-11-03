@@ -231,7 +231,7 @@ A ballot locked in before its player left still counts. The result is broadcast 
 - The **host** can tap **Change filters**. **Default to confirm:** the host may change the time budget, moods, quality, seen rule and services during swiping, not only in the lobby; every deck is re-ranked at once (the 3 mounted cards stay). Or the host can tap **Vote now**.
 - When every present player is done, the finale starts by itself if any film has a like; otherwise the room waits for the host for 5 minutes, then ends with no pick.
 
-**Too few films at the start.** If tonight's filters leave fewer than 20 eligible films, the deck isn't dealt: the room goes back to the lobby with "Only 12 films fit: loosen a filter", and the host adjusts. Today a start with too few films would begin swiping with almost empty decks.
+**Too few films at the start.** If tonight's filters leave fewer than 20 eligible films, the deck isn't dealt: the room goes back to the lobby with "Only 12 films fit: loosen a filter", and the host adjusts. `internal.deal_cards` does this (M5.5): `start_game` answers `too_few_films` with `eligible`, `state_changed` carries `reason` and `eligible`, and the attempt is logged in `rec.requests`. Refills and late joiners deal whatever there is.
 
 **The 1-hour limit.** Today a room's `expires_at` is set 3 hours after creation and isn't moved at the start, so a lobby left open for 2 h 55 min would be abandoned 5 minutes into its game. The start should set it to 1 hour after swiping begins: far beyond any real game, it only cleans up rooms nobody closed. If films have likes at that point, the finale starts instead.
 
