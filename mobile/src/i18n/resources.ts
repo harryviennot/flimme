@@ -6,13 +6,29 @@ import enHome from './locales/en/home.json';
 import enHost from './locales/en/host.json';
 import enJoin from './locales/en/join.json';
 import enOnboarding from './locales/en/onboarding.json';
+import enWeb from './locales/en/web.json';
 import frCommon from './locales/fr/common.json';
 import frHome from './locales/fr/home.json';
 import frHost from './locales/fr/host.json';
 import frJoin from './locales/fr/join.json';
 import frOnboarding from './locales/fr/onboarding.json';
+import frWeb from './locales/fr/web.json';
 
 export const resources = {
-  fr: { common: frCommon, home: frHome, host: frHost, join: frJoin, onboarding: frOnboarding },
-  en: { common: enCommon, home: enHome, host: enHost, join: enJoin, onboarding: enOnboarding },
+  fr: {
+    common: frCommon,
+    home: frHome,
+    host: frHost,
+    join: frJoin,
+    onboarding: frOnboarding,
+    web: frWeb,
+  },
+  en: {
+    common: enCommon,
+    home: enHome,
+    host: enHost,
+    join: enJoin,
+    onboarding: enOnboarding,
+    web: enWeb,
+  },
 } as const;

@@ -23,5 +23,9 @@
   "a11y": {
     "field": "Code de la salle, 6 chiffres",
     "progress": "{{digits}}, {{count}} chiffres sur 6"
+  },
+  "link": {
+    "ticketLeft": "Invitation",
+    "ticketRight": "Ce soir"
   }
 }

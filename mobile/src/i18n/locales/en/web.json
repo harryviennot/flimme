@@ -1,0 +1,25 @@
+{
+  "invite": {
+    "title": "You're invited to pick tonight's movie",
+    "steps": {
+      "get": "Get Flimme.",
+      "open": "Open it and tap \"I have a room code\".",
+      "code": "Type {{code}}. Or tap your invite link again."
+    },
+    "stepsLabel": "How to join",
+    "copy": "Copy the link",
+    "copied": "Copied",
+    "open": "Have Flimme? Open it",
+    "broken": "This invite link looks broken. Ask the host for the code.",
+    "metaTitle": "Join the movie night on Flimme",
+    "metaDescription": "Get Flimme, type the room code and pick tonight's movie together."
+  },
+  "badges": {
+    "appStore": "Download on the App Store",
+    "googlePlay": "Get it on Google Play"
+  },
+  "credits": {
+    "tmdb": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+    "justwatch": "Streaming availability by JustWatch."
+  }
+}
