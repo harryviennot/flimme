@@ -33,9 +33,5 @@
   "a11y": {
     "field": "Room code, 6 digits",
     "progress": "{{digits}}, {{count}} of 6 digits"
-  },
-  "link": {
-    "ticketLeft": "You're invited",
-    "ticketRight": "Tonight"
   }
 }
