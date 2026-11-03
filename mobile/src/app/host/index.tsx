@@ -83,8 +83,11 @@ export default function HostScreen() {
         createRoom: (args) => api.createRoom(args),
       },
     );
-    busy.current = false;
-    setOpening(false);
+    // On success the button stays busy until the screen is left.
+    if (outcome.kind !== 'opened') {
+      busy.current = false;
+      setOpening(false);
+    }
     switch (outcome.kind) {
       case 'opened':
         client.setQueryData(MY_PROVIDERS_KEY, selection);
