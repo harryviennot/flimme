@@ -248,8 +248,8 @@ The Figma's design system page is complete enough to build from: colors, 13 type
 1. **`theme/tokens.json` holds every token**, in the W3C design tokens format. The designer agent fills it once from the Figma variables through the Figma MCP (Figma's REST API for variables needs an Enterprise plan). From then on the file is the source; when a token changes, the Figma is updated to match.
 2. **`mise run tokens` generates** the Tailwind theme and `tokens.ts` from it. CI fails if they're out of date.
 3. **The theme replaces Tailwind's defaults** (palette, spacing scale, radii, fonts) rather than extending them, so `bg-red-500` or `p-7` mean nothing, and a lint rule flags any class the theme doesn't define.
-4. **One `Text` component** with the Figma's 13 type styles as variants (`<Text variant="display-l">`). Nothing else sets a font family, size or line height.
-5. **Fonts:** Staatliches, Schibsted Grotesk and IBM Plex Mono, all under the SIL Open Font License, embedded at build time with the `expo-font` config plugin so no screen flashes the wrong font. Their licence files sit next to them.
+4. **One `Text` component** with the Figma's 15 type styles as variants (`<Text variant="display-l">`), plus the component styles (the ticket, the stamp, the avatar initials, the input). Nothing else sets a font family, size or line height.
+5. **Fonts:** Staatliches, Schibsted Grotesk and IBM Plex Mono, all under the SIL Open Font License, embedded at build time with the `expo-font` config plugin so no screen flashes the wrong font. Their licence files sit next to them in `mobile/assets/fonts/`, and the list lives in `mobile/src/theme/fonts.json` (the plugin config, the theme names and the tests read it).
 6. **Icons:** the 38 Figma icons exported as SVG into one typed `<Icon name="heart" />` (react-native-svg), so a missing icon is a type error.
 
 ### Components

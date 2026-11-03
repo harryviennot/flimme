@@ -2,9 +2,6 @@
   "name": "mobile",
   "main": "expo-router/entry",
   "dependencies": {
-    "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
-    "@expo-google-fonts/schibsted-grotesk": "^0.4.2",
-    "@expo-google-fonts/staatliches": "^0.4.1",
     "@flimme/contract": "workspace:*",
     "@sentry/react-native": "~8.28.0",
     "@supabase/supabase-js": "^2.118.0",
