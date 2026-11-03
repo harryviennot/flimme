@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 49 of 244 tasks done.
+Progress: 50 of 244 tasks done.
 
 ```mermaid
 flowchart LR
@@ -268,7 +268,7 @@ Done when: production holds France's watchable films, and the daily sweep has ru
   Done when: every film with a poster has a placeholder.
 - [x] **M2.9** Which films: popularity from the daily export file, the floor, and the `backfill` command · server · M · needs M2.7, M1.15 · [tmdb](../integrations/tmdb.md#which-films-are-in-the-catalog)
   Done when: `backfill` loads the top films on staging.
-- [ ] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · L · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
+- [x] **M2.10** The daily availability sweep for France, with the 20% guard; films not yet in the catalog are queued · server · L · needs M2.6, M2.7 · [tmdb](../integrations/tmdb.md#the-daily-sweep)
   Done when: a sweep updates `title_availability`, and a simulated glitch is refused by the guard.
 - [ ] **M2.11** The refresh schedule: the changes feed, weekly and monthly fetches, the 6-month rule, enqueued by Supabase Cron · server · M · needs M2.9, M2.10 · [tmdb](../integrations/tmdb.md#keeping-it-fresh)
   Done when: each job runs on schedule on staging.
