@@ -76,7 +76,6 @@ export function useJoinLink(params: Params) {
 
   const [receivedAt] = useState(() => takeLinkReceivedAt());
   const [state, setState] = useState<State>(link ? openingView(ref) : refusedView('malformed'));
-  const setView = setState;
   const [nameError, setNameError] = useState<NameError | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -100,7 +99,7 @@ export function useJoinLink(params: Params) {
   const refuse = useCallback((state: keyof typeof JOIN_SHEET_ROWS, params?: { max: number }) => {
     const next = refusedView(state, params);
     if (next.kind === 'refused' && next.row.haptic) haptics.error();
-    setView(next);
+    setState(next);
   }, []);
 
   const attempt = useCallback(
@@ -116,7 +115,7 @@ export function useJoinLink(params: Params) {
         refuse('offline');
         return;
       }
-      setView(waitView(hostRef.current, keep, false));
+      setState(waitView(hostRef.current, keep, false));
       for (let tries = 0; ; tries += 1) {
         let result;
         try {
@@ -142,7 +141,7 @@ export function useJoinLink(params: Params) {
           return;
         }
         if (result.status === 'name_required') {
-          setView({
+          setState({
             kind: 'ready',
             host: hostRef.current,
             needName: true,
@@ -155,14 +154,14 @@ export function useJoinLink(params: Params) {
         if (row.kind === 'wait') {
           if (tries >= STARTING_RETRIES) {
             haptics.error();
-            setView({
+            setState({
               kind: 'refused',
               row: JOIN_SHEET_ROWS.failed as Refused,
               message: 'errors.starting',
             });
             return;
           }
-          setView(waitView(hostRef.current, keep, true));
+          setState(waitView(hostRef.current, keep, true));
           await new Promise<void>((resolve) => {
             timer.current = setTimeout(resolve, STARTING_RETRY_MS);
           });
@@ -188,7 +187,7 @@ export function useJoinLink(params: Params) {
       refuse('offline');
       return;
     }
-    setView({ kind: 'loading' });
+    setState({ kind: 'loading' });
     let result;
     try {
       result = await api.roomPreview({ code, ref });
@@ -210,7 +209,7 @@ export function useJoinLink(params: Params) {
     // Seated: it's their room, straight back in.
     if (result.seated) void attempt(false);
     else
-      setView({
+      setState({
         kind: 'ready',
         host: hostRef.current,
         needName: false,
@@ -257,7 +256,7 @@ export function useJoinLink(params: Params) {
     if (sessionOk) {
       void Promise.resolve().then(resume);
     } else {
-      void Promise.resolve().then(() => setView(openingView(ref)));
+      void Promise.resolve().then(() => setState(openingView(ref)));
       startSession().catch(() => {});
     }
   }, [online, sessionOk, resume, ref]);
@@ -275,7 +274,7 @@ export function useJoinLink(params: Params) {
       resume();
       return;
     }
-    setView(openingView(ref));
+    setState(openingView(ref));
     startSession()
       .then((answer) => {
         if (answer.status === 'refused') refuse('session_failed');
@@ -345,7 +344,10 @@ function enterRoom(path: string, roomId: string, routes: readonly RootRoute[]) {
   }
 }
 
-function refusedView(state: keyof typeof JOIN_SHEET_ROWS, params?: { max: number }): LinkView {
+function refusedView(
+  state: keyof typeof JOIN_SHEET_ROWS,
+  params?: { max: number },
+): Extract<LinkView, { kind: 'refused' }> {
   const row = JOIN_SHEET_ROWS[state];
   if (row.kind !== 'refused') throw new Error(`No refusal for ${state}`);
   return { kind: 'refused', row, message: row.message, params };

@@ -1,12 +1,15 @@
-# Slice 6, an invite link on a cold start: the link opens the join sheet over the app, a
-# first-time player names themselves and joins, and lands on the lobby (a placeholder until
-# M4.11). Then the same link as a named player (straight in), and a malformed link (the refused
-# sheet; closing it lands on Home). Needs the local stack: seed the open room first with
-#   mobile/.maestro/scripts/seed-open-room.sh      (a room with the code 482913)
-# The link has no room reference, so it joins by code. The development scheme stands in for the
+# Slice 6, an invite link on a cold start: the link opens the join sheet over the app with the
+# room's preview (the host and the count), a first-time player names themselves and taps Join,
+# and lands on the lobby (a placeholder until M4.11). Then the same link as a player already
+# seated (straight in, no confirm), a named player who is not seated in another room (the confirm
+# shows first, nothing joins before the tap), and a malformed link (the refused sheet; closing it
+# lands on Home). Needs the local stack: seed two open rooms first with
+#   mobile/.maestro/scripts/seed-open-room.sh           (prints the room id for REF, code 482913)
+#   mobile/.maestro/scripts/seed-open-room.sh 482914    (prints the room id for REF2)
+# The links carry the room reference (`?r=`), so the sheet previews before joining. The development scheme stands in for the
 # domain (M4.18). A development build asks which Metro to use on a cold start from a link: the
 # flow picks the one in METRO_URL from "Recently opened".
-# Run: `maestro test mobile/.maestro/join-link.yaml -e METRO_URL=http://localhost:8094` with the
+# Run: `maestro test mobile/.maestro/join-link.yaml -e METRO_URL=http://localhost:8094 -e REF=<id> -e REF2=<id>` with the
 # development build installed and Metro running.
 appId: com.harryviennot.flimme.dev
 env:
@@ -20,7 +23,7 @@ env:
 
 # First time on this phone: no name yet.
 - stopApp
-- openLink: flimme-dev://join/482913
+- openLink: flimme-dev://join/482913?r=${REF}
 - runFlow:
     when:
       visible: 'Open'
@@ -30,6 +33,7 @@ env:
 - extendedWaitUntil:
     visible: '(?i)join .*movie night|join the movie night'
     timeout: 40000
+- assertVisible: '(?i).*player.* in'
 - takeScreenshot: join-link-1-first-time
 - inputText: 'Coco'
 - tapOn: 'Join'
@@ -38,9 +42,9 @@ env:
     timeout: 20000
 - takeScreenshot: join-link-2-lobby
 
-# Played before: the same link goes straight to the room.
+# Seated already: the same link goes straight to the room, with no confirm.
 - stopApp
-- openLink: flimme-dev://join/482913
+- openLink: flimme-dev://join/482913?r=${REF}
 - runFlow:
     when:
       visible: 'Open'
@@ -57,7 +61,7 @@ env:
 - repeat:
     times: 2
     commands:
-      - openLink: flimme-dev://join/482913
+      - openLink: flimme-dev://join/482913?r=${REF}
       - runFlow:
           when:
             visible: 'Open'
@@ -69,6 +73,26 @@ env:
       - assertVisible: '(?i)lobby'
       - assertNotVisible: '(?i)join .*movie night'
 - takeScreenshot: join-link-2b-lobby-after-repeat
+
+# Named but not seated: the confirm shows the host and the count, and nothing joins before Join.
+- stopApp
+- openLink: flimme-dev://join/482914?r=${REF2}
+- runFlow:
+    when:
+      visible: 'Open'
+    commands:
+      - tapOn: 'Open'
+- tapOn: ${METRO_URL}
+- extendedWaitUntil:
+    visible: '(?i)join .*movie night'
+    timeout: 40000
+- assertVisible: '(?i).*player.* in'
+- assertNotVisible: '(?i)lobby'
+- takeScreenshot: join-link-2c-confirm
+- tapOn: 'Join'
+- extendedWaitUntil:
+    visible: '(?i)lobby'
+    timeout: 20000
 
 # A malformed link: the refused sheet, and closing it lands on Home (the profile has a name by
 # now; an unnamed one would land on Welcome).

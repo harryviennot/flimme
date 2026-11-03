@@ -142,7 +142,8 @@ describe('the join sheet', () => {
     mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
     const view = await open({ code: '482913', r: REF });
     expect(mockJoinRoom).not.toHaveBeenCalled();
-    expect(screen.getByText('Getting you in…')).toBeTruthy();
+    expect(screen.getByText("You're invited")).toBeTruthy();
+    expect(screen.queryByLabelText('Join')).toBeNull();
     mockSession = { status: 'ok' };
     await view.rerender(<Sheet />);
     await act(async () => {});
