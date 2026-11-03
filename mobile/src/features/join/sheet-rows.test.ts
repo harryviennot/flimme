@@ -1,4 +1,9 @@
-import { JOIN_ROOM_ANSWERS, PLANNED_JOIN_ROOM_ANSWERS } from '@flimme/contract';
+import {
+  JOIN_ROOM_ANSWERS,
+  PLANNED_JOIN_ROOM_ANSWERS,
+  PLANNED_ROOM_PREVIEW_ANSWERS,
+  ROOM_PREVIEW_ANSWERS,
+} from '@flimme/contract';
 
 import { JOIN_SHEET_ROWS } from './sheet-rows';
 
@@ -6,6 +11,15 @@ describe('JOIN_SHEET_ROWS', () => {
   it.each([...JOIN_ROOM_ANSWERS, ...PLANNED_JOIN_ROOM_ANSWERS])('has a row for %s', (status) => {
     expect(JOIN_SHEET_ROWS[status]).toBeDefined();
   });
+
+  it.each([...ROOM_PREVIEW_ANSWERS, ...PLANNED_ROOM_PREVIEW_ANSWERS])(
+    'has a row for the preview answer %s: a refusal, or the room for ok',
+    (status) => {
+      const row = JOIN_SHEET_ROWS[status];
+      expect(row).toBeDefined();
+      expect(row.kind).toBe(status === 'ok' ? 'go' : 'refused');
+    },
+  );
 
   it.each(['malformed', 'offline', 'failed', 'session_failed'] as const)(
     'has a row for %s',

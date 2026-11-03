@@ -28,9 +28,13 @@
     "title": "Rejoins la soirée film",
     "titleHost": "Rejoins la soirée de {{name}}",
     "join": "Rejoindre",
-    "anotherCode": "Entrer un autre code"
+    "anotherCode": "Entrer un autre code",
+    "players_one": "{{count}} joueur déjà là",
+    "players_other": "{{count}} joueurs déjà là"
   },
   "a11y": {
+    "hostLine_one": "Hôte : {{name}}. {{count}} joueur déjà là",
+    "hostLine_other": "Hôte : {{name}}. {{count}} joueurs déjà là",
     "field": "Code de la salle, 6 chiffres",
     "progress": "{{digits}}, {{count}} chiffres sur 6"
   }

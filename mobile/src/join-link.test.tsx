@@ -12,12 +12,29 @@ const REF = '0b9a7c3e-6a1d-4f6e-9a55-2b6f1e0c8d41';
 const ROOM = 'room-1';
 
 const mockJoinRoom = jest.fn();
+const mockRoomPreview = jest.fn();
 const mockUpdateProfile = jest.fn();
 jest.mock('@/api', () => ({
   api: {
+    roomPreview: (...a: unknown[]) => mockRoomPreview(...a),
     joinRoom: (...a: unknown[]) => mockJoinRoom(...a),
     updateProfile: (...a: unknown[]) => mockUpdateProfile(...a),
   },
+}));
+
+const PREVIEW_OK = {
+  status: 'ok',
+  state: 'lobby',
+  host_name: 'Harry',
+  host_avatar_key: 'blue',
+  players: 3,
+  max_players: 10,
+  seated: false,
+};
+let mockProfile: { display_name: string } | null = { display_name: 'Léa' };
+jest.mock('@/features/profile/use-my-profile', () => ({
+  MY_PROFILE_KEY: ['my_profile'],
+  useMyProfile: () => ({ data: mockProfile, isPending: false }),
 }));
 
 let mockOnline = true;
@@ -65,11 +82,21 @@ function Sheet() {
   );
 }
 
-async function open(params: Record<string, unknown>) {
+/** Opens the sheet and lets the first call settle. Nothing is tapped. */
+async function openOnly(params: Record<string, unknown>) {
   mockParams = params;
   const view = await render(<Sheet />);
-  // Let the first join call and its answer settle.
   await act(async () => {});
+  return view;
+}
+
+/** Opens the sheet; a named player on the confirm layout then taps Join. */
+async function open(params: Record<string, unknown>) {
+  const view = await openOnly(params);
+  if (params.r && mockProfile?.display_name && screen.queryByLabelText('Join')) {
+    await fireEvent.press(screen.getByLabelText('Join'));
+    await act(async () => {});
+  }
   return view;
 }
 
@@ -77,6 +104,9 @@ beforeEach(async () => {
   await i18n.changeLanguage('en');
   jest.useRealTimers();
   mockJoinRoom.mockReset();
+  mockRoomPreview.mockReset();
+  mockRoomPreview.mockResolvedValue(PREVIEW_OK);
+  mockProfile = { display_name: 'Léa' };
   mockUpdateProfile.mockReset();
   mockStartSession.mockClear();
   jest.mocked(router.replace).mockClear();
@@ -116,7 +146,8 @@ describe('the join sheet', () => {
     mockSession = { status: 'ok' };
     await view.rerender(<Sheet />);
     await act(async () => {});
-    expect(mockJoinRoom).toHaveBeenCalledTimes(1);
+    expect(mockRoomPreview).toHaveBeenCalledTimes(1);
+    expect(mockJoinRoom).not.toHaveBeenCalled();
   });
 
   it('shows the network refusal and Retry when signing in failed, and Retry starts the session', async () => {
@@ -127,7 +158,7 @@ describe('the join sheet', () => {
     expect(haptics.error).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByLabelText('Try again'));
     expect(mockStartSession).toHaveBeenCalled();
-    expect(mockJoinRoom).not.toHaveBeenCalled();
+    expect(mockRoomPreview).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -215,59 +246,165 @@ describe('the join sheet', () => {
   });
 
   describe('first time', () => {
-    it('shows the host in the title, and the generic title without a host name', async () => {
-      mockJoinRoom.mockResolvedValue({ status: 'name_required', host_name: 'Harry' });
-      await open({ code: '482913', r: REF });
+    beforeEach(() => {
+      mockProfile = { display_name: '' };
+    });
+
+    it('shows the host above the name form, and the generic title without a host name', async () => {
+      await openOnly({ code: '482913', r: REF });
       expect(screen.getByText("Join Harry's movie night")).toBeTruthy();
       expect(screen.getByText('Room 482913')).toBeTruthy();
+      expect(screen.getByText('3 players in')).toBeTruthy();
+      expect(mockJoinRoom).not.toHaveBeenCalled();
     });
 
     it('uses the generic title when the host name is unknown', async () => {
-      mockJoinRoom.mockResolvedValue({ status: 'name_required', host_name: null });
-      await open({ code: '482913', r: REF });
+      mockRoomPreview.mockResolvedValue({ ...PREVIEW_OK, host_name: null });
+      await openOnly({ code: '482913', r: REF });
       expect(screen.getByText('Join the movie night')).toBeTruthy();
     });
 
-    it('Join saves the profile, then joins again with the same link_opened_at', async () => {
-      mockJoinRoom
-        .mockResolvedValueOnce({ status: 'name_required', host_name: 'Harry' })
-        .mockResolvedValueOnce({ status: 'ok', room_id: ROOM, state: 'lobby' });
+    it('Join saves the profile, then joins once with the link_opened_at of the arrival', async () => {
+      mockJoinRoom.mockResolvedValueOnce({ status: 'ok', room_id: ROOM, state: 'lobby' });
       mockUpdateProfile.mockResolvedValue({
         status: 'ok',
         display_name: 'Léa',
         avatar_key: 'blue',
       });
-      await open({ code: '482913', r: REF });
+      await openOnly({ code: '482913', r: REF });
       await fireEvent.changeText(screen.getByLabelText(/name/i), 'Léa');
       await fireEvent.press(screen.getByLabelText('Join'));
       await act(async () => {});
       expect(mockUpdateProfile).toHaveBeenCalledTimes(1);
-      expect(mockJoinRoom).toHaveBeenCalledTimes(2);
-      expect(mockJoinRoom.mock.calls[1]?.[0].link_opened_at).toBe(
-        mockJoinRoom.mock.calls[0]?.[0].link_opened_at,
-      );
+      expect(mockJoinRoom).toHaveBeenCalledTimes(1);
       expect(router.replace).toHaveBeenCalledWith('/room/room-1/lobby');
     });
 
-    it('name_not_allowed shows the name error and does not join', async () => {
+    it('name_required from join_room shows this layout with the preview host', async () => {
+      mockProfile = { display_name: 'Léa' };
       mockJoinRoom.mockResolvedValue({ status: 'name_required', host_name: 'Harry' });
-      mockUpdateProfile.mockResolvedValue({ status: 'name_not_allowed' });
       await open({ code: '482913', r: REF });
+      expect(screen.getByText("Join Harry's movie night")).toBeTruthy();
+      expect(screen.getByText('3 players in')).toBeTruthy();
+    });
+
+    it('name_not_allowed shows the name error and does not join', async () => {
+      mockUpdateProfile.mockResolvedValue({ status: 'name_not_allowed' });
+      await openOnly({ code: '482913', r: REF });
       await fireEvent.changeText(screen.getByLabelText(/name/i), 'Léa');
       await fireEvent.press(screen.getByLabelText('Join'));
       await act(async () => {});
       expect(screen.getByText(i18n.t('onboarding:name.errors.notAllowed'))).toBeTruthy();
-      expect(mockJoinRoom).toHaveBeenCalledTimes(1);
+      expect(mockJoinRoom).not.toHaveBeenCalled();
       expect(haptics.error).toHaveBeenCalledTimes(1);
     });
 
     it('unknown_avatar does not join and shows the generic toast', async () => {
-      mockJoinRoom.mockResolvedValue({ status: 'name_required', host_name: 'Harry' });
       mockUpdateProfile.mockResolvedValue({ status: 'unknown_avatar' });
-      await open({ code: '482913', r: REF });
+      await openOnly({ code: '482913', r: REF });
       await fireEvent.changeText(screen.getByLabelText(/name/i), 'Léa');
       await fireEvent.press(screen.getByLabelText('Join'));
       await act(async () => {});
+      expect(mockJoinRoom).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('the preview', () => {
+    it('calls roomPreview with the code and the reference, never joinRoom, before the tap', async () => {
+      await openOnly({ code: '482913', r: REF });
+      expect(mockRoomPreview).toHaveBeenCalledWith({ code: '482913', ref: REF });
+      expect(mockJoinRoom).not.toHaveBeenCalled();
+    });
+
+    it('shows the ticket, the host, the count and Join', async () => {
+      await openOnly({ code: '482913', r: REF });
+      expect(screen.getByText("Join Harry's movie night")).toBeTruthy();
+      expect(screen.getByText('3 players in')).toBeTruthy();
+      expect(screen.getByLabelText('Host: Harry. 3 players in')).toBeTruthy();
+      expect(screen.getByLabelText('Join')).toBeTruthy();
+    });
+
+    it('says "1 player in" for one', async () => {
+      mockRoomPreview.mockResolvedValue({ ...PREVIEW_OK, players: 1 });
+      await openOnly({ code: '482913', r: REF });
+      expect(screen.getByText('1 player in')).toBeTruthy();
+    });
+
+    it('Join sends the link_opened_at of the arrival, however long the tap takes', async () => {
+      jest.useFakeTimers({ now: new Date('2026-11-03T10:00:00.000Z') });
+      mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+      await openOnly({ code: '482913', r: REF });
+      const first = mockRoomPreview.mock.calls.length;
+      await act(async () => {
+        jest.advanceTimersByTime(60_000);
+      });
+      await fireEvent.press(screen.getByLabelText('Join'));
+      await act(async () => {});
+      expect(first).toBe(1);
+      const args = mockJoinRoom.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(args).toMatchObject({ code: '482913', ref: REF, via: 'link' });
+      expect(Date.parse(args.link_opened_at as string)).toBeLessThan(
+        Date.parse('2026-11-03T10:00:30.000Z'),
+      );
+    });
+
+    it.each([
+      [{ status: 'closed' }, 'This movie night has ended.'],
+      [{ status: 'full', max_players: 8 }, 'This room is full (8 players).'],
+      [{ status: 'in_finale' }, "They're voting on the final pick right now. Catch the next game."],
+      [
+        { status: 'rate_limited' },
+        'Too many tries. Ask the host for the link, or try again in a few minutes.',
+      ],
+    ])('%j is refused on open with its message and one haptic', async (answer, message) => {
+      mockRoomPreview.mockResolvedValue(answer);
+      await openOnly({ code: '482913', r: REF });
+      expect(screen.getByText(message)).toBeTruthy();
+      expect(haptics.error).toHaveBeenCalledTimes(1);
+      expect(mockJoinRoom).not.toHaveBeenCalled();
+    });
+
+    it('a failed call shows the network refusal and Retry previews again', async () => {
+      mockRoomPreview.mockRejectedValueOnce(new Error('boom'));
+      await openOnly({ code: '482913', r: REF });
+      expect(screen.getByText("We couldn't reach the room. Check your connection.")).toBeTruthy();
+      await fireEvent.press(screen.getByLabelText('Try again'));
+      await act(async () => {});
+      expect(mockRoomPreview).toHaveBeenCalledTimes(2);
+      expect(screen.getByLabelText('Join')).toBeTruthy();
+      expect(mockJoinRoom).not.toHaveBeenCalled();
+    });
+
+    it('offline on open previews when back online, and never joins', async () => {
+      mockOnline = false;
+      const view = await openOnly({ code: '482913', r: REF });
+      expect(screen.getByText("You're offline. Connect to join.")).toBeTruthy();
+      expect(mockRoomPreview).not.toHaveBeenCalled();
+      mockOnline = true;
+      await view.rerender(<Sheet />);
+      await act(async () => {});
+      expect(mockRoomPreview).toHaveBeenCalledTimes(1);
+      expect(mockJoinRoom).not.toHaveBeenCalled();
+    });
+
+    it('seated joins at once, and goes back to the room already open', async () => {
+      mockRoutes = [
+        { name: 'index' },
+        { name: 'room/[id]', params: { id: ROOM } },
+        { name: 'join/[code]' },
+      ];
+      mockRoomPreview.mockResolvedValue({ ...PREVIEW_OK, seated: true });
+      mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+      await openOnly({ code: '482913', r: REF });
+      expect(mockJoinRoom).toHaveBeenCalledTimes(1);
+      expect(router.dismissTo).toHaveBeenCalledWith('/room/room-1/lobby');
+      expect(router.replace).not.toHaveBeenCalled();
+    });
+
+    it('a link without a reference joins at once and never previews', async () => {
+      mockJoinRoom.mockResolvedValue({ status: 'ok', room_id: ROOM, state: 'lobby' });
+      await openOnly({ code: '482913' });
+      expect(mockRoomPreview).not.toHaveBeenCalled();
       expect(mockJoinRoom).toHaveBeenCalledTimes(1);
     });
   });
@@ -277,9 +414,7 @@ describe('the join sheet', () => {
 
     it('retries every second and gives up after 10 seconds', async () => {
       mockJoinRoom.mockResolvedValue({ status: 'starting' });
-      mockParams = { code: '482913', r: REF };
-      await render(<Sheet />);
-      await act(async () => {});
+      await open({ code: '482913', r: REF });
       expect(screen.getByText('Shuffling the deck…')).toBeTruthy();
       for (let i = 0; i < 10; i += 1) {
         await act(async () => {
@@ -304,7 +439,7 @@ describe('the join sheet', () => {
       mockOnline = true;
       await view.rerender(<Sheet />);
       await act(async () => {});
-      expect(mockJoinRoom).toHaveBeenCalledTimes(1);
+      expect(mockRoomPreview).toHaveBeenCalledTimes(1);
     });
   });
 });
