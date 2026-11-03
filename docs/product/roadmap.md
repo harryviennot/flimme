@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 65 of 250 tasks done.
+Progress: 66 of 250 tasks done.
 
 ```mermaid
 flowchart LR
@@ -344,7 +344,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a wrong code, a full room and a started room each show their message.
 - [x] **M4.9** Host setup: the country's services (saved to the profile), age cap, time budget, then "Open the room" · app · M · needs M4.7, M4.4, M2.6 · [onboarding](onboarding.md#hosting)
   Done when: a room opens with those settings.
-- [ ] **M4.10** The room layout: the room and seat reads, screens by room state, the 30-second heartbeat, re-reading on foreground, the kept room store · app · M · needs M3.6, M3.7, M3.15 · [app-structure](../architecture/app-structure.md#where-state-lives)
+- [x] **M4.10** The room layout: the room and seat reads, screens by room state, the 30-second heartbeat, re-reading on foreground, the kept room store · app · M · needs M3.6, M3.7, M3.15 · [app-structure](../architecture/app-structure.md#where-state-lives)
   Done when: a room opens on the screen its state says, a re-read on foreground corrects a stale screen, and a kept room survives a restart.
 - [ ] **M4.21** Realtime in the room: both topics, presence, events, unknown messages dropped, recovery, and the Reconnecting banner · app · M · needs M4.10, M3.11 · [app-structure](../architecture/app-structure.md#realtime), [reconnecting](../design/screens/reconnecting.md)
   Done when: killing the network mid-lobby and restoring it shows the right state.
