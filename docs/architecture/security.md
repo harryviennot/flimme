@@ -285,6 +285,7 @@ One developer means one person's laptop and accounts are the whole perimeter.
 - [ ] The session stored encrypted on the phone, outside backups
 - [ ] Guest cleanup after 90 days running, from `auth.users`
 - [ ] Alerts on failed joins and guest sign-ups; Turnstile configured, ready to switch on
+- [ ] Reports: `api.report_member` stores a preset reason only, tells nobody else, and `member_reports` is unreadable by phones; a new report alerts Harry within 5 minutes (M9.5)
 - [ ] Account deletion also clears analytics, and crash reports carry no user id; data export includes everything
 - [ ] Security advisors clean; a written runbook for a leaked key ([operations.md](operations.md))
 - [ ] CI actions pinned to commit SHAs, read-only tokens, dependency updates and audits running
@@ -323,6 +324,7 @@ All placeholders until playtests.
 | Data exports | 1 per hour per profile |
 | Taste check submissions | 10 per hour per profile |
 | Seen-film ratings, "Not there anymore?" reports | 30 and 10 per hour per profile |
+| Player reports (`api.report_member`, M7.1) | 10 per hour per profile |
 | `api.title_cards` | 30 calls per 10 minutes per profile, 50 films a call |
 | Letterboxd upload | 10 MB body, 50,000 films, 50,000 diary entries, 5 per account per day |
 | TMDB searches per import | 2,000 |

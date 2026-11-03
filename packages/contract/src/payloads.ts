@@ -65,6 +65,11 @@ export const roomPreviewResult = z.discriminatedUnion('status', [
 ]);
 export type RoomPreviewResult = z.infer<typeof roomPreviewResult>;
 
+export const reportMemberResult = z.object({
+  status: z.enum(['ok', 'not_in_room', 'rate_limited']),
+});
+export type ReportMemberResult = z.infer<typeof reportMemberResult>;
+
 export const leaveRoomResult = z.object({ status: z.enum(['ok', 'not_in_room']) });
 export type LeaveRoomResult = z.infer<typeof leaveRoomResult>;
 

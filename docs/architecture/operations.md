@@ -181,6 +181,7 @@ flowchart LR
 | Queue depth | `pgmq.metrics_all()`: `queue_length`, `oldest_msg_age_sec` | `deck_requests` oldest message over 10 seconds; `room_finished` and `taste_refresh` over 15 minutes; the others over 6 hours | Workers stuck or crashed |
 | Scheduled jobs | `cron.job_run_details` | `sweep_rooms` missed 3 runs in a row; retention not run in 36 hours | Check `pg_cron` and the database |
 | Catalog jobs | `ingest_runs` | A daily job unfinished after 36 hours; the 20% guard tripped; a 429 rate over 1% ([tmdb.md](../integrations/tmdb.md#failures-and-retries)) | Decks keep working on the last good data; fix the job |
+| Player reports | `member_reports` | Any row with `alerted_at is null`: alert at once (M9.5), then set `alerted_at` | Read the report and the seat's name; remove the player or ban by hand |
 | "Not there anymore?" reports | Reports on the winner screen ([tmdb.md](../integrations/tmdb.md#the-watch-link)) | Over 5% of winners reported in a week | TMDB's data is lagging: look at the sweep |
 | Letterboxd | `linked_accounts.last_error`, imports | Over 10% of a day's syncs failing; any import stuck in `matching` for an hour | A feed format change, or the matcher |
 | Sign-ins | Supabase auth logs | Anonymous sign-ins answered 429 more than 20 times in an hour | Shared addresses hitting the limit, or abuse ([security.md](security.md)) |
@@ -218,6 +219,7 @@ The data model's [Retention](data-model.md#retention) table runs as one daily jo
 | `rec.request_items` | 90 days, after the monthly export to object storage | The trainer exports, then Cron deletes |
 | `import_rows` unmatched | 30 days | Cron |
 | `rate_limits` | 1 day | Cron |
+| `member_reports` | 12 months after `created_at` (M8.9) | Cron |
 | `card_history` | 12 months after the last showing ([deck engine](deck-engine.md#changes-to-the-data-model)) | Cron |
 | TMDB content of films missing for 6 months | Cleared ([tmdb.md](../integrations/tmdb.md#keeping-it-fresh)) | Pipeline worker |
 | Guest accounts inactive for 90 days | Deleted with their data, through the same auth admin call as account deletion | Pipeline worker |

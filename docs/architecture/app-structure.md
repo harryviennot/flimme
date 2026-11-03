@@ -401,7 +401,7 @@ Not applied to [data-model.md](data-model.md) or [schema.sql](schema.sql). For t
 
 | Where | Change | Why |
 | --- | --- | --- |
-| `api.cast_vote` | Accept a vote on any active card in the room's pool, adding the deck entry if a re-rank removed it, instead of failing with "card was not dealt to this seat" | A refill re-ranks everything behind the 3 mounted cards. Votes queued offline, or a fast swipe past the mounted cards just as a refill lands, can arrive for cards the re-rank removed, and those swipes are lost |
+| `api.cast_vote` | Done in M5.7: accepts a vote on any active card in the room's pool, adding the deck entry (source `ranked`, the pool's score) if a re-rank removed it, instead of failing with "card was not dealt to this seat". A matched or finalist card with no entry still raises it | A refill re-ranks everything behind the 3 mounted cards. Votes queued offline, or a fast swipe past the mounted cards just as a refill lands, can arrive for cards the re-rank removed, and those swipes are lost |
 | `api.app_config` | Add `tmdb_image_base`, `letterboxd_export_url` and `invite_base_url` next to `min_app_version`. `tmdb_image_base` landed in M1.13; `invite_base_url` waits for the domain (M0.2), `letterboxd_export_url` for the Letterboxd connect task | So none of them is hard-coded in a build |
 | `api.taste_check_cards()` | Return an empty list when the player doesn't need the taste check | Taste profiles are private, so the phone can't check the confidence itself |
 | Letterboxd fixes | A function to resolve an unmatched film (search, then pick) | `api.my_unmatched_films` lists them, but nothing lets the player fix one |
