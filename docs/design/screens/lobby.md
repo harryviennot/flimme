@@ -21,7 +21,7 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 
 **Footer, guest:** `MarqueeBulbs` (still, `count` 12) over `lobby:waiting` in `body-m` tone `secondary`, centred.
 
-**The services sheet** (`/room/[id]/services`, a `formSheet` like the invite sheet): title `display-s` `lobby:servicesSheet.title`, helper `lobby:servicesSheet.helper`, the [`ServiceGrid`](host-setup.md#new-component), and `Button` primary L `lobby:servicesSheet.done`. Done saves to the profile (`api.set_my_providers`) and to the seat (`api.set_seat_prefs`), then closes. It never blocks the start. Its answers are [below](#the-services-sheet-done).
+**The services sheet** (`/room/[id]/services`, a `formSheet` like the invite sheet): title `display-s` `lobby:servicesSheet.title`, helper `lobby:servicesSheet.helper`, the [`ServiceGrid`](host-setup.md#new-component), in a scrolling area, and `Button` primary L `lobby:servicesSheet.done` pinned in the footer above the home indicator (`Screen` with `scroll` and `footer`, as in host setup), so Done stays reachable at the largest text size and on a small phone. Done saves to the profile (`api.set_my_providers`) and to the seat (`api.set_seat_prefs`), then closes. It never blocks the start. Its answers are [below](#the-services-sheet-done).
 
 ## The seat row (`screens/lobby/seat-row.tsx`)
 
