@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { AccessibilityInfo, findNodeHandle, Platform, View } from 'react-native';
 
 import { api } from '@/api';
 import { LobbyFooter } from '@/components/screens/lobby/lobby-footer';
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Toggle } from '@/components/ui/toggle';
 import { ListRow } from '@/components/ui/list-row';
+import type { PressableNode } from '@/components/ui/pressable';
 import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
@@ -27,7 +28,7 @@ import { formatList, serviceNames } from '@/features/lobby/names';
 import { useGameModes } from '@/features/lobby/queries';
 import { hostSeat, presentSeats, seatedSeats, startGate } from '@/features/lobby/seats';
 import { useRoomLock } from '@/features/lobby/use-room-lock';
-import { runStart, useDealingTimers } from '@/features/lobby/start';
+import { runStart, tooFewFromEvent, useDealingTimers } from '@/features/lobby/start';
 import { useOnline } from '@/features/network';
 import { toAvatarColor } from '@/features/profile';
 import {
@@ -35,6 +36,7 @@ import {
   useMySeat,
   useRoom,
   useRoomConnection,
+  useRoomEvent,
   useRoomPresence,
   useRoomSeats,
 } from '@/features/room';
@@ -84,6 +86,9 @@ export default function RoomLobbyScreen() {
   // Start.
   const [starting, setStarting] = useState(false);
   const [needFromServer, setNeedFromServer] = useState<number | null>(null);
+  // The count of a refused start (too few films), on this phone only; the next Start tap clears it.
+  const [tooFew, setTooFew] = useState<number | null>(null);
+  const startButton = useRef<PressableNode>(null);
   const busy = useRef(false);
   const dealing = room?.state === 'dealing';
 
@@ -93,21 +98,45 @@ export default function RoomLobbyScreen() {
   );
   const callStart = useCallback(async () => {
     const outcome = await runStart(() => api.startGame({ room_id: id ?? '' }));
-    if (outcome.kind === 'reread') await reread();
+    if (outcome.kind === 'reread' || outcome.kind === 'too_few') await reread();
     return outcome;
   }, [id, reread]);
+
+  // A refusal answers the host's tap: focus returns to Start, whose hint becomes the new line.
+  const tooFewLine = (count: number) =>
+    count === 0 ? t('start.tooFewNone') : t('start.tooFew', { count });
+  const refused = (message: string) => {
+    if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(message);
+    const node = startButton.current ? findNodeHandle(startButton.current) : null;
+    if (node) AccessibilityInfo.setAccessibilityFocus(node);
+  };
+
+  // The deck worker found too few after a `dealing` answer: only the host's line learns the count.
+  useRoomEvent(id, 'state_changed', (payload) => {
+    const eligible = tooFewFromEvent(payload);
+    if (eligible === null || !isHost) return;
+    setTooFew(eligible);
+    haptics.error();
+    refused(tooFewLine(eligible));
+  });
 
   const start = async () => {
     if (busy.current) return;
     busy.current = true;
     setStarting(true);
     setNeedFromServer(null);
+    setTooFew(null);
     const outcome = await callStart();
     busy.current = false;
     setStarting(false);
     if (outcome.kind === 'need_players') {
       setNeedFromServer(outcome.need);
       haptics.error();
+      refused(t('start.needPlayers', { count: outcome.need }));
+    } else if (outcome.kind === 'too_few') {
+      setTooFew(outcome.eligible);
+      haptics.error();
+      refused(tooFewLine(outcome.eligible));
     } else if (outcome.kind === 'failed') {
       showToast({ tone: 'warn', title: t('errors.start') });
     }
@@ -156,12 +185,16 @@ export default function RoomLobbyScreen() {
       ? null
       : startGate({ minPlayers: min, present: present.length, awayNames, fresh, online });
   const needCount = gate?.kind === 'need_players' ? gate.need : needFromServer;
+  // One line at a time: players needed, then too few films, then who is away.
   const helper =
     needCount !== null
       ? t('start.needPlayers', { count: needCount })
-      : gate?.kind === 'away'
-        ? t('start.away', { count: gate.names.length, names: list(gate.names) })
-        : null;
+      : tooFew !== null
+        ? tooFewLine(tooFew)
+        : gate?.kind === 'away'
+          ? t('start.away', { count: gate.names.length, names: list(gate.names) })
+          : null;
+  const refusal = needFromServer !== null || tooFew !== null;
   const staleHint = banner
     ? tc(`states.${banner === 'offline' ? 'offlineRoom' : banner}`)
     : undefined;
@@ -182,6 +215,8 @@ export default function RoomLobbyScreen() {
               starting={starting}
               disabled={gate === null || gate.kind === 'need_players' || gate.kind === 'stale'}
               helper={helper}
+              startRef={startButton}
+              assertive={refusal}
               hint={staleHint}
               onStart={() => void start()}
             />

@@ -31,6 +31,9 @@
   "start": {
     "cta": "Lancer la séance",
     "needPlayers": "Il faut {{count}} joueurs présents pour lancer.",
+    "tooFew_one": "Seulement {{count}} film convient ce soir. Demande à chacun d'ajouter ses plateformes.",
+    "tooFew_other": "Seulement {{count}} films conviennent ce soir. Demande à chacun d'ajouter ses plateformes.",
+    "tooFewNone": "Aucun film ne convient ce soir. Demande à chacun d'ajouter ses plateformes.",
     "away_one": "{{names}} n'est pas là. Tu peux lancer sans attendre.",
     "away_other": "{{names}} ne sont pas là. Tu peux lancer sans attendre."
   },

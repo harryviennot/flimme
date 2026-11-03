@@ -10,7 +10,11 @@ export const DEAL_SLOW_MS = 20_000;
 
 export type StartOutcome =
   /** `ok`, `dealing` or `closed`: read the room again, the layout follows its state. */
-  { kind: 'reread' } | { kind: 'need_players'; need: number } | { kind: 'failed' };
+  | { kind: 'reread' }
+  | { kind: 'need_players'; need: number }
+  /** Fewer than 20 films fit: the room is back in the lobby (M5.5). */
+  | { kind: 'too_few'; eligible: number }
+  | { kind: 'failed' };
 
 export async function runStart(startGame: () => Promise<StartGameResult>): Promise<StartOutcome> {
   try {
@@ -21,13 +25,24 @@ export async function runStart(startGame: () => Promise<StartGameResult>): Promi
       case 'ok':
       case 'dealing':
       case 'closed':
-      // The lobby's own message for too few films is M5.10; until then the room is re-read.
-      case 'too_few_films':
         return { kind: 'reread' };
+      case 'too_few_films':
+        return { kind: 'too_few', eligible: answer.eligible };
     }
   } catch {
     return { kind: 'failed' };
   }
+}
+
+/**
+ * The count a `state_changed` carries when the deck worker found too few films after a `dealing`
+ * answer, or null for any other payload. The layout still routes on the room re-read; this only
+ * fills the host's line (lobby.md#too-few-films).
+ */
+export function tooFewFromEvent(payload: unknown): number | null {
+  if (typeof payload !== 'object' || payload === null) return null;
+  const { reason, eligible } = payload as { reason?: unknown; eligible?: unknown };
+  return reason === 'too_few_films' && typeof eligible === 'number' ? eligible : null;
 }
 
 /**
