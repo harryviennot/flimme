@@ -51,5 +51,5 @@ The words players see, used the same way everywhere. French terms marked "propos
 | The final vote | the Final Cut; "Pick one. Veto one." | le Final Cut; « Choisis-en un. Élimine-en un. » (proposed) |
 | The result | tonight's pick | le film du soir (proposed) |
 | The share image | recap card | récap (proposed) |
-| Streaming services | services | plateformes (proposed) |
+| Streaming services | services | plateformes |
 | Time budget | time budget, "Under 2 h" | durée, « Moins de 2 h » (proposed) |
