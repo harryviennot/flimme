@@ -11,6 +11,7 @@ import {
   REPORT_MEMBER_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
+  SET_ROOM_LOCKED_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
@@ -27,6 +28,7 @@ import {
   reportMemberResult,
   leaveRoomResult,
   removeMemberResult,
+  setRoomLockedResult,
   myProfileRow,
   roomRow,
   roomSeatRow,
@@ -48,6 +50,7 @@ import {
   type ReportMemberResult,
   type LeaveRoomResult,
   type RemoveMemberResult,
+  type SetRoomLockedResult,
   type MyProfile,
   type RoomRow,
   type RoomSeat,
@@ -183,6 +186,18 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id, p_member_id: args.member_id },
         REMOVE_MEMBER_ANSWERS,
         removeMemberResult,
+      );
+    },
+
+    /** Host only: no new seats while locked; players with a seat can still come back (M4.23). */
+    setRoomLocked(args: { room_id: string; locked: boolean }): Promise<SetRoomLockedResult> {
+      return callAnswer(
+        client,
+        options,
+        'set_room_locked',
+        { p_room_id: args.room_id, p_locked: args.locked },
+        SET_ROOM_LOCKED_ANSWERS,
+        setRoomLockedResult,
       );
     },
 

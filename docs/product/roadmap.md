@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 76 of 253 tasks done.
+Progress: 77 of 253 tasks done.
 
 ```mermaid
 flowchart LR
@@ -330,7 +330,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a link to a closed room can't join the newer room that reused its code.
 - [x] **M4.2** Remove player: `api.remove_member`, host only; a removed player can't rejoin · backend · M · needs M1.8 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: tests cover removing (the host only, and each answer) and rejoining. It also adds `removed` to `api.join_room` and `api.room_preview` (M4.19).
-- [ ] **M4.23** Lock room: `rooms.locked` and `api.set_room_locked`, host only; a locked room takes no new player · backend · M · needs M4.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
+- [x] **M4.23** Lock room: `rooms.locked` and `api.set_room_locked`, host only; a locked room takes no new player · backend · M · needs M4.2 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: tests cover locking, unlocking and joining a locked room. A seated player still rejoins, and `locked` answers in `api.join_room` and `api.room_preview`.
 - [x] **M4.3** Names normalised and filtered with an English and French blocklist; avatars from presets only · backend · M · needs M1.5 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tests refuse blocked names, invisible characters and unknown avatars.

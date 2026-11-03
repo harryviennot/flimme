@@ -33,6 +33,7 @@ export const EVENT_READS: Partial<Record<RoomEvent, 'seats' | 'room'>> = {
   seat_updated: 'seats',
   host_changed: 'seats',
   settings_changed: 'room',
+  room_locked: 'room',
   state_changed: 'room',
 };
 
