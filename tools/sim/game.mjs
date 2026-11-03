@@ -197,6 +197,8 @@ export function playGame(rule, players, world, key) {
   let liked = 0;
   let end = null;
 
+  const near = { sent: 0, dead: 0, close: 0, firstClose: null };
+
   let last = 0;
   while (!end) {
     let s = 0;
@@ -234,6 +236,18 @@ export function playGame(rule, players, world, key) {
         end = { how: 'match', at: t, film: f };
         break;
       }
+      // Near misses (docs/design/moments.md#the-near-miss). Today's cast_vote sends one on
+      // every like that leaves a film at 2 likes or more without a match, even a film a nope
+      // already made impossible. The proposal counts only a film one like short and still possible.
+      if (total >= 2) {
+        const possible = total + (players - total - nopes[f]) >= needed;
+        near.sent++;
+        if (!possible) near.dead++;
+        if (possible && total === needed - 1) {
+          near.close++;
+          if (near.firstClose === null) near.firstClose = t;
+        }
+      }
       for (let j = 0; j < players; j++) {
         if (j === s) continue;
         // Propagation on the first like; the near-miss push in the close phase.
@@ -248,7 +262,7 @@ export function playGame(rule, players, world, key) {
     next[s] = w.afterCount === 'wait' && seat.answered >= rule.cards ? Infinity : t + swipeTime(s);
   }
 
-  const base = { players, swipes, liked, cardsPerSeat: swipes / players };
+  const base = { players, swipes, liked, cardsPerSeat: swipes / players, near };
   const likedBy = (f) => seats.filter((_, s) => util[s][f] > bar[s]).length;
   if (end.how === 'match') {
     return { ...base, outcome: 'match', at: end.at, pickLikedBy: likedBy(end.film) / players };
