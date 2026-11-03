@@ -1,6 +1,6 @@
 # Lobby
 
-Screen 08 in the Figma (`15:607`). Route `/room/[id]/lobby`, under the room layout (`/room/[id]/_layout.tsx`). Built in M4.11 on the room layout (M4.10) and its Realtime (M4.21), with the host passing on from M4.5. Written on 30 October 2026 and updated on 3 November 2026 (slice 7's answers) from [the lobby](../../product/onboarding.md#the-lobby), [realtime](../../architecture/app-structure.md#realtime), [who counts](../../product/game-modes.md#who-counts-presence-joining-and-leaving), [the room's lobby flow](../../architecture/data-model.md#lobby) and [room codes and the host](../../architecture/security.md#room-codes-joining-and-the-host). Connection states are in [Reconnecting](reconnecting.md).
+Screen 08 in the Figma (`15:607`). Route `/room/[id]/lobby`, under the room layout (`/room/[id]/_layout.tsx`). Built in M4.11 on the room layout (M4.10) and its Realtime (M4.21), with the host passing on from M4.5. Written on 30 October 2026 and updated on 3 November 2026 (slice 7's answers, then slice 9's too-few start) from [the lobby](../../product/onboarding.md#the-lobby), [realtime](../../architecture/app-structure.md#realtime), [who counts](../../product/game-modes.md#who-counts-presence-joining-and-leaving), [the room's lobby flow](../../architecture/data-model.md#lobby) and [room codes and the host](../../architecture/security.md#room-codes-joining-and-the-host). Connection states are in [Reconnecting](reconnecting.md).
 
 ## Purpose
 
@@ -18,7 +18,7 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 6. **Guests only: `ListRow`** icon `tv`, label `lobby:yourServices.label`, value the guest's services or `lobby:yourServices.optional`, chevron. It opens the services sheet (below).
 7. **Host only: the lock row**, a `ListRow` with a `Toggle` and its helper line ([host menu](host-menu.md#lock-room), M4.13).
 
-**Footer, host:** `Button` primary L, icon `play`, `lobby:start.cta`, and under it one `body-s` muted line: `lobby:start.needPlayers` while fewer than the mode's minimum are [present](#present-and-away) (the button disabled), or `lobby:start.away` when some seats are away (the button enabled). The server counts presence its own way (`last_active_at`), so it can still answer `not_enough_players` (below).
+**Footer, host:** `Button` primary L, icon `play`, `lobby:start.cta`, and under it one `body-s` muted line: `lobby:start.needPlayers` while fewer than the mode's minimum are [present](#present-and-away) (the button disabled), or `lobby:start.away` when some seats are away (the button enabled). The server counts presence its own way (`last_active_at`), so it can still answer `not_enough_players` (below). After a start with [too few films](#too-few-films), the same line shows `lobby:start.tooFew_*`. With several, one line shows: `start.needPlayers` first (Start is disabled), then `start.tooFew_*`, then `start.away`.
 
 **Footer, guest:** `MarqueeBulbs` (still, `count` 12) over `lobby:waiting` in `body-m` tone `secondary`, centred.
 
@@ -57,8 +57,18 @@ Rooms and seats hold service ids. The names come from `api.countryProviders({ co
 | Still `dealing` after 20 seconds | Host: `lobby:shufflingSlow` and `common:actions.retry` on the overlay. Guests: the same line, no button |
 | The room moves to `swiping` | The room layout replaces the lobby with the swipe screen |
 | `not_enough_players` | The helper shows `lobby:start.needPlayers` with `need`; `haptics.error()` |
+| `too_few_films` (with `eligible`) | Host: the overlay closes (the room is back in `lobby`) and the helper shows `lobby:start.tooFew_*` with `eligible`; `haptics.error()`. Guests: the overlay closes and their lobby is back, with nothing new. [Below](#too-few-films) |
 | `closed` | The room is re-read and the layout follows its state |
 | The call failed | `showToast` warn `lobby:errors.start`; the button works again |
+
+### Too few films
+
+Fewer than 20 films fit the room's filters, so nothing was dealt (M5.5, [how a game ends](../../product/game-modes.md#how-a-game-ends)).
+
+- **Where:** the host's helper line under Start, as for `not_enough_players`. Not a toast (it would leave before the host has acted) and not a `Banner` (that one is for the connection). Start stays enabled.
+- **What:** `lobby:start.tooFew_one` or `_other` with the count from `eligible`, or `lobby:start.tooFewNone` when `eligible` is 0 (French puts 0 in the singular form). It points at services, the only filter the lobby can change (the time budget and the age cap are set before the room opens). The host has no services row here, so it asks everyone, whose rows open the services sheet.
+- **Also from the deck worker:** when Start answered `dealing` and the worker found too few, the host learns it from `state_changed` with `reason: 'too_few_films'`. The same line shows, with that event's `eligible`. The layout still routes on the room re-read; the payload only fills the line.
+- **Until:** the host's next Start tap (Start shows `loading`, the line clears, the new answer decides). A services change doesn't clear it; the next Start counts again. It is this phone's state only: a new host doesn't inherit it.
 
 ## The services sheet: Done
 
@@ -138,6 +148,9 @@ The alert is the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`,
 | `servicesSheet.done` | C'est bon | Done |
 | `start.cta` | Lancer la séance | Start swiping |
 | `start.needPlayers` | Il faut {{count}} joueurs présents pour lancer. | You need {{count}} players here to start. |
+| `start.tooFew_one` | Seulement {{count}} film convient ce soir. Demande à chacun d'ajouter ses plateformes. | Only {{count}} film fits tonight. Ask everyone to add their services. |
+| `start.tooFew_other` | Seulement {{count}} films conviennent ce soir. Demande à chacun d'ajouter ses plateformes. | Only {{count}} films fit tonight. Ask everyone to add their services. |
+| `start.tooFewNone` | Aucun film ne convient ce soir. Demande à chacun d'ajouter ses plateformes. | No film fits tonight. Ask everyone to add their services. |
 | `start.away_one` | {{names}} n'est pas là. Tu peux lancer sans attendre. | {{names}} is away. You can start without them. |
 | `start.away_other` | {{names}} ne sont pas là. Tu peux lancer sans attendre. | {{names}} are away. You can start without them. |
 | `waiting` | On attend que {{name}} lance la séance… | Waiting for {{name}} to start… |
@@ -164,13 +177,15 @@ The away names are listed with `Intl.ListFormat`. The host alone leaving has no 
 - No haptic for arrivals or departures: phones shouldn't buzz for every friend, and the vocabulary has no word for it.
 - The shuffling overlay comes in with `layout.fadeIn` on every phone at once; no haptic and no sound (sound is only for the match and the reveal).
 - The host-change toast uses `Toast` (`layout.toastIn`).
-- `haptics.error()` only for `not_enough_players`.
+- `haptics.error()` only for `not_enough_players` and `too_few_films` (the host's phone).
+- The too-few line replaces the helper's text in place, with no movement.
 
 ## Accessibility
 
 - Focus order: back (`lobby:a11y.leave`), title, invite, the ticket (read as "Room code 4 8 2 9 1 3, 3 of 10 players, host Harry"), Share link, Show QR, the rules line, "In the room" (header), each seat as one element ("Sam, here, Netflix, Disney+"; the host's says "host"), the room's services, your services (guests) or the lock row (host), Start (its helper as the hint). Each other player's seat is a button that opens the seat sheet.
 - Arrivals and departures are announced politely (`lobby:a11y.joined`, `lobby:a11y.left`), at most one announcement a second.
 - The shuffling overlay takes focus and reads `lobby:shuffling`.
+- After `not_enough_players` or `too_few_films`, focus goes back to Start, its hint becomes the new line, and the line is announced once (assertive, it answers the host's tap). The number is read as a number ("Only 12 films fit tonight").
 - Reduce Motion: rows and the overlay appear without movement.
 
 ## Design-system change
@@ -201,3 +216,7 @@ Harry accepted every default of slice 7's plan on 3 November 2026; this spec now
 8. **The next host in the leave alert** (Q11.3): M4.5's rule on the phone, with its fallback (Q5.1).
 9. **Leaving forgets the kept room** (Q10.4) and drops the room stack.
 10. **The banner** (Q21.3): `RoomBanner` under the `TopBar`.
+
+Slice 9's answers (3 November 2026, Q5.2) bring M5.10:
+
+11. **Too few films.** The host's helper line under Start, until the next Start tap; guests see nothing new (planner's defaults). One change to the proposed copy: "Add a service to get more" became "Ask everyone to add their services", because the host has no services row in the lobby (question 3) and only the guests' rows open the sheet.
