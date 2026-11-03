@@ -62,7 +62,7 @@ export default function RoomLobbyScreen() {
   const list = (names: string[]) => formatList(names, language);
   const namesOf = (ids: readonly number[]) => list(serviceNames(ids, providers));
 
-  useSeatAnnouncements(seated, {
+  useSeatAnnouncements(seatsRead.data ? seated : undefined, {
     joined: (name) => t('a11y.joined', { name }),
     left: (name) => t('a11y.left', { name }),
   });

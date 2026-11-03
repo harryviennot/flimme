@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, findNodeHandle, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -20,7 +20,7 @@ export type ShufflingOverlayProps = {
 export function ShufflingOverlay({ slow, onRetry }: ShufflingOverlayProps) {
   const { t } = useTranslation('lobby');
   const { t: tc } = useTranslation();
-  const title = useRef<View>(null);
+  const title = useRef<ComponentRef<typeof View>>(null);
 
   // The overlay takes screen reader focus and reads its title.
   useEffect(() => {

@@ -1,7 +1,7 @@
-jest.mock('@/features/room/leave', () => ({ leaveRoom: jest.fn() }));
-
 import { createAnnouncer } from './announce';
 import { runLeave } from './leave';
+
+jest.mock('@/features/room/leave', () => ({ leaveRoom: jest.fn() }));
 
 describe('createAnnouncer', () => {
   beforeEach(() => jest.useFakeTimers());
