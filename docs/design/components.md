@@ -88,7 +88,7 @@ An invisible input that owns a value and draws nothing: it fills its `relative` 
 
 ## Room ticket (`shared/room-ticket`)
 
-"Cinema ticket that shows the room code. Use on lobby, invite and recap." `bg.surface`, a `marquee.strong` hairline, `radius.lg`, `elevation-card`. "Room code" in `mono-eyebrow` `marquee.default`; the code in Staatliches 60 with 8% tracking (raw, `display-ticket`; the tracking after the last digit is pulled back so the code is centred); a dashed perforation with round notches that cover the border and bulge past the card edge (the card does not clip); details `mono-data` `text.secondary`.
+"Cinema ticket that shows the room code. Use on lobby, invite and recap." `bg.surface`, a `marquee.strong` hairline, `radius.lg`, `elevation-card`. "Room code" in `mono-eyebrow` `marquee.default`; the code in Staatliches 60 with 8% tracking (raw, `display-ticket`; the tracking after the last digit is pulled back so the code is centred); a dashed perforation with round notches that cover the border and bulge past the card edge (the card does not clip); details `mono-data` `text.secondary`. An optional `locked` (slice 8, M4.13) adds a `Tag` tone `neutral`, icon `lock`, `common:ticket.locked`, at the top right ([host menu](screens/host-menu.md#lock-room)).
 
 ## Service tile (`shared/service-tile`)
 

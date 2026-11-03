@@ -75,8 +75,20 @@ export default function RoomServicesScreen() {
   };
 
   return (
-    <Screen>
-      <View className="gap-4 pt-8">
+    <Screen
+      scroll
+      footer={
+        <Button
+          label={t('servicesSheet.done')}
+          size="l"
+          block
+          disabled={!ready}
+          loading={saving}
+          onPress={() => void done()}
+        />
+      }
+    >
+      <View className="gap-4 pt-8 pb-4">
         <View accessible accessibilityRole="header">
           <Text variant="display-s">{t('servicesSheet.title')}</Text>
         </View>
@@ -88,14 +100,6 @@ export default function RoomServicesScreen() {
           services={listed.map((p) => ({ id: p.provider_id, name: p.name }))}
           selected={selection}
           onToggle={toggle}
-        />
-        <Button
-          label={t('servicesSheet.done')}
-          size="l"
-          block
-          disabled={!ready}
-          loading={saving}
-          onPress={() => void done()}
         />
       </View>
     </Screen>

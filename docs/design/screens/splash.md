@@ -46,7 +46,8 @@ The phone keeps the room it is seated in (the kept room store, M4.10: its id and
 | Answer | Goes to | The kept room |
 | --- | --- | --- |
 | `ok` | `replace` with `/room/[id]`; the room layout shows the state's screen (lobby, swiping, the finale) | Kept |
-| Any other answer (`closed`, `full`, `in_finale`, `starting`, `name_required`, `removed`, `locked`) | [Home](home.md), with nothing said | Forgotten |
+| `removed` | [Home](home.md), with `showToast` info `join:errors.removed` (as in the room, [host menu](host-menu.md#the-removed-players-side)) | Forgotten |
+| Any other answer (`closed`, `full`, `in_finale`, `starting`, `name_required`, `locked`) | [Home](home.md), with nothing said | Forgotten |
 | `rate_limited`, offline, or the call failed | Home (its offline `Banner` when offline) | Kept, for the next launch |
 
 A seated player always gets `ok` (in any state up to the finale), so the other answers mean the room ended or the seat is gone. The slow tagline applies to this call as to the rest of the launch.
@@ -113,3 +114,7 @@ Harry accepted these on 3 November 2026 (slice 7, [decisions](../../decisions.md
 
 8. **The kept room on launch** (Q22.1): straight back in with nothing on screen, not a "Back to Harry's room" choice on Home.
 9. **The rejoin call and its answers** (Q22.2): `via: 'rejoin'` with the room id; `ok` goes in, any other answer forgets the room and goes Home, offline or a failure goes Home and keeps it.
+
+Harry accepted this on 3 November 2026 (slice 8, Q13.3):
+
+10. **`removed` on launch:** Home with the removed message, not silent, as the room shows it (M4.13).
