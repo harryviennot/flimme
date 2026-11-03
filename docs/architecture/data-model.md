@@ -545,7 +545,9 @@ erDiagram
 
 ## 7. Operations
 
-**rate_limits**: counters per key and fixed window, written only by `internal.rate_limit(key, max, window)`. Keys: `join:p:<profile id>` (10 per 10 minutes), `join:ip:<address hash>` (30 per 10 minutes), `join_failed:p:<profile id>` (5 `not_found` per 10 minutes), `calibration:p:<profile id>` (10 per hour), `export:p:<profile id>` (1 per hour). The address is read by `internal.request_ip_key()` (`cf-connecting-ip`, else the last `x-forwarded-for` entry) and only its hash is stored, IPv6 by its /64. The million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
+**rate_limits**: counters per key and fixed window, written only by `internal.rate_limit(key, max, window)`. Keys: `join:p:<profile id>` (10 per 10 minutes), `join:ip:<address hash>` (30 per 10 minutes), `join_failed:p:<profile id>` (5 `not_found` per 10 minutes), `calibration:p:<profile id>` (10 per hour), `export:p:<profile id>` (1 per hour), `report:p:<profile id>` (10 per hour). The address is read by `internal.request_ip_key()` (`cf-connecting-ip`, else the last `x-forwarded-for` entry) and only its hash is stored, IPv6 by its /64. The million 6-digit codes can't be walked. Supabase also rate-limits anonymous sign-ins per IP (configurable in the Auth settings).
+
+**member_reports** (M7.1): one row per report of a seat by another seat of the same room: `id`, `room_id`, `reporter_member_id`, `reported_member_id` (both `room_members`, deleted with their room), `reason` (`public.report_reason`: `offensive_name`, `spam`, `other`; no free text), `created_at` and `alerted_at` (null until the health check of M9.5 tells Harry). Unique per reporter and reported seat; a seat can't report itself. It holds ids only, no copy of the name: Harry reads `room_members.display_name` through the service role. Row-level security is on with no policy and no grant, so phones never read it, and nothing is broadcast. Reports stay when a reporter deletes their account (the seat only turns anonymous) and are deleted after 12 months by the retention job. If the reported player deletes their account first, the seat's name is blanked, so Harry can no longer read it from the report.
 
 **ingest_runs**: one row per catalog job run, with counts, errors, a resume cursor and `stats` (requests, 429s, guard trips and agreement, read by the alerts). Kinds: `backfill`, `availability_sweep`, `popularity_daily`, `changes_daily`, `details_weekly`, `details_monthly`, `reference_weekly`, `embeddings`, `moods`.
 
@@ -730,6 +732,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `create_room(mode, country, settings)` | New room with its settings, host seat, code. A refused setting answers `invalid_settings` with the field and creates nothing |
 | `join_room(code, ref, via, link_opened_at)` | Join or rejoin, rate limited; `ref` makes a stale invite link answer `closed` |
 | `room_preview(code, ref)` | What an invite link shows before joining: the host's name and avatar and the player count, never other players; needs the `ref`; read only, rate limited |
+| `report_member(room, member, reason)` | Reports another seat of the room (any unremoved seat, once per pair, 10 per hour per profile); answers `ok` (also for a repeat), `not_in_room` or `rate_limited`; tells nobody else |
 | `touch_room(room)` | Heartbeat every 30 seconds |
 | `leave_room(room)` | Leave, hand over host, re-check matches |
 | `remove_member(room, member)` | Host only: remove a player; they can't rejoin |
@@ -877,6 +880,7 @@ The first release (M5.1) changed the query body after that measurement: it no lo
 | Scheduled Letterboxd syncs | Stop after 12 months without playing; the data stays until one of the above |
 | `import_rows` | Matched rows at once; unmatched after 30 days |
 | `rate_limits` | 1 day |
+| `member_reports` | 12 months |
 | Guest accounts with no activity for 90 days | Deleted with their data |
 
 Training exports carry seat ids, never profile ids, names or Letterboxd usernames.

@@ -8,6 +8,7 @@ import {
   CREATE_ROOM_ANSWERS,
   JOIN_ROOM_ANSWERS,
   ROOM_PREVIEW_ANSWERS,
+  REPORT_MEMBER_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
@@ -16,12 +17,14 @@ import {
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
   type JoinVia,
+  type ReportReason,
 } from '../answers';
 import {
   appConfigSchema,
   createRoomResult,
   joinRoomResult,
   roomPreviewResult,
+  reportMemberResult,
   leaveRoomResult,
   removeMemberResult,
   myProfileRow,
@@ -40,6 +43,7 @@ import {
   type CreateRoomResult,
   type JoinRoomResult,
   type RoomPreviewResult,
+  type ReportMemberResult,
   type LeaveRoomResult,
   type RemoveMemberResult,
   type MyProfile,
@@ -138,6 +142,22 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_code: args.code, p_ref: args.ref },
         ROOM_PREVIEW_ANSWERS,
         roomPreviewResult,
+      );
+    },
+
+    /** Reports another seat of the room. Nobody but the reporter is told. */
+    reportMember(args: {
+      room_id: string;
+      member_id: string;
+      reason: ReportReason;
+    }): Promise<ReportMemberResult> {
+      return callAnswer(
+        client,
+        options,
+        'report_member',
+        { p_room_id: args.room_id, p_member_id: args.member_id, p_reason: args.reason },
+        REPORT_MEMBER_ANSWERS,
+        reportMemberResult,
       );
     },
 
