@@ -27,7 +27,7 @@ It prints every table in [Results](#results) as Markdown, in about 5 minutes (2,
 | --- | --- |
 | `--games 300` | Fewer games per cell: faster, noisier |
 | `--seed 7` | Another seed (default 1). Numbers should move by a point or two, no more |
-| `--only finale` | One section: `headline`, `cards`, `limits`, `finale`, `majority`, `suggested`, `sensitivity` |
+| `--only finale` | One section: `headline`, `cards`, `limits`, `finale`, `majority`, `suggested`, `sensitivity`, `nearmiss` |
 
 The rules and the bots are in [tools/sim/game.mjs](../../tools/sim/game.mjs); the rule sets and tables in [tools/sim/run.mjs](../../tools/sim/run.mjs). To try another value, add a rule set to `RULES` in `run.mjs`, or change a made-up number in `WORLD` in `game.mjs`. Every rule set plays the same groups and decks, so differences between rows come from the rules, not from luck.
 
@@ -366,6 +366,36 @@ Each cell: Final Cut decides, then median / 90th percentile.
 - **The deck matters less than the like rate**: deck skill from 0.25 to 0.75 moves the Final Cut share by 6 to 12 points.
 - **Making fast players wait at the card count** adds up to 10 points of Final Cuts and up to about 20 seconds at the 90th percentile.
 - **Slower and more uneven players** push the 90th percentile past 6 minutes for 6 to 10 players, and the time limit starts to matter. This is the case for keeping a time limit at all.
+
+### Near misses
+
+Added on 3 November 2026 for the near-miss beat ([moments.md](../design/moments.md#the-near-miss)). Near misses don't change the bots' play here (bots don't swipe differently on a near-miss card); these tables count what players would be shown, under the decided values (`suggested`, 40 or 30 cards, 6 minutes). "Sent today" follows `api.cast_vote` as merged: one `near_miss` after every like that leaves a film at 2 likes or more without a match. "Proposed" counts only a film one like short of the match rule and still possible.
+
+**Near misses per game, decided values, low agreement**
+
+| | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Sent today (2 likes or more, no match) | 0.0 | 4.5 | 12.3 | 12.0 | 21.4 | 22.9 | 35.6 | 47.0 | 51.4 |
+| Of those, on a film that can no longer match | n/a | 51% | 67% | 44% | 55% | 41% | 49% | 57% | 45% |
+| Proposed: one like short and still possible | 0.0 | 2.2 | 0.8 | 1.6 | 0.7 | 1.3 | 0.7 | 0.3 | 0.6 |
+| Games with at least one, proposed | 0% | 93% | 56% | 87% | 53% | 80% | 51% | 26% | 50% |
+| Median time of the first, proposed | n/a | 0:42 | 1:08 | 0:54 | 1:12 | 1:00 | 1:16 | 1:23 | 1:17 |
+
+**Near misses per game, decided values, medium agreement**
+
+| | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Sent today (2 likes or more, no match) | 0.0 | 4.3 | 12.8 | 9.9 | 19.9 | 16.8 | 29.0 | 43.2 | 38.4 |
+| Of those, on a film that can no longer match | n/a | 45% | 60% | 36% | 47% | 32% | 40% | 47% | 35% |
+| Proposed: one like short and still possible | 0.0 | 2.4 | 1.4 | 1.9 | 1.4 | 1.8 | 1.4 | 1.0 | 1.4 |
+| Games with at least one, proposed | 0% | 98% | 83% | 98% | 86% | 98% | 89% | 76% | 92% |
+| Median time of the first, proposed | n/a | 0:28 | 0:50 | 0:31 | 0:51 | 0:33 | 0:49 | 1:00 | 0:50 |
+
+- **Today's rule is noisy.** From 4 players, a game sends about 10 to 51 near misses, and a third to two thirds of them are on films a nope has already ruled out. Shown on every phone, that's a toast every few seconds in a big group.
+- **One like short is rare enough to stay special:** about 1 to 2 a game at medium agreement, with at least one in most games, the first within the first minute.
+- **Two players never get one** under either rule: 2 likes is already a match.
+- **Odd and even sizes differ** because 70% rounds up (4 of 5, 5 of 6, 5 of 7, 6 of 8): a size where one more player barely raises the bar leaves more room for "one short".
+- Undo, presence and the deck's close-phase push are left out, as in the rest of the model.
 
 ## What it means for M0.7
 
