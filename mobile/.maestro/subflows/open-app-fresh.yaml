@@ -1,0 +1,7 @@
+# Like open-app.yaml on a fresh install: no guest session, no saved profile.
+appId: com.harryviennot.flimme.dev
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- runFlow: connect-metro.yaml

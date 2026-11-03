@@ -1,0 +1,62 @@
+# Slice 4, first launch: a fresh install reaches Home in three taps with a typed name and a
+# chosen color, and a relaunch goes straight to Home. A blocked name shows its error, which
+# clears at the next edit. Run: `maestro test mobile/.maestro/first-launch.yaml` on a simulator
+# with the development build installed and Metro running (`-e METRO_URL=http://localhost:8096`).
+appId: com.harryviennot.flimme.dev
+env:
+  METRO_URL: http://localhost:8096
+---
+- runFlow: subflows/open-app-fresh.yaml
+
+# Splash hands over to Welcome (fresh install, no profile).
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- assertVisible: '(?i)i have a room code'
+- takeScreenshot: first-launch-1-welcome
+
+# Tap 1: Get started opens the name screen.
+- tapOn: '(?i)get started'
+- assertVisible: '(?i)what should we call you\?'
+- assertVisible: '(?i)your color'
+
+# The blocked name answers name_not_allowed. The field is focused on open.
+- inputText: 'admin'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: "(?i)that name isn't allowed.*"
+    timeout: 15000
+- takeScreenshot: first-launch-2-name-blocked
+
+# The error clears at the next edit.
+- tapOn:
+    id: input-field
+- inputText: 'x'
+- assertNotVisible: "(?i)that name isn't allowed.*"
+
+# A good name and a chosen color. Tap 2: the color. Tap 3: Continue.
+- eraseText: 10
+- inputText: 'Maestro'
+- tapOn: 'Violet'
+- assertVisible: 'Violet, selected'
+- takeScreenshot: first-launch-3-name-filled
+- tapOn: '(?i)continue'
+
+# Home is up, and there is no way back to Welcome. The name is drawn inside the profile button,
+# whose accessibility label hides it from the tree (see the QA report), so the screenshots show it.
+- extendedWaitUntil:
+    visible: 'Edit your name and color'
+    timeout: 15000
+- assertVisible: '(?i)open a room'
+- assertVisible: '(?i)join'
+- assertNotVisible: '(?i)get started'
+- takeScreenshot: first-launch-4-home
+
+# Relaunch with the named profile: straight to Home.
+- runFlow: subflows/open-app.yaml
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 30000
+- assertVisible: 'Edit your name and color'
+- assertNotVisible: '(?i)get started'
+- takeScreenshot: first-launch-5-relaunch

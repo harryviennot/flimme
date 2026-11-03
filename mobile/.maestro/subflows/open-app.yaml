@@ -1,0 +1,7 @@
+# Starts the app (keeping its data), connects the development build to Metro and closes the
+# developer menu if it shows. `METRO_URL` comes from the flow that runs this one.
+appId: com.harryviennot.flimme.dev
+---
+- launchApp:
+    stopApp: true
+- runFlow: connect-metro.yaml
