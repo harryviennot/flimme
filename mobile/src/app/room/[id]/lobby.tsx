@@ -105,16 +105,21 @@ export default function RoomLobbyScreen() {
   // A refusal answers the host's tap: focus returns to Start, whose hint becomes the new line.
   const tooFewLine = (count: number) =>
     count === 0 ? t('start.tooFewNone') : t('start.tooFew', { count });
-  const refused = (message: string) => {
-    if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(message);
+  // `refused` only notes the line; the effect below runs after React has drawn it (the new hint).
+  const [refusedLine, setRefusedLine] = useState<{ text: string } | null>(null);
+  const refused = (text: string) => setRefusedLine({ text });
+  useEffect(() => {
+    if (!refusedLine) return;
+    if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(refusedLine.text);
     const node = startButton.current ? findNodeHandle(startButton.current) : null;
     if (node) AccessibilityInfo.setAccessibilityFocus(node);
-  };
+  }, [refusedLine]);
 
   // The deck worker found too few after a `dealing` answer: only the host's line learns the count.
   useRoomEvent(id, 'state_changed', (payload) => {
     const eligible = tooFewFromEvent(payload);
-    if (eligible === null || !isHost) return;
+    // While the host's own Start is in flight its answer says the same: one buzz, one announcement.
+    if (eligible === null || !isHost || busy.current) return;
     setTooFew(eligible);
     haptics.error();
     refused(tooFewLine(eligible));

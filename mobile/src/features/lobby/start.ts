@@ -42,7 +42,9 @@ export async function runStart(startGame: () => Promise<StartGameResult>): Promi
 export function tooFewFromEvent(payload: unknown): number | null {
   if (typeof payload !== 'object' || payload === null) return null;
   const { reason, eligible } = payload as { reason?: unknown; eligible?: unknown };
-  return reason === 'too_few_films' && typeof eligible === 'number' ? eligible : null;
+  return reason === 'too_few_films' && Number.isInteger(eligible) && (eligible as number) >= 0
+    ? (eligible as number)
+    : null;
 }
 
 /**

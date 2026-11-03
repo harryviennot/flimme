@@ -46,6 +46,8 @@ describe('tooFewFromEvent', () => {
   it('ignores every other state change and malformed payloads', () => {
     expect(tooFewFromEvent({ state: 'swiping' })).toBeNull();
     expect(tooFewFromEvent({ state: 'lobby', reason: 'too_few_films' })).toBeNull();
+    expect(tooFewFromEvent({ state: 'lobby', reason: 'too_few_films', eligible: -1 })).toBeNull();
+    expect(tooFewFromEvent({ state: 'lobby', reason: 'too_few_films', eligible: 2.5 })).toBeNull();
     expect(tooFewFromEvent(null)).toBeNull();
     expect(tooFewFromEvent('lobby')).toBeNull();
   });
