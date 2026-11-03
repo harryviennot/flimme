@@ -313,7 +313,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: the findings are written in app-structure.md, and Uniwind is confirmed (or NativeWind 4.2.7 chosen) in decisions.md.
 - [x] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
   Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
-- [ ] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
+- [x] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: the gallery's motion section plays each spring and haptic on a phone.
 - [x] **M3.15** The app shell: providers, fonts, the error screen, every route stubbed, the room layout, the dev menu · app · M · needs M3.4 · [groundwork](../architecture/groundwork.md#the-app-shell)
   Done when: every first-release route and `/room/[id]/services` opens, and the dev menu switches between the local and staging backends.
