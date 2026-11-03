@@ -255,8 +255,8 @@ erDiagram
 | id | uuid PK | Equal to the auth user id at launch |
 | auth_user_id | uuid unique | Supabase auth user. Linking Apple or Google keeps the same id, so a guest keeps their history |
 | managed_by | uuid | Null at launch. Later, the parent of a kid profile. Exactly one of auth_user_id and managed_by is set |
-| display_name | text | Up to 24 characters, set with `api.update_profile`. Required to create or join a room |
-| avatar_key | text | A preset avatar, never a photo |
+| display_name | text | 1 to 24 characters after normalising (NFKC, invisible and direction characters removed, spaces collapsed), not on the English and French blocklist (`internal.name_blocklist`), set with `api.update_profile`. Required to create or join a room |
+| avatar_key | text | A preset avatar, never a photo: `blue, green, gold, red, violet, teal`, or `default` for a new guest. A check constraint enforces it |
 | country | char(2) | Default room country when this player hosts |
 | language | text | Language for titles and overviews on cards |
 | created_at, updated_at, last_seen_at | timestamptz | |
