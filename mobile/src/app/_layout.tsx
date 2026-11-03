@@ -24,7 +24,7 @@ initSentry();
 
 // A link opens the join sheet on a cold start with `/` underneath: it redirects to Home or
 // Welcome once the sheet closes, so closing always lands somewhere sensible (join-sheet.md).
-export const unstable_settings = { initialRouteName: 'index' };
+export const unstable_settings = { anchor: 'index' };
 
 function RootLayout() {
   // Fonts are embedded at build time (the expo-font plugin): the first frame has them, so the

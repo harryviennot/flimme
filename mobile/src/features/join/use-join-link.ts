@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { router, useRootNavigationState } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '@/api';
@@ -10,6 +10,7 @@ import { startSession, useSession, useSessionFailed } from '@/features/session';
 import { haptics } from '@/lib/haptics';
 
 import { linkOpenedAt, takeLinkReceivedAt } from './link-received';
+import { roomEntry, type RootRoute } from './enter-room';
 import { parseInviteLink, roomRouteFor } from './link';
 import { STARTING_RETRIES, STARTING_RETRY_MS, type JoinMessage } from './rows';
 import { JOIN_SHEET_ROWS, type SheetRow } from './sheet-rows';
@@ -59,8 +60,12 @@ export function useJoinLink(params: Params) {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const waitingOnline = useRef(false);
   const onlineRef = useRef(online);
+  // The root stack's routes now, read when the answer comes in (a call can outlive renders).
+  const rootRoutes = useRef<readonly RootRoute[]>([]);
+  const navigationState = useRootNavigationState();
   useEffect(() => {
     onlineRef.current = online;
+    rootRoutes.current = navigationState?.routes ?? [];
   });
 
   const refuse = useCallback((state: keyof typeof JOIN_SHEET_ROWS, params?: { max: number }) => {
@@ -102,7 +107,7 @@ export function useJoinLink(params: Params) {
         return;
       }
       if (result.status === 'ok') {
-        router.replace(roomRouteFor(result.room_id, result.state) as never);
+        enterRoom(roomRouteFor(result.room_id, result.state), result.room_id, rootRoutes.current);
         return;
       }
       if (result.status === 'name_required') {
@@ -223,6 +228,19 @@ export function useJoinLink(params: Params) {
     clearNameError: () => setNameError(null),
     code: code ?? (typeof params.code === 'string' ? params.code : ''),
   };
+}
+
+/** Leaves the sheet for the room without ever stacking room screens (see `roomEntry`). */
+function enterRoom(path: string, roomId: string, routes: readonly RootRoute[]) {
+  const entry = roomEntry(routes, roomId);
+  if (entry === 'dismissTo') {
+    router.dismissTo(path as never);
+  } else if (entry === 'reset') {
+    router.dismissAll();
+    router.replace(path as never);
+  } else {
+    router.replace(path as never);
+  }
 }
 
 function refusedView(state: keyof typeof JOIN_SHEET_ROWS, params?: { max: number }): LinkView {
