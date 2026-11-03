@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 59 of 245 tasks done.
+Progress: 58 of 245 tasks done.
 
 ```mermaid
 flowchart LR
@@ -336,7 +336,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a room is created with its settings in one call.
 - [ ] **M4.5** The host role passes to the longest-seated present player when the host leaves · backend · M · needs M1.5 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
   Done when: tested with an absent player who joined earlier.
-- [ ] **M4.6** First launch: splash, welcome, launch routing, country and language from the device, connectivity · app · M · needs M3.4, M3.6, M3.8, M3.13, M3.15 · [onboarding](onboarding.md#first-launch)
+- [x] **M4.6** First launch: splash, welcome, launch routing, country and language from the device, connectivity · app · M · needs M3.4, M3.6, M3.8, M3.13, M3.15 · [onboarding](onboarding.md#first-launch)
   Done when: a fresh install lands on Welcome and a named profile lands on Home; the profile has the device's country and language.
 - [ ] **M4.7** Home: host a movie night, join with a code · app · S · needs M4.6 · [onboarding](onboarding.md#the-paths-at-a-glance)
   Done when: both buttons lead to their flows.
