@@ -44,6 +44,14 @@ async def test_the_worker_uses_four_connections_one_of_them_for_reading(
         await db.close()
 
 
+async def test_a_process_without_a_reader_can_size_its_pool_exactly(pipeline_url: SecretStr):
+    db = await open_database(pipeline_url, pool_size=9)
+    try:
+        assert db.pool_size == 9
+    finally:
+        await db.close()
+
+
 async def test_the_login_is_the_pipeline_user_not_a_superuser(pipeline_url: SecretStr):
     db = await open_database(pipeline_url)
     try:
