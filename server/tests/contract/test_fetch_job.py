@@ -6,6 +6,7 @@ every test works with invented ids (movies 60,000,010 up, services 60,000,201 up
 """
 
 import copy
+import dataclasses
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -16,7 +17,7 @@ from pydantic import SecretStr
 from tests.conftest import FakeTime, FixtureTransport, fixture_json
 from tests.contract.conftest import open_database
 
-from server.catalog.fetch import run_fetch
+from server.catalog.fetch import CreditRow, _write, build_film_rows, load_context, run_fetch
 from server.catalog.tmdb import TmdbClient, TmdbRetryLater
 from server.db.payloads import FetchMessage
 from server.db.pool import Database
@@ -545,3 +546,23 @@ async def test_a_message_keeps_the_films_that_pass_and_drops_the_ones_that_do_no
 
     assert await stored(restore, MOVIE) == [(True, 1250)]
     assert await stored(restore, other) == []
+
+
+async def test_a_write_that_fails_halfway_rolls_back_the_whole_film(
+    database: Database, restore: AsyncConnection
+):
+    context = await load_context(database, [MOVIE])
+    film = build_film_rows(fixture_json("tmdb/movie_full_60000010.json"), context)
+    # The last statements of the write fail on a credit for a person nobody stored; the film,
+    # its keywords and the people sent before it must not stay.
+    broken = dataclasses.replace(
+        film, credits=(*film.credits, CreditRow(97_999_999, "cast", None, 99))
+    )
+
+    with pytest.raises(Exception, match="foreign key|violates"):
+        async with database.connection() as conn, conn.transaction():
+            await _write(conn, broken)
+
+    assert await rows(restore, "select 1 from public.titles where tmdb_id = %s", MOVIE) == []
+    assert await rows(restore, "select 1 from public.keywords where id >= 98000000") == []
+    assert await rows(restore, "select 1 from public.people where id >= 97000000") == []
