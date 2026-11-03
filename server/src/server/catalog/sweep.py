@@ -22,8 +22,9 @@ Two kinds of message, both safe to run twice:
 "Completely" means every page of every query was read. A page that fails escapes as an
 exception and the message comes back: nothing has been written by then, so a sweep that
 stopped midway changes nothing. A query with more than 500 pages (TMDB serves no more) is
-split by release year; a year that is still over 500 pages cannot be read completely, which
-counts as an error and writes nothing.
+split by release year (films with no release date are not returned by a split query); a year
+that is still over 500 pages cannot be read completely, which counts as an error and writes
+nothing.
 
 How long a step takes: a service has at most a few tens of thousands of films with 30 votes,
 so a step makes a few thousand requests at the worst (20 pages of 20 films per 400 films, and
@@ -197,7 +198,7 @@ async def run_sweep(
         await _record(database, message, {"sweeps_skipped": 1})
         return Done()
 
-    last_year = (today or datetime.now(UTC).date()).year
+    last_year = (today or datetime.now(UTC).date()).year + 1  # a film dated next year
     try:
         seen = await collect(tmdb, message.country, message.provider_id, last_year)
     except SweepIncomplete as error:
@@ -242,7 +243,6 @@ async def _write(
             cur = await conn.execute(queries.load("known_tmdb_ids_among"), (chunk,))
             known |= {r[0] for r in await cur.fetchall()}
 
-    touched: set[int] = set()
     added = 0
     for chunk in batches(pairs, WRITE_CHUNK):
         async with database.connection() as conn:
@@ -255,12 +255,12 @@ async def _write(
                     "kinds": [kind for _, kind in chunk],
                 },
             )
-            for title_id, inserted in await cur.fetchall():
-                if inserted:
-                    added += 1
-                    touched.add(title_id)
+            added += sum(1 for _, inserted in await cur.fetchall() if inserted)
     stats["rows_added"] = added
 
+    # The delete and the tiers of the films it touched commit together, so a step that comes
+    # back after a crash cannot find the offers gone and the tiers still wrong.
+    tiers_changed = 0
     async with database.connection() as conn, conn.transaction():
         cur = await conn.execute(
             queries.load("stale_availability_count"), (country, provider, started_at)
@@ -268,7 +268,8 @@ async def _write(
         row = await cur.fetchone()
         assert row is not None
         stale: int = row[0]
-        deleted = 0
+        deleted: set[int] = set()
+        deleted_rows = 0
         if refuses(stale, before):
             log.error(
                 "sweep guard tripped run=%s country=%s provider=%s refused_rows=%s of=%s",
@@ -285,21 +286,34 @@ async def _write(
                 queries.load("delete_stale_availability"), (country, provider, started_at)
             )
             gone = await cur.fetchall()
-            deleted = len(gone)
-            touched |= {r[0] for r in gone}
-    stats["rows_deleted"] = deleted
+            deleted_rows = len(gone)
+            deleted = {r[0] for r in gone}
+            cur = await conn.execute(queries.load("refresh_tiers"), (sorted(deleted),))
+            tiers_changed += cur.rowcount
+    stats["rows_deleted"] = deleted_rows
 
-    tiers_changed = 0
-    for chunk in batches(sorted(touched), WRITE_CHUNK):
+    # Every film seen, not only the new offers: it only writes tiers that are wrong, so it
+    # also mends a step that was cut short before this point.
+    touched = len(deleted | set(await _title_ids(database, all_ids)))
+    for chunk in batches(all_ids, WRITE_CHUNK):
         async with database.connection() as conn:
-            cur = await conn.execute(queries.load("refresh_tiers"), (chunk,))
+            cur = await conn.execute(queries.load("refresh_tiers_by_tmdb_id"), (chunk,))
             tiers_changed += cur.rowcount
     stats["tiers_changed"] = tiers_changed
 
     stats["films_queued"] = await _queue_unknown(
         database, message.run_id, [film for film in all_ids if film not in known]
     )
-    return _Written(stats, len(touched))
+    return _Written(stats, touched)
+
+
+async def _title_ids(database: Database, tmdb_ids: Sequence[int]) -> list[int]:
+    found: list[int] = []
+    for chunk in batches(list(tmdb_ids), WRITE_CHUNK):
+        async with database.connection() as conn:
+            cur = await conn.execute(queries.load("title_ids_among"), (chunk,))
+            found += [r[0] for r in await cur.fetchall()]
+    return found
 
 
 async def _queue_unknown(database: Database, run_id: int, unknown: Sequence[int]) -> int:

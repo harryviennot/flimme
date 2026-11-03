@@ -456,3 +456,17 @@ async def test_the_job_opens_a_run_and_sends_one_step_per_country_and_swept_serv
     assert 60000104 not in providers
     assert cursor["done"] == []
     assert not (await run_stats(admin, run_id))["_finished"]
+
+
+async def test_a_step_that_comes_back_after_a_crash_mends_the_tiers(
+    database: Database, restore: AsyncConnection, fake_time: FakeTime
+):
+    # The first attempt added the offer and died before the tiers were redone: the film is
+    # still tier 2 although it has an offer, and the offer is no longer new.
+    (gained,) = await add_films(restore, 1, tier=2)
+    run_id = await open_run(restore, steps=2)
+    await add_offers(restore, [gained], days_old=0)
+
+    await sweep(database, fake_time, run_id, {"flatrate": [gained]})
+
+    assert (await tiers(restore))[gained] == 1
