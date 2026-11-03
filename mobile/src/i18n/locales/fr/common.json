@@ -48,7 +48,9 @@
     "stars": "★ {{rating}}"
   },
   "ticket": {
-    "roomCode": "Code de la salle"
+    "roomCode": "Code de la salle",
+    "locked": "Verrouillée",
+    "lockedA11y": "Salle verrouillée"
   },
   "services": {
     "tapToAdd": "Ajouter",

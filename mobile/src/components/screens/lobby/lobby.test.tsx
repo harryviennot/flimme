@@ -12,6 +12,7 @@ import RoomLobbyScreen from '@/app/room/[id]/lobby';
 import { RoomLeaveGuard } from '@/components/screens/room/leave-guard';
 import RoomReportSheet from '@/app/room/[id]/report/[memberId]';
 import RoomSeatSheet from '@/app/room/[id]/seat/[memberId]';
+import RoomInviteScreen from '@/app/room/[id]/invite';
 import RoomServicesScreen from '@/app/room/[id]/services';
 import { showToast } from '@/components/ui/toast';
 import { leaveRoom } from '@/features/room/leave';
@@ -28,6 +29,8 @@ jest.mock('@/api', () => ({
     setMyProviders: jest.fn(),
     setSeatPrefs: jest.fn(),
     reportMember: jest.fn(),
+    removeMember: jest.fn(),
+    setRoomLocked: jest.fn(),
   },
 }));
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
@@ -39,6 +42,7 @@ jest.mock('@/lib/haptics', () => ({ haptics: { error: jest.fn(), press: jest.fn(
 jest.mock('@/components/ui/toast', () => ({ showToast: jest.fn() }));
 jest.mock('@/features/room/leave', () => ({ leaveRoom: jest.fn() }));
 jest.mock('@/features/invite/invite-link', () => ({
+  displayLink: (link: string) => link.replace('https://', ''),
   useInvite: () => ({
     state: 'ready',
     link: 'https://x/join/482913',
@@ -96,7 +100,9 @@ type ApiName =
   | 'startGame'
   | 'setMyProviders'
   | 'setSeatPrefs'
-  | 'reportMember';
+  | 'reportMember'
+  | 'removeMember'
+  | 'setRoomLocked';
 const mockApi = api as unknown as Record<ApiName, M>;
 const mockRouter = router as unknown as Record<string, M>;
 
@@ -121,6 +127,7 @@ const gone = seat('d', 'Max', '04', { left_at: '2026-11-03T10:09:00Z' });
 
 let mockSeats: unknown[] = [];
 let mockState = 'lobby';
+let mockLocked = false;
 const providers = [
   { provider_id: 8, name: 'Netflix', logo_path: null, display_priority: 1 },
   { provider_id: 337, name: 'Disney+', logo_path: null, display_priority: 2 },
@@ -159,6 +166,7 @@ beforeEach(() => {
   mockLive.banner = null;
   mockLive.fresh = true;
   mockState = 'lobby';
+  mockLocked = false;
   mockSeats = [lea, sam, jo, gone];
   mockApi.room.mockImplementation(async () => ({
     id: 'r1',
@@ -168,11 +176,14 @@ beforeEach(() => {
     country: 'FR',
     max_players: 10,
     provider_ids: [8, 337],
+    locked: mockLocked,
   }));
   mockApi.roomSeats.mockImplementation(async () => mockSeats);
   mockApi.countryProviders.mockResolvedValue(providers);
   mockApi.gameModes.mockResolvedValue([{ slug: 'quick_match', min_players: 2 }]);
   mockApi.startGame.mockResolvedValue({ status: 'ok' });
+  mockApi.removeMember.mockResolvedValue({ status: 'ok' });
+  mockApi.setRoomLocked.mockResolvedValue({ status: 'ok', locked: true });
   mockApi.setMyProviders.mockResolvedValue({ status: 'ok' });
   mockApi.setSeatPrefs.mockResolvedValue({ status: 'ok' });
   (leaveRoom as unknown as M).mockResolvedValue({ status: 'ok' });
@@ -708,5 +719,173 @@ describe('the report sheet', () => {
     await fireEvent.press(screen.getByRole('radio', { name: 'Something else' }));
     expect(send()).toBeDisabled();
     expect(screen.getByText("You're offline. Your report wasn't sent.")).toBeTruthy();
+  });
+});
+
+describe("Remove, on the host's seat sheet", () => {
+  const alertButtons = () =>
+    (Alert.alert as unknown as M).mock.calls[0][2] as { text: string; onPress?: () => void }[];
+  const open = async () => {
+    mockMemberId = 'b';
+    await render(<RoomSeatSheet />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText('Sam')).toBeTruthy());
+  };
+  beforeEach(() => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+  });
+
+  it('sits above Report for the host', async () => {
+    await open();
+    expect(screen.getByRole('button', { name: 'Remove Sam from the room' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Report Sam' })).toBeTruthy();
+  });
+
+  it('asks first, naming the player; Cancel calls nothing', async () => {
+    await open();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove Sam from the room' }));
+    const args = (Alert.alert as unknown as M).mock.calls[0];
+    expect(args[0]).toBe('Remove Sam?');
+    expect(args[1]).toBe("Sam won't be able to come back to this room.");
+    expect(alertButtons().map((b) => b.text)).toEqual(['Cancel', 'Remove']);
+    expect(mockApi.removeMember).not.toHaveBeenCalled();
+  });
+
+  it('calls removeMember once on Confirm, then closes the sheet', async () => {
+    await open();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove Sam from the room' }));
+    await act(async () => {
+      alertButtons()[1]?.onPress?.();
+      alertButtons()[1]?.onPress?.();
+    });
+    expect(mockApi.removeMember).toHaveBeenCalledTimes(1);
+    expect(mockApi.removeMember).toHaveBeenCalledWith({ room_id: 'r1', member_id: 'b' });
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('warns and stays when the call fails', async () => {
+    mockApi.removeMember.mockRejectedValue(new Error('down'));
+    await open();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove Sam from the room' }));
+    await act(async () => {
+      alertButtons()[1]?.onPress?.();
+    });
+    expect(showToast).toHaveBeenCalledWith({
+      tone: 'warn',
+      title: "We couldn't remove this player. Try again.",
+    });
+    expect(mockRouter.back).not.toHaveBeenCalled();
+  });
+
+  it('is disabled offline', async () => {
+    mockOnline = false;
+    await open();
+    expect(screen.getByRole('button', { name: 'Remove Sam from the room' })).toBeDisabled();
+  });
+
+  it('appears when the crown moves to this phone', async () => {
+    mockSeats = [{ ...lea, is_me: false }, { ...sam, is_me: true }, jo];
+    mockMemberId = 'c';
+    await render(<RoomSeatSheet />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText('Jo')).toBeTruthy());
+    expect(screen.queryByText('Remove from room')).toBeNull();
+    mockSeats = [
+      { ...lea, is_me: false, role: 'guest' },
+      { ...sam, is_me: true, role: 'host' },
+      jo,
+    ];
+    await act(async () => {
+      await client.invalidateQueries();
+    });
+    await waitFor(() => expect(screen.getByText('Remove from room')).toBeTruthy());
+  });
+});
+
+describe('Lock room, in the lobby', () => {
+  it('shows the host a switch that asks for the opposite of the room', async () => {
+    await show();
+    const lock = await screen.findByRole('switch', { name: 'Lock the room' });
+    await fireEvent.press(lock);
+    expect(mockApi.setRoomLocked).toHaveBeenCalledWith({ room_id: 'r1', locked: true });
+  });
+
+  it('asks to unlock a locked room', async () => {
+    mockLocked = true;
+    await show();
+    const lock = await screen.findByRole('switch', { name: 'Lock the room' });
+    await waitFor(() => expect(lock.props.accessibilityState.checked).toBe(true));
+    await fireEvent.press(lock);
+    expect(mockApi.setRoomLocked).toHaveBeenCalledWith({ room_id: 'r1', locked: false });
+  });
+
+  it('never shows a guest the switch', async () => {
+    mockSeats = [{ ...lea, is_me: false }, { ...sam, is_me: true }, jo];
+    await show();
+    await screen.findByText('In the room');
+    expect(screen.queryByRole('switch')).toBeNull();
+  });
+
+  it('warns and flips back when the call fails', async () => {
+    mockApi.setRoomLocked.mockRejectedValue(new Error('down'));
+    await show();
+    const lock = await screen.findByRole('switch', { name: 'Lock the room' });
+    await fireEvent.press(lock);
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        tone: 'warn',
+        title: "We couldn't change the lock. Try again.",
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('switch', { name: 'Lock the room' }).props.accessibilityState.checked,
+      ).toBe(false),
+    );
+  });
+
+  it('is disabled offline', async () => {
+    mockOnline = false;
+    await show();
+    expect(await screen.findByRole('switch', { name: 'Lock the room' })).toBeDisabled();
+  });
+
+  it('shows every player the locked tag', async () => {
+    mockLocked = true;
+    mockSeats = [{ ...lea, is_me: false }, { ...sam, is_me: true }, jo];
+    await show();
+    expect(await screen.findByText('Locked')).toBeTruthy();
+  });
+
+  it('shows no tag on an open room', async () => {
+    await show();
+    await screen.findByText('In the room');
+    expect(screen.queryByText('Locked')).toBeNull();
+  });
+});
+
+describe('the invite sheet, locked', () => {
+  const open = async () => {
+    await render(<RoomInviteScreen />, { wrapper: Providers });
+  };
+
+  it('says it is locked and lets the host unlock', async () => {
+    mockLocked = true;
+    await open();
+    expect(await screen.findByText('The room is locked: nobody new can join.')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Unlock' }));
+    expect(mockApi.setRoomLocked).toHaveBeenCalledWith({ room_id: 'r1', locked: false });
+  });
+
+  it('tells a guest to ask the host, with no Unlock', async () => {
+    mockLocked = true;
+    mockSeats = [{ ...lea, is_me: false }, { ...sam, is_me: true }, jo];
+    await open();
+    expect(await screen.findByText('The room is locked. Ask the host to unlock it.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Unlock' })).toBeNull();
+  });
+
+  it('keeps its usual helper on an open room', async () => {
+    await open();
+    expect(await screen.findByText('Anyone with the link can join this room.')).toBeTruthy();
   });
 });
