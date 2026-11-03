@@ -336,7 +336,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a room is created with its settings in one call.
 - [ ] **M4.5** The host role passes to the longest-seated present player when the host leaves · backend · M · needs M1.5 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
   Done when: tested with an absent player who joined earlier.
-- [x] **M4.6** First launch: splash, welcome, launch routing, country and language from the device, connectivity · app · M · needs M3.4, M3.6, M3.8, M3.13, M3.15 · [onboarding](onboarding.md#first-launch)
+- [ ] **M4.6** First launch: splash, welcome, launch routing, country and language from the device, connectivity · app · M · needs M3.4, M3.6, M3.8, M3.13, M3.15 · [onboarding](onboarding.md#first-launch)
   Done when: a fresh install lands on Welcome and a named profile lands on Home; the profile has the device's country and language.
 - [ ] **M4.7** Home: host a movie night, join with a code · app · S · needs M4.6 · [onboarding](onboarding.md#the-paths-at-a-glance)
   Done when: both buttons lead to their flows.
@@ -358,7 +358,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: tested from a cold start on both platforms.
 - [ ] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · M · needs M4.1, M3.6, M1.17 · [groundwork](../architecture/groundwork.md#the-local-environment)
   Done when: `mise run bots` fills a local room with three present players.
-- [x] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
+- [ ] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
   Done when: Home is three taps from a fresh install.
 
 ## M5 Basic deck

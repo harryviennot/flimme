@@ -1,6 +1,7 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 import fontList from './src/theme/fonts.json';
+import splash from './src/theme/splash.json';
 
 type Variant = 'development' | 'preview' | 'production';
 
@@ -107,8 +108,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           // the Figma's size; Android 12 and later keep only a 192 dp circle of the icon, so it's
           // smaller there. The hand-off view draws it at the same size on each platform.
           image: './assets/images/splash-icon.png',
-          imageWidth: 354,
-          android: { imageWidth: 200 },
+          imageWidth: splash.logoWidth.ios,
+          android: { imageWidth: splash.logoWidth.android },
         },
       ],
       // Sounds only play; the app never records, on either platform.

@@ -1,6 +1,38 @@
 import '@/i18n';
 
-import { renderRouter, screen } from 'expo-router/testing-library';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import type { ReactNode } from 'react';
+
+// What the screens of wave 2 reach for: the api, the guest session, the connection and the
+// on-device store. M4.17 and M4.7 add their own answers to these mocks.
+jest.mock('@/api', () => ({
+  api: {
+    myProfile: jest.fn(async () => ({
+      id: 'u1',
+      display_name: '',
+      avatar_key: 'default',
+      country: 'FR',
+      language: 'en',
+      created_at: '2026-11-03T00:00:00Z',
+    })),
+    updateProfile: jest.fn(async () => ({ status: 'ok' })),
+  },
+}));
+jest.mock('@/features/session', () => ({
+  startSession: jest.fn(async () => ({ status: 'ok', userId: 'u1', isNew: true })),
+  useSession: () => ({ status: 'ok', userId: 'u1', isNew: true }),
+  useSessionFailed: () => false,
+}));
+jest.mock('@/features/network', () => ({ useOnline: () => true, watchNetwork: jest.fn() }));
+jest.mock('@/lib/storage', () => ({
+  storage: { getItemSync: () => null, setItemSync: jest.fn() },
+}));
+
+function Providers({ children }: { children: ReactNode }) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+}
 
 jest.mock('@/lib/sound', () => ({ setSoundEnabled: jest.fn(), playSound: jest.fn() }));
 jest.mock('expo-haptics', () => ({
@@ -57,13 +89,13 @@ const paths = [
 
 describe('routes', () => {
   it.each(paths)('%s opens', async (path) => {
-    await renderRouter(routes, { initialUrl: path });
+    await renderRouter(routes, { initialUrl: path, wrapper: Providers });
     expect(screen).toHavePathname(path);
     expect(screen.queryByText(/unmatched route/i)).toBeNull();
   });
 
-  it('sends the root to the welcome screen', async () => {
-    await renderRouter(routes, { initialUrl: '/' });
-    expect(screen).toHavePathname('/welcome');
+  it('sends a fresh install from the root to the welcome screen', async () => {
+    await renderRouter(routes, { initialUrl: '/', wrapper: Providers });
+    await waitFor(() => expect(screen).toHavePathname('/welcome'));
   });
 });

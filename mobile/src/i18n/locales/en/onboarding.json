@@ -1,9 +1,30 @@
 {
   "splash": {
+    "tagline": "Swipe together · Watch tonight",
+    "slow": "Lighting up the marquee…",
+    "offline": {
+      "title": "You're offline",
+      "body": "Flimme needs a connection to start."
+    },
+    "signInFailed": {
+      "title": "We couldn't get you started",
+      "body": "Try again in a minute."
+    },
     "update": {
       "title": "Time for an update",
       "body": "Update Flimme to keep playing.",
       "action": "Update"
     }
+  },
+  "welcome": {
+    "title": "Pick tonight's movie together",
+    "body": "Everyone swipes on films you can actually stream. When you all say yes, the lights go up.",
+    "promises": {
+      "room": "Up to 10 friends in one room, no account needed",
+      "services": "Only films on the services you have",
+      "seen": "No films you've seen, unless you want a rewatch"
+    },
+    "start": "Get started",
+    "haveCode": "I have a room code"
   }
 }

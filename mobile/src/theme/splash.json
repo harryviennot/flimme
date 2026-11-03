@@ -1,0 +1,5 @@
+{
+  "$description": "The logo's width on the native splash, in points (splash.md#the-logo). app.config.ts gives it to expo-splash-screen and the hand-off view draws the logo at the same width, so the switch from one to the other is invisible. Android 12 and later keep only a 192 dp circle of a splash icon, so the logo is smaller there.",
+  "logoWidth": { "ios": 354, "android": 200 },
+  "logoViewBox": { "width": 354, "height": 188 }
+}

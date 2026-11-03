@@ -1,9 +1,30 @@
 {
   "splash": {
+    "tagline": "On swipe ensemble · On regarde ce soir",
+    "slow": "On allume la marquise…",
+    "offline": {
+      "title": "Tu es hors ligne",
+      "body": "Flimme a besoin d'une connexion pour démarrer."
+    },
+    "signInFailed": {
+      "title": "Impossible de démarrer",
+      "body": "Réessaie dans une minute."
+    },
     "update": {
       "title": "Une mise à jour t'attend",
       "body": "Mets Flimme à jour pour continuer à jouer.",
       "action": "Mettre à jour"
     }
+  },
+  "welcome": {
+    "title": "Le film du soir, choisi ensemble",
+    "body": "Chacun swipe des films que vous pouvez vraiment regarder. Quand tout le monde dit oui, les lumières s'allument.",
+    "promises": {
+      "room": "Jusqu'à 10 amis dans une salle, sans compte",
+      "services": "Seulement des films sur vos plateformes",
+      "seen": "Pas de déjà-vu, sauf si vous voulez le revoir"
+    },
+    "start": "C'est parti",
+    "haveCode": "J'ai un code de salle"
   }
 }
