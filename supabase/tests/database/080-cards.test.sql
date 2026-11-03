@@ -1,6 +1,6 @@
 -- The cards a phone renders: my_next_cards and title_cards
--- (data-model.md#the-apps-api). Cards are checked by key, never whole, because
--- the payload changes in roadmap task M5.6. C6 is beyond the 120 checks of
+-- (data-model.md#the-apps-api). Cards are checked by key, never whole
+-- (the payload grew in M5.6; title_cards is scoped to a room since M5.9). C6 is beyond the 120 checks of
 -- data-model.md#what-was-tested.
 
 begin;
