@@ -1,6 +1,6 @@
 # Lobby
 
-Screen 08 in the Figma (`15:607`). Route `/room/[id]/lobby`, under the room layout (`/room/[id]/_layout.tsx`). Built in M4.11 on the room layout from M4.10, with the host passing on from M4.5. Written on 30 October 2026 from [the lobby](../../product/onboarding.md#the-lobby), [realtime](../../architecture/app-structure.md#realtime), [who counts](../../product/game-modes.md#who-counts-presence-joining-and-leaving), [the room's lobby flow](../../architecture/data-model.md#lobby) and [room codes and the host](../../architecture/security.md#room-codes-joining-and-the-host). Connection states are in [Reconnecting](reconnecting.md).
+Screen 08 in the Figma (`15:607`). Route `/room/[id]/lobby`, under the room layout (`/room/[id]/_layout.tsx`). Built in M4.11 on the room layout (M4.10) and its Realtime (M4.21), with the host passing on from M4.5. Written on 30 October 2026 and updated on 3 November 2026 (slice 7's answers) from [the lobby](../../product/onboarding.md#the-lobby), [realtime](../../architecture/app-structure.md#realtime), [who counts](../../product/game-modes.md#who-counts-presence-joining-and-leaving), [the room's lobby flow](../../architecture/data-model.md#lobby) and [room codes and the host](../../architecture/security.md#room-codes-joining-and-the-host). Connection states are in [Reconnecting](reconnecting.md).
 
 ## Purpose
 
@@ -8,29 +8,42 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 
 ## Layout
 
-`Screen` with `scroll`. Header: `TopBar` with back (leave, below), title `lobby:topBar`, and the action `share` (`lobby:a11y.invite`), which opens the [invite sheet](invite-sheet.md).
+`Screen` with `scroll`. Header: `TopBar` with back (leave, below), title `lobby:topBar`, and the action `share` (`lobby:a11y.invite`), which opens the [invite sheet](invite-sheet.md). Right under the `TopBar`, the `RoomBanner` ([Reconnecting](reconnecting.md#layout)).
 
-1. **`RoomTicket`**: the code, left detail `lobby:ticket.players` (present seats of the room's maximum), right detail `lobby:ticket.host`.
+1. **`RoomTicket`**: the code, left detail `lobby:ticket.players` (the [present](#present-and-away) seats of the room's maximum), right detail `lobby:ticket.host`.
 2. **Two buttons** in a row, each half the width: `Button` secondary S, icon `link`, `lobby:shareLink` (the system share sheet straight away, with the [invite sheet's](invite-sheet.md) message); `Button` secondary S, icon `qr`, `lobby:showQr` (the invite sheet).
 3. **The rules line**, `body-s` tone `secondary`: `lobby:rules.quickMatch`. For guests who didn't choose the mode; everyone sees it.
-4. **Eyebrow** `lobby:inTheRoom`, then **the seats** in one `bg-bg-surface` group with a `border-border-default` hairline and `rounded-lg`, one `SeatRow` per seat (new, `screens/lobby/seat-row.tsx`, spec below), in join order.
-5. **The room's services**, `body-s` tone `muted`: `lobby:roomServices`, from `api.rooms.provider_ids`, listed with `Intl.ListFormat`.
+4. **Eyebrow** `lobby:inTheRoom`, then **the seats** in one `bg-bg-surface` group with a `border-border-default` hairline and `rounded-lg`, one `SeatRow` per seat with `left_at` null (`api.roomSeats` also returns seats that left; they never show), in join order (`joined_at`, then `member_id`). `SeatRow` is new: `screens/lobby/seat-row.tsx`, spec below.
+5. **The room's services**, `body-s` tone `muted`: `lobby:roomServices`, the [names](#service-names) of `api.rooms.provider_ids`, listed with `Intl.ListFormat`. No line while no name is known.
 6. **Guests only: `ListRow`** icon `tv`, label `lobby:yourServices.label`, value the guest's services or `lobby:yourServices.optional`, chevron. It opens the services sheet (below).
 
-**Footer, host:** `Button` primary L, icon `play`, `lobby:start.cta`, and under it one `body-s` muted line: `lobby:start.needPlayers` while fewer than the mode's minimum are present (the button disabled), or `lobby:start.away` when some seats are away (the button enabled).
+**Footer, host:** `Button` primary L, icon `play`, `lobby:start.cta`, and under it one `body-s` muted line: `lobby:start.needPlayers` while fewer than the mode's minimum are [present](#present-and-away) (the button disabled), or `lobby:start.away` when some seats are away (the button enabled). The server counts presence its own way (`last_active_at`), so it can still answer `not_enough_players` (below).
 
 **Footer, guest:** `MarqueeBulbs` (still, `count` 12) over `lobby:waiting` in `body-m` tone `secondary`, centred.
 
-**The services sheet** (`/room/[id]/services`, a `formSheet` like the invite sheet): title `display-s` `lobby:servicesSheet.title`, helper `lobby:servicesSheet.helper`, the [`ServiceGrid`](host-setup.md#new-component), and `Button` primary L `lobby:servicesSheet.done`. Done saves to the profile (`api.set_my_providers`) and to the seat (`api.set_seat_prefs`), then closes. It never blocks the start.
+**The services sheet** (`/room/[id]/services`, a `formSheet` like the invite sheet): title `display-s` `lobby:servicesSheet.title`, helper `lobby:servicesSheet.helper`, the [`ServiceGrid`](host-setup.md#new-component), and `Button` primary L `lobby:servicesSheet.done`. Done saves to the profile (`api.set_my_providers`) and to the seat (`api.set_seat_prefs`), then closes. It never blocks the start. Its answers are [below](#the-services-sheet-done).
 
 ## The seat row (`screens/lobby/seat-row.tsx`)
 
 56 points high or more, `p-4`, `gap-3.5`, a `border-border-subtle` bottom hairline (none on the last row).
 
-- `Avatar` M in the seat's color, with `online` while the seat is present on `room:<id>:live`.
-- Name in `body-m-strong`, with `lobby:seat.you` for the player's own seat; under it the seat's services in `mono-data` tone `muted` (or `lobby:seat.noServices`). Services show for everyone: it's how a host spots a seat padding the deck ([security](../../architecture/security.md#room-codes-joining-and-the-host)).
-- On the right, at most one `Tag`: the host gets tone `marquee`, icon `crown`, `lobby:seat.host`; an away seat (not heard from for 90 seconds) gets tone `neutral`, `lobby:seat.away`, and its name turns tone `muted`.
+- `Avatar` M in the seat's color, with `online` while the seat is in the live channel's presence now ([present and away](#present-and-away)).
+- Name in `body-m-strong`, with `lobby:seat.you` for the player's own seat; under it the seat's services by [name](#service-names), joined with `Intl.ListFormat`, in `mono-data` tone `muted` (or `lobby:seat.noServices` when none has a name). Services show for everyone: it's how a host spots a seat padding the deck ([security](../../architecture/security.md#room-codes-joining-and-the-host)).
+- On the right, at most one `Tag`: the host gets tone `marquee`, icon `crown`, `lobby:seat.host`; an [away](#present-and-away) seat gets tone `neutral`, `lobby:seat.away`, and its name turns tone `muted`.
 - Props: `name`, `color`, `services`, `isHost`, `isMe`, `present`, and an optional `onPress` that only the host menu uses (slice 8, M4.13).
+
+## Present and away
+
+Phones can't read `last_active_at`, so the lobby's rule comes from the live channel's presence (Q21.1):
+
+- **Online** (the avatar's dot): the seat is in `room:<id>:live`'s presence now (the presence key is the seat id).
+- **Away**: the seat has been missing from presence for 90 seconds. A seat never seen since this phone's last `SUBSCRIBED` counts from that moment, so a phone that just reconnected doesn't mark everyone away.
+- **Present**: seated and not away. The ticket's count, `start.needPlayers`, `start.away` and the next host in the leave alert all use it.
+- The player's own seat is always online and present on their phone.
+
+## Service names
+
+Rooms and seats hold service ids. The names come from `api.countryProviders({ country: room.country })`, read once per room screen (TanStack caches it), joined by id; an id not in that list is skipped (Q11.1). The same list feeds the services sheet's `ServiceGrid`. While it loads, the services lines are empty and keep their height; if it fails, they stay empty and it is read again with the room's next re-read.
 
 ## Starting
 
@@ -44,6 +57,19 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 | `not_enough_players` | The helper shows `lobby:start.needPlayers` with `need`; `haptics.error()` |
 | `closed` | The room is re-read and the layout follows its state |
 | The call failed | `showToast` warn `lobby:errors.start`; the button works again |
+
+## The services sheet: Done
+
+Done saves only what changed: `api.set_my_providers` when the selection differs from the profile's, then `api.set_seat_prefs` (Q11.2). The button is `loading` meanwhile.
+
+| Answer or state | What the player sees |
+| --- | --- |
+| Both `ok` | The sheet closes; the seat row shows the new services (from `seat_updated`) |
+| The selection didn't change | The sheet closes, with no call |
+| `too_many` (either call; a bug, the grid lists fewer than the cap) | `showToast` warn `lobby:errors.services`, reported to Sentry; the sheet stays open |
+| `closed` (`set_seat_prefs`: the game started meanwhile) | The sheet closes; the layout follows the room's state |
+| Offline, or a call failed | `showToast` warn `lobby:errors.services`; the sheet stays open, Done works again |
+| The names are loading or failed | `ServiceGrid` `loading`; Done disabled until it has a list |
 
 ## Live changes (from the room layout)
 
@@ -59,7 +85,15 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 
 ## Leaving
 
-Back (and Android's back) opens the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`, or `lobby:leave.bodyHost` naming the next host (the longest-seated present player), and the buttons `lobby:leave.stay` and `lobby:leave.confirm` (destructive). Leave calls `api.leave_room` and goes Home (`replace`); `not_in_room` goes Home too. Offline: `showToast` warn `common:states.offlineRoom` and nothing else.
+Back (and Android's back) opens the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`, or for the host `lobby:leave.bodyHost` naming the next host, and the buttons `lobby:leave.stay` and `lobby:leave.confirm` (destructive).
+
+**The next host** is worked out on the phone with M4.5's rule (Q11.3): the longest-seated [present](#present-and-away) player other than the host (`joined_at`, then `member_id`); with nobody else present, the longest-seated seated player, present or not (M4.5's fallback, Q5.1); with nobody else seated, the alert has the title only. The server picks for real; if its pick differs, the crown follows `member_left`'s `new_host_member_id`.
+
+| Leave, then | What happens |
+| --- | --- |
+| `ok` or `not_in_room` | The phone forgets the kept room, drops the room stack (`router.dismissAll()`, then `router.replace('/home')`), and Home shows |
+| Offline | `showToast` warn `common:states.offlineRoom`; nothing else, the player stays |
+| The call failed (online) | `showToast` warn `common:errors.generic.title`; the player stays, the kept room too, and can leave again |
 
 ## Other states
 
@@ -110,6 +144,7 @@ Back (and Android's back) opens the system alert `lobby:leave.title`, with `lobb
 | `leave.stay` | Rester | Stay |
 | `leave.confirm` | Quitter | Leave |
 | `errors.start` | Impossible de lancer la séance. Réessaie. | We couldn't start the game. Try again. |
+| `errors.services` | Impossible d'enregistrer tes plateformes. Réessaie. | We couldn't save your services. Try again. |
 | `a11y.joined` | {{name}} est là | {{name}} is here |
 | `a11y.left` | {{name}} a quitté la salle | {{name}} left |
 | `a11y.leave` | Quitter la salle | Leave the room |
@@ -150,3 +185,12 @@ Harry accepted every default below on 30 October 2026.
 2. **The Quick Match name in French.** The glossary has none. Default: "Partie rapide".
 3. **Services for the host in the lobby.** M4.11 gives the row to guests. Default: guests only; the host set theirs on the setup screen a minute ago.
 4. **The 20-second "taking longer" line.** Default: 20 seconds after Start (the SQL baseline deals at 8).
+
+Harry accepted every default of slice 7's plan on 3 November 2026; this spec now says each one:
+
+5. **Present and away** (Q21.1): from the live channel's presence, away after 90 seconds missing.
+6. **Service names** (Q11.1): from `api.country_providers` for the room's country; unknown ids skipped.
+7. **The services sheet's failures** (Q11.2): a warn toast, the sheet stays open.
+8. **The next host in the leave alert** (Q11.3): M4.5's rule on the phone, with its fallback (Q5.1).
+9. **Leaving forgets the kept room** (Q10.4) and drops the room stack.
+10. **The banner** (Q21.3): `RoomBanner` under the `TopBar`.

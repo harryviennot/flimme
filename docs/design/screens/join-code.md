@@ -1,6 +1,6 @@
 # Join with a code
 
-Screen 05 in the Figma (`15:312`). Route `/join`. Built in M4.8, with the answers from M4.1 (and `removed` and `locked` from M4.2). Written on 30 October 2026 and updated on 3 November 2026 (slice 6's questions, all defaults accepted by Harry) from [joining with a code](../../product/onboarding.md#joining-with-a-code-or-a-qr-code), [empty and error states](../../product/onboarding.md#empty-and-error-states), [the worked example](../../agent-workflow.md#a-worked-example-joining-with-a-code), [room codes and joining](../../architecture/security.md#room-codes-joining-and-the-host) and `JOIN_ROOM_ANSWERS` in `packages/contract/src/answers.ts`.
+Screen 05 in the Figma (`15:312`). Route `/join`. Built in M4.8, with the answers from M4.1 (and `removed` and `locked` from M4.2). Written on 30 October 2026 and updated on 3 November 2026 (slice 6's questions, then slice 7's kept room, all defaults accepted by Harry) from [joining with a code](../../product/onboarding.md#joining-with-a-code-or-a-qr-code), [empty and error states](../../product/onboarding.md#empty-and-error-states), [the worked example](../../agent-workflow.md#a-worked-example-joining-with-a-code), [room codes and joining](../../architecture/security.md#room-codes-joining-and-the-host) and `JOIN_ROOM_ANSWERS` in `packages/contract/src/answers.ts`.
 
 ## Purpose
 
@@ -35,6 +35,8 @@ Six digits and you're in. The app tries to join as soon as the sixth digit is ty
 | The call failed | `join:errors.network` | Stay filled | `haptics.error()` | Retry |
 
 Typing or deleting a digit clears the message. A Jest test walks `JOIN_ROOM_ANSWERS` and `PLANNED_JOIN_ROOM_ANSWERS` and fails if one has no row here. `removed` and `locked` ship in M4.8 against the planned list (`['removed', 'locked']` after M4.1), so they work the day M4.2 makes `join_room` return them, with no app change.
+
+**Leaving the old seat (M4.22).** When the phone keeps a seat in another room, an `ok` here leaves it exactly as the [join sheet](join-sheet.md#leaving-the-old-seat) does (once, without waiting or retrying), and the new room becomes the kept one. There is **no leave line**: a typed code joins at once, with nothing to confirm (Q22.4).
 
 **What the call sends.** `api.joinRoom({ code, via: 'code' })` for typed digits. For a pasted link: `{ code, ref, via: 'link' }`, with no `link_opened_at` (nobody knows when the link was tapped). The [join sheet](join-sheet.md) is the only caller that sends `link_opened_at`.
 
@@ -101,3 +103,7 @@ Harry accepted every default of slice 6's plan on 3 November 2026; this spec now
 5. **A pasted link** (Q8.2) sends `via: 'link'` and the reference, no `link_opened_at`; typed digits send `via: 'code'`.
 6. **Back from the name screen without saving** (Q8.3): join again only when the profile now has a name.
 7. **`removed` and `locked`** (Q1.6) get their messages in M4.8, against `PLANNED_JOIN_ROOM_ANSWERS`.
+
+Harry accepted these on 3 November 2026 (slice 7):
+
+8. **The old seat** (Q22.4): the code screen leaves it too, with no leave line.
