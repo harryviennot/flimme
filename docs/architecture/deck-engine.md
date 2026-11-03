@@ -427,6 +427,8 @@ If the server doesn't deal within 8 seconds, `internal.deal_baseline` deals in S
 
 So even a fallback deck doesn't repeat last week's.
 
+In the first release nobody has a taste profile, so the SQL deal's fit is simpler still: every seat's fit is `5 × crowd`, where crowd is `0.85 × percentile(quality score) + 0.15 × percentile(popularity)` among tonight's eligible films, and `group_score` and `min_fit` equal it. It needs no `title_vectors` row.
+
 ## Logging and upgrading
 
 **Every card dealt is logged** in `rec.request_items` with its position, score, `explore`, propensity and these features, under fixed names so old logs stay readable:
