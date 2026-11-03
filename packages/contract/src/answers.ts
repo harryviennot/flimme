@@ -14,7 +14,10 @@ export const CREATE_ROOM_ANSWERS = [
 ] as const;
 export type CreateRoomAnswer = (typeof CREATE_ROOM_ANSWERS)[number];
 
-/** `api.join_room` answers. */
+/**
+ * `api.join_room` answers. `closed` is a stale invite link (M4.1); `removed` is a seat the host
+ * removed (M4.2); `locked` is a room the host locked, for a caller with no seat (M4.23).
+ */
 export const JOIN_ROOM_ANSWERS = [
   'ok',
   'not_found',
@@ -28,10 +31,6 @@ export const JOIN_ROOM_ANSWERS = [
   'rate_limited',
 ] as const;
 export type JoinRoomAnswer = (typeof JOIN_ROOM_ANSWERS)[number];
-/**
- * `closed` is a stale invite link (M4.1); `removed` is a seat the host removed (M4.2); `locked`
- * is a room the host locked, for a caller with no seat (M4.23).
- */
 
 /** `api.room_preview` answers (M4.19, `removed` M4.2, `locked` M4.23). */
 export const ROOM_PREVIEW_ANSWERS = [
