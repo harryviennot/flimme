@@ -8,6 +8,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Any scheme and host, then exactly /join/<6 digits>, an optional query, an optional fragment.
 const LINK =
   /^(?:[a-z][a-z0-9+.-]*:)?(?:\/\/[^/?#\s]+)?\/join\/(\d{6})\/?(?:\?([^#\s]*))?(?:#\S*)?$/i;
+// The development builds' own links: `<scheme>://join/<6 digits>`, where `join` is the host.
+const SCHEME_LINK = /^[a-z][a-z0-9+.-]*:\/\/join\/(\d{6})\/?(?:\?([^#\s]*))?(?:#\S*)?$/i;
 
 /** Keeps the digits of what was typed or pasted, at most six. */
 export function digitsOf(text: string): string {
@@ -20,7 +22,8 @@ export function digitsOf(text: string): string {
  * query parameter are ignored. Anything else is not a link (`null`).
  */
 export function parseInviteLink(text: string): { code: string; ref?: string } | null {
-  const match = LINK.exec(text.trim());
+  const trimmed = text.trim();
+  const match = LINK.exec(trimmed) ?? SCHEME_LINK.exec(trimmed);
   if (!match) return null;
   const code = match[1] ?? '';
   const query = match[2];

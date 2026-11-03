@@ -5,12 +5,14 @@ import enCommon from './locales/en/common.json';
 import enHome from './locales/en/home.json';
 import enHost from './locales/en/host.json';
 import enJoin from './locales/en/join.json';
+import enLobby from './locales/en/lobby.json';
 import enOnboarding from './locales/en/onboarding.json';
 import enWeb from './locales/en/web.json';
 import frCommon from './locales/fr/common.json';
 import frHome from './locales/fr/home.json';
 import frHost from './locales/fr/host.json';
 import frJoin from './locales/fr/join.json';
+import frLobby from './locales/fr/lobby.json';
 import frOnboarding from './locales/fr/onboarding.json';
 import frWeb from './locales/fr/web.json';
 
@@ -20,6 +22,7 @@ export const resources = {
     home: frHome,
     host: frHost,
     join: frJoin,
+    lobby: frLobby,
     onboarding: frOnboarding,
     web: frWeb,
   },
@@ -28,6 +31,7 @@ export const resources = {
     home: enHome,
     host: enHost,
     join: enJoin,
+    lobby: enLobby,
     onboarding: enOnboarding,
     web: enWeb,
   },

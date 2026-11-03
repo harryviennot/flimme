@@ -8,7 +8,7 @@ import { useLaunch } from '@/features/launch/use-launch';
 // the profile load, then always a `replace` to Welcome or Home (splash.md).
 export default function Index() {
   const { step, retry } = useLaunch();
-  if ('go' in step) return <Redirect href={step.go} />;
+  if ('go' in step) return <Redirect href={step.go as never} />;
   if (step.show === 'offline' || step.show === 'signInFailed') {
     return <SplashProblem kind={step.show} onRetry={retry} />;
   }
