@@ -140,6 +140,19 @@ describe('the room layout', () => {
     await waitFor(() => expect(screen).toHavePathname('/home'));
   });
 
+  it('trusts a fresh read over a cached left seat after a rejoin', async () => {
+    client.setQueryData(['room', 'r1'], null);
+    client.setQueryData(
+      ['room', 'r1', 'seats'],
+      [{ ...mockSeat, left_at: '2026-11-03T11:00:00Z' }],
+    );
+    await renderRouter(routes, { initialUrl: '/room/r1/lobby', wrapper: Providers });
+    await waitFor(() =>
+      expect(keptRoomStore.getState().room).toEqual({ id: 'r1', code: '482913' }),
+    );
+    expect(screen).toHavePathname('/room/r1/lobby');
+  });
+
   it('keeps the room for a seated player, and forgets it once the room is done', async () => {
     await renderRouter(routes, { initialUrl: '/room/r1/lobby', wrapper: Providers });
     await waitFor(() =>

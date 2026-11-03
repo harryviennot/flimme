@@ -20,6 +20,9 @@ export function useRoom(roomId: string | undefined) {
     queryKey: ROOM_KEY(roomId ?? ''),
     enabled: !!roomId,
     queryFn: () => api.room({ room_id: roomId ?? '' }),
+    // Always read on mount: a cached answer may be from before the player (re)joined.
+    staleTime: 0,
+    refetchOnMount: 'always',
     retry,
   });
 }
@@ -30,6 +33,9 @@ export function useRoomSeats(roomId: string | undefined) {
     queryKey: SEATS_KEY(roomId ?? ''),
     enabled: !!roomId,
     queryFn: () => api.roomSeats({ room_id: roomId ?? '' }),
+    // Always read on mount: a cached answer may be from before the player (re)joined.
+    staleTime: 0,
+    refetchOnMount: 'always',
     retry,
   });
 }
