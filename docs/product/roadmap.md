@@ -97,7 +97,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
-| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 16 | Not started |
+| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 17 | Not started |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 8 | In progress |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | Not started |
@@ -336,15 +336,15 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: a room is created with its settings in one call.
 - [ ] **M4.5** The host role passes to the longest-seated present player when the host leaves · backend · M · needs M1.5 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
   Done when: tested with an absent player who joined earlier.
-- [ ] **M4.6** First launch: splash, welcome, name and colour; country and language from the device · app · M · needs M3.4, M3.6, M3.8, M4.3, M3.13, M3.15 · [onboarding](onboarding.md#first-launch)
-  Done when: Home is three taps from a fresh install.
+- [ ] **M4.6** First launch: splash, welcome, launch routing, country and language from the device, connectivity · app · M · needs M3.4, M3.6, M3.8, M3.13, M3.15 · [onboarding](onboarding.md#first-launch)
+  Done when: a fresh install lands on Welcome and a named profile lands on Home; the profile has the device's country and language.
 - [ ] **M4.7** Home: host a movie night, join with a code · app · S · needs M4.6 · [onboarding](onboarding.md#the-paths-at-a-glance)
   Done when: both buttons lead to their flows.
 - [ ] **M4.8** Join with a code: the keypad and a message for each `join_room` answer · app · M · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
   Done when: a wrong code, a full room and a started room each show their message.
 - [ ] **M4.9** Host setup: the country's services (saved to the profile), age cap, time budget, then "Open the room" · app · M · needs M4.7, M4.4, M2.6 · [onboarding](onboarding.md#hosting)
   Done when: a room opens with those settings.
-- [ ] **M4.10** The room layout: both Realtime topics, presence, the 30-second heartbeat, re-reading on reconnect and foreground, screens by room state, the Reconnecting banner, unknown messages dropped · app · L · needs M3.6, M3.7, M3.11, M3.15 · [app-structure](../architecture/app-structure.md#realtime)
+- [ ] **M4.10** The room layout: both Realtime topics, presence, the 30-second heartbeat, re-reading on reconnect and foreground, screens by room state, the Reconnecting banner, the splash's room code kept from last time, unknown messages dropped · app · L · needs M3.6, M3.7, M3.11, M3.15 · [app-structure](../architecture/app-structure.md#realtime)
   Done when: killing the network mid-lobby and restoring it shows the right state.
 - [ ] **M4.11** The lobby: code, players and their services, the host's crown, Start for the host, Leave room; an optional services row for guests · app · M · needs M4.10 · [onboarding](onboarding.md#the-lobby)
   Done when: players appear and leave live on three phones.
@@ -358,6 +358,8 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: tested from a cold start on both platforms.
 - [ ] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · M · needs M4.1, M3.6, M1.17 · [groundwork](../architecture/groundwork.md#the-local-environment)
   Done when: `mise run bots` fills a local room with three present players.
+- [ ] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
+  Done when: Home is three taps from a fresh install.
 
 ## M5 Basic deck
 
