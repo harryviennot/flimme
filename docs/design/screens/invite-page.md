@@ -28,7 +28,7 @@ Plus, in the page head: `<html lang>` from the chosen language, a title and desc
 | A valid link | Everything above |
 | A malformed link (no 6-digit code) | Title `web:invite.broken`, the store badges (from M10.1), no ticket and no Copy button |
 | Before M10.1 (no store ids) | The code, the steps and Copy; no badges and no Smart App Banner |
-| JavaScript off | The same page; Copy is hidden (it needs the clipboard API) |
+| Any other path on the invite domain, the root included | The broken-link state above (`web:invite.broken`). A real home page waits for the store listing work |
 
 The page calls no API: it can't tell an open room from an ended one, and it never shows who invited the guest. The app says it after the code is typed.
 

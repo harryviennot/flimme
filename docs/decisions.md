@@ -184,6 +184,8 @@ Everything decided so far, the defaults chosen while designing that still need a
 | Joining (M4.15): `link_opened_at` is the moment the app received the URL (the initial URL on a cold start, or the URL event), corrected with `serverNow()`. M4.1 clamps it anyway | 3 Nov 2026 | [Invites and deep links](architecture/app-structure.md#invites-and-deep-links) |
 | Joining (M4.15): leaving the old room's seat belongs to M4.10, not to M4.15 | 3 Nov 2026 | [The room layout](product/roadmap.md#m4-first-launch-rooms-and-lobby) |
 | Joining (M4.15): the sheet shows the joining state until `startSession()` resolves. A sign-in failure shows the refused state with `join:errors.network` and Retry | 3 Nov 2026 | [Joining with a code](product/onboarding.md#joining-with-a-code-or-a-qr-code) |
+| Joining (M4.14): the invite page has no JavaScript-off fallback, since nearly every phone browser runs JavaScript. The exported HTML keeps the link preview meta tags (Open Graph), because iMessage and WhatsApp read them without JavaScript | 3 Nov 2026 | [The invite page](design/screens/invite-page.md#states) |
+| Joining (M4.14): any path on the invite domain other than an invite link, the root included, shows the broken-link state. A real home page waits for the store listing work | 3 Nov 2026 | [The invite page](design/screens/invite-page.md#states) |
 
 ## Defaults, not yet confirmed
 
