@@ -103,8 +103,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         'expo-splash-screen',
         {
           backgroundColor: '#0f1014',
+          // The Flimme logo, made by scripts/make-logo.swift (splash.md#the-logo). iOS shows it at
+          // the Figma's size; Android 12 and later keep only a 192 dp circle of the icon, so it's
+          // smaller there. The hand-off view draws it at the same size on each platform.
           image: './assets/images/splash-icon.png',
-          imageWidth: 76,
+          imageWidth: 354,
+          android: { imageWidth: 200 },
         },
       ],
       // Sounds only play; the app never records, on either platform.

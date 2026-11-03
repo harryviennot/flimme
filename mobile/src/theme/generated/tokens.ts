@@ -91,6 +91,9 @@ export const tokens = {
     "stack-near": 0.7,
     "stack-far": 0.45
   },
+  "rotation": {
+    "poster-fan": 8
+  },
   "font": {
     "display": "Staatliches",
     "body": "Schibsted Grotesk",

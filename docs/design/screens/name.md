@@ -1,6 +1,6 @@
 # Your name
 
-Screen 03 in the Figma (`9:362`). Route `/name`. Built in M4.6, with the name rules from M4.3. Written on 30 October 2026 from [onboarding](../../product/onboarding.md#first-launch), [keeping kids safe on screen](../../architecture/security.md#keeping-kids-safe-on-screen) and `api.update_profile` in [schema.sql](../../architecture/schema.sql).
+Screen 03 in the Figma (`9:362`). Route `/name`. Built in M4.17, with the name rules from M4.3. Written on 30 October 2026 and updated on 3 November 2026 from [onboarding](../../product/onboarding.md#first-launch), [keeping kids safe on screen](../../architecture/security.md#keeping-kids-safe-on-screen) and `api.update_profile` in [schema.sql](../../architecture/schema.sql).
 
 ## Purpose
 
@@ -22,12 +22,12 @@ The [join sheet](join-sheet.md) uses the same form (`NameForm`) for players arri
 
 1. **Title**, `display-l`, `onboarding:name.title`.
 2. **`NameForm`** (new, `shared/`, spec below):
-   - eyebrow `onboarding:name.colorLabel`, then **`AvatarPicker`** (new, `ui/`): 6 `Avatar` M swatches showing the typed name's initial, one row, spread across the width.
+   - eyebrow `onboarding:name.colorLabel`, then **`AvatarPicker`** (new, `ui/`): 6 `Avatar` M swatches showing the typed name's initial, one row, spread across the width. The swatches are the avatar keys, which are the color names: `blue`, `green`, `gold`, `red`, `violet`, `teal` (`AVATAR_KEYS` from `packages/contract`, the same names as `Avatar`'s colors), in that order.
    - **`Input`** with label `onboarding:name.nameLabel` and helper `onboarding:name.helper`; `maxLength` 24, autocapitalised, no autocorrect, `textContentType="nickname"`. Focused on open (unless a screen reader is on). The whole 56-point field is tappable: a tap in its padding or border focuses the input, not only a tap on the text.
 3. **Note**, `body-s`, tone `muted`, `onboarding:name.note`.
 4. **Footer:** `Button` primary L `onboarding:name.continue`, disabled until the trimmed name has 1 to 24 characters, `loading` while saving.
 
-The color is preselected: a random one of the six the first time (so friends rarely start on the same), the current one when editing.
+The color is preselected: a random one of the six the first time (so friends rarely start on the same), the current one when editing. When editing a profile whose key isn't one of the six (`default`, an old value), it draws as `blue`, as everywhere, and `blue` is preselected.
 
 ## States and answers (`api.update_profile`)
 
@@ -35,9 +35,12 @@ The color is preselected: a random one of the six the first time (so friends rar
 | --- | --- | --- |
 | `ok` | Moves on as the table above says | |
 | `invalid_name` (nothing left after normalising, such as only spaces or invisible characters) | `Input` error `onboarding:name.errors.invalid`; `haptics.error()` | The field keeps the text |
-| The blocklist answer from M4.3 | `Input` error `onboarding:name.errors.notAllowed`; `haptics.error()`. Never says which word | The field keeps the text |
+| `name_not_allowed` (the blocklist, M4.3) | `Input` error `onboarding:name.errors.notAllowed`; `haptics.error()`. Never says which word | The field keeps the text |
+| `unknown_avatar` (the key isn't one of the six; the picker can't send one) | `showToast` warn, `common:errors.generic.title`, as a failed request | Continue again |
 | Offline | `showToast` warn, `onboarding:name.errors.offline` | Continue works again once connected |
 | Request failed | `showToast` warn, `common:errors.generic.title` | Continue again |
+
+A name error (`invalid_name` or `name_not_allowed`) clears at the next edit of the field. Changing the color doesn't clear it. A name over 24 characters can't be typed (`maxLength`), so it never shows an error.
 
 ## Copy (`onboarding` namespace)
 

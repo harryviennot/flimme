@@ -98,6 +98,9 @@ const stroke = Object.fromEntries(
 const opacity = Object.fromEntries(
   group('opacity').map(([p, t]) => [kebab(p), Number(resolve(t.$value))]),
 );
+const rotation = Object.fromEntries(
+  group('rotation').map(([p, t]) => [kebab(p), Number(resolve(t.$value))]),
+);
 const duration = Object.fromEntries(
   group('duration').map(([p, t]) => [kebab(p), ms(resolve(t.$value))]),
 );
@@ -194,6 +197,7 @@ export const tokens = ${JSON.stringify(
     radius,
     stroke,
     opacity,
+    rotation,
     font: fontFamilies,
     typography,
     shadow: Object.fromEntries(Object.entries(shadows).map(([k, v]) => [k, shadowCss(v)])),
@@ -233,7 +237,8 @@ ${iconEntries.join('\n')}
 
 export type IconName = keyof typeof icons;
 
-// Third-party marks in their own colours (assets/logos/*.svg). Not for anything else.
+// Brand marks in their own colours (assets/logos/*.svg): third-party ones and Flimme's own logo.
+// Not for anything else.
 export const logos = {
 ${readdirSync(LOGOS_DIR)
   .filter((f) => f.endsWith('.svg'))
