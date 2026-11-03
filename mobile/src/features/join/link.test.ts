@@ -18,6 +18,17 @@ describe('parseInviteLink', () => {
     });
   });
 
+  it("reads a development build's scheme link, where join is the host", () => {
+    expect(parseInviteLink(`flimme-dev://join/482913?r=${REF}`)).toEqual({
+      code: '482913',
+      ref: REF,
+    });
+    expect(parseInviteLink('flimme-preview://join/482913')).toEqual({ code: '482913' });
+    expect(parseInviteLink('flimme-dev://join/48291')).toBeNull();
+    expect(parseInviteLink('flimme-dev://other/482913')).toBeNull();
+    expect(parseInviteLink('flimme-dev://join/482913?r=nope')).toBeNull();
+  });
+
   it('gives the code alone when there is no reference', () => {
     expect(parseInviteLink('https://flimme.app/join/482913')).toEqual({ code: '482913' });
     expect(parseInviteLink('/join/482913/')).toEqual({ code: '482913' });

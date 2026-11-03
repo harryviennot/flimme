@@ -33,5 +33,14 @@ export function parseAppConfig(raw: unknown, report: Report = () => {}): AppConf
     else report('app_config.tmdb_image_base is malformed');
   }
 
+  const inviteBase = raw.invite_base_url;
+  if (inviteBase !== undefined) {
+    if (typeof inviteBase === 'string' && inviteBase.startsWith('https://')) {
+      config.invite_base_url = inviteBase;
+    } else {
+      report('app_config.invite_base_url is malformed');
+    }
+  }
+
   return config;
 }

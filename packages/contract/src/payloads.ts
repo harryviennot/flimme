@@ -117,11 +117,14 @@ export type StartGameResult = z.infer<typeof startGameResult>;
 export type AppConfig = {
   min_app_version?: { ios: string; android: string };
   tmdb_image_base?: string;
+  /** The invite page's https origin (from M4.18). Missing: invites use the build's scheme. */
+  invite_base_url?: string;
 };
 
 export const appConfigSchema = z.object({
   min_app_version: z.optional(z.object({ ios: z.string(), android: z.string() })),
   tmdb_image_base: z.optional(z.string()),
+  invite_base_url: z.optional(z.string()),
 });
 
 export const myProfileRow = z.object({
