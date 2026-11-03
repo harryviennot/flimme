@@ -12,8 +12,8 @@ const roomState = z.enum(ROOM_STATES);
 // --- Profile ---------------------------------------------------------------------------
 
 export const updateProfileResult = z.discriminatedUnion('status', [
-  z.object({ status: z.literal('ok') }),
-  z.object({ status: z.literal('invalid_name') }),
+  z.object({ status: z.literal('ok'), display_name: z.string(), avatar_key: z.string() }),
+  z.object({ status: z.enum(['invalid_name', 'name_not_allowed', 'unknown_avatar']) }),
 ]);
 export type UpdateProfileResult = z.infer<typeof updateProfileResult>;
 

@@ -69,7 +69,12 @@ export const UNDO_LAST_VOTE_ANSWERS = ['ok', 'closed', 'nothing_to_undo', 'locke
 export type UndoLastVoteAnswer = (typeof UNDO_LAST_VOTE_ANSWERS)[number];
 
 /** `api.update_profile` answers. */
-export const UPDATE_PROFILE_ANSWERS = ['ok', 'invalid_name'] as const;
+export const UPDATE_PROFILE_ANSWERS = [
+  'ok',
+  'invalid_name',
+  'name_not_allowed',
+  'unknown_avatar',
+] as const;
 export type UpdateProfileAnswer = (typeof UPDATE_PROFILE_ANSWERS)[number];
 
 /** `api.set_my_providers` answers. */
