@@ -1,0 +1,38 @@
+# Slice 6, join with a code: Home, the Join button of "Got a room code?", a wrong code shows its message and the
+# boxes clear. A fresh player names themselves first. No room is needed: 111111 is not a code.
+# Run: `maestro test mobile/.maestro/join.yaml -e METRO_URL=http://localhost:8095` with the
+# development build installed and Metro running.
+appId: com.harryviennot.flimme.dev
+env:
+  METRO_URL: http://localhost:8095
+---
+- runFlow: subflows/open-app-fresh.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Maestro'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)got a room code\?'
+    timeout: 15000
+
+- tapOn: '(?i)join'
+- extendedWaitUntil:
+    visible: '(?i)enter the room code'
+    timeout: 15000
+- takeScreenshot: join-1-code-screen
+
+# Five digits call nothing; the sixth joins.
+- inputText: '11111'
+- assertNotVisible: '(?i)no open room with this code.*'
+- inputText: '1'
+- extendedWaitUntil:
+    visible: '(?i)no open room with this code.*'
+    timeout: 15000
+- takeScreenshot: join-2-wrong-code
+
+# The boxes cleared, so the Paste button is back; typing a digit clears the message.
+- assertVisible: '(?i)paste'
+- inputText: '2'
+- assertNotVisible: '(?i)no open room with this code.*'

@@ -9,20 +9,24 @@ export type PinBoxProps = {
   digit?: string;
   /** The box the next digit goes into. */
   active?: boolean;
+  /** The code was refused: a red border until the next keystroke. */
+  error?: boolean;
 };
 
 /** Figma "PIN box": one digit of a room code. Empty shows a dash, active a caret. */
-export function PinBox({ digit, active = false }: PinBoxProps) {
+export function PinBox({ digit, active = false, error = false }: PinBoxProps) {
   const filled = !!digit;
   return (
     <View
       className={cn(
         'h-15 w-12 items-center justify-center rounded-md bg-bg-sunken',
-        filled
-          ? 'border border-border-strong'
-          : active
-            ? 'border-2 border-accent-default glow-focus'
-            : 'border border-border-control',
+        error
+          ? 'border-2 border-nope-default'
+          : filled
+            ? 'border border-border-strong'
+            : active
+              ? 'border-2 border-accent-default glow-focus'
+              : 'border border-border-control',
       )}
     >
       {filled ? (

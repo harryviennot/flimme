@@ -1,0 +1,27 @@
+{
+  "topBar": "Join a room",
+  "title": "Enter the room code",
+  "body": "Ask the host for the 6 digits, or scan their QR code with your camera.",
+  "checking": "Checking…",
+  "paste": "Paste",
+  "shuffling": "Shuffling the deck…",
+  "errors": {
+    "notFound": "No open room with this code. Check the digits with the host.",
+    "rateLimited": "Too many tries. Ask the host for the link, or try again in a few minutes.",
+    "full": "This room is full ({{max}} players).",
+    "starting": "The game is starting. Try again in a moment.",
+    "inFinale": "They're voting on the final pick right now. Catch the next game.",
+    "closed": "This movie night has ended.",
+    "removed": "The host removed you from this room.",
+    "locked": "This room is locked. Ask the host to unlock it.",
+    "offline": "You're offline. Connect to join.",
+    "network": "We couldn't reach the room. Check your connection."
+  },
+  "actions": {
+    "host": "Host a movie night"
+  },
+  "a11y": {
+    "field": "Room code, 6 digits",
+    "progress": "{{digits}}, {{count}} of 6 digits"
+  }
+}

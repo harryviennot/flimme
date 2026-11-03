@@ -1,22 +1,26 @@
-# Slice 4, the `?code=` entry point of the name screen: a code that needs a name opens
-# `/name?code=482913`. Saving the name goes back (to the code screen, later) and never to Home.
-# Run: `maestro test mobile/.maestro/name-from-code.yaml` with the development build installed
-# and Metro running (`-e METRO_URL=http://localhost:8096`).
+# Slices 4 and 6, a code that needs a name: Welcome's "I have a room code", the code of an open
+# room, the name screen, and back on the code screen, which joins by itself once the profile has
+# a name (the room's lobby, a placeholder until M4.11). Saving the name never goes to Home.
+# Needs the local stack: seed the open room first with
+#   mobile/.maestro/scripts/seed-open-room.sh      (a room with the code 482913)
+# Run: `maestro test mobile/.maestro/name-from-code.yaml -e METRO_URL=http://localhost:8095`
+# with the development build installed and Metro running.
 appId: com.harryviennot.flimme.dev
 env:
-  METRO_URL: http://localhost:8096
+  METRO_URL: http://localhost:8095
 ---
 - runFlow: subflows/open-app-fresh.yaml
 - extendedWaitUntil:
     visible: '(?i)get started'
     timeout: 30000
 
-- openLink: flimme-dev://name?code=482913
-- runFlow:
-    when:
-      visible: 'Open'
-    commands:
-      - tapOn: 'Open'
+- tapOn: '(?i)i have a room code'
+- extendedWaitUntil:
+    visible: '(?i)enter the room code'
+    timeout: 15000
+- inputText: '482913'
+
+# The profile has no name: the code screen sends the player to the name screen.
 - extendedWaitUntil:
     visible: '(?i)what should we call you\?'
     timeout: 15000
@@ -26,12 +30,13 @@ env:
 - inputText: 'Coco'
 - tapOn: '(?i)continue'
 
-# Back from the name screen: the profile is saved and we are not on Home.
+# Back from the name screen: the profile is saved, the code screen joins by itself, and we
+# never see Home.
 - extendedWaitUntil:
-    notVisible: '(?i)what should we call you\?'
-    timeout: 15000
+    visible: '(?i)lobby'
+    timeout: 20000
 - assertNotVisible: '(?i)open a room'
-- takeScreenshot: name-from-code-2-after-save
+- takeScreenshot: name-from-code-2-in-the-room
 
 # The name was saved: a relaunch lands on Home.
 - runFlow: subflows/open-app.yaml
