@@ -1,9 +1,11 @@
+import { useQueryClient } from '@tanstack/react-query';
+import type { MyProfile } from '@flimme/contract';
 import { useFocusEffect, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '@/api';
 import { useOnline } from '@/features/network';
-import { useMyProfile } from '@/features/profile';
+import { MY_PROFILE_KEY } from '@/features/profile';
 import { haptics } from '@/lib/haptics';
 
 import { CODE_LENGTH, digitsOf, readPasted, roomRouteFor } from './link';
@@ -38,7 +40,7 @@ const IDLE: JoinView = { kind: 'idle' };
  */
 export function useJoinAttempt() {
   const online = useOnline();
-  const profile = useMyProfile().data;
+  const client = useQueryClient();
 
   const [code, setCodeState] = useState('');
   const [view, setView] = useState<JoinView>(IDLE);
@@ -51,10 +53,8 @@ export function useJoinAttempt() {
   const waitingOnline = useRef(false);
   const waitingName = useRef(false);
   const onlineRef = useRef(online);
-  const profileRef = useRef(profile);
   useEffect(() => {
     onlineRef.current = online;
-    profileRef.current = profile;
   });
 
   const updateCode = useCallback((next: string) => {
@@ -193,10 +193,12 @@ export function useJoinAttempt() {
     useCallback(() => {
       if (!waitingName.current) return;
       waitingName.current = false;
-      if (profileRef.current?.display_name && codeRef.current.length === CODE_LENGTH) {
+      // Read the cache now: this screen may have been frozen while the name screen was open.
+      const profile = client.getQueryData<MyProfile | null>(MY_PROFILE_KEY);
+      if (profile?.display_name && codeRef.current.length === CODE_LENGTH) {
         void attempt(codeRef.current);
       }
-    }, [attempt]),
+    }, [attempt, client]),
   );
 
   useEffect(() => cancel, [cancel]);

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -8,9 +9,7 @@ import i18n from '@/i18n';
 const mockJoinRoom = jest.fn();
 jest.mock('@/api', () => ({ api: { joinRoom: (...a: unknown[]) => mockJoinRoom(...a) } }));
 jest.mock('@/features/network', () => ({ useOnline: () => true }));
-jest.mock('@/features/profile', () => ({
-  useMyProfile: () => ({ data: { display_name: 'Coco' } }),
-}));
+jest.mock('@/features/profile', () => ({ MY_PROFILE_KEY: ['my_profile'] }));
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
   useFocusEffect: jest.fn(),
@@ -33,7 +32,9 @@ const frame = { x: 0, y: 0, width: 375, height: 812 };
 async function typeCode() {
   await render(
     <SafeAreaProvider initialMetrics={{ frame, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}>
-      <JoinScreen />
+      <QueryClientProvider client={new QueryClient()}>
+        <JoinScreen />
+      </QueryClientProvider>
     </SafeAreaProvider>,
   );
   await fireEvent.changeText(screen.getByLabelText('Room code, 6 digits'), '482913');

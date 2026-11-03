@@ -1,4 +1,4 @@
-# Slice 6, join with a code: Home, "Got a room code?", a wrong code shows its message and the
+# Slice 6, join with a code: Home, the Join button of "Got a room code?", a wrong code shows its message and the
 # boxes clear. A fresh player names themselves first. No room is needed: 111111 is not a code.
 # Run: `maestro test mobile/.maestro/join.yaml -e METRO_URL=http://localhost:8095` with the
 # development build installed and Metro running.
@@ -17,7 +17,7 @@ env:
     visible: '(?i)got a room code\?'
     timeout: 15000
 
-- tapOn: '(?i)got a room code\?'
+- tapOn: '(?i)join'
 - extendedWaitUntil:
     visible: '(?i)enter the room code'
     timeout: 15000

@@ -1,5 +1,8 @@
 import { ApiError, JOIN_ROOM_ANSWERS, PLANNED_JOIN_ROOM_ANSWERS } from '@flimme/contract';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react-native';
+
+import { createElement, type ReactNode } from 'react';
 
 import { haptics } from '@/lib/haptics';
 
@@ -14,8 +17,7 @@ jest.mock('@/api', () => ({ api: { joinRoom: (...args: unknown[]) => mockJoinRoo
 let mockOnline = true;
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline }));
 
-let mockProfile: { display_name: string } | null = { display_name: '' };
-jest.mock('@/features/profile', () => ({ useMyProfile: () => ({ data: mockProfile }) }));
+jest.mock('@/features/profile', () => ({ MY_PROFILE_KEY: ['my_profile'] }));
 
 let mockFocus: (() => void) | undefined;
 const mockReplace = jest.fn();
@@ -32,6 +34,10 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/lib/haptics', () => ({ haptics: { error: jest.fn() } }));
 
+let client = new QueryClient();
+const wrapper = ({ children }: { children: ReactNode }) =>
+  createElement(QueryClientProvider, { client }, children);
+
 beforeEach(() => {
   jest.useFakeTimers();
   mockJoinRoom.mockReset();
@@ -39,7 +45,8 @@ beforeEach(() => {
   mockPush.mockReset();
   (haptics.error as jest.Mock).mockReset();
   mockOnline = true;
-  mockProfile = { display_name: '' };
+  client = new QueryClient();
+  client.setQueryData(['my_profile'], { display_name: '' });
   mockFocus = undefined;
 });
 afterEach(() => jest.useRealTimers());
@@ -61,7 +68,7 @@ describe('the answer rows', () => {
 describe('useJoinAttempt', () => {
   it('joins once on the sixth digit, not before', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'not_found' });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '48291');
     expect(mockJoinRoom).not.toHaveBeenCalled();
     await type(result, '482913');
@@ -71,7 +78,7 @@ describe('useJoinAttempt', () => {
 
   it('shakes on not_found with a haptic, then clears when the shake ends', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'not_found' });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     expect(result.current.view).toMatchObject({ kind: 'message', message: 'errors.notFound' });
     expect(result.current.shaking).toBe(true);
@@ -86,7 +93,7 @@ describe('useJoinAttempt', () => {
 
   it('keeps the digits on full and carries the maximum', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'full', max_players: 8 });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     expect(result.current.view).toEqual({
       kind: 'message',
@@ -106,7 +113,7 @@ describe('useJoinAttempt', () => {
     ['rate_limited', 'errors.rateLimited', null, ''],
   ])('%s shows its message', async (status, message, next, digits) => {
     mockJoinRoom.mockResolvedValue({ status });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     expect(result.current.view).toMatchObject({ kind: 'message', message, next });
     expect(result.current.code).toBe(digits);
@@ -116,7 +123,7 @@ describe('useJoinAttempt', () => {
 
   it('retries every second while starting, then gives up after 10 seconds', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'starting' });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     expect(result.current.view).toEqual({ kind: 'shuffling' });
     expect(haptics.error).not.toHaveBeenCalled();
@@ -146,16 +153,14 @@ describe('useJoinAttempt', () => {
   });
 
   it('joins when the game finishes starting', async () => {
-    mockJoinRoom
-      .mockResolvedValueOnce({ status: 'starting' })
-      .mockResolvedValue({
-        status: 'ok',
-        room_id: 'r1',
-        member_id: 'm',
-        state: 'lobby',
-        rejoined: true,
-      });
-    const { result } = await renderHook(() => useJoinAttempt());
+    mockJoinRoom.mockResolvedValueOnce({ status: 'starting' }).mockResolvedValue({
+      status: 'ok',
+      room_id: 'r1',
+      member_id: 'm',
+      state: 'lobby',
+      rejoined: true,
+    });
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     await act(async () => {
       await jest.advanceTimersByTimeAsync(1000);
@@ -176,7 +181,7 @@ describe('useJoinAttempt', () => {
       state,
       rejoined: false,
     });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     expect(mockReplace).toHaveBeenCalledWith(route);
     expect(haptics.error).not.toHaveBeenCalled();
@@ -184,7 +189,7 @@ describe('useJoinAttempt', () => {
 
   it('goes to the name screen on name_required and joins again only with a name', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'name_required', host_name: 'Camille' });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     expect(mockPush).toHaveBeenCalledWith({ pathname: '/name', params: { code: '482913' } });
     expect(result.current.view).toEqual({ kind: 'idle' });
@@ -209,9 +214,9 @@ describe('useJoinAttempt', () => {
 
   it('joins again on refocus when the profile now has a name', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'name_required', host_name: null });
-    const { result, rerender } = await renderHook(() => useJoinAttempt());
+    const { result, rerender } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
-    mockProfile = { display_name: 'Coco' };
+    client.setQueryData(['my_profile'], { display_name: 'Coco' });
     mockJoinRoom.mockResolvedValue({
       status: 'ok',
       room_id: 'r1',
@@ -228,7 +233,7 @@ describe('useJoinAttempt', () => {
   it('waits offline, then joins by itself when the connection is back', async () => {
     mockOnline = false;
     mockJoinRoom.mockResolvedValue({ status: 'not_found' });
-    const { result, rerender } = await renderHook(() => useJoinAttempt());
+    const { result, rerender } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     expect(result.current.view).toMatchObject({ message: 'errors.offline' });
     expect(result.current.error).toBe(false);
@@ -240,7 +245,7 @@ describe('useJoinAttempt', () => {
 
   it('shows the network message when the call is rejected, and Retry calls again', async () => {
     mockJoinRoom.mockRejectedValue(new ApiError('network', 'join_room', 'down'));
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     expect(result.current.view).toEqual({
       kind: 'message',
@@ -257,7 +262,7 @@ describe('useJoinAttempt', () => {
 
   it('clears the message and the red boxes on a keystroke', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'full', max_players: 10 });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await type(result, '482913');
     expect(result.current.error).toBe(true);
     await act(async () => result.current.setCode('48291'));
@@ -267,7 +272,7 @@ describe('useJoinAttempt', () => {
 
   it('sends a pasted link with its reference, and again on retry', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'closed' });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await act(async () => result.current.paste(`https://x.y/join/482913?r=${REF}`));
     expect(mockJoinRoom).toHaveBeenCalledWith({ code: '482913', ref: REF, via: 'link' });
     expect(mockJoinRoom.mock.calls[0]?.[0]).not.toHaveProperty('link_opened_at');
@@ -283,7 +288,7 @@ describe('useJoinAttempt', () => {
 
   it('keeps only the digits of pasted text, and joins when there are six', async () => {
     mockJoinRoom.mockResolvedValue({ status: 'not_found' });
-    const { result } = await renderHook(() => useJoinAttempt());
+    const { result } = await renderHook(() => useJoinAttempt(), { wrapper });
     await act(async () => result.current.paste('code 482 913'));
     expect(mockJoinRoom).toHaveBeenCalledWith({ code: '482913', via: 'code' });
   });
