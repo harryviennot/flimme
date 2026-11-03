@@ -38,6 +38,14 @@ export const PLANNED_ROOM_PREVIEW_ANSWERS = ['removed', 'locked'] as const;
 export const JOIN_VIAS = ['link', 'code', 'qr', 'rejoin', 'play_again'] as const;
 export type JoinVia = (typeof JOIN_VIAS)[number];
 
+/** Why a player reported a seat (`public.report_reason`, M7.1). No free text. */
+export const REPORT_REASONS = ['offensive_name', 'spam', 'other'] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+
+/** `api.report_member` answers (M7.1). A repeat report answers `ok` and writes nothing. */
+export const REPORT_MEMBER_ANSWERS = ['ok', 'not_in_room', 'rate_limited'] as const;
+export type ReportMemberAnswer = (typeof REPORT_MEMBER_ANSWERS)[number];
+
 /** `api.leave_room` answers. */
 export const LEAVE_ROOM_ANSWERS = ['ok', 'not_in_room'] as const;
 export type LeaveRoomAnswer = (typeof LEAVE_ROOM_ANSWERS)[number];

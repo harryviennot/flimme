@@ -4,6 +4,7 @@ import {
   CREATE_ROOM_ANSWERS,
   JOIN_ROOM_ANSWERS,
   ROOM_PREVIEW_ANSWERS,
+  REPORT_MEMBER_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
@@ -102,6 +103,13 @@ const cases = [
     },
   },
   {
+    name: 'report_member',
+    answers: REPORT_MEMBER_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) =>
+      a.reportMember({ room_id: ROOM, member_id: MEMBER, reason: 'spam' }),
+    full: {},
+  },
+  {
     name: 'leave_room',
     answers: LEAVE_ROOM_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.leaveRoom({ room_id: ROOM }),
@@ -183,6 +191,15 @@ describe('arguments', () => {
     const { client, calls } = fake(() => ok({ status: 'closed' }));
     await createApi(client).roomPreview({ code: '482915', ref: ROOM });
     expect(calls[0]).toEqual({ fn: 'room_preview', args: { p_code: '482915', p_ref: ROOM } });
+  });
+
+  it('report_member sends the room, the seat and the reason', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok' }));
+    await createApi(client).reportMember({ room_id: ROOM, member_id: MEMBER, reason: 'other' });
+    expect(calls[0]).toEqual({
+      fn: 'report_member',
+      args: { p_room_id: ROOM, p_member_id: MEMBER, p_reason: 'other' },
+    });
   });
 
   it('join_room sends the reference, how the player came in and when the link was opened', async () => {

@@ -269,6 +269,9 @@ export type Database = {
 "my_next_cards":
 { Args: { "p_language"?: string,"p_limit"?: number,"p_member_id"?: string,"p_room_id": string }; Returns: Json
                            },
+"report_member":
+{ Args: { "p_member_id": string,"p_reason": string,"p_room_id": string }; Returns: Json
+                           },
 "request_cards":
 { Args: { "p_member_id"?: string,"p_room_id": string }; Returns: Json
                            },
