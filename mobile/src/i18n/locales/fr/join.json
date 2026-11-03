@@ -20,6 +20,16 @@
   "actions": {
     "host": "Organiser une soirée"
   },
+  "link": {
+    "ticketLeft": "Invitation",
+    "ticketRight": "Ce soir",
+    "joining": "On te fait entrer…",
+    "code": "Salle {{code}}",
+    "title": "Rejoins la soirée film",
+    "titleHost": "Rejoins la soirée de {{name}}",
+    "join": "Rejoindre",
+    "anotherCode": "Entrer un autre code"
+  },
   "a11y": {
     "field": "Code de la salle, 6 chiffres",
     "progress": "{{digits}}, {{count}} chiffres sur 6"
