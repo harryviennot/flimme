@@ -68,9 +68,10 @@ select is(
 
 -- T3: under sql, the vote that leaves a seat 15 cards deals more in the same call.
 -- Only a1 votes, and always nopes, so no match and no finale.
-select tests.vote_next('a1', 14);
+-- M5.2: a start deals 25 cards per seat, so 9 votes leave 16.
+select tests.vote_next('a1', 9);
 select is(cardinality(tests.upcoming('a1')), 16,
-  'T3 control: 16 cards left after 14 votes, nothing dealt yet');
+  'T3 control: 16 cards left after 9 votes, nothing dealt yet');
 select tests.vote_next('a1', 1);
 select cmp_ok(cardinality(tests.upcoming('a1')), '>', 15,
   'T3 the vote that leaves 15 cards deals new cards to the seat in the same call');

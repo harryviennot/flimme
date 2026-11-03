@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 75 of 253 tasks done.
+Progress: 76 of 253 tasks done.
 
 ```mermaid
 flowchart LR
@@ -381,7 +381,7 @@ Done when: a room is dealt in under a second, only with films its players can wa
 
 - [x] **M5.1** `internal.deck_candidates` for the first release: the crowd score (quality and popularity percentiles), the room's services including free services, age cap, time budget, quality floor, seen films · backend · L · needs M2.4, M1.13 · [deck-engine](../architecture/deck-engine.md#scoring-a-film-for-a-player)
   Done when: tests show each filter, and the crowd score orders the rest.
-- [ ] **M5.2** The weighted shuffle in the SQL deal (noise from a hash of the room's seed and the film), with the shared opening of 10 · backend · M · needs M5.1 · [deck-engine](../architecture/deck-engine.md#weighted-shuffle)
+- [x] **M5.2** The weighted shuffle in the SQL deal (noise from a hash of the room's seed and the film), with the shared opening of 10 · backend · M · needs M5.1 · [deck-engine](../architecture/deck-engine.md#weighted-shuffle)
   Done when: the same room settings give different but repeatable decks per seed.
 - [ ] **M5.3** One film per franchise in the opening and in any 10 cards · backend · M · needs M5.2 · [deck-engine](../architecture/deck-engine.md#variety)
   Done when: tested with a franchise-heavy seed.
