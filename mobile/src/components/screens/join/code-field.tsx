@@ -1,8 +1,6 @@
-import { useEffect, useRef, type ComponentRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-// The hidden input that owns the value is the one accessible element (join-code.md#layout).
-// eslint-disable-next-line no-restricted-imports
-import { AccessibilityInfo, TextInput, View } from 'react-native';
+import { AccessibilityInfo, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useReducedMotion,
@@ -11,6 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { HiddenInput, type HiddenInputHandle } from '@/components/ui/hidden-input';
 import { PinBox } from '@/components/ui/pin-box';
 import { CODE_LENGTH } from '@/features/join/link';
 import { tokens } from '@/theme/generated/tokens';
@@ -42,7 +41,7 @@ export function CodeField({
   onShakeEnd,
 }: CodeFieldProps) {
   const { t } = useTranslation('join');
-  const input = useRef<ComponentRef<typeof TextInput>>(null);
+  const input = useRef<HiddenInputHandle>(null);
   const reduceMotion = useReducedMotion();
   const offset = useSharedValue(0);
   const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: offset.value }] }));
@@ -96,21 +95,17 @@ export function CodeField({
           <PinBox key={i} digit={code[i]} active={i === code.length} error={error} />
         ))}
       </Animated.View>
-      <TextInput
+      <HiddenInput
         ref={input}
         value={code}
         onChangeText={onChangeCode}
         keyboardType="number-pad"
         maxLength={CODE_LENGTH}
-        autoComplete="off"
-        autoCorrect={false}
-        caretHidden
-        textContentType="none"
         accessibilityLabel={t('a11y.field')}
-        accessibilityValue={{
-          text: t('a11y.progress', { digits: code.split('').join(' '), count: code.length }),
-        }}
-        className="absolute inset-0 opacity-0"
+        accessibilityValueText={t('a11y.progress', {
+          digits: code.split('').join(' '),
+          count: code.length,
+        })}
       />
     </View>
   );

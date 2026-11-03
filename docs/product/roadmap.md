@@ -22,7 +22,7 @@ The first part lists the milestones, to track the whole project. The second part
 Each task reads like this:
 
 ```
-- [ ] **M4.8** Join with a code · app · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
+- [x] **M4.8** Join with a code · app · needs M4.7, M4.1 · [onboarding](onboarding.md#joining-with-a-code-or-a-qr-code)
   Done when: a wrong code, a full room and a started room each show their message.
 ```
 

@@ -8,6 +8,7 @@ import { gallery as uiChip } from './ui/chip.gallery';
 import { gallery as uiCountdown } from './ui/countdown.gallery';
 import { gallery as uiEmptyState } from './ui/empty-state.gallery';
 import { gallery as uiGradients } from './ui/gradients.gallery';
+import { gallery as uiHiddenInput } from './ui/hidden-input.gallery';
 import { gallery as uiIconButton } from './ui/icon-button.gallery';
 import { gallery as uiIcon } from './ui/icon.gallery';
 import { gallery as uiInput } from './ui/input.gallery';
@@ -44,6 +45,7 @@ export const galleryEntries: GalleryEntry[] = [
   uiCountdown,
   uiEmptyState,
   uiGradients,
+  uiHiddenInput,
   uiIconButton,
   uiIcon,
   uiInput,
