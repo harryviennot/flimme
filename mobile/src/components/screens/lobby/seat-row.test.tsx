@@ -1,0 +1,59 @@
+import '@/i18n';
+
+import { fireEvent, render, screen } from '@testing-library/react-native';
+
+import { SeatRow, type SeatRowProps } from './seat-row';
+
+const base: SeatRowProps = {
+  name: 'Sam',
+  color: 'blue',
+  services: '',
+  isHost: false,
+  isMe: false,
+  present: true,
+  away: false,
+};
+const show = (props: Partial<SeatRowProps> = {}) => render(<SeatRow {...base} {...props} />);
+
+describe('SeatRow', () => {
+  it('shows the name and says when no services are known', async () => {
+    await show();
+    expect(screen.getByText('Sam')).toBeTruthy();
+    expect(screen.getByText('No services yet')).toBeTruthy();
+  });
+
+  it('lists the services', async () => {
+    await show({ services: 'Netflix, Disney+' });
+    expect(screen.getByText('Netflix, Disney+')).toBeTruthy();
+    expect(screen.queryByText('No services yet')).toBeNull();
+  });
+
+  it('marks the own seat', async () => {
+    await show({ isMe: true });
+    expect(screen.getByText('Sam (you)')).toBeTruthy();
+  });
+
+  it('shows the crown tag for the host', async () => {
+    await show({ isHost: true });
+    expect(screen.getByText('Host')).toBeTruthy();
+    expect(screen.queryByText('Away')).toBeNull();
+  });
+
+  it('shows the Away tag on an away guest', async () => {
+    await show({ away: true, present: false });
+    expect(screen.getByText('Away')).toBeTruthy();
+  });
+
+  it('shows one tag only when the host is away', async () => {
+    await show({ away: true, present: false, isHost: true, isMe: true });
+    expect(screen.getAllByText('Host')).toHaveLength(1);
+    expect(screen.queryByText('Away')).toBeNull();
+  });
+
+  it('is a button only when given onPress', async () => {
+    const onPress = jest.fn();
+    await show({ onPress });
+    await fireEvent.press(screen.getByRole('button'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+});

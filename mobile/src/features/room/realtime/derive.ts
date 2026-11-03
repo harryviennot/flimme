@@ -43,6 +43,7 @@ export function presenceOf(
   seatIds: readonly string[],
   mySeatId: string | undefined,
   now: number,
+  joinedAt?: ReadonlyMap<string, number>,
 ): { online: ReadonlySet<string>; away: ReadonlySet<string>; nextChange: number | null } {
   const online = new Set<string>();
   const away = new Set<string>();
@@ -54,7 +55,11 @@ export function presenceOf(
       continue;
     }
     if (!joined) continue;
-    const since = Math.max(state.lastSeen.get(id) ?? 0, state.liveJoinedAt ?? 0);
+    const since = Math.max(
+      state.lastSeen.get(id) ?? 0,
+      state.liveJoinedAt ?? 0,
+      joinedAt?.get(id) ?? 0,
+    );
     const left = AWAY_AFTER_MS - (now - since);
     if (left <= 0) away.add(id);
     else nextChange = nextChange === null ? left : Math.min(nextChange, left);

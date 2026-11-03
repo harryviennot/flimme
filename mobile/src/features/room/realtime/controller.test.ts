@@ -302,6 +302,19 @@ describe('presence', () => {
     expect(presenceOf(t.rt.getState(), seats, 'seat-1', Date.now()).away.size).toBe(1);
   });
 
+  it('counts a late joiner from its joined_at, not from the SUBSCRIBED', () => {
+    const t = setup();
+    t.live().status!('SUBSCRIBED');
+    jest.advanceTimersByTime(80_000);
+    const joinedAt = new Map([['seat-2', Date.now()]]);
+    jest.advanceTimersByTime(20_000);
+    const state = t.rt.getState();
+    expect(presenceOf(state, seats, 'seat-1', Date.now()).away.has('seat-2')).toBe(true);
+    expect(presenceOf(state, seats, 'seat-1', Date.now(), joinedAt).away.has('seat-2')).toBe(false);
+    jest.advanceTimersByTime(70_000);
+    expect(presenceOf(state, seats, 'seat-1', Date.now(), joinedAt).away.has('seat-2')).toBe(true);
+  });
+
   it('counts a seat never seen from the first SUBSCRIBED', () => {
     const t = setup();
     t.live().status!('SUBSCRIBED');

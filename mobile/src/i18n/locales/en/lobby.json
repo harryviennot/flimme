@@ -1,4 +1,67 @@
 {
+  "topBar": "Lobby",
+  "ticket": {
+    "players_one": "{{count}} of {{max}} players",
+    "players_other": "{{count}} of {{max}} players",
+    "host": "Host · {{name}}"
+  },
+  "shareLink": "Share link",
+  "showQr": "Show QR",
+  "rules": {
+    "quickMatch": "Quick Match: swipe until you agree on a film. No match? A quick final vote decides."
+  },
+  "inTheRoom": "In the room",
+  "seat": {
+    "you": "{{name}} (you)",
+    "noServices": "No services yet",
+    "host": "Host",
+    "away": "Away"
+  },
+  "alone": "Nobody else yet. Share the code.",
+  "roomServices": "This room can watch on {{list}}.",
+  "yourServices": {
+    "label": "Your services",
+    "optional": "Optional"
+  },
+  "servicesSheet": {
+    "title": "Your services",
+    "helper": "Optional: adds more films.",
+    "done": "Done"
+  },
+  "start": {
+    "cta": "Start swiping",
+    "needPlayers": "You need {{count}} players here to start.",
+    "away_one": "{{names}} is away. You can start without them.",
+    "away_other": "{{names}} are away. You can start without them."
+  },
+  "waiting": "Waiting for {{name}} to start…",
+  "shuffling": "Shuffling the deck…",
+  "shufflingSlow": "This is taking longer than usual.",
+  "youreHost": {
+    "title": "You're the host now",
+    "message": "Start whenever you're ready."
+  },
+  "leave": {
+    "title": "Leave the room?",
+    "bodyGuest": "You can come back with the code.",
+    "bodyHost": "{{name}} becomes the host.",
+    "stay": "Stay",
+    "confirm": "Leave"
+  },
+  "errors": {
+    "start": "We couldn't start the game. Try again.",
+    "services": "We couldn't save your services. Try again."
+  },
+  "a11y": {
+    "invite": "Invite friends",
+    "joined": "{{name}} is here",
+    "left": "{{name}} left",
+    "leave": "Leave the room",
+    "ticket": "Room code {{code}}, {{count}} of {{max}} players, host {{host}}",
+    "seatHere": "{{name}}, here",
+    "seatAway": "{{name}}, away",
+    "seatHost": "host"
+  },
   "invite": {
     "title": "Invite friends",
     "helper": "Anyone with the link can join this room.",

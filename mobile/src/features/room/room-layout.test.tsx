@@ -26,7 +26,13 @@ const mockSeat = {
 };
 
 jest.mock('@/api', () => ({
-  api: { room: jest.fn(), roomSeats: jest.fn(), touchRoom: jest.fn(async () => undefined) },
+  api: {
+    room: jest.fn(),
+    roomSeats: jest.fn(),
+    touchRoom: jest.fn(async () => undefined),
+    countryProviders: jest.fn(async () => []),
+    gameModes: jest.fn(async () => []),
+  },
 }));
 const mockOnline = { value: true };
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline.value }));
@@ -59,7 +65,15 @@ jest.mock('@/features/session', () => ({ startSession: jest.fn(async () => ({ st
 
 const { api } = jest.requireMock('@/api');
 
-const roomOf = (state: string) => ({ id: 'r1', code: '482913', state });
+const roomOf = (state: string) => ({
+  id: 'r1',
+  code: '482913',
+  state,
+  mode: 'quick_match',
+  country: 'FR',
+  max_players: 10,
+  provider_ids: [],
+});
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const routes = {

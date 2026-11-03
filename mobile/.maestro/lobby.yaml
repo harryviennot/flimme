@@ -1,0 +1,56 @@
+# Slice 7, the lobby: Home, Host, open the room, close the invite sheet, then the lobby shows the
+# code, the own seat with the crown, and Start waiting for a second player. Leaving drops the
+# phone on Home, and a relaunch stays on Home (the kept room is forgotten). Needs the local stack.
+# Run: `maestro test mobile/.maestro/lobby.yaml -e METRO_URL=http://localhost:8094`
+# with the development build installed and Metro running.
+appId: com.harryviennot.flimme.dev
+env:
+  METRO_URL: http://localhost:8094
+---
+- runFlow: subflows/open-app-fresh.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Maestro'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- tapOn: '(?i)open a room'
+- extendedWaitUntil:
+    visible: 'Lumo'
+    timeout: 15000
+- tapOn: 'Lumo'
+- tapOn: '(?i)open the room'
+- extendedWaitUntil:
+    visible: '(?i)invite friends'
+    timeout: 20000
+
+# Close the invite sheet. In a development build the floating dev tools button sits over its
+# Close button, so drag that button out of the way first.
+- swipe:
+    start: 91%,10%
+    end: 50%,70%
+- tapOn: '(?i)close'
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 15000
+- assertVisible: '(?i)maestro \(you\).*host.*'
+- assertVisible: '(?i)nobody else yet.*'
+- assertVisible: '(?i)you need 2 players here to start.'
+- takeScreenshot: lobby-1-alone
+
+# Leave: the alert, then Home. A relaunch stays on Home.
+- tapOn: 'Back'
+- assertVisible: '(?i)leave the room\?'
+- tapOn: 'Leave'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- runFlow: subflows/open-app.yaml
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 30000
+- assertNotVisible: '(?i)in the room'
+- takeScreenshot: lobby-2-home-after-relaunch

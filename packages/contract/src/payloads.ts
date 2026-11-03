@@ -190,3 +190,14 @@ export const countryProviderRow = z.object({
 });
 export const countryProvidersSchema = z.array(countryProviderRow);
 export type CountryProvider = z.infer<typeof countryProviderRow>;
+
+// The `api.game_modes` view: the rules of each mode that the phone needs before a game.
+export const gameModeRow = z.object({
+  slug: z.string(),
+  min_players: z.number(),
+  max_players: z.number(),
+  ends_on_first_match: z.boolean(),
+  sort: z.number(),
+});
+export const gameModesSchema = z.array(gameModeRow);
+export type GameMode = z.infer<typeof gameModeRow>;

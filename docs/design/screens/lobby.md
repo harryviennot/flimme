@@ -37,7 +37,7 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 Phones can't read `last_active_at`, so the lobby's rule comes from the live channel's presence (Q21.1):
 
 - **Online** (the avatar's dot): the seat is in `room:<id>:live`'s presence now (the presence key is the seat id).
-- **Away**: the seat has been missing from presence for 90 seconds. A seat never seen since this phone's last `SUBSCRIBED` counts from that moment, so a phone that just reconnected doesn't mark everyone away.
+- **Away**: the seat has been missing from presence for 90 seconds. A seat is never shown as away until 90 seconds after the later of this phone's last `SUBSCRIBED` and the seat's `joined_at`, so a phone that just reconnected doesn't mark everyone away and a late joiner isn't away for a few seconds.
 - **Present**: seated and not away. The ticket's count, `start.needPlayers`, `start.away` and the next host in the leave alert all use it.
 - The player's own seat is always online and present on their phone.
 
@@ -51,7 +51,7 @@ Rooms and seats hold service ids. The names come from `api.countryProviders({ co
 | --- | --- |
 | The host taps Start | `Button` `loading` |
 | `dealing` | Everyone: the **shuffling overlay** (`screens/lobby/shuffling-overlay.tsx`) over the lobby: `bg-overlay-card`, `Spotlight tone="marquee"`, `display-m` `lobby:shuffling`, `MarqueeBulbs` still |
-| Still `dealing` after 8 seconds | The host's phone calls `start_game` again, which deals the SQL baseline. Nothing changes on screen |
+| Still `dealing` after 8 seconds (counted on each phone from when it first sees `dealing`) | The host's phone calls `start_game` again, which deals the SQL baseline. Nothing changes on screen |
 | Still `dealing` after 20 seconds | Host: `lobby:shufflingSlow` and `common:actions.retry` on the overlay. Guests: the same line, no button |
 | The room moves to `swiping` | The room layout replaces the lobby with the swipe screen |
 | `not_enough_players` | The helper shows `lobby:start.needPlayers` with `need`; `haptics.error()` |

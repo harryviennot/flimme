@@ -9,7 +9,7 @@ import { Text } from './text';
 export const gallery: GalleryEntry = {
   name: 'Icon',
   tier: 'ui',
-  description: 'The 38 icons from the Figma, 24 points, 2-point stroke, recoloured with a token.',
+  description: 'The 39 icons from the Figma, 24 points, 2-point stroke, recoloured with a token.',
   render: () => (
     <View className="flex-row flex-wrap gap-4">
       {(Object.keys(icons) as IconName[]).map((name) => (
