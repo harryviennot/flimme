@@ -1,6 +1,6 @@
 import type { RoomState } from '@flimme/contract';
 
-import { isAllowed, roomScreenFor } from './screens';
+import { isAllowed, isSheet, roomScreenFor } from './screens';
 
 describe('roomScreenFor', () => {
   it.each([
@@ -21,6 +21,14 @@ describe('isAllowed', () => {
       expect(isAllowed(state, 'lobby')).toBe(true);
       expect(isAllowed(state, 'invite')).toBe(true);
       expect(isAllowed(state, 'services')).toBe(true);
+    }
+  });
+  it('lets the seat and report sheets over the lobby and the dealing, never over a game', () => {
+    for (const sheet of ['seat', 'report']) {
+      expect(isAllowed('lobby', sheet)).toBe(true);
+      expect(isAllowed('dealing', sheet)).toBe(true);
+      expect(isAllowed('swiping', sheet)).toBe(false);
+      expect(isSheet(sheet)).toBe(true);
     }
   });
   it('lets the recap sheet over the winner only', () => {
