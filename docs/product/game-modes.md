@@ -52,7 +52,7 @@ A typical three-player Quick Match:
 | 0:00 to 0:35 | The shared warm-up: the same 10 cards for everyone, in the same order |
 | 0:35 to 2:20 | Personal decks. Likes jump into the others' next cards; "2 of 3 of you liked this" pops up |
 | About 2:00 | Everyone likes the same film: "It's a match" on every phone at once, and the game is over |
-| If no match by the card count (40, or 30 for 5 to 10 players) | The Final Cut: one 60-second vote between 3 or 4 finalists, then the winner |
+| If no match by the card count (40, or 30 for 5 to 10 players) | The Final Cut: one 60-second vote between 4 finalists, then the winner |
 
 ## The modes
 
@@ -67,7 +67,7 @@ A typical three-player Quick Match:
 | Deck recipe | `quick_match` | `final_cut` | `date_night` |
 
 - **Quick Match** is the default and the fastest. It's tuned for "pick something now".
-- **Final Cut** is for groups who want to see a few options before choosing. Swiping builds a shortlist of matches; the finale chooses between them. **Default to confirm:** the finale starts as soon as the shortlist holds as many films as the finale (4), rather than always waiting for 30 cards, so a group that agrees fast isn't kept swiping.
+- **Final Cut** is for groups who want to see a few options before choosing. Swiping builds a shortlist of matches; the finale chooses between them. **Default to confirm:** the finale starts as soon as the shortlist holds as many films as the finale (3 for 2 players, 4 otherwise), rather than always waiting for 30 cards, so a group that agrees fast isn't kept swiping.
 - **Date Night** is Quick Match for a couple: films neither has seen, a shorter warm-up and a bigger watchlist bonus (see its [recipe](../architecture/deck-engine.md#recipes)).
 
 Later modes are in [Later modes](#later-modes).
