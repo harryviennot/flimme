@@ -65,6 +65,8 @@ export type CardStackState = {
   stop: () => void;
   /** Takes the top card off; the vote queue records the returned dwell time and flip state. */
   answer: () => AnsweredCard | null;
+  /** Undo: the last answered card is on top again, front side up, its dwell starting over. */
+  putBack: (card: NextCard) => void;
   setFlipped: (flipped: boolean) => void;
   onDeckUpdated: () => void;
   onOnline: () => void;
@@ -236,6 +238,23 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
         prefetchPosters();
         check();
         return { card: top, dwellMs, flipped };
+      },
+
+      putBack: (card) => {
+        const { mounted, buffer } = get();
+        const others = mounted.filter((c) => c.title_id !== card.title_id);
+        const all = [card, ...others];
+        // The card that would be fourth goes back to the head of the buffer.
+        exhausted = false;
+        commit({
+          mounted: all.slice(0, MOUNTED_COUNT),
+          buffer: [
+            ...all.slice(MOUNTED_COUNT),
+            ...buffer.filter((c) => c.title_id !== card.title_id),
+          ],
+          flipped: false,
+          shownAt: deps.now(),
+        });
       },
 
       setFlipped: (flipped) => {
