@@ -849,6 +849,20 @@ describe('swiping', () => {
       [],
     );
   });
+
+  it("round_candidates reads a round's finalists by seed and rejects a wrong shape", async () => {
+    const row = { round_id: 'r-1', title_id: 7, seed: 1, points: 0, vetoed: false };
+    const { client, calls } = fake(() => ok([row]));
+    await expect(
+      createApi(client, { validate: true }).roundCandidates({ round_id: 'r-1' }),
+    ).resolves.toEqual([row]);
+    expect(calls[0]).toEqual({ fn: 'round_candidates.eq', args: ['round_id', 'r-1'] });
+    await expect(
+      createApi(fake(() => ok([{ ...row, seed: 'x' }])).client, {
+        validate: true,
+      }).roundCandidates({ round_id: 'r-1' }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
+  });
 });
 
 describe('avatars', () => {
