@@ -112,7 +112,7 @@ Nothing, while the game runs. Presence carries the swipe count every 5 swipes, s
 From [the first game](../product/onboarding.md#the-first-game). The beats that touch motion:
 
 - **Card 1:** after the card has been still for `hintDelay` (below), it leans right to about a third of the commit line, showing the LIKE stamp at the same share, comes back (`spring.card`), then leans left the same way with NOPE, once. "Swipe right to like, left to nope" sits under the card. Any touch cancels the lean at once and gives the card to the finger. No haptic during the lean: the commit line isn't crossed.
-- **Card 2:** "Seen it? Swipe up. It doesn't count as a no." under the buttons, with `layout.fadeIn`.
+- **Card 2:** "Seen it? Swipe up. We'll ask if you'd watch it again." (Q18.1) between the card and the buttons ([swipe](screens/swipe.md#first-game-hints)), with `layout.fadeIn`.
 - **Card 3:** "Tap the card for the story", with `layout.fadeIn`.
 - **The star, or card 5:** the super likes hint.
 - Hints never cover the card or the buttons, and they leave with `layout.fadeOut`. With Reduce Motion the card 1 lean is replaced by the two stamps shown still for a moment, at the same small share.
