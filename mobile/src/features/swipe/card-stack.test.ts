@@ -334,4 +334,50 @@ describe('card stack', () => {
       expect(t.deps.prefetch.mock.calls[0][0][0]).toBe('https://img.test/t/p/w780/p4.jpg');
     });
   });
+
+  describe('putBack (undo)', () => {
+    it('puts the answered card on top again, front side up, and the others behind it', async () => {
+      const t = setup(cards(1, 13));
+      t.stack.getState().start();
+      await flush();
+      t.get().setFlipped(true);
+      const done = t.get().answer()!;
+      expect(ids(t.get().mounted)).toEqual([2, 3, 4]);
+      t.get().putBack(done.card);
+      expect(ids(t.get().mounted)).toEqual([1, 2, 3]);
+      expect(ids(t.get().buffer)[0]).toBe(4);
+      expect(t.get().flipped).toBe(false);
+      expect(t.get().status).toBe('ready');
+    });
+
+    it('restarts the dwell time', async () => {
+      const t = setup(cards(1, 13));
+      t.stack.getState().start();
+      await flush();
+      const done = t.get().answer()!;
+      t.tick(5000);
+      t.get().putBack(done.card);
+      t.tick(700);
+      expect(t.get().answer()!.dwellMs).toBe(700);
+    });
+
+    it('works when the answer was the last card of the deck', async () => {
+      const t = setup(cards(1, 1));
+      t.stack.getState().start();
+      await flush();
+      const done = t.get().answer()!;
+      expect(t.get().mounted).toEqual([]);
+      t.get().putBack(done.card);
+      expect(ids(t.get().mounted)).toEqual([1]);
+      expect(t.get().status).toBe('ready');
+    });
+
+    it('never doubles a card that is already mounted', async () => {
+      const t = setup(cards(1, 13));
+      t.stack.getState().start();
+      await flush();
+      t.get().putBack(t.get().mounted[1]!);
+      expect(ids(t.get().mounted)).toEqual([2, 1, 3]);
+    });
+  });
 });

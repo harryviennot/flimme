@@ -10,19 +10,29 @@ import type { AnswerKind } from '@/features/swipe/answer';
 import { LIT } from './swipe-card';
 
 // The buttons row (swipe.md#the-buttons-row): five buttons in equal columns, with less side
-// padding than the screen so the French labels keep their gaps at 375 points wide. Undo is
-// drawn disabled until M6.26 so the row's layout is final.
+// padding than the screen so the French labels keep their gaps at 375 points wide. Undo wakes
+// with the first answer and sleeps again after use (once in a row).
 
 export type ActionRowProps = {
   /** There is a card on top to answer, and the room hasn't moved on. */
   canAnswer: boolean;
   superLikesLeft: number;
+  /** There is an answer to take back, and it hasn't been yet. */
+  canUndo: boolean;
+  onUndo: () => void;
   onAnswer: (kind: AnswerKind) => void;
   /** Which button a dragged card lights (`LIT`). */
   lit: SharedValue<number>;
 };
 
-export function ActionRow({ canAnswer, superLikesLeft, onAnswer, lit }: ActionRowProps) {
+export function ActionRow({
+  canAnswer,
+  superLikesLeft,
+  canUndo,
+  onUndo,
+  onAnswer,
+  lit,
+}: ActionRowProps) {
   const { t } = useTranslation('swipe');
   const [litCode, setLitCode] = useState<number>(LIT.none);
 
@@ -37,7 +47,12 @@ export function ActionRow({ canAnswer, superLikesLeft, onAnswer, lit }: ActionRo
   return (
     <View className="flex-row items-end justify-between px-2 pb-2">
       <Column>
-        <SwipeAction kind="undo" disabled accessibilityHint={t('a11y.undoNone')} />
+        <SwipeAction
+          kind="undo"
+          disabled={!canUndo}
+          accessibilityHint={canUndo ? undefined : t('a11y.undoNone')}
+          onPress={onUndo}
+        />
       </Column>
       <Column>
         <SwipeAction

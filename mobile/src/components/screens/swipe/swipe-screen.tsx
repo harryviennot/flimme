@@ -65,6 +65,14 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
     [throwCard, t, tc],
   );
 
+  // Undo: the card is back in the stack at once; a copy still in the air is called back.
+  const undoLast = useCallback(() => {
+    const back = swipe.undo();
+    if (!back) return;
+    landed(back.card.title_id);
+    AccessibilityInfo.announceForAccessibility(t('a11y.undone', { title: back.card.title }));
+  }, [swipe, landed, t]);
+
   const canAnswer = status === 'ready' && !swipe.locked;
 
   return (
@@ -74,6 +82,8 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
         <ActionRow
           canAnswer={canAnswer}
           superLikesLeft={swipe.superLikesLeft}
+          canUndo={swipe.canUndo}
+          onUndo={undoLast}
           onAnswer={(kind) => throwAndSay(kind, false)}
           lit={lit}
         />

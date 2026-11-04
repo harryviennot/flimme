@@ -52,6 +52,7 @@
     "superLeft_other": "Super like, {{count}} left",
     "superNone": "No super likes left",
     "undoNone": "Nothing to undo",
+    "undone": "{{title}} is back",
     "seenYes": "Yes, watch it again tonight",
     "seenNo": "No, not tonight",
     "pill_one": "{{name}}, {{count}} film",
