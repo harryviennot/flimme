@@ -106,7 +106,7 @@ export function SwipeHints({ hideSeen, stack, signals, superLikes }: SwipeHintsP
 // line (LIKE at that share), comes back, then leans left (NOPE), once. A touch cancels it:
 // the card's own pan gesture cancels every animation on its values when a finger lands. With
 // Reduce Motion the stamps show still (no tilt, no spring) for the same time.
-function useLean(active: boolean) {
+export function useLean(active: boolean) {
   const motion = useTopCard();
   const reduced = useReducedMotion();
   const screen = useWindowDimensions();
