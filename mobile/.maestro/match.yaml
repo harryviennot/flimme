@@ -1,5 +1,5 @@
 # Slice 10, the match overlay on fixture data (the dev menu's "Play the match overlay"): it plays,
-# a tap in the first 800 ms does not skip it, a tap after that goes on, and it hands over by
+# a tap goes on, and it hands over by
 # itself at 4 seconds. The two-phone run (a shared like on both simulators) is done by hand, see
 # the pull request of M6.14.
 # Run: `maestro test mobile/.maestro/match.yaml -e METRO_URL=http://localhost:8095`
@@ -12,14 +12,15 @@ env:
 - openLink: flimme-dev://dev/match
 - tapOn: 'Unanimous, 3 players'
 - assertVisible: '(?i)it.s a match.*'
-- tapOn:
-    id: match-tap
-- assertVisible: '(?i)it.s a match.*'
 - extendedWaitUntil:
     visible: '(?i)unanimous: 3 of 3'
     timeout: 3000
 - takeScreenshot: match-1-unanimous
-- tapOn: '(?i)where to watch'
+# A tap anywhere goes on once the first 800 ms have passed. The tap target is hidden from screen
+# readers (the button is their way on), so tap by position. Maestro is slower than 800 ms, so the
+# early-tap rule is covered by the unit tests and the by-hand pass.
+- tapOn:
+    point: 50%,45%
 - extendedWaitUntil:
     notVisible: '(?i)it.s a match.*'
     timeout: 3000

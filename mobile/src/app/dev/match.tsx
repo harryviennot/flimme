@@ -1,5 +1,5 @@
 import { Redirect, router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { MatchOverlay, type MatchPlayer } from '@/components/screens/room/match-overlay';
@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/text';
 import { TopBar } from '@/components/ui/top-bar';
 import { haptics } from '@/lib/haptics';
 import { playSound } from '@/lib/sound';
+import { duration } from '@/theme/motion';
 import { useTranslation } from 'react-i18next';
 
 const NAMES = ['Léa', 'Sam', 'Jo', 'Maya', 'Noé', 'Inès', 'Hugo', 'Zoé', 'Tom', 'Alix'] as const;
@@ -45,6 +46,13 @@ const FIXTURES: Fixture[] = [
 export default function DevMatchScreen() {
   const { i18n } = useTranslation();
   const [playing, setPlaying] = useState<Fixture | null>(null);
+
+  // The hold, as the room layout's controller does it.
+  useEffect(() => {
+    if (!playing) return;
+    const timer = setTimeout(() => setPlaying(null), duration['match-hold']);
+    return () => clearTimeout(timer);
+  }, [playing]);
 
   if (!__DEV__) return <Redirect href="/" />;
 

@@ -157,7 +157,6 @@ export function MatchOverlay({
             accessibilityRole="header"
             accessibilityLiveRegion="assertive"
             accessibilityLabel={announce}
-            className="glow-marquee"
           >
             <Text variant="display-l" tone="marquee" align="center" numberOfLines={2}>
               {t('title')}
