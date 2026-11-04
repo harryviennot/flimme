@@ -194,7 +194,7 @@ If only one film qualifies, it's the pick without a vote ("The only film anyone 
 **Decided on 30 October 2026:** one round of 60 seconds, rather than the data model's veto stage (45 seconds) followed by a ranking stage (60 seconds). The current design has 45 seconds; in the [simulation](simulations.md), up to 7% of ballots missed a 45-second close and up to 2% a 60-second one, for at most 5 more seconds, since the round closes as soon as everyone locks in. The first playtest measures lock-in times. Everyone does both at once:
 
 - **Order the finalists.** Tap the posters in order. The first gets as many points as there are films, the last gets 1.
-- **Veto one** (Final Cut only, one per game). Long-press a poster. A vetoed film can't be in that player's order.
+- **Veto one** (Final Cut only, one per game). Long-press a poster. A vetoed film can't be in that player's order. Until lock-in, a long press on the vetoed poster lifts the veto and a long press on another poster moves it; the veto is spent at lock-in (decided on 4 November 2026).
 - **Lock in.** A ballot can't be changed afterwards. Locking in without reordering keeps the order shown, which is the seed order.
 - **Ranked vote** (Quick Match with 5 to 10 players) is the same screen without the veto.
 
