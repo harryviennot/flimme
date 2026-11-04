@@ -305,6 +305,7 @@ begin
 
   -- Undoing a like on a film that sat one like short of the rule: waiting phones hide their toast.
   -- The new count is one below the old one, so the old one was needed minus 1 when this is needed minus 2.
+  -- Unlike cast_vote, no "someone can still answer" test: an extra hide event on a phone that shows no toast is harmless.
   if v_room.reveal = 'party' and v_vote.answer in ('like', 'super_like', 'seen_rewatch') then
     v_check := internal.check_card_match(p_room_id, v_vote.title_id);
     if v_check->>'match' = 'false'
