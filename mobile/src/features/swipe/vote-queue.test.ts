@@ -39,6 +39,7 @@ function vote(title_id: number, extra: Partial<QueuedVote> = {}): QueuedVote {
 }
 
 const networkError = () => new ApiError('network', 'cast_vote', 'the request failed');
+const undoItem = (title_id: number) => ({ room_id: ROOM, member_id: MEMBER, title_id });
 const deniedError = () => new ApiError('denied', 'cast_vote', 'no', { code: '42501' });
 const notDealtError = () => new ApiError('unexpected', 'cast_vote', 'no', { code: '22023' });
 
@@ -183,20 +184,31 @@ describe('answers', () => {
     expect(events).toEqual([]);
   });
 
-  it.each(['duplicate', 'dropped'] as const)(
-    '%s removes the vote and the next one goes',
-    async (status) => {
-      const { queue, sent, events } = setup((s) =>
-        s.title_id === 1 ? { status } : { status: 'ok', match: false },
-      );
-      queue.enqueue(vote(1));
-      queue.enqueue(vote(2));
-      await jest.advanceTimersByTimeAsync(0);
-      expect(sent.map((s) => s.title_id)).toEqual([1, 2]);
-      expect(queue.pending(ROOM)).toBe(0);
-      expect(events).toEqual([]);
-    },
-  );
+  it('duplicate removes the vote and the next one goes', async () => {
+    const { queue, sent, events } = setup((s) =>
+      s.title_id === 1 ? { status: 'duplicate' } : { status: 'ok', match: false },
+    );
+    queue.enqueue(vote(1));
+    queue.enqueue(vote(2));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(sent.map((s) => s.title_id)).toEqual([1, 2]);
+    expect(queue.pending(ROOM)).toBe(0);
+    expect(events).toEqual([]);
+  });
+
+  it('dropped removes the vote, its queued undo, says it was not recorded, and the next one goes', async () => {
+    const { queue, sent, events, log } = setup((s) =>
+      s.title_id === 1 ? { status: 'dropped' } : { status: 'ok', match: false },
+    );
+    queue.enqueue(vote(1));
+    queue.enqueueUndo(undoItem(1));
+    queue.enqueue(vote(2));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(sent.map((s) => s.title_id)).toEqual([1, 2]);
+    expect(log).not.toContain('undo');
+    expect(queue.pending(ROOM)).toBe(0);
+    expect(events).toEqual([{ type: 'dropped', room_id: ROOM, title_id: 1 }]);
+  });
 
   it('closed removes every vote of that room, re-reads it and keeps the other rooms', async () => {
     const { queue, sent, events, invalidated } = setup((s) =>
@@ -262,6 +274,18 @@ describe('answers', () => {
     expect(events).toEqual([{ type: 'card_not_dealt', room_id: ROOM, title_id: 1 }]);
     expect(reported).toHaveLength(1);
     expect(reported[0]!.context).toEqual({ room_id: ROOM, title_id: 1 });
+  });
+
+  it('a vote denied for good also loses its queued undo and says it was not recorded', async () => {
+    const { queue, events, log } = setup((s) => {
+      if (s.title_id === 1) throw deniedError();
+      return { status: 'ok', match: false };
+    });
+    queue.enqueue(vote(1));
+    queue.enqueueUndo(undoItem(1));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(log).not.toContain('undo');
+    expect(events).toEqual([{ type: 'dropped', room_id: ROOM, title_id: 1 }]);
   });
 });
 
@@ -457,8 +481,6 @@ describe('restart', () => {
 });
 
 describe('undo', () => {
-  const undoItem = (title_id: number) => ({ room_id: ROOM, member_id: MEMBER, title_id });
-
   it('takes the last vote out when it is still waiting, and calls nothing for it', async () => {
     const { queue, sent } = setup(() => {
       throw networkError();
