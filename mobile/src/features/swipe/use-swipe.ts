@@ -1,4 +1,4 @@
-import type { RoomSeat } from '@flimme/contract';
+import type { NextCard, RoomSeat } from '@flimme/contract';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -7,6 +7,7 @@ import { useStore } from 'zustand';
 import { createStore } from 'zustand/vanilla';
 
 import { api } from '@/api';
+import { setHeldCardSource } from '@/features/match/use-match-card';
 import { useAppConfig } from '@/features/app-config/use-app-config';
 import { useOnline } from '@/features/network';
 import { ROOM_KEY, useKeptRoom, useRoomEvent } from '@/features/room';
@@ -43,6 +44,8 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
 
   // The answers given on this phone, so a refill that was already in flight never deals them back.
   const [answered] = useState(() => new Set<number>());
+  // The cards answered on this phone, so the match overlay finds the film it just threw.
+  const [thrown] = useState(() => new Map<number, NextCard>());
   const [stack] = useState(() =>
     createCardStack(
       {
@@ -91,12 +94,23 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       const done = answerer.answer(kind);
       if (done) {
         answered.add(done.card.title_id);
+        thrown.set(done.card.title_id, done.card);
         setSuperLikesLeft(answerer.superLikesLeft());
       }
       return done;
     },
-    [answerer, answered],
+    [answerer, answered, thrown],
   );
+
+  // The match overlay asks this screen for the film's card first: one the phone already holds
+  // (thrown, mounted or behind) needs no read.
+  useEffect(() => {
+    setHeldCardSource((titleId) => {
+      const { mounted, buffer } = stack.getState();
+      return thrown.get(titleId) ?? [...mounted, ...buffer].find((c) => c.title_id === titleId);
+    });
+    return () => setHeldCardSource(null);
+  }, [stack, thrown]);
 
   // The deck: fetch on open, stop on leave.
   useEffect(() => {

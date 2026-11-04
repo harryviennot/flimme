@@ -1,0 +1,13 @@
+{
+  "title": "C'est un match !",
+  "count": {
+    "unanimous": "Unanimité : {{likes}} sur {{of}}",
+    "majority": "{{likes}} sur {{of}} ont dit oui"
+  },
+  "cta": "Où regarder",
+  "a11y": {
+    "announce": "C'est un match : {{title}}. {{count}}",
+    "avatars": "Toute la salle : {{names}}",
+    "cta": "Voir où regarder {{title}}"
+  }
+}
