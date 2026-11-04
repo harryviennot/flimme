@@ -42,6 +42,7 @@
     "director": "Director  {{name}}",
     "cast": "Cast  {{names}}",
     "trailer": "Trailer",
+    "justwatch": "Streaming availability by JustWatch.",
     "flipBack": "Tap the card to flip back",
     "stampLike": "Like",
     "stampNope": "Nope",
