@@ -22,10 +22,11 @@ import re
 import unicodedata
 from typing import Any
 
+from psycopg import AsyncConnection
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel, ConfigDict, Field
 
-from server.catalog.curation import Curation
+from server.catalog.curation import Curation, ServicesCuration
 from server.catalog.tmdb import NotFound, TmdbClient, TmdbError
 from server.db import queries
 from server.db.pool import Database
@@ -118,6 +119,20 @@ def display_priority(provider: _Provider, country: str) -> int:
     if value is None:
         return DEFAULT_DISPLAY_PRIORITY
     return max(0, min(value, MAX_DISPLAY_PRIORITY))
+
+
+async def apply_curation(database: Database, curation: Curation) -> dict[str, int]:
+    """The database part of `curation.toml`, with no TMDB call: enabled countries and their
+    languages, the certification ages, and the service flags, order and variant parents.
+
+    Idempotent (a row that already matches is not written) and quick, so the pipeline worker
+    runs it at start and the availability sweep before it opens a run. Services TMDB has not
+    created rows for yet are skipped with a warning; the weekly job fills them later."""
+    stats: dict[str, int] = {}
+    await _apply_countries(database, curation, stats)
+    await _apply_certification_ages(database, curation, stats)
+    await _apply_services(database, curation, stats)
+    return stats
 
 
 async def run_reference_weekly(database: Database, tmdb: TmdbClient, curation: Curation) -> Outcome:
@@ -255,8 +270,8 @@ async def _providers(
     stats.setdefault("curated_services_missing", 0)
 
 
-async def _certifications(
-    database: Database, tmdb: TmdbClient, curation: Curation, stats: dict[str, int]
+async def _apply_certification_ages(
+    database: Database, curation: Curation, stats: dict[str, int]
 ) -> None:
     async with database.connection() as conn, conn.transaction():
         for country, ages in curation.certification_ages.items():
@@ -269,6 +284,11 @@ async def _certifications(
                 )
     stats["certification_ages"] = sum(len(a) for a in curation.certification_ages.values())
 
+
+async def _certifications(
+    database: Database, tmdb: TmdbClient, curation: Curation, stats: dict[str, int]
+) -> None:
+    await _apply_certification_ages(database, curation, stats)
     listing = _CertificationList.model_validate(await _get(tmdb, "/certification/movie/list"))
     without_age = 0
     async with database.connection() as conn:
@@ -291,6 +311,7 @@ async def _certifications(
 async def _apply_services(database: Database, curation: Curation, stats: dict[str, int]) -> None:
     async with database.connection() as conn, conn.transaction():
         for country, services in curation.services.items():
+            await _warn_unapplied(conn, country, services)
             await conn.execute(
                 queries.load("set_service_flags"),
                 (services.listed, services.free, country, services.listed, services.free),
@@ -304,3 +325,22 @@ async def _apply_services(database: Database, curation: Curation, stats: dict[st
                     queries.load("set_variant_parent"), (parent, child, parent, parent)
                 )
     stats["countries_with_services"] = len(curation.services)
+
+
+async def _warn_unapplied(conn: AsyncConnection, country: str, services: ServicesCuration) -> None:
+    """Names the curated ids that have no row yet (the reference job has not run, so TMDB has
+    not created them). The updates below skip them, so nothing fails on a foreign key."""
+    wanted = [*services.listed, *services.free, *services.order]
+    cur = await conn.execute(queries.load("services_without_region"), (wanted, country))
+    no_region = [row[0] for row in await cur.fetchall()]
+    cur = await conn.execute(
+        queries.load("providers_missing"), ([*services.variants, *services.variants.values()],)
+    )
+    no_provider = [row[0] for row in await cur.fetchall()]
+    if no_region or no_provider:
+        log.warning(
+            "curated services not in the database yet country=%s regions=%s providers=%s",
+            country,
+            no_region,
+            no_provider,
+        )
