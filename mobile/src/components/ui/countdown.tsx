@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { cn } from '@/lib/cn';
@@ -27,6 +28,7 @@ const format = (ms: number) => {
  * seconds. Not in the Figma's library; built from its tokens.
  */
 export function Countdown({ deadline, onEnd, tick = true }: CountdownProps) {
+  const { t } = useTranslation();
   const [left, setLeft] = useState(() => msUntil(deadline));
   const ended = useRef(false);
   const lastTick = useRef<number | null>(null);
@@ -52,8 +54,9 @@ export function Countdown({ deadline, onEnd, tick = true }: CountdownProps) {
   const urgent = left <= 10_000;
   return (
     <View
+      accessible
       accessibilityRole="timer"
-      accessibilityLabel={format(left)}
+      accessibilityLabel={t('countdown.a11y', { count: Math.ceil(left / 1000) })}
       className={cn(
         'h-8 flex-row items-center gap-1.5 self-start rounded-pill border px-3',
         urgent ? 'border-nope-default bg-nope-soft' : 'border-marquee-default bg-marquee-soft',

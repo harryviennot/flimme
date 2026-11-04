@@ -55,6 +55,10 @@
     "locked": "Verrouillée",
     "lockedA11y": "Salle verrouillée"
   },
+  "countdown": {
+    "a11y_one": "Encore {{count}} seconde",
+    "a11y_other": "Encore {{count}} secondes"
+  },
   "services": {
     "tapToAdd": "Ajouter",
     "added": "Ajoutée"

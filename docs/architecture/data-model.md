@@ -455,7 +455,8 @@ erDiagram
 | joined_at, left_at | timestamptz | Rejoining clears left_at and keeps the same seat |
 | joined_via, link_opened_at | join_via, timestamptz | How the seat came in (`link`, `code`, `qr`, `rejoin`, `play_again`; null when the app sent none) and, for `link` only, when the phone opened the link (clamped between the room's creation and now). Set once at the first join, kept on a rejoin. Analytics only: `api.room_seats` does not list them |
 | removed_at | timestamptz | Set when the host removes the player (`api.remove_member`, M4.2, which also sets `left_at`). A removed seat is not a member: it reads nothing of the room, has no Realtime topic and gets no cards, except its own votes. Null otherwise, and a removed player can't rejoin |
-| last_active_at | timestamptz | Heartbeat. Only seats active in the last 90 seconds count for match rules |
+| last_active_at | timestamptz | Heartbeat. Seats active in the last 90 seconds are present (card count, ballots); seats active in the last 3 minutes are voters for match rules |
+| silence_checked_at | timestamptz | When the sweeper last re-checked liked films because this seat went silent for 3 minutes. Not in `api.room_seats` |
 | calibrated_at, done_at | timestamptz | |
 | swipe_count | integer | Progress ring |
 | super_likes_left, vetoes_left | smallint | 2 super likes and 1 Final Cut veto per game |
@@ -678,7 +679,7 @@ sequenceDiagram
 - `api.leave_room` marks the seat, hands the host role to the longest-seated present player (else the longest-seated seat that hasn't left; `internal.next_host_member`), recomputes services and re-checks liked cards: if everyone still here liked a card, that's a match now (`internal.recheck_room_matches`, shared with removal).
 - `api.remove_member` (host only, any open state) sets `removed_at` and `left_at`, recomputes services, sends `member_removed` and re-checks liked cards the same way. The seat's votes stay in the log but stop counting. `api.join_room` and `api.room_preview` answer `removed` to it, by code or by link, and that is not a failed attempt.
 - A locked room (`rooms.locked`) answers `locked` to `api.join_room` and `api.room_preview` for a caller with no seat: after the rejoin check and `removed`, before `starting`, `in_finale`, `name_required` and `full`, and never a failed attempt. A seat that left still rejoins. A player who rejoins a room where no seated seat holds the host role takes the role and `rooms.host_id` (Q23.3), so a locked room can always be unlocked.
-- A phone that silently disappears stops counting after 90 seconds; the minute sweeper re-checks liked cards in rooms where a seat timed out.
+- A phone that silently disappears stops being present after 90 seconds and stops being a voter after 3 minutes; the minute sweeper re-checks liked cards in rooms where a seat timed out.
 - Reopening the app calls `api.join_room` with the room's code: same seat, and `api.my_next_cards` returns the rest of the deck.
 
 ### Finale

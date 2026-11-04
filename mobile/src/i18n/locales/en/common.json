@@ -55,6 +55,10 @@
     "locked": "Locked",
     "lockedA11y": "Room locked"
   },
+  "countdown": {
+    "a11y_one": "{{count}} second left",
+    "a11y_other": "{{count}} seconds left"
+  },
   "services": {
     "tapToAdd": "Tap to add",
     "added": "Added"

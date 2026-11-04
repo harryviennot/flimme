@@ -144,6 +144,27 @@ describe('the match overlay controller', () => {
     expect(deps.onStart).toHaveBeenCalledTimes(1);
   });
 
+  it('plays nothing for a finale pick, by event or by re-read; a unanimous one still plays', () => {
+    const { controller, deps } = setup();
+    controller.signal({ ...event, kind: 'finale' });
+    expect(controller.get()).toBeNull();
+    controller.reread('done', [
+      {
+        room_id: 'r1',
+        title_id: 7,
+        kind: 'finale',
+        like_count: 0,
+        present_count: 3,
+        pick_order: 1,
+        created_at: '',
+      },
+    ]);
+    expect(controller.get()).toBeNull();
+    expect(deps.onStart).not.toHaveBeenCalled();
+    controller.signal({ ...event, kind: 'unanimous' });
+    expect(controller.get()).not.toBeNull();
+  });
+
   it('stop cancels the timers and shows nothing more', () => {
     const { controller, deps } = setup();
     controller.signal(event);

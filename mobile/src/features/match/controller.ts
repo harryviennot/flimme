@@ -20,6 +20,8 @@ export type MatchSignal = {
   of?: number;
   /** Absent on the phone's own answer; `false` means a match the night goes on after. */
   decided?: boolean;
+  /** A `finale` pick has no overlay: the Final Cut's winner goes straight to the winner screen. */
+  kind?: 'unanimous' | 'majority' | 'finale';
 };
 
 export type MatchControllerDeps = {
@@ -85,7 +87,7 @@ export function createMatchController(roomId: string, deps: MatchControllerDeps)
 
     /** The phone's own `ok` with `match: true`, or the `match` event. */
     signal(signal: MatchSignal) {
-      if (stopped || signal.decided === false) return;
+      if (stopped || signal.decided === false || signal.kind === 'finale') return;
       if (playing) {
         if (playing.title_id === signal.title_id) merge(signal.likes, signal.of);
         return;
@@ -102,7 +104,7 @@ export function createMatchController(roomId: string, deps: MatchControllerDeps)
     reread(state: RoomState, matches: readonly RoomMatch[]) {
       if (stopped || state !== 'done') return;
       const pick = matches.find((match) => match.pick_order === 1);
-      if (!pick) return;
+      if (!pick || pick.kind === 'finale') return;
       if (playing) {
         merge(pick.like_count, pick.present_count);
         return;

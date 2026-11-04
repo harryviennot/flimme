@@ -167,6 +167,24 @@ describe('useMatchOverlay', () => {
     expect(haptics.match).toHaveBeenCalledTimes(1);
   });
 
+  it('does not hold the route for a finale pick, by event or by re-read', async () => {
+    const realtime = fakeRealtime();
+    const { result } = await renderHook(() => useMatchOverlay('r1', 'finale', true, realtime), {
+      wrapper,
+    });
+    await act(async () => realtime.emit({ ...event, kind: 'finale' }));
+    expect(result.current.match).toBeNull();
+    expect(result.current.holdRoute).toBe(false);
+    mockApi.roomMatches.mockResolvedValue([{ ...row, kind: 'finale' }]);
+    jest.useRealTimers();
+    const reread = await renderHook(() => useMatchOverlay('r2', 'done', true, fakeRealtime()), {
+      wrapper,
+    });
+    await waitFor(() => expect(reread.result.current.holdRoute).toBe(false));
+    expect(reread.result.current.match).toBeNull();
+    expect(haptics.match).not.toHaveBeenCalled();
+  });
+
   it('does not hold the route when the re-read finds no pick', async () => {
     mockApi.roomMatches.mockResolvedValue([]);
     jest.useRealTimers();

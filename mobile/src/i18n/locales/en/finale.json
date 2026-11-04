@@ -1,0 +1,62 @@
+{
+  "title": {
+    "finalCut": "Final Cut",
+    "ranked": "Final vote"
+  },
+  "heading": {
+    "finalCut": "Pick one. Veto one.",
+    "ranked": "Rank them."
+  },
+  "intro": {
+    "veto": "Tap the posters in your order, favourite first. Long-press one to veto it: it stays secret until the end.",
+    "noVeto": "You've used your veto this game. Tap the posters in your order, favourite first.",
+    "rank": "Tap the posters in your order, favourite first. The rest follow in the order shown."
+  },
+  "lockIn": "Lock in my vote",
+  "sending": "Sending",
+  "hint": {
+    "sending": "Sending your vote…",
+    "offline": "You're offline. Your vote goes as soon as you're back.",
+    "liftVeto": "Long-press it again to lift the veto."
+  },
+  "locked": {
+    "title": "Locked in",
+    "count_one": "{{count}} of {{of}} locked in",
+    "count_other": "{{count}} of {{of}} locked in"
+  },
+  "counting": {
+    "title": "Counting the votes",
+    "slow": "Still counting. Hang on."
+  },
+  "error": {
+    "load": "Couldn't load the finalists.",
+    "posters": "Couldn't load the posters. You can still vote.",
+    "send": "Your vote didn't go through. Try again."
+  },
+  "a11y": {
+    "heading": {
+      "finalCut": "The Final Cut. Pick one. Veto one.",
+      "ranked": "The final vote. Rank them."
+    },
+    "film": "{{title}}, {{year}}",
+    "filmNoYear": "{{title}}",
+    "state": {
+      "ranked": "Ranked {{rank}}",
+      "unranked": "Not ranked, counts as {{rank}}",
+      "vetoed": "Vetoed"
+    },
+    "actions": {
+      "rankNext": "Rank next",
+      "removeRank": "Remove from ranking",
+      "veto": "Veto",
+      "liftVeto": "Lift veto"
+    },
+    "vetoLifted": "Veto lifted",
+    "timeLeft_one": "{{count}} second left",
+    "timeLeft_other": "{{count}} seconds left",
+    "lockedRow": "Locked in: {{names}}. {{summary}}",
+    "lockedRowNone": "Nobody has locked in yet. {{summary}}",
+    "lockInHint": "Sends your order. You can't change it afterwards.",
+    "loadingFinalists": "Loading the finalists"
+  }
+}

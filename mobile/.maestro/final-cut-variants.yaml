@@ -1,0 +1,42 @@
+# Slice 12, the Final Cut's other looks on fixture data: a ranked vote (no veto anywhere, a long
+# press does nothing), no veto left, the last 10 seconds (red; Lock in stops the ticks), and a
+# long title with 10 seats. Run it again with the largest text size:
+#   xcrun simctl ui <sim> content_size accessibility-extra-extra-extra-large
+# Run: `maestro --device <sim> test mobile/.maestro/final-cut-variants.yaml -e METRO_URL=http://localhost:<port>`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app.yaml
+
+# A ranked vote: no veto control; a long press ranks nothing and vetoes nothing.
+- openLink: flimme-dev://dev/final-cut
+- tapOn: 'Ranked vote, 4 finalists'
+- assertVisible: '.*Rank them..*'
+- assertVisible: '.*The rest follow in the order shown.*'
+- longPressOn: 'Neon Harbor, 2021.*'
+- assertVisible: 'Neon Harbor, 2021. Not ranked, counts as 1'
+- tapOn: 'Southbound Summer, 2018.*'
+- assertVisible: 'Southbound Summer, 2018. Ranked 1'
+- takeScreenshot: variants-1-ranked-vote
+- tapOn: 'Lock in my vote'
+- extendedWaitUntil:
+    visible: 'Locked in'
+    timeout: 5000
+
+# No veto left: the intro says so and a long press does nothing.
+- tapOn: 'Leave the room'
+- tapOn: 'No veto left'
+- assertVisible: "You've used your veto this game.*"
+- longPressOn: 'Neon Harbor, 2021.*'
+- assertVisible: 'Neon Harbor, 2021. Not ranked, counts as 1'
+- takeScreenshot: variants-2-no-veto-left
+
+# The last 10 seconds: red.
+- tapOn: 'Leave the room'
+- tapOn: '12 seconds left'
+- takeScreenshot: variants-3-last-seconds
+
+# A long title and 10 seats.
+- tapOn: 'Leave the room'
+- tapOn: 'Long title, 10 seats'
+- assertVisible: '.*0 of 10 locked in.*'
+- takeScreenshot: variants-4-long-title-ten-seats

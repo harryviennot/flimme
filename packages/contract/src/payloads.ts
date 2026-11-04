@@ -237,6 +237,16 @@ export const roomRoundRow = z.object({
 });
 export type RoomRound = z.infer<typeof roomRoundRow>;
 
+/** A row of `api.round_candidates`: a finalist. `points` and `vetoed` stay 0 and false until the round closes. */
+export const roundCandidateRow = z.object({
+  round_id: z.string(),
+  title_id: z.number(),
+  seed: z.number(),
+  points: z.number(),
+  vetoed: z.nullable(z.boolean()),
+});
+export type RoundCandidate = z.infer<typeof roundCandidateRow>;
+
 // --- Views -----------------------------------------------------------------------------
 
 /** The `app_config` keys the app reads. Unknown keys are ignored, missing ones are undefined. */

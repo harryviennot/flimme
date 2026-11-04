@@ -109,6 +109,11 @@ export default function DevScreen() {
             onPress={() => router.push('/dev/match')}
           />
           <ListRow
+            label="Play the Final Cut"
+            icon="ticket"
+            onPress={() => router.push('/dev/final-cut')}
+          />
+          <ListRow
             label="Realtime spike"
             icon="zap"
             onPress={() => router.push('/dev/realtime-spike')}

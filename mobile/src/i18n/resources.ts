@@ -3,6 +3,7 @@
 // i18next.d.ts when a feature gets its file.
 import enCommon from './locales/en/common.json';
 import enEnding from './locales/en/ending.json';
+import enFinale from './locales/en/finale.json';
 import enHome from './locales/en/home.json';
 import enHost from './locales/en/host.json';
 import enJoin from './locales/en/join.json';
@@ -15,6 +16,7 @@ import enWeb from './locales/en/web.json';
 import enWinner from './locales/en/winner.json';
 import frCommon from './locales/fr/common.json';
 import frEnding from './locales/fr/ending.json';
+import frFinale from './locales/fr/finale.json';
 import frHome from './locales/fr/home.json';
 import frHost from './locales/fr/host.json';
 import frJoin from './locales/fr/join.json';
@@ -30,6 +32,7 @@ export const resources = {
   fr: {
     common: frCommon,
     ending: frEnding,
+    finale: frFinale,
     home: frHome,
     host: frHost,
     join: frJoin,
@@ -44,6 +47,7 @@ export const resources = {
   en: {
     common: enCommon,
     ending: enEnding,
+    finale: enFinale,
     home: enHome,
     host: enHost,
     join: enJoin,
