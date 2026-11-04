@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 111 of 262 tasks done.
+Progress: 112 of 262 tasks done.
 
 ```mermaid
 flowchart LR
@@ -445,7 +445,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: shown on the right phones, never naming anyone.
 - [x] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
   Done when: it appears on every phone together.
-- [ ] **M6.15** The Final Cut screen, without the reveal (M6.31): rank by tapping in order, veto one, a 60-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
+- [x] **M6.15** The Final Cut screen, without the reveal (M6.31): rank by tapping in order, veto one, a 60-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
   Done when: a round with a missing ballot still closes on time.
 - [x] **M6.16** The winner screen: the poster, the logos of the room's services that have it, the JustWatch credit, "More details" to TMDB's watch page · app · M · needs M6.14 · [game-modes](game-modes.md#after-the-pick), [tmdb](../integrations/tmdb.md#the-watch-link)
   Done when: shown after a match and after the Final Cut.
