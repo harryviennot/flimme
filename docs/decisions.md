@@ -361,6 +361,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | The domains (M0.2): Harry owns **flimme.com** and **flimme.fr**. The support email is **support@flimme.com**. DNS is at OVH today | 4 Nov 2026 | [Choosing the name](product/store-listing.md#choosing-the-name), [Release checklist](product/store-listing.md#release-checklist) |
 | M4.18 (Q18.1): the invite page and the verification files are hosted on **Harry's VPS with Dokploy**, free beyond the VPS he already pays for. Not EAS Hosting, whose custom domains need the paid Starter plan. DNS stays at OVH | 4 Nov 2026 | [The invite web page](product/store-listing.md#invite-links-and-the-web-page), [Monthly costs](architecture/operations.md#monthly-costs) |
 | Privacy requests (M8.1): email requests go to **support@flimme.com** until a separate privacy address exists | 4 Nov 2026 | [Players' rights in practice](product/privacy.md#players-rights-in-practice) |
+| The winner screen (M6.16): on a finished room, the edge swipe and Android's back go Home with no "Leave the room?" alert; a failed card read is an inline Try again that keeps Home reachable, never the full-screen error; the French is "Le film du soir" for tonight's pick and "Le seul film qui a plu" for the single-film line | 4 Nov 2026 | [Winner](design/screens/winner.md#decided) |
 
 ## Defaults, not yet confirmed
 
