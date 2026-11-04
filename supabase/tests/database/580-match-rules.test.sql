@@ -84,6 +84,8 @@ select is(
 
 -- 4. A 2-player Quick Match room now has a time limit of 360 seconds.
 select tests.deal_game(2, 't', 'swiping');
+-- M6.4: the finale needs a film with a like (decision row 12), so the room has one before the limit runs out.
+select tests.vote('t1', 3, 'like');
 update public.rooms set started_at = now() - interval '359 seconds' where id = tests.room_id();
 select is(
   (select tests.vote('t1', 1, 'nope') ? 'finale_round_id'),
@@ -104,6 +106,7 @@ select is(
 
 -- 5. A 3-player room 300 seconds in has no finale; 361 does (the limit was 480).
 select tests.deal_game(3, 'u', 'swiping');
+select tests.vote('u1', 3, 'like');
 update public.rooms set started_at = now() - interval '300 seconds' where id = tests.room_id();
 select is(
   (select tests.vote('u1', 1, 'nope') ? 'finale_round_id'),
@@ -119,6 +122,7 @@ select is(
 
 -- 6. 2 players: the finale starts when both seats reach 40 swipes, not before.
 select tests.deal_game(2, 's', 'swiping');
+select tests.vote('s1', 3, 'like');
 update public.room_members set swipe_count = 38 where id = tests.member_id('s1');
 update public.room_members set swipe_count = 40 where id = tests.member_id('s2');
 select is(
