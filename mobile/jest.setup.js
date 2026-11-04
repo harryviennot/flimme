@@ -14,6 +14,12 @@ jest.mock('@sentry/react-native', () => ({
   wrap: (component) => component,
 }));
 
+// expo-audio is native: tests never play a sound (lib/sound.ts is a no-op until M6.24 anyway).
+jest.mock('expo-audio', () => ({
+  createAudioPlayer: jest.fn(),
+  setAudioModeAsync: jest.fn(async () => undefined),
+}));
+
 // Gesture Handler has no native side in tests: its own mocks stand in (the swipe screen).
 require('react-native-gesture-handler/jestSetup');
 // Worklets' test build has no UI runtime: Gesture Handler asks for its holder on startup.

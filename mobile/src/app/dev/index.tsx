@@ -98,6 +98,11 @@ export default function DevScreen() {
           />
           <ListRow label="Test a crash" icon="alert" onPress={() => router.push('/dev/crash')} />
           <ListRow
+            label="Play the match overlay"
+            icon="star"
+            onPress={() => router.push('/dev/match')}
+          />
+          <ListRow
             label="Realtime spike"
             icon="zap"
             onPress={() => router.push('/dev/realtime-spike')}
