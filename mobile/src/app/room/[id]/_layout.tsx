@@ -114,7 +114,7 @@ export default function RoomLayout() {
       <RoomLeaveGuard
         roomId={id ?? ''}
         active={!current || !isSheet(current)}
-        finished={state === 'done'}
+        finished={state === 'done' || state === 'abandoned'}
       >
         <View className="flex-1">
           <Stack

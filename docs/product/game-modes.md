@@ -141,7 +141,7 @@ When the finale starts is in [The finale](#the-finale); the card counts and time
 | **Going silent** (phone locked, app killed, no network) | The seat stops counting after 90 seconds for presence and the finale's card count. **Default to confirm:** a silence alone never creates a match until it has lasted 3 minutes, so someone answering a message doesn't come back to a decided room |
 | **The host leaves** | The host role moves to the longest-seated player who is present. If nobody else is present, it goes to the longest-seated seat that has not left; if nobody else is seated, no seat holds it |
 | **The host goes silent in the lobby** | After 2 minutes, the host role moves the same way, so the room can still start |
-| **Fewer than 2 players present while swiping** | If it lasts 5 minutes, the room is abandoned. If someone comes back before that, the game carries on |
+| **Fewer than 2 players present while swiping** | If it lasts 5 minutes, the room is abandoned. If someone comes back before that, the game carries on. A player who tapped Leave counts the same as a dropped connection: the room waits the 5 minutes from the moment they left (from 90 seconds after the last sign of life, for a dropped one), so a lone player can still bring someone in by code |
 
 > The host can also remove a player, who can't rejoin, and lock the room against new seats, and anyone can report a player: see [security.md](../architecture/security.md#room-codes-joining-and-the-host). Apple's guideline 1.2 asks for it ([store-listing.md](store-listing.md#passing-review)).
 
@@ -154,7 +154,7 @@ The host chooses before the start. Party is the default.
 | While swiping | "2 of 3 of you liked this" on a film one like short of a match (at least 2 likes), shown only on the card of each player who hasn't answered it, when it's their top card ([the near miss](../design/moments.md#the-near-miss)). No star on super-liked cards in the first release | Nothing about other players' answers |
 | Progress | Avatars with how far each player is, "Sam is done" | Same |
 | A match | The film, how many said yes ("3 of 3", "7 of 9") with every seated player's avatar in seat order and no marks, then where to watch. Never who said yes | The film, how many said yes ("7 of 9"), where to watch |
-| The finale | Who has locked in their vote (not what). Vetoed films shown as knocked out, without saying by whom | Same |
+| The finale | Who has locked in their vote (not what). After the close: vetoed films shown as knocked out, without saying by whom, in every room size; each film's points only when at least 3 ballots were counted, never on a knocked-out film (decided on 4 November 2026) | Same |
 | The winner screen | Runners-up with who liked them, as in the current design | Runners-up with how many liked them |
 
 Never shown in either mode: who noped a film, anyone's taste check answers, or another player's swipes while the game is running. A match never shows who said yes: in a majority match ("7 of 9") that would show who didn't (decided on 4 November 2026). Showing who liked the runners-up after the pick is a change: the data model says answers reach phones only as counts (see [Changes to the data model](#changes-to-the-data-model)).
@@ -228,6 +228,7 @@ A ballot locked in before its player left still counts. The result is broadcast 
 **Running out of cards** (the "Nothing left" screen in the design):
 
 - A player whose deck is empty, after a refill and the SQL fallback brought nothing, is marked done and sees what caused it: tonight's filters and how many films the room has liked.
+- **How done is decided (M6.29).** A seat is done when it has no unanswered card and the SQL baseline, tried right then for that seat, deals it nothing (`room_members.done_at`). It is checked in `api.cast_vote` after a vote leaves 0 cards, and in `api.request_cards`. Under `deck_engine` `server` a queued refill holds it back until the 8-second second call runs the baseline and it deals nothing. `api.request_cards` then answers `done` with `liked`, the room's films with a like (a count, never which films or who). An undo that gives a card back clears `done_at`. Every present seat counts for "everyone done", a late joiner included; the finale's reason is `all_done`, and the card count or time limit wins when it also holds on the same vote.
 - The **host** can tap **Change filters**. **Default to confirm:** the host may change the time budget, moods, quality, seen rule and services during swiping, not only in the lobby; every deck is re-ranked at once (the 3 mounted cards stay). Or the host can tap **Vote now**.
 - When every present player is done, the finale starts by itself if any film has a like; otherwise the room waits for the host for 5 minutes, then ends with no pick.
 
@@ -347,6 +348,8 @@ Host of a `done` or `abandoned` room. Creates a room with the same mode, country
 ### `internal.sweep_rooms()`
 
 Runs every minute. Each room is handled in its own short transaction, skipping rooms another transaction has locked (they'll come round next minute), in batches, so the sweeper never holds up a vote.
+
+`internal.sweep_rooms()` is a procedure (cron calls it; it commits after each room, in batches of 100). The work for one room is `internal.sweep_room(room)`, which answers what it did: `abandoned`, `host_changed`, `dealt`, `finale`, `no_pick`, `closed_round`, `locked` or `nothing`. **One action per room per run**, in this order: close an expired round (two seconds after its deadline); abandon (fewer than 2 seats present for 5 minutes: a dropped seat stops being present 90 seconds after it was last heard from, a seat that left the moment it left; or the 1-hour limit with nothing liked); the 1-hour finale; the room's own finale rules (`maybe_start_finale`, which also covers the time limit and everyone done); the everyone-done ending with no pick. The next row waits for the next minute, so a room nobody is in never opens a vote and a live round is never abandoned. A finale with no open round is abandoned at the 1-hour limit.
 
 | Rooms | Check | Action | Broadcast |
 | --- | --- | --- | --- |

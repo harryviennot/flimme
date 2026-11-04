@@ -144,7 +144,7 @@ The footer's button area has four looks. Each keeps the same height (56 plus the
 
 ## Copy (`finale` namespace)
 
-A new file pair, `i18n/locales/fr/finale.json` and `en/finale.json`, registered in `i18n/resources.ts` and `i18next.d.ts`. Glossary: "the Final Cut" is "le Final Cut" and "Pick one. Veto one." is « Choisis-en un. Élimine-en un. » (both proposed); a veto is "élimination" in French, "Veto" stays the English word. No exclamation marks: this is a tense moment, not a celebration. The reveal's keys come with its section.
+A new file pair, `i18n/locales/fr/finale.json` and `en/finale.json`, registered in `i18n/resources.ts` and `i18next.d.ts`. Glossary: "the Final Cut" is "le Final Cut" and "Pick one. Veto one." is « Choisis-en un. Élimine-en un. » (both proposed); a veto is "élimination" in French, "Veto" stays the English word. No exclamation marks: this is a tense moment, not a celebration. The reveal's keys are M6.31's ([Decided](#decided) 1).
 
 | Key | French | English |
 | --- | --- | --- |
@@ -254,7 +254,9 @@ Written with M6.31, after its beat in [the signature moments](../moments.md). Un
 - **The instructions** drop "your first gets 4 points": the points depend on the finalist count, and the faint numbers already show the order. The footer's "Tap a poster to reorder" hint becomes the status line (Sending, offline, lifting the veto).
 - The countdown's border is `marquee-default` (the code), not the Figma's `marquee-strong`.
 
-## Questions
+## Decided
 
-1. **The reveal's keys.** The brief asks M6.15 to add the reveal's strings to `finale.json` so M6.31 edits no locale file, but the reveal isn't specified yet. Should M6.31 add its own keys to `finale.json`? Default: yes. M6.31 starts only after M6.15 has merged, so the two never share the file at once.
-2. **The French for "locked in" and the ranked vote.** "Vote validé", "{{count}} sur {{of}} ont validé" and "Vote final" are new. Default: keep them, marked proposed in the glossary until the first playtest.
+On 4 November 2026:
+
+1. **The reveal's keys.** M6.31 adds the reveal's own keys to `finale.json`; M6.15 doesn't. M6.31 starts only after M6.15 has merged, so the two never share the file at once (decided by the coordinator, since it's sequencing).
+2. **The French for "locked in" and the ranked vote.** Harry kept "Vote validé", "{{count}} sur {{of}} ont validé" and "Vote final", marked proposed in the copy glossary until the first playtest ([decisions.md](../../decisions.md)).

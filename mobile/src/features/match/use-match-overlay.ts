@@ -18,6 +18,9 @@ import {
   type PlayingMatch,
 } from './controller';
 
+/** A read that takes longer than this no longer holds the route (a hung request must not trap the player). */
+export const READ_HOLD_LIMIT_MS = 3000;
+
 const NONE = () => null;
 const NEVER = () => () => {};
 
@@ -109,6 +112,14 @@ export function useMatchOverlay(
     }
   }, [reading, controller, matches.data, roomState]);
 
+  const waiting = reading && !matches.data && matches.isFetching;
+  const [gaveUp, setGaveUp] = useState(false);
+  useEffect(() => {
+    if (!waiting) return;
+    const timer = setTimeout(() => setGaveUp(true), READ_HOLD_LIMIT_MS);
+    return () => clearTimeout(timer);
+  }, [waiting]);
+
   const match = useSyncExternalStore(
     controller ? controller.subscribe : NEVER,
     controller ? controller.get : NONE,
@@ -126,6 +137,6 @@ export function useMatchOverlay(
         // A finale pick has no overlay (Q15.1): the route goes straight to the winner screen.
         (matches.data
           ? matches.data.some((row) => row.pick_order === 1 && row.kind !== 'finale')
-          : matches.isFetching)),
+          : matches.isFetching && !gaveUp)),
   };
 }

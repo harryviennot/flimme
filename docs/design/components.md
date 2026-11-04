@@ -88,7 +88,7 @@ An invisible input that owns a value and draws nothing: it fills its `relative` 
 
 ## Room ticket (`shared/room-ticket`)
 
-"Cinema ticket that shows the room code. Use on lobby, invite and recap." `bg.surface`, a `marquee.strong` hairline, `radius.lg`, `elevation-card`. "Room code" in `mono-eyebrow` `marquee.default`; the code in Staatliches 60 with 8% tracking (raw, `display-ticket`; the tracking after the last digit is pulled back so the code is centred); a dashed perforation with round notches that cover the border and bulge past the card edge (the card does not clip); details `mono-data` `text.secondary`. An optional `locked` (slice 8, M4.13) adds a `Tag` tone `neutral`, icon `lock`, `common:ticket.locked`, at the top right ([host menu](screens/host-menu.md#lock-room)).
+"Cinema ticket that shows the room code. Use on lobby, invite and recap." `bg.surface`, a `marquee.strong` hairline, `radius.lg`, `elevation-card`. "Room code" in `mono-eyebrow` `marquee.default`; the code in Staatliches 60 with 8% tracking (raw, `display-ticket`; the tracking after the last digit is pulled back so the code is centred); a dashed perforation with round notches that cover the border and bulge past the card edge (the card does not clip); details `mono-data` `text.secondary`. An optional `locked` (slice 8, M4.13) adds a `Tag` tone `neutral`, icon `lock`, `common:ticket.locked`, at the top right ([host menu](screens/host-menu.md#lock-room)). An optional `stamp` (M6.17) dims the code to `text.disabled` and lays a still stamp across it, drawn like `MovieCard`'s Nope stamp (`bg.sunken`, 4-point `nope.default` border, `radius.sm`, `display-stamp` in `nope`) and rotated `rotation.ticket-stamp` (-8 degrees): the closed room's "CLOSED" ([room closed](screens/closed.md#design-system-changes)). `display-stamp` is shared by these two components only.
 
 ## Service tile (`shared/service-tile`)
 
@@ -117,6 +117,8 @@ TMDB and Letterboxd only (IMDb and Rotten Tomatoes are in the Figma from the ori
 ## Built from the tokens, not in the Figma's library
 
 `Text`, `Icon`, `Pressable`, `Screen`, `Banner`, `Countdown`, `Skeleton`, `EmptyState`, `MarqueeBulbs`, `Spotlight`, `GradientFill`. The designer should add them to the Figma library, or confirm them in the gallery.
+
+`EmptyState` gains an optional `children` slot between its body and its action in M6.17, for the swipe screen's done card (tonight's filters and the liked count, [swipe.md](screens/swipe.md#the-done-card-nothing-left)).
 
 ## Proposed for slices 4 to 7
 

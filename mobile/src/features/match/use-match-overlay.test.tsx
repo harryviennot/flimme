@@ -8,7 +8,7 @@ import { duration } from '@/theme/motion';
 
 import { matchShownStore } from '../room/match-shown';
 import { SKIP_AFTER_MS } from './controller';
-import { useMatchOverlay } from './use-match-overlay';
+import { READ_HOLD_LIMIT_MS, useMatchOverlay } from './use-match-overlay';
 
 const mockApi = { roomMatches: jest.fn() };
 jest.mock('@/api', () => ({
@@ -193,6 +193,18 @@ describe('useMatchOverlay', () => {
     });
     await waitFor(() => expect(result.current.holdRoute).toBe(false));
     expect(result.current.match).toBeNull();
+  });
+
+  it('holds the route while the read is slow, then lets go after the limit', async () => {
+    mockApi.roomMatches.mockReturnValue(new Promise(() => undefined));
+    const { result } = await renderHook(() => useMatchOverlay('r1', 'done', true, fakeRealtime()), {
+      wrapper,
+    });
+    expect(result.current.holdRoute).toBe(true);
+    await act(async () => jest.advanceTimersByTime(READ_HOLD_LIMIT_MS - 1));
+    expect(result.current.holdRoute).toBe(true);
+    await act(async () => jest.advanceTimersByTime(1));
+    expect(result.current.holdRoute).toBe(false);
   });
 
   it('shows nothing to a phone whose seat has left', async () => {

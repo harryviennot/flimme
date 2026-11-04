@@ -1,0 +1,33 @@
+{
+  "nothingLeft": {
+    "filters": "Tonight's filters",
+    "liked_one": "{{count}} film liked so far",
+    "liked_other": "{{count}} films liked so far"
+  },
+  "filters": {
+    "moreServices": "+{{count}}",
+    "services_one": "{{count}} service",
+    "services_other": "{{count}} services",
+    "runtime": "Under {{duration}}",
+    "age": "Ages {{age}}+",
+    "allAges": "All ages",
+    "hideSeen": "Unseen only",
+    "hiddenGems": "Hidden gems",
+    "guiltyPleasures": "Guilty pleasures"
+  },
+  "noPick": {
+    "title": "Nothing fits tonight",
+    "body": "No film got a like tonight. Next time, add services or loosen a filter."
+  },
+  "closed": {
+    "stamp": "Closed",
+    "closedAt": "Closed at {{time}}",
+    "title": "This room has closed",
+    "body": "This movie night is over. From Home, host your own or join friends with a new code.",
+    "home": "Home"
+  },
+  "a11y": {
+    "filters": "Tonight's filters: {{list}}",
+    "home": "Back to Home"
+  }
+}

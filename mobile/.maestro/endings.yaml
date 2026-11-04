@@ -1,0 +1,27 @@
+# Slice 12, the endings without a film: the closed room (M6.17). The phone joins the lobby of the
+# room whose code is in CODE, then the room is made `abandoned` from outside while this flow waits
+# (the sweeper, M6.6, or on the local stack `select internal.abandon_room('<room id>')`). The
+# screen says the room has closed, names no reason and has one button; the edge swipe goes Home
+# with no leave alert.
+# "Nothing left" and "Nothing fits tonight" need a played room (a narrow filter so a deck runs dry,
+# a night where nothing is liked): their states are covered by the Jest tests and the pull
+# request's touch notes.
+# Run: `maestro test mobile/.maestro/endings.yaml -e METRO_URL=http://localhost:<port> -e CODE=<code>`
+# with the development build on the backend the room lives on, and Metro running.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/join-room.yaml
+- extendedWaitUntil:
+    visible: 'This room has closed'
+    timeout: 120000
+- assertVisible: 'Home'
+- takeScreenshot: endings-closed
+# The edge swipe goes Home, and no "Leave the room?" alert asks first.
+- swipe:
+    start: 1%,50%
+    end: 80%,50%
+- assertNotVisible: '(?i)leave the room.*'
+- extendedWaitUntil:
+    visible: '(?i)open a room|got a room code.*'
+    timeout: 10000

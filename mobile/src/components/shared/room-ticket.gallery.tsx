@@ -9,6 +9,7 @@ export const gallery: GalleryEntry = {
     <>
       <RoomTicket code="482913" leftDetail="3 of 10 players" rightDetail="Host · Harry" />
       <RoomTicket code="482913" leftDetail="3 of 10 players" rightDetail="Host · Harry" locked />
+      <RoomTicket code="482913" leftDetail="4 Nov" rightDetail="Closed at 9:04 PM" stamp="Closed" />
     </>
   ),
 };
