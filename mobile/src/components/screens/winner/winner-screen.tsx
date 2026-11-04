@@ -52,6 +52,7 @@ export function WinnerScreen({
   }, [ready]);
 
   const film = view.status === 'ready' ? view.card : null;
+  const meta = film ? matchMeta(film, language) : '';
   const posterUri = view.status === 'ready' ? view.posterUri : null;
   const noPick = view.status === 'no_pick';
   const waiting = view.status === 'error' || (view.status === 'loading' && !online);
@@ -131,9 +132,9 @@ export function WinnerScreen({
                     {view.card.title}
                   </Text>
                 </View>
-                {matchMeta(view.card, language) ? (
+                {meta ? (
                   <Text variant="mono-data" tone="secondary">
-                    {matchMeta(view.card, language)}
+                    {meta}
                   </Text>
                 ) : null}
                 <WhereToWatch

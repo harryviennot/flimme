@@ -11,7 +11,7 @@ import { serviceLogos, type ServiceLogo } from './services';
 
 export type WinnerView =
   /** The pick row, or the card, is still on its way. */
-  | { status: 'loading'; posterUri: string | null }
+  | { status: 'loading' }
   /** The room is `done` and picked nothing. */
   | { status: 'no_pick' }
   /** The card read failed. `retry` reads it again. */
@@ -51,7 +51,7 @@ export function useWinner(roomId: string, language: string): WinnerView {
   }
   if (!pick || !card) {
     if (failed) return { status: 'error', retry };
-    return { status: 'loading', posterUri: null };
+    return { status: 'loading' };
   }
   return {
     status: 'ready',

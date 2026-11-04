@@ -113,7 +113,7 @@ describe('the winner screen', () => {
   });
 
   it('keeps the poster frame and shows a skeleton while loading', async () => {
-    await show({ status: 'loading', posterUri: null });
+    await show({ status: 'loading' });
     expect(screen.getByTestId('winner-poster')).toBeTruthy();
     expect(screen.getByTestId('winner-loading')).toBeTruthy();
     expect(screen.queryByText('Where to watch')).toBeNull();
@@ -130,7 +130,7 @@ describe('the winner screen', () => {
   });
 
   it('says it is offline before the card came', async () => {
-    await show({ status: 'loading', posterUri: null }, { online: false });
+    await show({ status: 'loading' }, { online: false });
     expect(screen.getByText("You're offline. The film shows when you're back.")).toBeTruthy();
   });
 
