@@ -42,7 +42,7 @@ const networkError = () => new ApiError('network', 'cast_vote', 'the request fai
 const deniedError = () => new ApiError('denied', 'cast_vote', 'no', { code: '42501' });
 const notDealtError = () => new ApiError('unexpected', 'cast_vote', 'no', { code: '22023' });
 
-type Sent = { room_id: string; title_id: number };
+type Sent = { room_id: string; title_id: number; flipped?: boolean };
 
 /** A queue over a fake api. `answers` is called per attempt and may be async or throw. */
 function setup(
@@ -64,7 +64,7 @@ function setup(
     kv,
     castVote: async (args) => {
       const s = { room_id: args.room_id, title_id: args.title_id };
-      sent.push(s);
+      sent.push({ ...s, flipped: args.flipped });
       const n = (attempts.get(args.title_id) ?? 0) + 1;
       attempts.set(args.title_id, n);
       return answer(s, n);
@@ -80,6 +80,16 @@ function setup(
 
 beforeEach(() => jest.useFakeTimers());
 afterEach(() => jest.useRealTimers());
+
+describe('flipped', () => {
+  it('sends whether the card was turned over', async () => {
+    const { queue, sent } = setup(() => ({ status: 'ok', match: false }));
+    queue.enqueue(vote(1, { flipped: true }));
+    queue.enqueue(vote(2));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(sent.map((s) => s.flipped)).toEqual([true, false]);
+  });
+});
 
 describe('order', () => {
   it('sends one vote at a time, in the order given, the next after the previous answered', async () => {
@@ -398,7 +408,7 @@ describe('restart', () => {
 
     const second = setup(undefined, { kv, kept: OTHER_ROOM });
     await second.queue.flush();
-    expect(second.sent).toEqual([{ room_id: OTHER_ROOM, title_id: 2 }]);
+    expect(second.sent).toEqual([{ room_id: OTHER_ROOM, title_id: 2, flipped: false }]);
     expect(second.queue.pending(ROOM)).toBe(0);
 
     const third = setup(undefined, { kv: memoryKv(), kept: null });
