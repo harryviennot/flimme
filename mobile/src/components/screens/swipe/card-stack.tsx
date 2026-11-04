@@ -5,7 +5,8 @@ import type { SharedValue } from 'react-native-reanimated';
 import { useStore } from 'zustand';
 
 import type { AnswerKind } from '@/features/swipe/answer';
-import { cardMeta, cardServices } from '@/features/swipe/card-props';
+import { openTrailer } from '@/features/swipe/trailer';
+import { backServices, cardMeta, cardServices } from '@/features/swipe/card-props';
 import { STACK_STEP, type Direction } from '@/features/swipe/feel';
 import type { Flying } from '@/features/swipe/use-flights';
 import type { Swipe } from '@/features/swipe/use-swipe';
@@ -49,6 +50,7 @@ export function CardStack({
   dragging,
 }: CardStackProps) {
   const { t, i18n } = useTranslation('swipe');
+  const { t: tc } = useTranslation('common');
   const screen = useWindowDimensions();
   const [room, setRoom] = useState<{ width: number; height: number } | null>(null);
   const { stack } = swipe;
@@ -74,11 +76,24 @@ export function CardStack({
 
   const labelOf = (card: NonNullable<typeof top>) => {
     if (flipped) {
-      return t('a11y.cardBack', {
-        title: card.title,
-        rating: card.tmdb_score ?? '',
-        synopsis: card.overview ?? t('card.noSynopsis'),
-      });
+      // The whole back as one reading: the title and score, the story, the credits, the services.
+      const synopsis = card.overview ?? t('card.noSynopsis');
+      const parts = [
+        card.tmdb_score !== null
+          ? t('a11y.cardBack', { title: card.title, rating: card.tmdb_score, synopsis })
+          : t('a11y.cardBackNoRating', { title: card.title, synopsis }),
+      ];
+      if (card.directors.length > 0) {
+        parts.push(tc('card.director', { name: formatList(card.directors, language) }));
+      }
+      if (card.cast.length > 0) {
+        parts.push(tc('card.cast', { names: formatList(card.cast.slice(0, 5), language) }));
+      }
+      const services = backServices(card, undefined).map((s) => s.name);
+      if (services.length > 0) {
+        parts.push(t('a11y.cardBackServices', { services: formatList(services, language) }));
+      }
+      return parts.join(' ');
     }
     const meta = cardMeta(card, language);
     const services = cardServices(card);
@@ -95,11 +110,14 @@ export function CardStack({
       : []),
     { name: 'seen', label: t('a11y.actions.seen') },
     { name: 'flip', label: t('a11y.actions.flip') },
+    // The Trailer button sits inside the card, which is one element for a screen reader.
+    ...(flipped && top?.trailer_key ? [{ name: 'trailer', label: t('a11y.actions.trailer') }] : []),
   ];
 
   const flip = () => stack.getState().setFlipped(!stack.getState().flipped);
   const onAction = (name: string) => {
     if (name === 'flip') return flip();
+    if (name === 'trailer') return openTrailer(top?.trailer_key);
     const kind = ACTION[name];
     if (kind) throwCard(kind, false);
   };

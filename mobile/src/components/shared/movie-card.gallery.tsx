@@ -18,7 +18,8 @@ const film: Omit<MovieCardProps, 'flipped' | 'onFlip'> = {
     synopsis:
       'On the last night before the Roxy closes for good, its projectionist screens one final reel nobody remembers booking, and the whole town shows up to find out why.',
     director: 'Ines Mora',
-    cast: 'Lior Ben-Ami, Paula Okafor',
+    cast: 'Lior Ben-Ami, Paula Okafor, Sam Reyes, Ana Costa, and Tom Vance',
+    services: [{ name: 'Netflix' }, { name: 'Canal+' }, { name: 'Arte' }],
     onTrailer: () => undefined,
   },
 };

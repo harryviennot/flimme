@@ -113,6 +113,20 @@ describe('card stack', () => {
     expect(t.get().answer()?.dwellMs).toBe(700);
   });
 
+  it('counts each turn to the back, for the first-flip hint', async () => {
+    const t = setup(cards(1, 13));
+    t.stack.getState().start();
+    await flush();
+    expect(t.get().flips).toBe(0);
+    t.get().setFlipped(true);
+    t.get().setFlipped(true);
+    expect(t.get().flips).toBe(1);
+    t.get().setFlipped(false);
+    expect(t.get().flips).toBe(1);
+    t.get().setFlipped(true);
+    expect(t.get().flips).toBe(2);
+  });
+
   it('resets flipped when a card reaches the top', async () => {
     const t = setup(cards(1, 13));
     t.stack.getState().start();
