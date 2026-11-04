@@ -373,6 +373,7 @@ export const tokens = {
     "base": 250,
     "slow": 400,
     "celebrate": 800,
+    "match-hold": 4000,
     "hint-delay": 600
   },
   "easing": {
