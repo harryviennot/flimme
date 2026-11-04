@@ -38,12 +38,15 @@
     "card": "{{title}}, {{meta}}. On {{services}}.",
     "cardBare": "{{title}}, {{meta}}",
     "cardBack": "{{title}}. TMDB rating {{rating}}. {{synopsis}}",
+    "cardBackNoRating": "{{title}}. {{synopsis}}",
+    "cardBackServices": "On {{services}}.",
     "actions": {
       "like": "Like",
       "nope": "Nope",
       "superLike": "Super like",
       "seen": "Seen it",
-      "flip": "Flip the card"
+      "flip": "Flip the card",
+      "trailer": "Watch the trailer"
     },
     "superLeft_one": "Super like, {{count}} left",
     "superLeft_other": "Super like, {{count}} left",

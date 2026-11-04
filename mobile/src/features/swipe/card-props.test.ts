@@ -1,6 +1,13 @@
 import type { NextCard } from '@flimme/contract';
 
-import { cardMeta, cardServices, formatRuntime, toMovieCard } from './card-props';
+import {
+  backServices,
+  cardMeta,
+  cardServices,
+  formatRuntime,
+  toMovieCard,
+  trailerUrl,
+} from './card-props';
 
 const base: NextCard = {
   title_id: 1,
@@ -92,7 +99,7 @@ describe('toMovieCard', () => {
     expect(props.back.synopsis).toBe('A bear in prison.');
     expect(props.back.tmdbRating).toBe('7.4');
     expect(props.back.director).toBe('Paul King');
-    expect(props.back.cast).toBe('Ben Whishaw, Hugh Grant, and Hugh Bonneville');
+    expect(props.back.cast).toBe('Ben Whishaw, Hugh Grant, Hugh Bonneville, and Sally Hawkins');
   });
 
   it('shows the placeholder text for a missing synopsis and hides a missing score', () => {
@@ -105,5 +112,80 @@ describe('toMovieCard', () => {
     expect(props.back.director).toBeUndefined();
     expect(props.back.cast).toBeUndefined();
     expect(props.poster).toBeNull();
+  });
+});
+
+describe('backServices', () => {
+  const offers = (names: string[]) =>
+    names.map((name, i) => ({
+      provider_id: i,
+      kind: 'subscription' as const,
+      name,
+      logo_path: i === 0 ? '/logo.png' : null,
+    }));
+
+  it('lists the included services once each', () => {
+    expect(backServices(base, undefined).map((s) => s.name)).toEqual(['Netflix', 'Arte']);
+  });
+
+  it('builds the logo from the image base', () => {
+    const [first] = backServices(
+      { ...base, providers: offers(['Netflix']) },
+      'https://img.test/t/p/',
+    );
+    expect(first).toEqual({ name: 'Netflix', logo: 'https://img.test/t/p/w92/logo.png' });
+  });
+
+  it('has no logo without a base', () => {
+    const [first] = backServices({ ...base, providers: offers(['Netflix']) }, undefined);
+    expect(first).toEqual({ name: 'Netflix', logo: undefined });
+  });
+
+  it('keeps six at most', () => {
+    const list = backServices(
+      { ...base, providers: offers(['A', 'B', 'C', 'D', 'E', 'F', 'G']) },
+      undefined,
+    );
+    expect(list.map((s) => s.name)).toEqual(['A', 'B', 'C', 'D', 'E', 'F']);
+  });
+});
+
+describe('trailerUrl', () => {
+  it('opens the video on YouTube', () => {
+    expect(trailerUrl('abc_DEF-123')).toBe('https://www.youtube.com/watch?v=abc_DEF-123');
+  });
+  it('escapes what is not a plain key', () => {
+    expect(trailerUrl('a b&c')).toBe('https://www.youtube.com/watch?v=a%20b%26c');
+  });
+});
+
+describe('toMovieCard back', () => {
+  const options = {
+    language: 'en',
+    imageBase: 'https://img.test/t/p/',
+    screenWidth: 390,
+    noSynopsis: 'No synopsis',
+  };
+
+  it('carries the synopsis, the directors, five cast names, the score and the services', () => {
+    const cast = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const view = toMovieCard({ ...base, cast, directors: ['Paul King', 'Jo Doe'] }, options);
+    expect(view.back.synopsis).toBe('A bear in prison.');
+    expect(view.back.director).toBe('Paul King and Jo Doe');
+    expect(view.back.cast).toBe('A, B, C, D, and E');
+    expect(view.back.tmdbRating).toBe('7.4');
+    expect(view.back.services?.map((s) => s.name)).toEqual(['Netflix', 'Arte']);
+  });
+
+  it('has a trailer button only with a trailer key', () => {
+    const open = jest.fn();
+    expect(toMovieCard(base, { ...options, onTrailer: open }).back.onTrailer).toBeUndefined();
+    const view = toMovieCard({ ...base, trailer_key: 'xyz' }, { ...options, onTrailer: open });
+    view.back.onTrailer?.();
+    expect(open).toHaveBeenCalledWith('https://www.youtube.com/watch?v=xyz');
+  });
+
+  it('has no trailer button when nobody can open it', () => {
+    expect(toMovieCard({ ...base, trailer_key: 'xyz' }, options).back.onTrailer).toBeUndefined();
   });
 });

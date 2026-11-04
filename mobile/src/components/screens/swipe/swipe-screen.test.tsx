@@ -2,6 +2,7 @@ import i18n from '@/i18n';
 
 import type { NextCard, RoomSeat } from '@flimme/contract';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createStore } from 'zustand/vanilla';
@@ -45,9 +46,9 @@ function film(id: number): NextCard {
     poster_path: null,
     poster_placeholder: null,
     backdrop_path: null,
-    trailer_key: null,
-    directors: [],
-    cast: [],
+    trailer_key: id === 1 ? 'abc123' : null,
+    directors: id === 1 ? ['Paul King'] : [],
+    cast: id === 1 ? ['Ben Whishaw', 'Hugh Grant'] : [],
     providers: [],
     watch_link: null,
     deck_source: 'opening',
@@ -259,6 +260,27 @@ describe('the card for screen readers', () => {
     expect(stack.getState().flipped).toBe(true);
     await fireEvent.press(screen.getByLabelText('Like'));
     expect(votes[0]?.flipped).toBe(true);
+  });
+
+  it('reads the whole back as one element, with a trailer action', async () => {
+    const open = jest.spyOn(Linking, 'openURL').mockResolvedValue();
+    await setup();
+    await layoutStack();
+    const front = screen.getByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0');
+    expect(front.props.accessibilityActions.map((a: { name: string }) => a.name)).not.toContain(
+      'trailer',
+    );
+    await fireEvent(front, 'accessibilityAction', { nativeEvent: { actionName: 'flip' } });
+    const back = screen.getByLabelText(
+      'Film 1. TMDB rating 7. A story. Director  Paul King Cast  Ben Whishaw and Hugh Grant',
+      { exact: false },
+    );
+    expect(back.props.accessibilityActions.map((a: { name: string }) => a.name)).toContain(
+      'trailer',
+    );
+    await fireEvent(back, 'accessibilityAction', { nativeEvent: { actionName: 'trailer' } });
+    expect(open).toHaveBeenCalledWith('https://www.youtube.com/watch?v=abc123');
+    open.mockRestore();
   });
 
   it('leaves out the super like action when there are none left', async () => {
