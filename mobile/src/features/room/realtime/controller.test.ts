@@ -265,6 +265,33 @@ describe('the connection', () => {
 describe('presence', () => {
   const seats = ['seat-1', 'seat-2'];
 
+  it("keeps each seat's tracked count and done, and the last one for a seat that dropped", () => {
+    const t = setup();
+    t.live().status!('SUBSCRIBED');
+    t.live().presence = { 'seat-2': [{ swipe_count: 5, done: false, presence_ref: 'a' }] };
+    t.live().sync!();
+    expect(t.rt.getState().progress.get('seat-2')).toEqual({ swipe_count: 5, done: false });
+    t.live().presence = {
+      'seat-2': [
+        { swipe_count: 5, done: false },
+        { swipe_count: 10, done: true },
+      ],
+    };
+    t.live().sync!();
+    expect(t.rt.getState().progress.get('seat-2')).toEqual({ swipe_count: 10, done: true });
+    t.live().presence = {};
+    t.live().sync!();
+    expect(t.rt.getState().progress.get('seat-2')).toEqual({ swipe_count: 10, done: true });
+  });
+
+  it('ignores a tracked value that is not a count', () => {
+    const t = setup();
+    t.live().status!('SUBSCRIBED');
+    t.live().presence = { 'seat-2': [{ swipe_count: 'x' }], 'seat-3': [{}] };
+    t.live().sync!();
+    expect(t.rt.getState().progress.size).toBe(0);
+  });
+
   it('counts a seat in the presence state as online, and the own seat while joined', () => {
     const t = setup();
     t.live().status!('SUBSCRIBED');

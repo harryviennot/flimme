@@ -84,6 +84,9 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     }),
   );
 
+  // This phone's exact number of answers, for its own pill.
+  const [count, setCount] = useState(() => answerer.count());
+
   // The room moved on (a match, the finale): no more input, and the room is read again so the
   // layout follows its state even if the event that said so never arrived.
   const lock = useCallback(() => {
@@ -98,6 +101,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
         answered.add(done.card.title_id);
         thrown.set(done.card.title_id, done.card);
         setSuperLikesLeft(answerer.superLikesLeft());
+        setCount(answerer.count());
       }
       return done;
     },
@@ -192,6 +196,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   return {
     stack,
     answer,
+    count,
     superLikesLeft,
     waitingVotes,
     locked,
