@@ -78,6 +78,8 @@ export type SwipeCardProps = {
   depth: number;
   flight?: Flight;
   flipped: boolean;
+  /** A near miss: the card takes the like glow, front and back. */
+  glow?: boolean;
   /** The card's size in points, from the stack's room. */
   size: { width: number; height: number };
   /** The screen's size: the commit lines and the flight's reach come from it. */
@@ -380,6 +382,16 @@ export function SwipeCard(props: SwipeCardProps) {
           accessibilityElementsHidden={!interactive}
           importantForAccessibility={interactive ? 'yes' : 'no-hide-descendants'}
         >
+          {props.glow ? (
+            // Behind the card, so the glow rides with the drag and the flip, and fades with it.
+            <Animated.View
+              testID={`swipe-glow-${titleId}`}
+              pointerEvents="none"
+              entering={reduced ? layout.fadeIn : layout.popIn}
+              exiting={layout.fadeOut}
+              className="absolute inset-0 rounded-xl bg-bg-surface glow-like"
+            />
+          ) : null}
           <MovieCard
             {...view}
             flipped={flight ? flight.flipped : flipped}

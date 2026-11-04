@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createStore } from 'zustand/vanilla';
 
+import { clearNearMisses } from '@/features/swipe/near-miss';
 import { createAnswerer, type Answerer } from '@/features/swipe/answer';
 import { createCardStack, type CardStack } from '@/features/swipe/card-stack';
 import type { QueuedVote } from '@/features/swipe/vote-queue';
@@ -27,6 +28,16 @@ jest.mock('@/components/screens/room/room-banner', () => ({
   RoomBanner: (props: { roomId: string; waitingVotes: number }) => {
     mockBanner(props);
     return null;
+  },
+}));
+
+jest.mock('@/features/swipe/index', () => ({ voteQueue: { has: () => false } }));
+const mockRoomEvents = new Map<string, (payload: unknown) => void>();
+const mockRoom: { data: { reveal: string } } = { data: { reveal: 'party' } };
+jest.mock('@/features/room', () => ({
+  useRoom: () => mockRoom,
+  useRoomEvent: (_room: string, event: string, handler: (payload: unknown) => void) => {
+    mockRoomEvents.set(event, handler);
   },
 }));
 
@@ -328,6 +339,81 @@ describe('the room moves on', () => {
       await fireEvent.press(screen.getByLabelText(label));
     }
     expect(votes).toEqual([]);
+  });
+});
+
+describe('the near miss', () => {
+  const nearMiss = (title_id: number, likes = 2) => ({ title_id, likes, of: 3, needed: 3 });
+  const send = (payload: unknown) =>
+    act(async () => void mockRoomEvents.get('near_miss')?.(payload));
+  const settle = () => act(async () => void jest.advanceTimersByTime(400));
+
+  beforeEach(() => {
+    // setup() waits on setImmediate for the first deal.
+    jest.useFakeTimers({ doNotFake: ['setImmediate'] });
+    clearNearMisses();
+    mockRoom.data = { reveal: 'party' };
+  });
+  afterEach(() => jest.useRealTimers());
+
+  it('shows the toast and the glow on the top card, in place for a new count', async () => {
+    await setup();
+    await layoutStack();
+    await send(nearMiss(1));
+    expect(screen.queryByTestId('near-miss')).toBeNull();
+    await settle();
+    expect(screen.getByText('2 of 3 of you liked this')).toBeTruthy();
+    expect(screen.getByTestId('swipe-glow-1')).toBeTruthy();
+    await send({ title_id: 1, likes: 3, of: 4, needed: 4 });
+    expect(screen.getByText('3 of 4 of you liked this')).toBeTruthy();
+  });
+
+  it('waits for a card further down, and nothing stays once the card is gone', async () => {
+    await setup();
+    await layoutStack();
+    await settle();
+    await send(nearMiss(2));
+    expect(screen.queryByTestId('near-miss')).toBeNull();
+    expect(screen.queryByTestId('swipe-glow-2')).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    await settle();
+    expect(screen.getByText('2 of 3 of you liked this')).toBeTruthy();
+    expect(screen.getByTestId('swipe-glow-2')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Nope'));
+    await settle();
+    expect(screen.queryByText('2 of 3 of you liked this')).toBeNull();
+    expect(screen.queryByTestId('swipe-glow-2')).toBeNull();
+  });
+
+  it('never takes a touch from the card, the hints or the buttons', async () => {
+    await setup();
+    await layoutStack();
+    await send(nearMiss(1));
+    await settle();
+    // Drawn over the top bar's strip, apart from the stack, and it lets every touch through.
+    expect(screen.getByTestId('near-miss').parent?.props.pointerEvents).toBe('none');
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(screen.queryByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0')).toBeNull();
+  });
+
+  it('hides when the count drops below the line', async () => {
+    await setup();
+    await layoutStack();
+    await send({ title_id: 1, likes: 3, of: 5, needed: 4 });
+    await settle();
+    expect(screen.getByText('3 of 5 of you liked this')).toBeTruthy();
+    await send({ title_id: 1, likes: 2, of: 5, needed: 4 });
+    expect(screen.queryByTestId('near-miss')).toBeNull();
+    expect(screen.queryByTestId('swipe-glow-1')).toBeNull();
+  });
+
+  it('shows nothing in a blind room', async () => {
+    mockRoom.data = { reveal: 'blind' };
+    await setup();
+    await layoutStack();
+    await send(nearMiss(1));
+    await settle();
+    expect(screen.queryByTestId('near-miss')).toBeNull();
   });
 });
 

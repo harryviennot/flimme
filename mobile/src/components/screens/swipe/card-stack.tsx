@@ -32,6 +32,8 @@ const ACTION: Record<string, AnswerKind> = {
 
 export type CardStackProps = {
   swipe: Swipe;
+  /** The film whose card takes the like glow (a near miss), if any. */
+  glowId?: number;
   flying: Flying[];
   throwCard: (kind: AnswerKind, fromGesture: boolean) => Flying | null;
   /** The room asks the rewatch question under Seen it. */
@@ -51,6 +53,7 @@ export type CardStackProps = {
 
 export function CardStack({
   swipe,
+  glowId,
   flying,
   throwCard,
   asksSeen,
@@ -173,6 +176,7 @@ export function CardStack({
               depth={depth}
               flight={flight}
               flipped={card === top ? flipped : false}
+              glow={glowId === card.title_id}
               size={size}
               screen={screen}
               text={{
