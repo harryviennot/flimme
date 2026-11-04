@@ -45,7 +45,9 @@
     "flipBack": "Tap the card to flip back",
     "stampLike": "Like",
     "stampNope": "Nope",
-    "stars": "★ {{rating}}"
+    "stars": "★ {{rating}}",
+    "stampSeen": "Seen it",
+    "stampSuper": "Super"
   },
   "ticket": {
     "roomCode": "Room code",

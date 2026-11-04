@@ -7,16 +7,28 @@ import { useRoomConnection } from '@/features/room';
 
 /**
  * The room's connection banner (reconnecting.md). Each room screen places it directly under its
- * `TopBar`; it shows one message at a time, offline first, or nothing.
+ * `TopBar`; it shows one message at a time, offline first, or nothing. Offline with swipes
+ * waiting, it counts them instead of the general note.
  */
-export function RoomBanner({ roomId }: { roomId: string }) {
+export function RoomBanner({
+  roomId,
+  waitingVotes = 0,
+}: {
+  roomId: string;
+  /** Swipes still waiting to be sent: the offline note counts them (the swipe screen). */
+  waitingVotes?: number;
+}) {
   const { t } = useTranslation('common');
   const { banner } = useRoomConnection(roomId);
   const shown = banner !== null;
 
   // Screen readers on iOS don't read live regions: say it once when the banner appears, not
   // again when its message changes on a retry.
-  const message = banner ? t(`states.${banner === 'offline' ? 'offlineRoom' : banner}`) : '';
+  const message = banner
+    ? banner === 'offline' && waitingVotes > 0
+      ? t('states.offlineVotes', { count: waitingVotes })
+      : t(`states.${banner === 'offline' ? 'offlineRoom' : banner}`)
+    : '';
   const announce = useEffectEvent(() => {
     if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(message);
   });

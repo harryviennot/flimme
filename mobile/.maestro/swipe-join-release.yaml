@@ -1,0 +1,8 @@
+# Like swipe-join.yaml for a Release build, which already points at staging.
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-join-release.yaml -e CODE=123456`
+appId: com.harryviennot.flimme.dev
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- runFlow: subflows/join-room.yaml

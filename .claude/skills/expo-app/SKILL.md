@@ -60,6 +60,8 @@ Every `api` function answers with a status (`packages/contract/src/answers.ts`).
 
 - Jest with jest-expo and Testing Library, next to the code (`thing.test.ts`). Logic in `features/` and `lib/` is tested without rendering; components are tested for behaviour (press, disabled, states), not pixels.
 - Maestro flows in `mobile/.maestro/`, one per slice (the `qa` agent).
+- Gesture Handler 3 and Worklets have no native side in Jest: `jest.setup.js` loads Gesture Handler's own mocks and stubs the worklets runtime holder, so a screen with a `GestureDetector` renders under a `GestureHandlerRootView` in tests. A gesture's rules live in a pure worklet file (`features/swipe/feel.ts`) that tests call directly; the finger itself is covered by the Maestro run. Maestro's synthetic drags carry no real flick velocity, so a flick's feel is Harry's to check.
+- **The frame meter** (`features/dev/frame-meter.ts`, `components/screens/swipe/frame-meter.tsx`): build with `EXPO_PUBLIC_FRAME_METER=1 npx expo run:ios --configuration Release` (and the staging values as the app's own `EXPO_PUBLIC_SUPABASE_*`, since a Release build has no dev menu) to see the average fps and janky share while cards move. Bar on the iPhone simulator: 55 fps or more, under 5% janky over 50 swipes.
 
 ## Commands (from the repo root)
 

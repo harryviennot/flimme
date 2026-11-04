@@ -8,6 +8,7 @@ import enJoin from './locales/en/join.json';
 import enLobby from './locales/en/lobby.json';
 import enOnboarding from './locales/en/onboarding.json';
 import enReport from './locales/en/report.json';
+import enSwipe from './locales/en/swipe.json';
 import enWeb from './locales/en/web.json';
 import frCommon from './locales/fr/common.json';
 import frHome from './locales/fr/home.json';
@@ -16,6 +17,7 @@ import frJoin from './locales/fr/join.json';
 import frLobby from './locales/fr/lobby.json';
 import frOnboarding from './locales/fr/onboarding.json';
 import frReport from './locales/fr/report.json';
+import frSwipe from './locales/fr/swipe.json';
 import frWeb from './locales/fr/web.json';
 
 export const resources = {
@@ -27,6 +29,7 @@ export const resources = {
     lobby: frLobby,
     onboarding: frOnboarding,
     report: frReport,
+    swipe: frSwipe,
     web: frWeb,
   },
   en: {
@@ -37,6 +40,7 @@ export const resources = {
     lobby: enLobby,
     onboarding: enOnboarding,
     report: enReport,
+    swipe: enSwipe,
     web: enWeb,
   },
 } as const;

@@ -1,0 +1,9 @@
+# Like swipe-host.yaml for a Release build (the frame meter run): the app has no dev menu and
+# already points at staging, so it only starts fresh and hosts.
+# Run: `maestro --device <host sim> test mobile/.maestro/swipe-host-release.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- runFlow: subflows/host-room.yaml

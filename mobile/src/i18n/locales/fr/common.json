@@ -45,7 +45,9 @@
     "flipBack": "Touche la carte pour la retourner",
     "stampLike": "J'aime",
     "stampNope": "Bof",
-    "stars": "★ {{rating}}"
+    "stars": "★ {{rating}}",
+    "stampSeen": "Déjà vu",
+    "stampSuper": "Super"
   },
   "ticket": {
     "roomCode": "Code de la salle",

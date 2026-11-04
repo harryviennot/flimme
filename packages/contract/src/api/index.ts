@@ -324,6 +324,8 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
       member_id?: string;
       dwell_ms?: number;
       client_at?: string;
+      /** Whether the card was turned over before the answer (M6.2). */
+      flipped?: boolean;
     }): Promise<CastVoteResult> {
       return callAnswer(
         client,
@@ -336,6 +338,7 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
           p_member_id: args.member_id,
           p_dwell_ms: args.dwell_ms,
           p_client_at: args.client_at,
+          p_flipped: args.flipped,
         },
         CAST_VOTE_ANSWERS,
         castVoteResult,

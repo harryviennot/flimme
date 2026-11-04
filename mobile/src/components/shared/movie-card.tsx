@@ -4,8 +4,10 @@ import { View } from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 
 import { Avatar, type AvatarColor } from '@/components/ui/avatar';
@@ -22,7 +24,14 @@ import { Poster, type PosterSource } from './poster';
 
 // Figma "Movie card": the swipe card. Tapping flips it in place between the front (the
 // poster, why it's here, title, meta, services) and the back (ratings, synopsis, credits,
-// services, trailer). The LIKE and NOPE stamps show while it's dragged.
+// services, trailer). The LIKE, NOPE, SEEN IT and SUPER stamps show while it's dragged: each
+// has a progress (0 to 1) that the swipe screen drives from the drag on the UI thread, or a
+// fixed `stamp` for the gallery and the buttons.
+
+export type StampKind = 'like' | 'nope' | 'seen' | 'super';
+
+/** The stamp starts this share of its size and grows to full as the drag nears the line. */
+const STAMP_SCALE_FROM = 0.6;
 
 export type MovieCardProps = {
   title: string;
@@ -34,9 +43,12 @@ export type MovieCardProps = {
   reason?: { label: string; icon?: IconName; tone?: TagTone };
   /** The room's services that have the film. */
   services: string[];
-  /** The stamp while the card is dragged toward an answer. */
-  stamp?: 'like' | 'nope' | null;
+  /** A stamp shown at full, without a drag (the gallery). */
+  stamp?: StampKind | null;
+  /** Each stamp's progress while the card is dragged, driven on the UI thread (0 to 1). */
+  stampProgress?: Partial<Record<StampKind, SharedValue<number>>>;
   flipped?: boolean;
+  /** Turns the card over. Without it the card is not pressable (the swipe screen's gesture flips). */
   onFlip?: () => void;
   back: {
     tmdbRating?: string;
@@ -72,28 +84,32 @@ export function MovieCard(props: MovieCardProps) {
     ],
   }));
 
+  const faces = (
+    <>
+      <Animated.View style={[front, { backfaceVisibility: 'hidden' }]} className="absolute inset-0">
+        <Front {...props} />
+      </Animated.View>
+      <Animated.View style={[back, { backfaceVisibility: 'hidden' }]} className="absolute inset-0">
+        <Back {...props} />
+      </Animated.View>
+    </>
+  );
+
   return (
     <View className="w-full" style={{ aspectRatio: 345 / 518 }}>
-      <Pressable
-        accessibilityLabel={title}
-        accessibilityHint={t('card.flipHint')}
-        haptic={false}
-        onPress={onFlip}
-        className="flex-1"
-      >
-        <Animated.View
-          style={[front, { backfaceVisibility: 'hidden' }]}
-          className="absolute inset-0"
+      {onFlip ? (
+        <Pressable
+          accessibilityLabel={title}
+          accessibilityHint={t('card.flipHint')}
+          haptic={false}
+          onPress={onFlip}
+          className="flex-1"
         >
-          <Front {...props} />
-        </Animated.View>
-        <Animated.View
-          style={[back, { backfaceVisibility: 'hidden' }]}
-          className="absolute inset-0"
-        >
-          <Back {...props} />
-        </Animated.View>
-      </Pressable>
+          {faces}
+        </Pressable>
+      ) : (
+        <View className="flex-1">{faces}</View>
+      )}
     </View>
   );
 }
@@ -101,12 +117,12 @@ export function MovieCard(props: MovieCardProps) {
 function Frame({
   children,
   border,
-  ring,
+  rings,
 }: {
   children: React.ReactNode;
   border: string;
-  /** A 3-point colour border drawn over the card's hairline (the stamps). */
-  ring?: string;
+  /** The 3-point colour borders drawn over the card's hairline (the stamps). */
+  rings?: React.ReactNode;
 }) {
   return (
     <View className="flex-1">
@@ -115,10 +131,101 @@ function Frame({
       >
         {children}
       </View>
-      {ring ? (
-        <View pointerEvents="none" className={cn('absolute inset-0 rounded-xl border-3', ring)} />
-      ) : null}
+      {rings}
     </View>
+  );
+}
+
+const stampLook: Record<
+  StampKind,
+  { ring: string; box: string; tone: 'like' | 'nope' | 'accent' | 'marquee'; rotate: number }
+> = {
+  like: {
+    ring: 'border-like-default',
+    box: 'left-6 top-16 border-like-default',
+    tone: 'like',
+    rotate: -14,
+  },
+  nope: {
+    ring: 'border-nope-default',
+    box: 'right-6 top-16 border-nope-default',
+    tone: 'nope',
+    rotate: 14,
+  },
+  super: {
+    ring: 'border-marquee-default',
+    box: 'left-6 top-16 border-marquee-default',
+    tone: 'marquee',
+    rotate: -14,
+  },
+  seen: {
+    ring: 'border-accent-default',
+    box: 'inset-x-0 top-1/2 mx-auto self-center border-accent-default',
+    tone: 'accent',
+    rotate: 0,
+  },
+};
+const STAMP_KINDS: StampKind[] = ['like', 'nope', 'super', 'seen'];
+
+/**
+ * The stamps and their coloured borders for each answer. With Reduce Motion the stamp shows at
+ * full once the line is crossed, without growing.
+ */
+function useStamps({ stamp, stampProgress }: Pick<MovieCardProps, 'stamp' | 'stampProgress'>) {
+  const one = useSharedValue(1);
+  const zero = useSharedValue(0);
+  if (!stamp && !stampProgress) return null;
+  return STAMP_KINDS.map((kind) => ({
+    kind,
+    progress: stampProgress?.[kind] ?? (stamp === kind ? one : zero),
+  }));
+}
+
+function Ring({ kind, progress }: { kind: StampKind; progress: SharedValue<number> }) {
+  const style = useAnimatedStyle(() => ({ opacity: progress.get() }));
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={style}
+      className={cn('absolute inset-0 rounded-xl border-3', stampLook[kind].ring)}
+    />
+  );
+}
+
+function Stamp({ kind, progress }: { kind: StampKind; progress: SharedValue<number> }) {
+  const { t } = useTranslation();
+  const reduced = useReducedMotion();
+  const look = stampLook[kind];
+  const style = useAnimatedStyle(() => {
+    const p = progress.get();
+    return {
+      opacity: reduced ? (p >= 1 ? 1 : 0) : p,
+      transform: [
+        { rotate: `${look.rotate}deg` },
+        { scale: reduced ? 1 : interpolate(p, [0, 1], [STAMP_SCALE_FROM, 1]) },
+      ],
+    };
+  });
+  const label = {
+    like: 'card.stampLike',
+    nope: 'card.stampNope',
+    seen: 'card.stampSeen',
+    super: 'card.stampSuper',
+  } as const;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={style}
+      className={cn(
+        'absolute rounded-sm border-4 bg-bg-sunken px-3.5 pt-1 pb-0.5',
+        look.box,
+        kind === 'seen' && 'items-center',
+      )}
+    >
+      <Text variant="display-stamp" tone={look.tone}>
+        {t(label[kind])}
+      </Text>
+    </Animated.View>
   );
 }
 
@@ -140,14 +247,25 @@ function Services({ services }: { services: string[] }) {
   );
 }
 
-function Front({ title, meta, poster, thumbhash, reason, services, stamp }: MovieCardProps) {
-  const { t } = useTranslation();
+function Front({
+  title,
+  meta,
+  poster,
+  thumbhash,
+  reason,
+  services,
+  stamp,
+  stampProgress,
+}: MovieCardProps) {
+  const stamps = useStamps({ stamp, stampProgress });
   // The stamp's 3-point colour border is drawn over the card's hairline, so the card's own
   // border (and everything placed inside it) never changes width when a stamp shows.
   return (
     <Frame
       border="border border-border-default"
-      ring={stamp ? (stamp === 'like' ? 'border-like-default' : 'border-nope-default') : undefined}
+      rings={stamps?.map(({ kind, progress }) => (
+        <Ring key={kind} kind={kind} progress={progress} />
+      ))}
     >
       <Poster source={poster} thumbhash={thumbhash} />
       <View className="absolute inset-x-0 bottom-0" style={{ height: '64%' }}>
@@ -158,33 +276,40 @@ function Front({ title, meta, poster, thumbhash, reason, services, stamp }: Movi
         {reason ? (
           <Tag label={reason.label} tone={reason.tone ?? 'accent'} icon={reason.icon ?? 'zap'} />
         ) : null}
-        <Text variant="title-l">{title}</Text>
-        <Text variant="mono-data" tone="secondary">
+        <Text variant="title-l" numberOfLines={3}>
+          {title}
+        </Text>
+        <Text variant="mono-data" tone="secondary" numberOfLines={2}>
           {meta}
         </Text>
         <Services services={services} />
       </View>
-      {stamp ? (
-        <View
-          className={cn(
-            'absolute top-16 rounded-sm border-4 bg-bg-sunken px-3.5 pt-1 pb-0.5',
-            stamp === 'like' ? 'left-6 border-like-default' : 'right-6 border-nope-default',
-          )}
-          style={{ transform: [{ rotate: stamp === 'like' ? '-14deg' : '14deg' }] }}
-        >
-          <Text variant="display-stamp" tone={stamp === 'like' ? 'like' : 'nope'}>
-            {t(stamp === 'like' ? 'card.stampLike' : 'card.stampNope')}
-          </Text>
-        </View>
-      ) : null}
+      {stamps?.map(({ kind, progress }) => (
+        <Stamp key={kind} kind={kind} progress={progress} />
+      ))}
     </Frame>
   );
 }
 
-function Back({ title, meta, poster, thumbhash, services, back }: MovieCardProps) {
+function Back({
+  title,
+  meta,
+  poster,
+  thumbhash,
+  services,
+  back,
+  stamp,
+  stampProgress,
+}: MovieCardProps) {
   const { t } = useTranslation();
+  const stamps = useStamps({ stamp, stampProgress });
   return (
-    <Frame border="border border-border-default">
+    <Frame
+      border="border border-border-default"
+      rings={stamps?.map(({ kind, progress }) => (
+        <Ring key={kind} kind={kind} progress={progress} />
+      ))}
+    >
       <View className="h-33 overflow-hidden">
         <View className="absolute inset-x-0 -top-5" style={{ aspectRatio: 345 / 518 }}>
           <Poster source={poster} thumbhash={thumbhash} />
@@ -269,6 +394,9 @@ function Back({ title, meta, poster, thumbhash, services, back }: MovieCardProps
           </Text>
         </View>
       </View>
+      {stamps?.map(({ kind, progress }) => (
+        <Stamp key={kind} kind={kind} progress={progress} />
+      ))}
     </Frame>
   );
 }
