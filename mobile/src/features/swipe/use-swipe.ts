@@ -10,7 +10,7 @@ import { api } from '@/api';
 import { setHeldCardSource } from '@/features/match/use-match-card';
 import { useAppConfig } from '@/features/app-config/use-app-config';
 import { useOnline } from '@/features/network';
-import { ROOM_KEY, useKeptRoom, useRoomEvent } from '@/features/room';
+import { ROOM_KEY, useKeptRoom, useRoom, useRoomEvent } from '@/features/room';
 import { useRoomRealtime } from '@/features/room/realtime';
 import i18n from '@/i18n';
 
@@ -35,6 +35,8 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   const realtime = useRoomRealtime();
   const kept = useKeptRoom().room?.id;
   const config = useAppConfig().data;
+  // Whether "Seen it" asks the rewatch question; unknown means it doesn't (the film just leaves).
+  const seenRule = useRoom(roomId).data?.seen_rule;
   // What callbacks made once need to read fresh: the channels and whether the room moved on.
   const [live] = useState(() => createStore(() => ({ realtime, locked: false })));
   useEffect(() => {
@@ -226,6 +228,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     superLikesLeft,
     waitingVotes,
     locked,
+    seenRule,
     online,
     imageBase: config?.tmdb_image_base,
   };
