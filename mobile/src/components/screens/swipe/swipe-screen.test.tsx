@@ -549,6 +549,19 @@ describe('the rewatch question', () => {
     expect(screen.queryByText('Watch it again tonight?')).toBeNull();
   });
 
+  it.each(['Yes, watch it again tonight', 'No, not tonight'])(
+    'undoing the answer ("%s") brings the card back without asking again',
+    async (label) => {
+      const { undone } = await ask();
+      await fireEvent.press(screen.getByLabelText(label));
+      expect(screen.getByLabelText('Film 2, 2020 · 1 h 40 · ★ 7.0')).toBeTruthy();
+      await fireEvent.press(screen.getByLabelText('Undo'));
+      expect(undone).toEqual([1]);
+      expect(screen.getByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0')).toBeTruthy();
+      expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+    },
+  );
+
   it('No sends seen and takes the card', async () => {
     const { votes } = await ask();
     await fireEvent.press(screen.getByLabelText('No, not tonight'));
