@@ -29,7 +29,7 @@ export function roomScreenFor(state: RoomState): RoomScreen {
 const SHEETS: Record<RoomState, readonly RoomSheet[]> = {
   lobby: ['invite', 'services', 'seat', 'report'],
   dealing: ['invite', 'services', 'seat', 'report'],
-  swiping: [],
+  swiping: ['seat', 'report'],
   finale: [],
   done: ['recap'],
   abandoned: [],

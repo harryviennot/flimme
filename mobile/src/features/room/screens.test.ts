@@ -23,11 +23,13 @@ describe('isAllowed', () => {
       expect(isAllowed(state, 'services')).toBe(true);
     }
   });
-  it('lets the seat and report sheets over the lobby and the dealing, never over a game', () => {
+  it('lets the seat and report sheets over the lobby, the dealing and the swiping, not the finale', () => {
     for (const sheet of ['seat', 'report']) {
       expect(isAllowed('lobby', sheet)).toBe(true);
       expect(isAllowed('dealing', sheet)).toBe(true);
-      expect(isAllowed('swiping', sheet)).toBe(false);
+      expect(isAllowed('swiping', sheet)).toBe(true);
+      expect(isAllowed('finale', sheet)).toBe(false);
+      expect(isAllowed('done', sheet)).toBe(false);
       expect(isSheet(sheet)).toBe(true);
     }
   });

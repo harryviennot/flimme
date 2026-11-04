@@ -36,6 +36,8 @@ jest.mock('@/components/screens/room/room-banner', () => ({
   },
 }));
 
+// The top bar has its own test (top-bar.test.tsx).
+jest.mock('./top-bar', () => ({ SwipeTopBar: () => null }));
 jest.mock('@/features/swipe/index', () => ({ voteQueue: { has: () => false } }));
 const mockRoomEvents = new Map<string, (payload: unknown) => void>();
 const mockRoom: { data: { reveal: string; max_age?: number | null } } = {

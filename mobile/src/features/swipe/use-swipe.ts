@@ -85,6 +85,9 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     }),
   );
 
+  // This phone's exact number of answers, for its own pill.
+  const [count, setCount] = useState(() => answerer.count());
+
   const [undoer] = useState(() =>
     createUndoer({
       stack,
@@ -113,6 +116,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
         undoer.record(done.card, kind);
         setReturning(null);
         setSuperLikesLeft(answerer.superLikesLeft());
+        setCount(answerer.count());
       }
       return done;
     },
@@ -222,6 +226,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   return {
     stack,
     answer,
+    count,
     undo,
     canUndo,
     returning,
