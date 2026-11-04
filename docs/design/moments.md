@@ -486,7 +486,7 @@ The room is marked shown when the winner lifts, or when the reveal leaves, which
 - The match overlay, the marquee bulbs or the match sound: they belong to the match.
 - A replay button or a countdown to the winner screen.
 
-**With 2 players**, the result itself gives the other's veto away: a knocked-out film you didn't veto is theirs, and "The only film nobody vetoed" says the same. The rules show knock-outs in every room ([what players see](../product/game-modes.md#what-players-see-party-and-blind)), and the round's intro tells each player their veto "stays secret until the end". So the beat shows them at every size and adds nothing on top (no points, no tie line). Whether 2-player rooms should hide them is [question 11](#questions-for-harry).
+**With 2 players**, the result itself gives the other's veto away: a knocked-out film you didn't veto is theirs, and "The only film nobody vetoed" says the same. The rules show knock-outs in every room ([what players see](../product/game-modes.md#what-players-see-party-and-blind)), and the round's intro tells each player their veto "stays secret until the end". So the beat shows them at every size and adds nothing on top (no points, no tie line). Decided on 4 November 2026 ([question 11](#questions-for-harry)).
 
 ### Edge cases
 
@@ -520,7 +520,7 @@ Placeholders for the feel check (the `feel-check` skill) and the first playtests
 | First step after the event | 300 ms | The reveal |
 | Step lengths | Knock-outs 500 ms, points 1 s (`timing.celebrate` plus 200 ms) | The reveal |
 | Winner before the hand-over | 2.5 s, a tap goes on earlier (token? `duration.reveal-hold`) | The reveal |
-| Points shown | From 3 ballots (question 12) | The reveal |
+| Points shown | From 3 ballots (decided, question 12) | The reveal |
 | A missed reveal's reads | 3 s, then the winner screen | The reveal |
 
 ## Changes this asks elsewhere
@@ -537,7 +537,7 @@ None of these is decided; each follows from a question below or is a gap found w
 | [game-modes.md](../product/game-modes.md#what-players-see-party-and-blind) | If question 4's default is accepted: a Party match shows every player's avatar and the count, not "who said yes" | A majority match would otherwise show who didn't |
 | `mobile/src/theme/tokens.json`, M6.31 | `duration.reveal-hold`, 2500ms, "The reveal before the winner screen (a starting value)" | The reveal's hand-over, as `duration.match-hold` for the overlay |
 | [final-cut.md](screens/final-cut.md#the-reveal-m631), M6.31 | The reveal section: the lines above in both languages, the points label (`_one`, `_other`), the announcement and the button | The section waits for this beat |
-| [game-modes.md](../product/game-modes.md#what-players-see-party-and-blind), the finale row | If question 12's default is accepted: "The points after the close, from 3 ballots" | The points are new on phones, and the row only lists the knock-outs |
+| [game-modes.md](../product/game-modes.md#what-players-see-party-and-blind), the finale row | Done in this pull request (question 12): the points after the close, only from 3 ballots and never on a knocked-out film | The points are new on phones, and the row only listed the knock-outs |
 | The winner screen spec (screens/winner.md, to be written), M6.16 | The single-film pick's line, "The only film anyone liked" (Q4.4), above the title. The phone knows it from the `match` event's `reason: 'only_film'`, or on a cold start from a `finale` pick with no row in `api.rounds` | Q4.4's default puts this line on the winner screen, and M6.16's brief doesn't list it yet |
 
 ## Questions for Harry
@@ -558,8 +558,8 @@ Questions 9 and 10 come from the Final Cut beat. Harry took both defaults on 4 N
 9. **Can a veto be taken back before lock-in?** Decided on 4 November 2026: yes (the default). Until lock-in, a long press on the vetoed poster lifts the veto and a long press on another poster moves it; the one veto is spent only when the ballot is locked in. A slip of the thumb shouldn't cost the player the one veto of the game, and nothing reaches the other phones until the close anyway. The rule is in [the vote](../product/game-modes.md#the-vote-pick-one-veto-one).
 10. **What does a finalist show during the round?** Decided on 4 November 2026: the poster, the title and the year, with no details sheet (the default). Most finalists are films the players liked as cards, and the 60 seconds are for talking, not reading. A fill film ([the finalists](../product/game-modes.md#the-finalists), rule 3) may be one some players never saw; if playtests show people asking "what's that one?", a details button comes later.
 
-Questions 11 to 13 come from the reveal beat (4 November 2026). Each needs a yes before M6.31 starts; the beat follows the defaults.
+Questions 11 to 13 come from the reveal beat. Harry took all three defaults on 4 November 2026 ([decisions.md](../decisions.md)); they stay here as the record.
 
-11. **Knock-outs in a 2-player room.** With 2 players, a knocked-out film you didn't veto is the other player's veto, and "The only film nobody vetoed" says the same. Default: show the knock-outs at every size, as [what players see](../product/game-modes.md#what-players-see-party-and-blind) says, with no points on top. The round already tells players their veto "stays secret until the end", and couples are a main Final Cut group: the vetoes landing is their moment. Alternative: at 2 players, show only the winner, without the line or the stamps. That hides less than it seems, since the winner alone still says a lot.
-12. **Points only from 3 ballots.** With 2 ballots, your own taken from the totals gives the other person's ranking exactly. Default: points show only when 3 or more ballots were counted (the phone works it out from the points, no extra read), and never on a knocked-out film. Alternative: never show numbers, only the winner.
-13. **The reveal's timings** (the steps, 2.5 s on the winner, 3 s for a missed reveal's reads) in [Starting values](#starting-values). Default: accept them as placeholders and tune them in the first feel check and playtest.
+11. **Knock-outs in a 2-player room.** Decided on 4 November 2026: show them (the default), with no points. With 2 players, a knocked-out film you didn't veto is the other player's veto, and "The only film nobody vetoed" says the same. Default: show the knock-outs at every size, as [what players see](../product/game-modes.md#what-players-see-party-and-blind) says, with no points on top. The round already tells players their veto "stays secret until the end", and couples are a main Final Cut group: the vetoes landing is their moment. Alternative: at 2 players, show only the winner, without the line or the stamps. That hides less than it seems, since the winner alone still says a lot.
+12. **Points only from 3 ballots.** Decided on 4 November 2026: yes (the default). With 2 ballots, your own taken from the totals gives the other person's ranking exactly. Default: points show only when 3 or more ballots were counted (the phone works it out from the points, no extra read), and never on a knocked-out film. Alternative: never show numbers, only the winner.
+13. **The reveal's timings** (the steps, 2.5 s on the winner, 3 s for a missed reveal's reads) in [Starting values](#starting-values). Decided on 4 November 2026: they are placeholders (the default), tuned in Harry's feel check and the first playtest.
