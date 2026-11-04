@@ -16,7 +16,7 @@ from server.catalog.curation import Curation, load_curation
 from server.catalog.fetch import run_fetch
 from server.catalog.placeholders import Posters
 from server.catalog.popularity import ExportLoader, ExportSource, run_popularity_daily
-from server.catalog.reference import run_reference_weekly
+from server.catalog.reference import apply_curation, run_reference_weekly
 from server.catalog.refresh import run_changes_daily, run_details_monthly, run_details_weekly
 from server.catalog.sweep import run_availability_sweep, run_sweep
 from server.catalog.tmdb import TmdbClient
@@ -77,7 +77,9 @@ async def _popularity_daily(context: Context) -> Outcome:
 
 
 async def _availability_sweep(context: Context) -> Outcome:
-    # Opening the run and sending the steps needs no TMDB token; the steps do.
+    # Opening the run and sending the steps needs no TMDB token; the steps do. The flags come
+    # first: a sweep never runs on flags older than the file this process loaded.
+    await apply_curation(context.database, context.curation)
     return await run_availability_sweep(context.database)
 
 
@@ -173,6 +175,9 @@ async def run_pipeline_worker(settings: Settings) -> None:
     stop = asyncio.Event()
     remove_signal_handlers = install_signal_handlers(stop)
     try:
+        # Before the first message: the file is the truth, whatever the weekly job last did.
+        stats = await apply_curation(database, context.curation)
+        log.info("curation applied at start %s", stats)
         runner = QueueRunner(CATALOG_REFRESH, make_dispatcher(handlers), client)
         await runner.run(stop)
     finally:
