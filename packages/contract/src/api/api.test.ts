@@ -697,6 +697,17 @@ describe('swiping', () => {
     expect(calls[1]?.args).toMatchObject({ p_member_id: undefined, p_dwell_ms: undefined });
   });
 
+  it('cast_vote sends flipped as p_flipped, and leaves it out when unset', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok', match: false }));
+    const api = createApi(client);
+    await api.castVote({ room_id: ROOM, title_id: 7, answer: 'like', flipped: true });
+    await api.castVote({ room_id: ROOM, title_id: 8, answer: 'like', flipped: false });
+    await api.castVote({ room_id: ROOM, title_id: 9, answer: 'like' });
+    expect(calls[0]?.args).toMatchObject({ p_flipped: true });
+    expect(calls[1]?.args).toMatchObject({ p_flipped: false });
+    expect(calls[2]?.args).toMatchObject({ p_flipped: undefined });
+  });
+
   it('cast_vote reads a match and a finale', async () => {
     const answer = {
       status: 'ok',

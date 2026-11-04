@@ -1,0 +1,22 @@
+# A fresh guest named Bob joins the room whose code is in CODE and waits in the lobby.
+# Starts on the welcome screen.
+appId: com.harryviennot.flimme.dev
+---
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Bob'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)got a room code\?'
+    timeout: 15000
+- tapOn: '(?i)join'
+- extendedWaitUntil:
+    visible: '(?i)enter the room code'
+    timeout: 15000
+- inputText: ${CODE}
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 30000
+- takeScreenshot: swipe-join-lobby

@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 87 of 257 tasks done.
+Progress: 93 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -180,9 +180,9 @@ Everything that blocks building or publishing, started first. Several items take
 
 Done when: the name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, and the repository and the agents are set up.
 
-- [ ] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
+- [x] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
   Done when: the name is checked on both stores, in trademark databases and for domains, and recorded in decisions.md.
-- [ ] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
+- [x] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the domain resolves and support@ receives mail.
 - [x] **M0.3** Enrol in the Apple Developer Program as an individual and declare trader status · publishing · S · [store-listing](store-listing.md#developer-accounts)
   Done when: enrolment is accepted.
@@ -408,11 +408,11 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 **Backend**
 
-- [ ] **M6.1** Match rules with the confirmed values: a time limit of 6 minutes on every rule, 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for 5 to 10 players and Final Cut, 3 finalists for 2 players in every mode, and a fixed re-check order after a leave or a removal (most likes, then most super likes, then group score, then lowest film id) · backend · M · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
+- [x] **M6.1** Match rules with the confirmed values: a time limit of 6 minutes on every rule, 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for 5 to 10 players and Final Cut, 3 finalists for 2 players in every mode, and a fixed re-check order after a leave or a removal (most likes, then most super likes, then group score, then lowest film id) · backend · M · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
   Done when: seeded and tested, the re-check order included.
-- [ ] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions; the near miss only one like short of the rule, with `needed` in the payload; `flipped` on `api.cast_vote` · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
+- [x] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions; the near miss only one like short of the rule, with `needed` in the payload; `flipped` on `api.cast_vote` · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: the match check is tested with both answers, and the near miss and `flipped` are tested too.
-- [ ] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back; undoing a like at the near-miss line sends `near_miss` with the corrected counts · backend · M · needs M1.5 · [game-modes](game-modes.md#the-answers)
+- [x] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back; undoing a like at the near-miss line sends `near_miss` with the corrected counts · backend · M · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: tested.
 - [ ] **M6.4** Starting the finale: finalists need at least one like; one 60-second round; card counts use seats seated at the start; every time limit; everyone done · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: each trigger and the finalist rule are tested.
@@ -429,7 +429,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 **App**
 
-- [ ] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched, the undo button shown disabled until M6.26 · app · L · needs M6.25, M6.11, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [x] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched, the undo button shown disabled until M6.26 · app · L · needs M6.25, M6.11, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: smooth by the frame meter on the simulator, and usable with VoiceOver.
 - [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · M · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: flipping works mid-stack.

@@ -58,7 +58,7 @@ export type RoomEventPayloads = {
   // `reason` and `eligible` come with a start that went back to the lobby (M5.5).
   state_changed: { state: RoomState; reason?: 'too_few_films'; eligible?: number };
   deck_updated: { member_ids: string[] };
-  near_miss: { title_id: number; likes: number; of: number };
+  near_miss: { title_id: number; likes: number; of: number; needed: number };
   match: { title_id: number; kind: MatchKind; likes: number; of: number; decided: boolean };
   finale_started: { round_id: string; title_ids: number[]; kind: FinaleKind; closes_at: string };
 };

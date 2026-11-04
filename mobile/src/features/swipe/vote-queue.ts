@@ -19,7 +19,7 @@ export type QueuedVote = {
   dwell_ms: number;
   /** The phone's time at the swipe (ISO). */
   client_at: string;
-  /** Kept now, sent once `api.cast_vote` takes `p_flipped` (M6.2). */
+  /** Whether the card was turned over before the answer; sent as `p_flipped`. */
   flipped: boolean;
 };
 
@@ -42,6 +42,7 @@ export type VoteQueueDeps = {
     member_id: string;
     dwell_ms: number;
     client_at: string;
+    flipped: boolean;
   }) => Promise<CastVoteResult>;
   /** Gets a fresh session; throws if it can't. */
   refreshSession: () => Promise<unknown>;
@@ -155,6 +156,7 @@ export function createVoteQueue(deps: VoteQueueDeps) {
           member_id: vote.member_id,
           dwell_ms: vote.dwell_ms,
           client_at: vote.client_at,
+          flipped: vote.flipped,
         });
       } catch (error) {
         if (error instanceof ApiError && error.kind === 'denied') {

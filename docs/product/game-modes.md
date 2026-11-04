@@ -52,7 +52,7 @@ A typical three-player Quick Match:
 | 0:00 to 0:35 | The shared warm-up: the same 10 cards for everyone, in the same order |
 | 0:35 to 2:20 | Personal decks. Likes jump into the others' next cards; "2 of 3 of you liked this" pops up |
 | About 2:00 | Everyone likes the same film: "It's a match" on every phone at once, and the game is over |
-| If no match by the card count (40, or 30 for 5 to 10 players) | The Final Cut: one 60-second vote between 3 or 4 finalists, then the winner |
+| If no match by the card count (40, or 30 for 5 to 10 players) | The Final Cut: one 60-second vote between 4 finalists, then the winner |
 
 ## The modes
 
@@ -67,7 +67,7 @@ A typical three-player Quick Match:
 | Deck recipe | `quick_match` | `final_cut` | `date_night` |
 
 - **Quick Match** is the default and the fastest. It's tuned for "pick something now".
-- **Final Cut** is for groups who want to see a few options before choosing. Swiping builds a shortlist of matches; the finale chooses between them. **Default to confirm:** the finale starts as soon as the shortlist holds as many films as the finale (4), rather than always waiting for 30 cards, so a group that agrees fast isn't kept swiping.
+- **Final Cut** is for groups who want to see a few options before choosing. Swiping builds a shortlist of matches; the finale chooses between them. **Default to confirm:** the finale starts as soon as the shortlist holds as many films as the finale (3 for 2 players, 4 otherwise), rather than always waiting for 30 cards, so a group that agrees fast isn't kept swiping.
 - **Date Night** is Quick Match for a couple: films neither has seen, a shorter warm-up and a bigger watchlist bonus (see its [recipe](../architecture/deck-engine.md#recipes)).
 
 Later modes are in [Later modes](#later-modes).
@@ -93,11 +93,11 @@ Today the data model makes "Seen it" an abstention under these rules: the film c
 
 **Undo**
 
-- Takes back the player's last swipe only, once: a second undo in a row isn't allowed. Default to confirm; today the function allows chained undos.
+- Takes back the player's last swipe only, once: a second undo in a row isn't allowed.
 - Only while the room is swiping and the card is still in play. A card that matched or became a finalist can't be undone.
 - A super like comes back.
 - A like that already moved the film up in other decks leaves it there. That's harmless.
-- Undoing a "Seen it" that dropped the film under `hide_seen` brings the film back for the room, unless another player also said "Seen it". Other players get it again at their next refill. Today the function refuses this undo; a mis-swipe would otherwise remove a film for good.
+- Undoing a "Seen it" that dropped the film under `hide_seen` brings the film back for the room, unless another player also said "Seen it". Other players get it again at their next refill. A mis-swipe never removes a film for good.
 
 **Super nope: dropped (decided on 29 October 2026).** The revival plan's 5-to-10-player rule said "and nobody used a super nope", but super nope isn't one of the four answers, and the design has none. It's dropped because a fifth gesture costs every new player something to learn, and the deck's misery rule already keeps films anyone is predicted to hate out of the deck. A veto doesn't stand in for it in big groups: Quick Match with 5 to 10 players ends in a ranked vote with no veto, on purpose, so one person can't block a film most of the group wants (reason corrected on 30 October 2026). Playtests should count majority matches that included a nope and how those players answered "Did you watch it?". If that shows a problem, the fix is a tighter majority rule (for example at most one nope), not a new answer.
 

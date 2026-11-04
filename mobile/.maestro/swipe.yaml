@@ -1,0 +1,47 @@
+# M6.9, the swipe screen, part 3 of 3: run on BOTH phones at the same time, after swipe-host.yaml,
+# swipe-join.yaml and "Start swiping" on the host. Both players like what they are shown with
+# the Like button until the room finds a match and the swipe screen is replaced (the room moves
+# to `done`). Before that it checks the screen's whole row of buttons and every card answer
+# with a finger: a swipe right, left and up each take the card away.
+# Run: `maestro --device <sim> test mobile/.maestro/swipe.yaml` (once per phone, together).
+appId: com.harryviennot.flimme.dev
+---
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- assertVisible: 'Undo'
+- assertVisible: 'Nope'
+- assertVisible: 'Super like, 2 left'
+- assertVisible: 'Seen it'
+- takeScreenshot: swipe-1-first-card
+
+# The finger: right, left and up each answer a card (the title changes every time).
+- swipe:
+    start: 50%,45%
+    end: 95%,45%
+    duration: 300
+- swipe:
+    start: 50%,45%
+    end: 5%,45%
+    duration: 300
+- swipe:
+    start: 50%,50%
+    end: 50%,20%
+    duration: 300
+- takeScreenshot: swipe-2-after-three-swipes
+
+# A super like drops the badge at once.
+- tapOn: 'Super like, 2 left'
+- assertVisible: 'Super like, 1 left'
+
+# Both phones like with the button until the room moves on.
+- repeat:
+    while:
+      visible: 'Like'
+    times: 40
+    commands:
+      - tapOn:
+          text: 'Like'
+          optional: true
+- assertNotVisible: 'Like'
+- takeScreenshot: swipe-3-room-moved-on

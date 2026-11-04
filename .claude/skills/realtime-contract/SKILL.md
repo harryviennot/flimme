@@ -26,7 +26,7 @@ The event list lives in `packages/contract/src/realtime.ts`. Adding an event mea
 | `state_changed` | lobby, dealing, swiping, finale, done, abandoned | Refetches the room; the room layout moves to that state's screen |
 | `host_changed` | The host role moves | Refetches seats |
 | `deck_updated` | A seat's deck was re-ranked (carries the seat id) | That seat refetches its next cards and replaces what's behind the 3 mounted ones |
-| `near_miss` | 2 or more liked a film without a match (Party mode) | "2 of 3 of you liked this" |
+| `near_miss` | A film is one like short of the match rule, with 2 or more likes and a present player left to answer (Party mode). Carries `needed` | "2 of 3 of you liked this" |
 | `match` | A match, or the finale's result (`decided`, points, vetoes) | The match overlay; the winner screen if decided |
 | `finale_started`, `round_progress` | The finale opens; a seat locks in | Refetches the round |
 | `next_room` | The host taps Play again (carries the new code) | Offers "Join" |

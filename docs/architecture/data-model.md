@@ -397,16 +397,15 @@ erDiagram
 
 | Mode | Players | Instant match | Finale |
 | --- | --- | --- | --- |
-| Quick Match | 2 | Both like it | Final Cut of 3 after 40 cards |
-| Quick Match | 3 to 4 | Everyone likes it | Final Cut of 4 after 50 cards or 8 minutes |
-| Quick Match | 5 to 10 | 70% like it | Ranked vote of 4 after 50 cards or 10 minutes |
-| Date Night | 2 | Both like it | Final Cut of 3 after 40 cards |
-| Final Cut | 2 to 4 | Everyone likes it (joins the shortlist) | Final Cut of 4 after 30 cards or 10 minutes |
-| Final Cut | 5 to 10 | 70% like it (joins the shortlist) | Final Cut of 4 after 30 cards or 10 minutes |
+| Quick Match | 2 | Both like it | Final Cut of 3 after 40 cards or 6 minutes |
+| Quick Match | 3 to 4 | Everyone likes it | Final Cut of 4 after 40 cards or 6 minutes |
+| Quick Match | 5 to 10 | 70% like it | Ranked vote of 4 after 30 cards or 6 minutes |
+| Date Night | 2 | Both like it | Final Cut of 3 after 40 cards or 6 minutes |
+| Final Cut | 2 | Both like it (joins the shortlist) | Final Cut of 3 after 30 cards or 6 minutes |
+| Final Cut | 3 to 4 | Everyone likes it (joins the shortlist) | Final Cut of 4 after 30 cards or 6 minutes |
+| Final Cut | 5 to 10 | 70% like it (joins the shortlist) | Final Cut of 4 after 30 cards or 6 minutes |
 
-The 10-minute limits are my starting values; the plan only gives 8 minutes for 3 to 4 players.
-
-> The values were decided on 30 October 2026 and M6.1 puts them in the seed: 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for Quick Match with 5 to 10, a 6-minute limit on every rule, and a Final Cut of 3 for Final Cut mode with 2 players ([Time to a pick](../product/game-modes.md#time-to-a-pick)).
+> The values were decided on 30 October 2026 and confirmed on 4 November 2026; M6.1 put them in the seed ([Time to a pick](../product/game-modes.md#time-to-a-pick)). A room keeps the rule it started with (`rooms.rule`). When a leave completes several films at once, `internal.recheck_room_matches` walks them by most likes, then most super likes, then group score, then the lowest film id, and stops at the first that decides.
 
 ### The room
 
@@ -494,11 +493,11 @@ The 10-minute limits are my starting values; the plan only gives 8 minutes for 3
 
 | Column | Type | Notes |
 | --- | --- | --- |
-| answer | vote_answer | `nope`, `like`, `super_like`, `seen` (swipe up) |
+| answer | vote_answer | `nope`, `like`, `super_like`, `seen` (swipe up), `seen_rewatch` ("Watch it again tonight? Yes", counts as a like and as seen) |
 | created_at | timestamptz | Server time |
 | client_created_at | timestamptz | When the phone recorded it, if it was queued offline |
 
-**swipe_log**: append-only record of every vote and undo, with the deck source, score and how long the card was on screen. Points at the seat, so it stays anonymous once an account is gone.
+**swipe_log**: append-only record of every vote and undo, with the deck source, score, how long the card was on screen and whether it was flipped (`flipped`, never shown to a phone). Points at the seat, so it stays anonymous once an account is gone.
 
 **matches**: every film that met the room's rule, plus the night's pick. `kind` is `unanimous`, `majority` or `finale`; `like_count` and `present_count` give "3 of 3"; `pick_order` 1 is the pick (2 and 3 for a double feature later).
 
@@ -661,10 +660,10 @@ sequenceDiagram
 
 - **One lock per room.** Votes in the same room run one after another (a few milliseconds each), so two last likes can never both see "not yet". Rooms never wait on each other. Tested with two overlapping transactions.
 - **Present players only.** A seat counts if it hasn't left and has been active in the last 90 seconds.
-- **Seen it.** Under `hide_seen`, a "seen it" answer drops the card for the room and removes it from every deck that hasn't reached it. Under the other seen rules it abstains. Under every seen rule the film is also saved as seen for that player (`user_titles`, source `app`), so their later rooms leave it out.
+- **Seen it.** Under `hide_seen`, a "seen it" answer drops the card for the room and removes it from every deck that hasn't reached it. Under `allow_rewatch` and `show_all` the phone asks "Watch it again tonight?": Yes (`seen_rewatch`) counts as a like and as seen, and a plain `seen` counts as a nope and as seen. Nobody abstains (game-modes.md#when-its-a-match). Under every seen rule the film is also saved as seen for that player (`user_titles`, source `app`), so their later rooms leave it out.
 - **Super likes** spend one of the seat's two, count as likes and count double when seeding the finale.
 - **Offline.** Votes are queued on the phone and retried. A retry returns `duplicate`; a vote after the room is decided returns `closed`.
-- **Undo** removes the seat's last vote while its card is still active, restores counters and the super like, and logs the undo.
+- **Undo** removes the seat's last vote (never two in a row) while its card is still active, reverses the counters by the answer's meaning, restores the super like and a film dropped by the seat's own "Seen it", clears the seen mark the vote made, and logs the undo. A seat that left or was removed raises 42501.
 
 ### Like propagation and refills
 
@@ -800,7 +799,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state, optional reason and eligible (a start sent back to the lobby: `too_few_films`) | Moves to the next screen ("Shuffling" while dealing) |
 | `deck_updated` | room | cast_vote, deal_cards | seat ids | Those seats refetch behind their mounted cards |
-| `near_miss` | room | cast_vote, Party mode only | title, likes, of | "2 of 3 of you liked this" |
+| `near_miss` | room | cast_vote, Party mode only | title, likes, of, needed | "2 of 3 of you liked this" (only one like short of the rule, from 2 likes, with someone left to answer) |
 | `match` | room | cast_vote, leave_room, sweeper | title, kind, likes, of, decided | Match screen |
 | `finale_started` | room | start_finale | round, titles, kind, deadline | Final Cut screen |
 | `round_progress` | room | ballot functions | stage, ballots in | Progress dots |
