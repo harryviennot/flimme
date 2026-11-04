@@ -312,7 +312,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | The app is called **Flimme**. Harry owns flimme.fr and flimme.com. This closes M0.1 | 4 Nov 2026 | [Choosing the name](product/store-listing.md#choosing-the-name) |
 | Invite links use **flimme.com**: `https://flimme.com/join/<code>?r=<room id>`, and flimme.fr redirects to flimme.com (M4.18, M0.2) | 4 Nov 2026 | [Invites and deep links](architecture/app-structure.md#invites-and-deep-links), [The invite page](product/store-listing.md#invite-links-and-the-web-page) |
 | The domains (M0.2): Harry owns **flimme.com** and **flimme.fr**. The support email is **support@flimme.com**. DNS is at OVH today | 4 Nov 2026 | [Choosing the name](product/store-listing.md#choosing-the-name), [Release checklist](product/store-listing.md#release-checklist) |
-| M4.18 (Q18.1): the invite page is hosted on **Cloudflare Pages (free)**, not EAS Hosting, whose custom domains need the paid Starter plan | 4 Nov 2026 | [The invite web page](product/store-listing.md#invite-links-and-the-web-page), [Monthly costs](architecture/operations.md#monthly-costs) |
+| M4.18 (Q18.1): the invite page and the verification files are hosted on **Harry's VPS with Dokploy**, free beyond the VPS he already pays for. Not EAS Hosting, whose custom domains need the paid Starter plan. DNS stays at OVH | 4 Nov 2026 | [The invite web page](product/store-listing.md#invite-links-and-the-web-page), [Monthly costs](architecture/operations.md#monthly-costs) |
 
 ## Defaults, not yet confirmed
 
