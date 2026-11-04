@@ -370,7 +370,8 @@ export const tokens = {
     "fast": 150,
     "base": 250,
     "slow": 400,
-    "celebrate": 800
+    "celebrate": 800,
+    "match-hold": 4000
   },
   "easing": {
     "standard": [

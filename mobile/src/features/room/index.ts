@@ -6,7 +6,9 @@ export {
   useRoomEvent,
   useRoomPresence,
   type BannerKind,
+  type RoomRealtime,
 } from './realtime';
+export { createMatchShownStore, matchShownStore } from './match-shown';
 export {
   createKeptRoomStore,
   keptRoomStore,
