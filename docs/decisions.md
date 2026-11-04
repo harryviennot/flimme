@@ -364,6 +364,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | The winner screen (M6.16): on a finished room, the edge swipe and Android's back go Home with no "Leave the room?" alert; a failed card read is an inline Try again that keeps Home reachable, never the full-screen error; the French is "Le film du soir" for tonight's pick and "Le seul film qui a plu" for the single-film line | 4 Nov 2026 | [Winner](design/screens/winner.md#decided) |
 | The Final Cut beat (question 9, default accepted): a player can take a veto back until lock-in. A long press on the vetoed poster lifts it, a long press on another poster moves it, and the veto is spent at lock-in | 4 Nov 2026 | [The vote](product/game-modes.md#the-vote-pick-one-veto-one), [The Final Cut](design/moments.md#the-final-cut) |
 | The Final Cut beat (question 10, default accepted): during the round a finalist shows its poster, title and year, with no details sheet | 4 Nov 2026 | [The Final Cut](design/moments.md#the-final-cut) |
+| The Final Cut screen (M6.15): the French is "Vote validé" for locked in, "{{count}} sur {{of}} ont validé" for the lock-in count, and "Vote final" for the ranked vote's title, marked proposed in the copy glossary until the first playtest | 4 Nov 2026 | [The Final Cut](design/screens/final-cut.md#decided) |
 
 ## Defaults, not yet confirmed
 
