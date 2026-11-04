@@ -47,7 +47,7 @@ export default function RealtimeSpikeScreen() {
     return () => {
       data.subscription.unsubscribe();
       app.remove();
-
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- the latest channels are wanted
       channels.current.forEach((channel) => void supabase.removeChannel(channel));
     };
   }, [log]);
