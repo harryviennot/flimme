@@ -39,9 +39,9 @@ select is(
 );
 select is(
   (select count(*) from tests.broadcasts(tests.room_id(), 'near_miss') n, jsonb_object_keys(n) k
-   where k not in ('title_id', 'likes', 'of', 'id')),
+   where k not in ('title_id', 'likes', 'of', 'needed', 'id')),
   0::bigint,
-  'G1c the near_miss names no seat and no player: only title_id, likes and of (beyond the 120)'
+  'G1c the near_miss names no seat and no player: only title_id, likes, of and needed (beyond the 120)'
 );
 select is(
   (select count(*) from public.matches where room_id = tests.room_id()),
