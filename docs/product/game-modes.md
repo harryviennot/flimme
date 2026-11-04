@@ -185,7 +185,7 @@ The card count and Vote now are checked after every vote; the time limit by the 
 2. Films with at least one like, by likes + 2 × super likes - nopes, then by the deck's group score.
 3. If that gives fewer than the finalist count: films nobody has noped yet, by group score, until the list is full (decided on 30 October 2026: a full list gives a real choice).
 
-Today `start_finale` fills the list by group score among every film in play, so it can pick a film everyone noped. Rule 2 needs at least one like, and rule 3 never takes a noped film.
+Built in M6.4 (`internal.start_finale`): rule 2 needs at least one like, rule 3 never takes a noped film (a plain "Seen it" in a room that allows rewatches counts as a nope), and dropped cards are never finalists. Ties go to the deck's group score, then the lowest film id. A film everyone noped is never a finalist.
 
 If only one film qualifies, it's the pick without a vote ("The only film anyone liked"). If none qualifies, the game goes to [No pick](#how-a-game-ends).
 
@@ -374,7 +374,8 @@ Not yet in [data-model.md](../architecture/data-model.md) or [schema.sql](../arc
 | Where | Change |
 | --- | --- |
 | `vote_answer` | Add `seen_rewatch` ("Watch it again tonight? Yes", counts as a like and as seen). `seen` in rooms that allow rewatches counts as a nope |
-| `round_stage` | One open stage, `vote`, then `closed`. `veto` and `rank` go |
+| `round_stage` | One open stage, `vote`, then `closed`. `veto` and `rank` go. Done in M6.4: `vote` is added; `veto` and `rank` stay in the type, unused, until a contract release |
+| `rooms.finale_reason` | Why the finale started: `cards`, `time`, `all_done`, `vote_now` or `shortlist_full` (`cards` when the count and the time limit hold together). Done in M6.4; written for a round, a single-film pick and a no pick alike |
 | `match_rules` | `finale_after_seconds` on every row (see [Time to a pick](#time-to-a-pick)); 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for Quick Match with 5 to 10 and for Final Cut |
 | `rooms.stats` | Adds `outcome`: `match`, `finale`, `no_pick` or `abandoned` |
 | New functions | `api.cast_ballot` (whole ballot), `api.close_round_stage`, `api.start_finale_now`, `api.keep_swiping`, `api.play_again`, `internal.close_round_stage`, `internal.sweep_rooms` |

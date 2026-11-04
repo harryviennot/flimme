@@ -56,10 +56,28 @@ export type RoomEventPayloads = {
     reveal: 'party' | 'blind';
   };
   // `reason` and `eligible` come with a start that went back to the lobby (M5.5).
-  state_changed: { state: RoomState; reason?: 'too_few_films'; eligible?: number };
+  // `outcome: 'no_pick'` comes with a finale that found no liked film: the night ends with no pick (M6.4).
+  state_changed: {
+    state: RoomState;
+    reason?: 'too_few_films';
+    eligible?: number;
+    outcome?: 'no_pick';
+  };
   deck_updated: { member_ids: string[] };
   near_miss: { title_id: number; likes: number; of: number; needed: number };
-  match: { title_id: number; kind: MatchKind; likes: number; of: number; decided: boolean };
+  /**
+   * The finale's result has `kind: 'finale'`. With a single qualifying film it carries
+   * `reason: 'only_film'` and no finalists (M6.4).
+   */
+  match: {
+    title_id: number;
+    kind: MatchKind;
+    likes: number;
+    of: number;
+    decided: boolean;
+    reason?: 'only_film';
+    finalists?: number[];
+  };
   finale_started: { round_id: string; title_ids: number[]; kind: FinaleKind; closes_at: string };
 };
 
