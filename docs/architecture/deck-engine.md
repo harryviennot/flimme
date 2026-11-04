@@ -483,7 +483,7 @@ None of these are in [data-model.md](data-model.md) or [schema.sql](schema.sql) 
 | Where | Change |
 | --- | --- |
 | `moods` | `include_genre_ids` becomes `require_genre_ids` (a must-have); add `anchor_title_ids`, `threshold` and `recipe`. Seed the six starting moods, adding `feel_good` |
-| `rooms` | Add `mood_slugs`: the host's moods, up to 3, set through `api.update_room_settings`. `seen_rule` defaults to `allow_rewatch`; Date Night keeps `hide_seen` |
+| `rooms` | Add `mood_slugs`: the host's moods, up to 3, set through `api.update_room_settings`. `seen_rule` defaults to `allow_rewatch`; Date Night keeps `hide_seen` (done, M6.28) |
 | `room_members` | Drop `mood_slugs` and `genre_ids`. `api.set_seat_prefs` keeps only services |
 | `game_modes` | Add `deck_recipe` |
 | `taste_profiles` | Add `confidence`. `affinities` holds the leanings |
