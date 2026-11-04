@@ -1,0 +1,26 @@
+# Points the development build at the staging Supabase project through the dev menu, then lets
+# the app reload. Needs Metro started with EXPO_PUBLIC_STAGING_SUPABASE_URL and
+# EXPO_PUBLIC_STAGING_SUPABASE_PUBLISHABLE_KEY. Run it after the app is connected to Metro.
+appId: com.harryviennot.flimme.dev
+---
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Staging'
+    timeout: 20000
+# The development menu's first-run sheet can sit over the page: its close button is the circle
+# at the right of its title.
+- runFlow:
+    when:
+      visible: 'Runtime version.*'
+    commands:
+      - tapOn:
+          point: 90%,79%
+- tapOn: 'Staging'
+- extendedWaitUntil:
+    visible: 'Running on (mfpkphxjndvtafgeeoeh|localhost).*'
+    timeout: 60000
+# Back to Home (the app reloaded on the dev menu).
+- openLink: flimme-dev:///
+- extendedWaitUntil:
+    visible: '(?i)get started|open a room|got a room code.*'
+    timeout: 60000

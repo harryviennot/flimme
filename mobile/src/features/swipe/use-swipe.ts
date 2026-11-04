@@ -1,4 +1,5 @@
 import type { RoomSeat } from '@flimme/contract';
+import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
@@ -8,7 +9,7 @@ import { createStore } from 'zustand/vanilla';
 import { api } from '@/api';
 import { useAppConfig } from '@/features/app-config/use-app-config';
 import { useOnline } from '@/features/network';
-import { useKeptRoom, useRoomEvent } from '@/features/room';
+import { ROOM_KEY, useKeptRoom, useRoomEvent } from '@/features/room';
 import { useRoomRealtime } from '@/features/room/realtime';
 import i18n from '@/i18n';
 
@@ -28,6 +29,7 @@ function movesOn(payload: unknown): boolean {
 
 export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   const online = useOnline();
+  const queryClient = useQueryClient();
   const realtime = useRoomRealtime();
   const kept = useKeptRoom().room?.id;
   const config = useAppConfig().data;
@@ -77,7 +79,12 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     }),
   );
 
-  const lock = useCallback(() => live.setState({ locked: true }), [live]);
+  // The room moved on (a match, the finale): no more input, and the room is read again so the
+  // layout follows its state even if the event that said so never arrived.
+  const lock = useCallback(() => {
+    live.setState({ locked: true });
+    void queryClient.invalidateQueries({ queryKey: ROOM_KEY(roomId), exact: true });
+  }, [live, queryClient, roomId]);
 
   const answer = useCallback(
     (kind: AnswerKind): AnsweredCard | null => {

@@ -22,12 +22,18 @@ jest.mock('@/features/app-config/use-app-config', () => ({
   useAppConfig: () => ({ data: { tmdb_image_base: 'https://img.test' } }),
 }));
 
+const mockInvalidate = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({ invalidateQueries: mockInvalidate }),
+}));
+
 let mockOnline = true;
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline }));
 
 const mockHandlers = new Map<string, (payload: unknown) => void>();
 let mockKept: string | undefined = ROOM;
 jest.mock('@/features/room', () => ({
+  ROOM_KEY: (id: string) => ['room', id],
   useKeptRoom: () => ({ room: mockKept ? { id: mockKept, code: '123456' } : null }),
   useRoomEvent: (_room: string, event: string, handler: (payload: unknown) => void) => {
     mockHandlers.set(event, handler);
@@ -104,6 +110,7 @@ beforeEach(() => {
   mockKept = ROOM;
   mockOnline = true;
   mockPresence.mockClear();
+  mockInvalidate.mockClear();
   mockQueue.flush.mockClear();
   mockQueue.store.setState({ votes: [] });
   mockApi.myNextCards.mockReset();
@@ -154,6 +161,12 @@ describe('the room moves on', () => {
     await act(async () => mockHandlers.get('match')?.({ title_id: 1 }));
     expect(result.current.locked).toBe(true);
     expect(result.current.answer('like')).toBeNull();
+  });
+
+  it('reads the room again when it locks, so the layout follows even if its event was missed', async () => {
+    await open();
+    await act(async () => mockHandlers.get('match')?.({ title_id: 1 }));
+    expect(mockInvalidate).toHaveBeenCalledWith({ queryKey: ['room', ROOM], exact: true });
   });
 
   it('locks when the room leaves swiping, not when it says swiping', async () => {

@@ -1,0 +1,27 @@
+# M6.9, the swipe screen, part 2 of 3 (the second phone): a fresh guest on staging joins the
+# host's room by its code and waits in the lobby. Then the host starts the game.
+# Run: `maestro --device <second sim> test mobile/.maestro/swipe-join.yaml -e CODE=123456`
+appId: com.harryviennot.flimme.dev
+env:
+  METRO_URL: http://localhost:8094
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Bob'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)got a room code\?'
+    timeout: 15000
+- tapOn: '(?i)join'
+- extendedWaitUntil:
+    visible: '(?i)enter the room code'
+    timeout: 15000
+- inputText: ${CODE}
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 30000
+- takeScreenshot: swipe-join-lobby
