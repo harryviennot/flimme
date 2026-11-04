@@ -370,6 +370,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | The reveal beat (question 12, default accepted): the reveal shows points only when at least 3 ballots were counted, and never on a knocked-out film | 4 Nov 2026 | [What players see](product/game-modes.md#what-players-see-party-and-blind) |
 | The reveal beat (question 13, default accepted): the reveal's timings (the steps, 2.5 s on the winner, 3 s for a missed reveal's reads) are placeholders for Harry's feel check | 4 Nov 2026 | [Starting values](design/moments.md#starting-values) |
 | The Final Cut screen (M6.15): the French is "Vote validé" for locked in, "{{count}} sur {{of}} ont validé" for the lock-in count, and "Vote final" for the ranked vote's title, marked proposed in the copy glossary until the first playtest | 4 Nov 2026 | [The Final Cut](design/screens/final-cut.md#decided) |
+| The reveal (default accepted): the knock-outs show even when a single ballot was counted, the same rule in every room size | 5 Nov 2026 | [The reveal](design/screens/final-cut.md#the-reveal) |
 
 ## Defaults, not yet confirmed
 

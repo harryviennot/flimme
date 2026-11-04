@@ -320,7 +320,7 @@ Every step's time comes from the reveal's duration tokens ([Design-system change
 | --- | --- |
 | **Knock-outs, points, winner** (a Final Cut, 3 or more ballots, a veto landed) | The full sequence, 4.3 s |
 | **Two ballots** (a 2-player room, or 2 seats of a bigger room locked in) | Knock-outs, then the winner, no band; the line is `points`, never `tie` |
-| **One ballot** | The same: no band. Its knock-out, if any, shows |
+| **One ballot** | The same: no band. Its knock-out, if any, shows (Decided 3) |
 | **A ranked vote** | No knock-outs; the points if 3 or more ballots, then the winner |
 | **`only_unvetoed`** | Knock-outs, then the winner with `onlyUnvetoed` |
 | **`no_ballots`** | The winner alone, 300 ms after the event, with `noBallots` |
@@ -427,3 +427,7 @@ On 4 November 2026:
 
 1. **The reveal's keys.** M6.31 adds the reveal's own keys to `finale.json`; M6.15 doesn't. M6.31 starts only after M6.15 has merged, so the two never share the file at once (decided by the coordinator, since it's sequencing).
 2. **The French for "locked in" and the ranked vote.** Harry kept "Vote validé", "{{count}} sur {{of}} ont validé" and "Vote final", marked proposed in the copy glossary until the first playtest ([decisions.md](../../decisions.md)).
+
+On 5 November 2026:
+
+3. **Knock-outs with a single ballot.** They show, the same rule in every room size, even though the lock-in row showed who locked in. Harry took the default ([decisions.md](../../decisions.md)); the alternative was the winner alone, with no stamps.
