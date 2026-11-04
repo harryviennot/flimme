@@ -72,7 +72,14 @@ function film(id: number): NextCard {
 const seat = { member_id: 'm1', super_likes_left: 2, swipe_count: 0 } as RoomSeat;
 const stacks: CardStack[] = [];
 
-async function makeSwipe(options: { cards?: number; locked?: boolean; superLikes?: number } = {}) {
+async function makeSwipe(
+  options: {
+    cards?: number;
+    locked?: boolean;
+    superLikes?: number;
+    seenRule?: 'hide_seen' | 'allow_rewatch' | 'show_all';
+  } = {},
+) {
   const votes: QueuedVote[] = [];
   const cards = Array.from({ length: options.cards ?? 20 }, (_, i) => film(i + 1));
   const stack = createCardStack(
@@ -123,6 +130,7 @@ async function makeSwipe(options: { cards?: number; locked?: boolean; superLikes
       },
       waitingVotes: 0,
       locked: options.locked ?? false,
+      seenRule: options.seenRule ?? 'hide_seen',
       online: true,
       imageBase: undefined,
     },
@@ -133,23 +141,20 @@ async function makeSwipe(options: { cards?: number; locked?: boolean; superLikes
 async function setup(options: Parameters<typeof makeSwipe>[0] = {}) {
   const made = await makeSwipe(options);
   mockSwipe.current = made.swipe as never;
-  const view = () =>
-    render(
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider
-          initialMetrics={{
-            frame: { x: 0, y: 0, width: 393, height: 852 },
-            insets: { top: 47, left: 0, right: 0, bottom: 34 },
-          }}
-        >
-          <SwipeScreen
-            roomId={ROOM}
-            seat={{ ...seat, super_likes_left: options.superLikes ?? 2 }}
-          />
-        </SafeAreaProvider>
-      </GestureHandlerRootView>,
-    );
-  return { ...made, ...(await view()) };
+  const tree = () => (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: { x: 0, y: 0, width: 393, height: 852 },
+          insets: { top: 47, left: 0, right: 0, bottom: 34 },
+        }}
+      >
+        <SwipeScreen roomId={ROOM} seat={{ ...seat, super_likes_left: options.superLikes ?? 2 }} />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+  const view = await render(tree());
+  return { ...made, ...view, tree };
 }
 
 async function layoutStack() {
@@ -432,5 +437,79 @@ describe('when there is no card', () => {
     expect(
       screen.getByText("Your swipes are saved. They'll go as soon as you're back."),
     ).toBeTruthy();
+  });
+});
+
+describe('the rewatch question', () => {
+  const ask = async (rule: 'allow_rewatch' | 'show_all' = 'allow_rewatch') => {
+    const made = await setup({ seenRule: rule });
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Seen it'));
+    return made;
+  };
+
+  it.each(['allow_rewatch', 'show_all'] as const)(
+    'opens on Seen it under %s and queues nothing',
+    async (rule) => {
+      const { votes, stack } = await ask(rule);
+      expect(screen.getByText('Watch it again tonight?')).toBeTruthy();
+      expect(votes).toEqual([]);
+      expect(stack.getState().mounted[0]?.title_id).toBe(1);
+    },
+  );
+
+  it('opens from the screen reader action too', async () => {
+    const { votes } = await setup({ seenRule: 'allow_rewatch' });
+    await layoutStack();
+    await fireEvent(screen.getByTestId('swipe-card-1'), 'accessibilityAction', {
+      nativeEvent: { actionName: 'seen' },
+    });
+    expect(screen.getByText('Watch it again tonight?')).toBeTruthy();
+    expect(votes).toEqual([]);
+  });
+
+  it('Yes sends seen_rewatch and takes the card', async () => {
+    const { votes } = await ask();
+    await fireEvent.press(screen.getByLabelText('Yes, watch it again tonight'));
+    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([[1, 'seen_rewatch']]);
+    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+  });
+
+  it('No sends seen and takes the card', async () => {
+    const { votes } = await ask();
+    await fireEvent.press(screen.getByLabelText('No, not tonight'));
+    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([[1, 'seen']]);
+  });
+
+  it('answers once when Yes is tapped twice', async () => {
+    const { votes } = await ask();
+    const yes = screen.getByLabelText('Yes, watch it again tonight');
+    await fireEvent.press(yes);
+    await fireEvent.press(yes);
+    expect(votes).toHaveLength(1);
+  });
+
+  it('closes with no vote when the screen reader escapes', async () => {
+    const { votes, stack } = await ask();
+    await fireEvent(screen.getByTestId('seen-question'), 'accessibilityEscape');
+    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+    expect(votes).toEqual([]);
+    expect(stack.getState().mounted[0]?.title_id).toBe(1);
+  });
+
+  it('closes with no vote when the room moves on', async () => {
+    const { votes, swipe, rerender, tree } = await ask();
+    (swipe as { locked: boolean }).locked = true;
+    await rerender(tree());
+    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+    expect(votes).toEqual([]);
+  });
+
+  it('is not asked under hide_seen: Seen it sends seen at once', async () => {
+    const { votes } = await setup({ seenRule: 'hide_seen' });
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Seen it'));
+    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+    expect(votes.map((v) => v.answer)).toEqual(['seen']);
   });
 });

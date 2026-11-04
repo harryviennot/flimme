@@ -33,6 +33,8 @@ export const REDUCED_SLIDE = 0.12;
 /** A throw carries this share of the finger's speed along the other axis, in seconds. */
 export const CARRY_X = 0.2;
 export const CARRY_Y = 0.15;
+/** Seen it with the rewatch question lifts the card this many points (translate-y-6). */
+export const SEEN_LIFT = 24;
 /** Dwell is only counted up to this many ms. */
 export const MAX_DWELL_MS = 10 * 60 * 1000;
 /** A card sits still this long before the loading card's "still dealing" line. */

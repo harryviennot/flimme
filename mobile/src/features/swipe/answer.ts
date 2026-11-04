@@ -5,11 +5,32 @@ import { MAX_DWELL_MS } from './feel';
 import type { QueuedVote } from './vote-queue';
 
 // The answer path (swipe.md#the-screen's files): one function takes the top card off the stack
-// and puts its vote in the queue. M6.12 changes it for the rewatch question. It is synchronous
+// and puts its vote in the queue. The rewatch question (M6.12) only picks which answer is sent:
+// Yes is `seen_rewatch`, No is `seen`, and the card stays on top until one is tapped, so its
+// dwell time runs on. It is synchronous
 // and never touches the network: the swipe doesn't wait (rule 5).
 
 /** The four answers a card can be given. */
-export type AnswerKind = Extract<VoteAnswer, 'like' | 'nope' | 'super_like' | 'seen'>;
+export type AnswerKind = Extract<
+  VoteAnswer,
+  'like' | 'nope' | 'super_like' | 'seen' | 'seen_rewatch'
+>;
+
+/** The room's seen rule (`api.rooms.seen_rule`). */
+export type SeenRule = 'hide_seen' | 'allow_rewatch' | 'show_all';
+
+/**
+ * Whether "Seen it" asks "Watch it again tonight?" (swipe.md#seen-it-the-rewatch-question).
+ * Under `hide_seen` the film leaves the room, so there is nothing to ask.
+ */
+export function asksRewatch(rule: SeenRule | undefined): boolean {
+  return rule === 'allow_rewatch' || rule === 'show_all';
+}
+
+/** What Yes and No send: Yes counts as a like, No is a plain `seen` (a nope). */
+export function rewatchAnswer(yes: boolean): AnswerKind {
+  return yes ? 'seen_rewatch' : 'seen';
+}
 
 /** Presence carries the swipe count every this many answers (decision M4.21, Q21.2). */
 export const PRESENCE_EVERY = 5;
