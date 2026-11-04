@@ -84,7 +84,9 @@ export const tokens = {
   "stroke": {
     "hairline": 1,
     "bold": 2,
-    "badge": 1.5
+    "badge": 1.5,
+    "card-tilt": 10,
+    "card-tilt-max": 15
   },
   "opacity": {
     "disabled": 0.4,
@@ -370,7 +372,8 @@ export const tokens = {
     "fast": 150,
     "base": 250,
     "slow": 400,
-    "celebrate": 800
+    "celebrate": 800,
+    "hint-delay": 600
   },
   "easing": {
     "standard": [
