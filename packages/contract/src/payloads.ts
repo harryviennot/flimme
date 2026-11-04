@@ -155,6 +155,8 @@ export const castVoteResult = z.discriminatedUnion('status', [
     kind: z.optional(matchKind),
     decided: z.optional(z.boolean()),
     finale_round_id: z.optional(z.string()),
+    /** The room's state, only when this vote left it no longer swiping (M6.29). */
+    state: z.optional(roomState),
   }),
   z.object({ status: z.literal('closed'), state: roomState }),
   z.object({ status: z.enum(['duplicate', 'dropped', 'no_super_likes']) }),
@@ -199,6 +201,7 @@ export const requestCardsResult = z.discriminatedUnion('status', [
   z.object({ status: z.literal('queued') }),
   z.object({ status: z.literal('enough'), remaining: z.number() }),
   z.object({ status: z.literal('closed'), state: roomState }),
+  z.object({ status: z.literal('done'), liked: z.number() }),
 ]);
 export type RequestCardsResult = z.infer<typeof requestCardsResult>;
 

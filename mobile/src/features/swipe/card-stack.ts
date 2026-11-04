@@ -133,7 +133,12 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
       } catch {
         return; // the retry timer asks again
       }
-      if (answer === 'closed') {
+      if (answer === 'done') {
+        // Nothing left to deal for this seat (M6.29): the deck is dry, as after an empty refetch.
+        // The retry timer stays, so a later deck_updated or the next ask still finds new cards.
+        exhausted = true;
+        commit({});
+      } else if (answer === 'closed') {
         closed = true;
         exhausted = true;
         clearRequestTimer();

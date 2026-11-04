@@ -224,6 +224,16 @@ describe('card stack', () => {
       expect(t.get().status).toBe('empty');
     });
 
+    it('is empty when requestCards answers done (M6.29)', async () => {
+      const t = setup(cards(1, 4), { answers: ['done'] });
+      t.stack.getState().start();
+      await flush();
+      for (let i = 0; i < 4; i++) t.get().answer();
+      await flush();
+      expect(t.get().mounted).toEqual([]);
+      expect(t.get().status).toBe('empty');
+    });
+
     it('is loading, not empty, while a refill is queued', async () => {
       const t = setup(cards(1, 4), { answers: ['queued'] });
       t.stack.getState().start();
