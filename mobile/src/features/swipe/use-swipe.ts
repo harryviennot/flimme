@@ -102,6 +102,8 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   const [returning, setReturning] = useState<(LastAnswer & { direction?: Direction }) | null>(null);
   // Super likes already given back (by a refusal or by Undo), so the badge never counts one twice.
   const [refunded] = useState(() => new Set<number>());
+  // Presence says this seat is done (no cards left); Undo takes that back.
+  const doneSent = useRef(false);
 
   // The room moved on (a match, the finale): no more input, and the room is read again so the
   // layout follows its state even if the event that said so never arrived.
@@ -140,10 +142,15 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
         setSuperLikesLeft(answerer.superLikesLeft());
       }
       answerer.undone();
+      // Undoing the answer that emptied the stack: the others stop seeing "Done" for this seat.
+      if (doneSent.current) {
+        doneSent.current = false;
+        live.getState().realtime?.setPresence({ swipe_count: answerer.count(), done: false });
+      }
       setReturning({ ...back, direction });
       return back;
     },
-    [undoer, answered, answerer, refunded],
+    [undoer, answered, answerer, refunded, live],
   );
 
   // Undo wakes with the first answer and sleeps after use, or when the room moves on.
@@ -233,6 +240,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   const status = useStore(stack, (s) => s.status);
   useEffect(() => {
     if (status === 'empty') {
+      doneSent.current = true;
       live.getState().realtime?.setPresence({ swipe_count: answerer.count(), done: true });
     }
   }, [status, answerer, live]);

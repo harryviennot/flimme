@@ -352,6 +352,26 @@ describe('presence', () => {
     await flush();
     expect(mockPresence).toHaveBeenCalledWith({ swipe_count: 0, done: true });
   });
+
+  it('says not done any more when Undo brings back the card that emptied the stack', async () => {
+    jest.useFakeTimers({ doNotFake: ['setImmediate', 'nextTick'] });
+    try {
+      mockApi.myNextCards.mockResolvedValueOnce(deck(1)).mockResolvedValue([]);
+      mockApi.requestCards.mockResolvedValue({ status: 'enough' });
+      const { result } = await open();
+      await act(async () => void result.current.answer('like'));
+      // The stack asks the server again when its retry timer runs, and finds nothing left.
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(9000);
+      });
+      await flush();
+      expect(mockPresence).toHaveBeenLastCalledWith({ swipe_count: 1, done: true });
+      await act(async () => void result.current.undo());
+      expect(mockPresence).toHaveBeenLastCalledWith({ swipe_count: 0, done: false });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });
 
 describe('the queue', () => {
