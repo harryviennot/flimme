@@ -46,7 +46,7 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
   const { stack } = swipe;
   const topId = useStore(stack, (s) => s.mounted[0]?.title_id);
   const status = useStore(stack, (s) => s.status);
-  useNearMiss(topId);
+  const nearMiss = useNearMiss(roomId, topId);
 
   const { flying, throwCard, landed } = useFlights(swipe.answer);
 
@@ -81,10 +81,11 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
     >
       <SwipeTopBar roomId={roomId} />
       <RoomBanner roomId={roomId} waitingVotes={swipe.waitingVotes} />
-      <SwipeNearMiss titleId={topId} />
+      <SwipeNearMiss titleId={topId} nearMiss={nearMiss} />
       <View className="flex-1 px-5">
         <CardStack
           swipe={swipe}
+          glowId={nearMiss ? topId : undefined}
           flying={flying}
           throwCard={throwAndSay}
           landed={landed}
