@@ -503,7 +503,7 @@ erDiagram
 
 ### The finale
 
-**rounds**: one finale per room at launch. `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank only). `stage_closes_at` is the current deadline.
+**rounds**: one finale per room at launch. `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank only). `stage_closes_at` is the current deadline. The finale is now one round with a single `vote` stage, then `closed` ([game modes](../product/game-modes.md#the-finale)). `round_stage`'s `veto` and `rank` values stay in the enum, unused, because migrations only add (decided on 4 November 2026).
 
 **round_candidates**: the 3 or 4 finalists, seeded by matches, then likes (super likes count double), then group score. `vetoed_at`, `vetoed_by`, and `points` for the Borda count.
 
