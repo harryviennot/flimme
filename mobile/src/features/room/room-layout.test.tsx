@@ -164,8 +164,8 @@ describe('the room layout', () => {
       api.roomMatches.mockResolvedValue([pick]);
       await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
       await waitFor(() => expect(screen).toHavePathname('/room/r1/winner'));
+      // The winner screen reads the pick itself; the overlay's re-read is what stays off.
       expect(screen.queryByTestId('match-overlay')).toBeNull();
-      expect(api.roomMatches).not.toHaveBeenCalled();
     });
   });
 

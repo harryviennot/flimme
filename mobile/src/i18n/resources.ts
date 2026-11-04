@@ -11,6 +11,7 @@ import enOnboarding from './locales/en/onboarding.json';
 import enReport from './locales/en/report.json';
 import enSwipe from './locales/en/swipe.json';
 import enWeb from './locales/en/web.json';
+import enWinner from './locales/en/winner.json';
 import frCommon from './locales/fr/common.json';
 import frHome from './locales/fr/home.json';
 import frHost from './locales/fr/host.json';
@@ -21,6 +22,7 @@ import frOnboarding from './locales/fr/onboarding.json';
 import frReport from './locales/fr/report.json';
 import frSwipe from './locales/fr/swipe.json';
 import frWeb from './locales/fr/web.json';
+import frWinner from './locales/fr/winner.json';
 
 export const resources = {
   fr: {
@@ -34,6 +36,7 @@ export const resources = {
     report: frReport,
     swipe: frSwipe,
     web: frWeb,
+    winner: frWinner,
   },
   en: {
     common: enCommon,
@@ -46,5 +49,6 @@ export const resources = {
     report: enReport,
     swipe: enSwipe,
     web: enWeb,
+    winner: enWinner,
   },
 } as const;

@@ -1,6 +1,6 @@
 # Signature moments
 
-The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match. The winner was added on 4 November 2026, before M6.16; the Final Cut and the reveal come before M6.15 and M6.31.
+The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match. The winner was added on 4 November 2026, before M6.16, and the Final Cut the same day, before M6.15 (with Harry's answers Q5.1, Q5.2, Q5.5 and Q15.1 to Q15.5); the reveal comes before M6.31.
 
 It builds on [the answers](../product/game-modes.md#the-answers), [when it's a match](../product/game-modes.md#when-its-a-match) and [what players see](../product/game-modes.md#what-players-see-party-and-blind) in the game modes, [the card stack](../architecture/app-structure.md#the-card-stack), [the vote queue](../architecture/app-structure.md#the-vote-queue) and [realtime](../architecture/app-structure.md#realtime) in the app structure, [the first game](../product/onboarding.md#the-first-game) in onboarding, [the signature moments](../agent-workflow.md#the-signature-moments) in the agent workflow, and the `motion` skill (tokens, the haptic vocabulary, the two sounds). The backend facts come from the merged migrations of 3 November 2026: a deal is 25 cards per seat with a shared opening of 10, a vote counts on any active card in the room's pool, "Seen it" saves to the profile, and `api.cast_vote` checks matches (M1.13) while the match rules and their values are M6.1, not yet built.
 
@@ -14,9 +14,10 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 4. [The near miss](#the-near-miss)
 5. [The match](#the-match)
 6. [The winner](#the-winner)
-7. [Starting values](#starting-values)
-8. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
-9. [Questions for Harry](#questions-for-harry)
+7. [The Final Cut](#the-final-cut)
+8. [Starting values](#starting-values)
+9. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
+10. [Questions for Harry](#questions-for-harry)
 
 ## What every moment keeps
 
@@ -28,12 +29,13 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 | A flip | Nothing. Whether the card was flipped goes to the server's `swipe_log` with the vote, never to a phone | Never |
 | A near miss | A count of likes on one film, `near_miss` with `likes` and `of` | After the like that makes it a near miss |
 | A match | The film, the kind, the count (`3 of 3`, `7 of 9`) and whether it decides the night, `match` | At once, on every phone |
+| The Final Cut | Which seats have locked in, `round_progress` with `locked` (seat ids) and `of`. Never a ballot, a veto or points | After each lock-in |
 
 **Never shown, in any moment:** who noped, who said "Seen it" and didn't want to rewatch, what anyone answered, the order in which people answered, and which player's like completed a match. Avatars always appear in seat order (the order of the player row), never in the order of votes. A count is the most any phone learns during a game.
 
 **Couch rule.** Most groups sit together and can see each other's faces and sometimes screens. A beat must not let a player work out someone's nope from timing: nothing appears on everyone's phone at the moment one person swipes, except the match itself (which only ever says yes). This is why [the near miss](#the-near-miss) shows on the cards still waiting for an answer, not on every phone.
 
-**Haptics** use the vocabulary in `@/lib/haptics`, one meaning each: `commit`, `throw` and `match` here; `press` comes with every `Pressable`. No moment adds a new haptic. The haptics setting turns all of them off.
+**Haptics** use the vocabulary in `@/lib/haptics`, one meaning each: `commit`, `throw` and `match` here, `veto` and `countdown` in the Final Cut; `press` comes with every `Pressable`. No moment adds a new haptic. The haptics setting turns all of them off.
 
 **Sound** is only for the match here (`playSound('match')`), decided on 29 October 2026. The swipe, the flip and the near miss are silent.
 
@@ -315,6 +317,95 @@ Runners-up, with who liked them in Party mode, are M6.32, after this beat.
 - **A screen reader is on.** On arrival, focus goes to the title, read with "Tonight's pick".
 - **The room is `done` with no pick.** Not this beat: the no-pick slot shows instead (M6.17).
 
+## The Final Cut
+
+### The beat
+
+**"Pick one. Veto one.": 60 seconds to agree out loud.** Nobody matched, so the room votes on 3 or 4 finalists. This is the one moment where talking is the game: people lobby, laugh and bargain on the couch while each phone keeps its own secret ballot. It should feel short, a little tense and fair. Each player ranks by tapping posters in order, may veto one film (Final Cut only), and locks in. The only thing the room learns while it runs is who has locked in.
+
+In a ranked vote (Quick Match with 5 to 10 players) it's the same screen without the veto, so one person can't block a film most of the group wants.
+
+### How it arrives
+
+The server sends `finale_started {round_id, title_ids, kind, closes_at}`, then `state_changed {state: 'finale'}` (Q0.5). Every phone moves on `state_changed`: the room re-read maps `finale` to the Final Cut screen. `finale_started` on its own may start loading the posters, but never moves the screen, so all phones move on the same signal. A phone that missed both gets there on its next re-read (back in the foreground, a reconnect, or a vote answered `closed`).
+
+On the swipe screen, the stack stops taking input and a card mid-drag springs back (`spring.card`). A near-miss toast leaves, an open "Watch it again tonight?" question closes without a vote, and votes still queued come back `closed` and are dropped quietly ([the swipe](#edge-cases)). A player on the done card moves the same way. No overlay, no haptic, no sound: it isn't a match, and `haptics.match()` keeps its one meaning.
+
+### The sequence
+
+Times on this phone's clock (Q15.2). The deadline is `closes_at` (`stage_closes_at` on a re-read), 60 seconds after the server opened the round.
+
+| Time | What this phone shows |
+| --- | --- |
+| Arrival | The screen fades in (`layout.fadeIn`, `duration.base`): the heading, the countdown at the time left (never more than 60 s), the lock-in row with every avatar dim. The posters pop in one by one in seed order (`layout.popIn`, one every `duration.instant`), each with a faint number: the place it gets if the player taps nothing |
+| The round | Tap to rank, long-press to veto, Lock in ([What moves](#what-moves-1)). Lock-ins light up in the row as they arrive |
+| 10 s left | The countdown turns red (`Countdown` does it) |
+| 5 s left | One `haptics.countdown()` per second, only on a phone that hasn't locked in |
+| 0 | A phone that hasn't locked in stops taking taps and sends nothing (Q15.3). The countdown gives way to "Counting the votes" (`layout.fadeIn`). The posters dim |
+| 0 plus 2 s | The phone calls `api.close_round_stage` (Q5.1); on `not_yet` it calls again each second; on `ok` or `closed` it waits for `state_changed {state: 'done'}` |
+| Done | Until M6.31, the winner screen fades in ([the winner](#how-it-arrives), Q15.4); then the reveal plays first |
+
+**Everyone locked in early.** When every present seat has locked in (Q5.5), the round closes at once. The phone shows "Counting the votes" as soon as it knows (its own `ok` with `locked` covering `of`, the `round_progress` event, or `state_changed`), and the countdown stops. Most rounds should end this way, well before zero.
+
+**A late lock-in.** A tap on Lock in before this phone reaches zero is sent; the server takes ballots until 2 seconds past the deadline, which covers a send in flight and a clock a little off. An answer of `closed` means it was too late: the phone shows "Counting the votes" and nothing else.
+
+### What moves
+
+- **The finalists.** 3 or 4 posters in seed order, each with its title and year under it. No details sheet during the round: the 60 seconds are for talking (decided on 4 November 2026, [question 10](#questions-for-harry)).
+- **Ranking.** A tap on a poster gives it the next number: a badge pops onto its corner (`spring.snappy`). A tap on a ranked poster takes its number off, and the numbers after it close the gap. The posters never move: only the badges change, so nothing slides out from under a finger. The untapped posters keep their faint numbers, which always show the order that will be sent: the tapped films in tap order, then the rest in seed order (Q15.5).
+- **The veto.** A long press (the system's long-press time) sinks the poster slightly while held (`timing.press`). At the threshold a "Veto" stamp slams onto it (`easing.arcade`, as the swipe's stamps) and the poster greys out: knocked out, on this phone only. If it was ranked, it leaves the ranking and the gap closes. A vetoed poster can't be tapped into the order. Until lock-in, a long press on the vetoed poster lifts the veto, and on another poster moves it; the veto is spent at lock-in (decided on 4 November 2026, [question 9](#questions-for-harry)). The stamp stays on the poster; nothing flashes across the screen, so a neighbour's glance learns little.
+- **No veto** in a ranked vote or with `vetoes_left` at 0: no stamp, no hint, and a long press does nothing.
+- **Lock in.** Always enabled: locking in untouched sends the seed order. On the tap, the ballot freezes at once (badges and stamp stay, taps stop) and the button reads "Sending". On `ok` (or `already_voted`) it reads "Locked in" with a check, and this player's avatar lights up in the row. One tap sends one ballot; a double tap sends one.
+- **Who has locked in.** Every seat that hasn't left, in seat order, never in lock-in order. A lock-in turns its avatar from dim to lit, with a small check popping on (`spring.snappy`), on every phone at once. A count beside it: "2 of 4 locked in", the locked seats in the row over `of`, never more than `of`.
+- **"Counting the votes"** fades in and stays still. It usually lasts 1 to 3 seconds.
+
+### Haptics and sound
+
+- `haptics.press()` on each tap that ranks or unranks, and on Lock in (`Pressable` does it).
+- `haptics.veto()` once, when the stamp lands. Moving or lifting the veto is silent.
+- `haptics.countdown()` on each of the last 5 seconds, only while this phone hasn't locked in (`Countdown`'s `tick` turns off at lock-in). A player who has locked in has nothing left to hurry for.
+- No `commit` on lock-in: `commit` keeps its one meaning (a card crossing the line). The "Locked in" look carries the moment.
+- No haptic on another player's lock-in, on arrival, at zero, or at the close.
+- No sound. The reveal's sound is M6.31's.
+
+### What the other phones see
+
+Only lock-ins: the `round_progress` event `{round_id, locked, of}` lists seat ids, nothing else. No phone ever receives a ballot, a veto or a points total while the round runs. Vetoes stay secret until the close and are revealed together (the reveal, M6.31).
+
+### Reduce Motion
+
+- The posters fade in together (`layout.fadeIn`), no stagger.
+- Badges and the lock-in checks fade in and out; numbers change in place.
+- The veto stamp fades in at full size instead of slamming, and the poster doesn't sink. `haptics.veto()` is unchanged.
+- The countdown still turns red (a colour, not a movement).
+
+### The screen reader
+
+- On arrival, focus goes to the heading: "The Final Cut. Pick one. Veto one.", then the time left. A ranked vote reads its own heading.
+- Each poster is one element: its title and year, then "Ranked 2", "Not ranked, counts as 3" or "Vetoed". Its actions are the ones that apply: "Rank next", "Remove from ranking", "Veto", "Lift veto". A double tap does what a tap does. Ranking needs no gesture.
+- The countdown isn't read every second. It's announced at 30 seconds, at 10 seconds, and at zero ("Counting the votes").
+- The lock-in row is one element: "Locked in: Sam, Léa. 2 of 4." A change is announced politely with the count only.
+- Lock in has the hint "Sends your order. You can't change it afterwards." Once locked: "Locked in".
+
+### Never shown
+
+- Who vetoed, how many vetoes there are so far, or which film anyone vetoed, until the close (and then never by whom).
+- How anyone ranked, which film is ahead, or any points before the reveal.
+- The order in which people locked in, beyond what the live lights show at the moment.
+- "Waiting for Sam" or any line naming who hasn't locked in. No nudge button, no buzz on the others' phones, no extra time.
+- "Your vote didn't count" for a player who didn't lock in. Everyone sees "Counting the votes".
+
+### Edge cases
+
+- **Coming back mid-round** (the app back from the background, a cold start, a reconnect with the same seat). The room re-read opens the Final Cut; the phone reads the open round (`api.rounds`), its finalists (`api.round_candidates`) and `api.round_progress` (`locked`, `of`, `me_locked`). The countdown starts at the time left, without animation and without catching up missed ticks. Not locked in: a fresh ballot (one kept in memory survives a trip to the background, not a cold start). Locked in: the locked look; the numbers and stamp if the phone still has them, otherwise none, since the server never sends a ballot back. Past zero: "Counting the votes", and the close call goes out at once.
+- **Joining during the round.** A new player is refused on the join sheet ("They're voting on the final films") and never sees this screen. A seat that already exists gets back in and can vote while the round is open.
+- **Offline at lock-in.** The ballot stays frozen with "Sending" and a short offline line, and is sent again each second until the room moves on. `already_voted` on a retry reads as "Locked in". If it never gets through before the close, the phone moves on like the others.
+- **A player leaves mid-round.** Their avatar leaves the row; a ballot they locked in still counts. If everyone left has locked in, the round closes.
+- **Nobody locks in.** The round closes at zero plus 2 seconds and the best seed wins (`no_ballots`). Nothing on screen says nobody voted.
+- **A phone's clock is off.** The countdown never shows more than 60 seconds, so a slow clock can't promise extra time. A fast clock reaches zero early for that player; the 2-second grace covers small drifts, and the server decides anyway.
+- **Status answers.** `invalid` and `no_veto` are client bugs: reported to Sentry, shown as a retry. `not_in_room` sends the phone Home as a left seat.
+- **Two seats on one phone** are out of scope for this beat.
+
 ## Starting values
 
 Placeholders for the feel check (the `feel-check` skill) and the first playtests. The ones marked "token?" are new numbers the designer should either map to an existing token or add to `tokens.json` first.
@@ -332,6 +423,11 @@ Placeholders for the feel check (the `feel-check` skill) and the first playtests
 | Near miss | One like short of the match rule, at least 2 likes (question 1) | The near miss |
 | Avatar stagger | `duration.instant` (80 ms) | The match |
 | Overlay before the winner screen | 4 s, a tap goes on earlier (question 3) | The match |
+| Poster stagger on arrival | `duration.instant` (80 ms) | The Final Cut |
+| Long press for a veto | The system's long-press time | The Final Cut |
+| Countdown red | The last 10 s (`Countdown`) | The Final Cut |
+| Countdown ticks | The last 5 s, only before lock-in | The Final Cut |
+| Screen reader time announcements | At 30 s, 10 s and zero | The Final Cut |
 
 ## Changes this asks elsewhere
 
@@ -359,3 +455,8 @@ Each needs a yes before slice 10 or 11 starts; the beats above follow the defaul
 6. **The super-like star for the others** (a default to confirm in [the answers](../product/game-modes.md#the-answers)). In a 2-player room a star on your card says exactly what the other person did, and in 3 it narrows it to one of two. It also needs a new payload (super-like counts never reach phones today). Default: leave it out of the first release; if it comes later, only from 4 players.
 7. **The card back doesn't scroll.** Default: the synopsis is cut to fit, so every swipe works from the back and the back never fights the swipe up. Alternative: the back scrolls, and "Seen it" is button-only while a card is flipped.
 8. **The swipe's starting values** (the commit lines, throw speed, tilt, the card 1 lean) in [Starting values](#starting-values). Default: accept them as placeholders and tune them in the first feel check.
+
+Questions 9 and 10 come from the Final Cut beat. Harry took both defaults on 4 November 2026 ([decisions.md](../decisions.md)); they stay here as the record.
+
+9. **Can a veto be taken back before lock-in?** Decided on 4 November 2026: yes (the default). Until lock-in, a long press on the vetoed poster lifts the veto and a long press on another poster moves it; the one veto is spent only when the ballot is locked in. A slip of the thumb shouldn't cost the player the one veto of the game, and nothing reaches the other phones until the close anyway. The rule is in [the vote](../product/game-modes.md#the-vote-pick-one-veto-one).
+10. **What does a finalist show during the round?** Decided on 4 November 2026: the poster, the title and the year, with no details sheet (the default). Most finalists are films the players liked as cards, and the 60 seconds are for talking, not reading. A fill film ([the finalists](../product/game-modes.md#the-finalists), rule 3) may be one some players never saw; if playtests show people asking "what's that one?", a details button comes later.

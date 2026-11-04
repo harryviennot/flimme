@@ -1,0 +1,34 @@
+# Slice 12, the winner screen on a finished room. Needs a `done` staging room the phone has a
+# seat in (two phones like the same card, or the curl scripts in the pull request of M6.16), and
+# its id in ROOM_ID. A cold start into the room lands on the winner screen with the services,
+# the JustWatch credit and "More details"; the edge swipe goes Home with no leave alert.
+# Run: `maestro test mobile/.maestro/winner.yaml -e METRO_URL=http://localhost:<port> -e ROOM_ID=<uuid>`
+# with the development build on staging and Metro running.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app.yaml
+- openLink: flimme-dev:///room/${ROOM_ID}/winner
+- extendedWaitUntil:
+    visible: '(?i)where to watch'
+    timeout: 40000
+- assertVisible: "Tonight's pick"
+- assertVisible: 'Streaming availability by JustWatch.'
+- assertVisible: 'More details'
+- takeScreenshot: winner-1-screen
+# "More details" opens TMDB's watch page in the in-app browser; its Done button (top left) closes it.
+- tapOn: 'More details on TMDB'
+- extendedWaitUntil:
+    visible: '(?i).*themoviedb.*|Done'
+    timeout: 15000
+- takeScreenshot: winner-2-more-details
+- tapOn:
+    point: 9%,9%
+- assertVisible: "Tonight's pick"
+# The edge swipe goes Home, and no "Leave the room?" alert asks first.
+- swipe:
+    start: 1%,50%
+    end: 80%,50%
+- assertNotVisible: '(?i)leave the room.*'
+- extendedWaitUntil:
+    visible: '(?i)open a room|got a room code.*'
+    timeout: 10000

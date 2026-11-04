@@ -5,7 +5,10 @@
 // error rejects, as an ApiError. A PR that changes a wrapped function changes its answer
 // list (answers.ts), its schema (payloads.ts) and its wrapper here.
 import {
+  CAST_BALLOT_ANSWERS,
   CAST_VOTE_ANSWERS,
+  CLOSE_ROUND_STAGE_ANSWERS,
+  ROUND_PROGRESS_ANSWERS,
   REQUEST_CARDS_ANSWERS,
   UNDO_LAST_VOTE_ANSWERS,
   CREATE_ROOM_ANSWERS,
@@ -27,10 +30,18 @@ import {
 } from '../answers';
 import {
   appConfigSchema,
+  castBallotResult,
   castVoteResult,
+  closeRoundStageResult,
+  roundProgressResult,
+  type CastBallotResult,
+  type CloseRoundStageResult,
+  type RoundProgressResult,
   requestCardsResult,
   undoLastVoteResult,
   roomMatchRow,
+  roomRoundRow,
+  type RoomRound,
   type CastVoteResult,
   type RequestCardsResult,
   type UndoLastVoteResult,
@@ -369,6 +380,56 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
       );
     },
 
+    // --- The Final Cut -------------------------------------------------------------------
+    /**
+     * The whole ballot in one call: every film of the round in order, minus the vetoed one. Final
+     * Cut only; a ranked vote has no veto. A ballot can't be changed afterwards.
+     */
+    castBallot(args: {
+      round_id: string;
+      ranking: number[];
+      veto?: number;
+      member_id?: string;
+    }): Promise<CastBallotResult> {
+      return callAnswer(
+        client,
+        options,
+        'cast_ballot',
+        {
+          p_round_id: args.round_id,
+          p_ranking: args.ranking,
+          p_veto: args.veto,
+          p_member_id: args.member_id,
+        },
+        CAST_BALLOT_ANSWERS,
+        castBallotResult,
+      );
+    },
+
+    /** Every phone calls this at zero; it closes the round only when it is time, and is safe to repeat. */
+    closeRoundStage(args: { round_id: string }): Promise<CloseRoundStageResult> {
+      return callAnswer(
+        client,
+        options,
+        'close_round_stage',
+        { p_round_id: args.round_id },
+        CLOSE_ROUND_STAGE_ANSWERS,
+        closeRoundStageResult,
+      );
+    },
+
+    /** Who has locked in, out of how many present, for a phone that restarted. */
+    roundProgress(args: { round_id: string }): Promise<RoundProgressResult> {
+      return callAnswer(
+        client,
+        options,
+        'round_progress',
+        { p_round_id: args.round_id },
+        ROUND_PROGRESS_ANSWERS,
+        roundProgressResult,
+      );
+    },
+
     // --- Views ---------------------------------------------------------------------------
     /** The films the room has matched on, in the order they were found. */
     async roomMatches(args: { room_id: string }): Promise<RoomMatch[]> {
@@ -390,6 +451,23 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         }
       }
       return (rows ?? []) as RoomMatch[];
+    },
+
+    /** The room's rounds (Final Cut, ranked vote), oldest first. Empty for a room that never had one. */
+    async rounds(args: { room_id: string }): Promise<RoomRound[]> {
+      const rows = await readView(
+        () => client.from('rounds').select('*').eq('room_id', args.room_id).order('seq'),
+        'rounds',
+      );
+      if (options.validate) {
+        for (const row of rows ?? []) {
+          const parsed = roomRoundRow.safeParse(row);
+          if (!parsed.success) {
+            throw new ApiError('unexpected', 'rounds', `wrong shape: ${parsed.error.message}`);
+          }
+        }
+      }
+      return (rows ?? []) as RoomRound[];
     },
 
     /** The signed-in player's profile, or null when there is none yet. */

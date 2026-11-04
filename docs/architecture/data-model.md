@@ -505,7 +505,7 @@ erDiagram
 
 **rounds**: one finale per room at launch. `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank only). `stage_closes_at` is the current deadline. The finale is now one round with a single `vote` stage, then `closed` ([game modes](../product/game-modes.md#the-finale)). `round_stage`'s `veto` and `rank` values stay in the enum, unused, because migrations only add (decided on 4 November 2026).
 
-**round_candidates**: the 3 or 4 finalists, seeded by matches, then likes (super likes count double), then group score. `vetoed_at`, `vetoed_by`, and `points` for the Borda count.
+**round_candidates**: the 3 or 4 finalists, seeded by matches, then likes (super likes count double), then group score. `vetoed_at` (set only at the close, on a film knocked out by the vetoes), `vetoed_by` (stored, never sent to phones) and `points` for the Borda count, both written only at the close, so `api.round_candidates` shows nothing secret before it.
 
 **round_ballots**: `veto`, `pass` or `rank` rows. One veto or pass per seat per round; one rank per seat per title.
 
@@ -722,7 +722,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `my_profile`, `my_providers` | Your profile and services |
 | `country_providers`, `genres`, `moods`, `game_modes`, `calibration_titles` | Reference data for the pickers |
 | `app_config` | Minimum app version and other launch settings |
-| `rooms`, `room_seats`, `room_matches`, `rounds`, `round_candidates` | Rooms you have a seat in. `room_seats` flags `is_me` and `is_mine` |
+| `rooms`, `room_seats`, `room_matches`, `rounds`, `round_candidates` | Rooms you have a seat in. `room_seats` flags `is_me` and `is_mine`, and shows `vetoes_left` and `super_likes_left` only on your own seats |
 | `my_votes` | Your own votes, for rejoining |
 | `my_linked_accounts`, `my_imports`, `my_unmatched_films` | Letterboxd status (username, export date, last sync, `needs_new_export`) and the manual fix list |
 
@@ -753,7 +753,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `disconnect_letterboxd()` | Removes your Letterboxd link and everything that came with it |
 | `export_my_data()` | GDPR export |
 
-To write with the finale: `cast_ballot(round, kind, title, rank)`.
+To write with the finale: `api.cast_ballot(round, ranking, veto)`, the whole ballot in one call (M6.5; it replaces the one-row-at-a-time version planned here), and `api.close_round_stage(round)`.
 
 > How the app calls this API (one typed wrapper per function, generated types, status answers) is in [app-structure.md](app-structure.md#talking-to-the-backend).
 

@@ -161,6 +161,33 @@ export const castVoteResult = z.discriminatedUnion('status', [
 ]);
 export type CastVoteResult = z.infer<typeof castVoteResult>;
 
+/** `api.cast_ballot` (M6.5): `locked` is seat ids, `of` the seats present. */
+export const castBallotResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), locked: z.array(z.string()), of: z.number() }),
+  z.object({
+    status: z.enum(['not_in_room', 'closed', 'already_voted', 'invalid', 'no_veto']),
+  }),
+]);
+export type CastBallotResult = z.infer<typeof castBallotResult>;
+
+/** `api.close_round_stage` (M6.5). */
+export const closeRoundStageResult = z.discriminatedUnion('status', [
+  z.object({ status: z.enum(['ok', 'closed']), winner_title_id: z.number() }),
+  z.object({ status: z.literal('not_yet'), closes_at: z.string() }),
+]);
+export type CloseRoundStageResult = z.infer<typeof closeRoundStageResult>;
+
+/** `api.round_progress` (M6.5). `stage` is `vote` while open, `closed` after. */
+export const roundProgressResult = z.object({
+  status: z.literal('ok'),
+  stage: z.enum(['veto', 'rank', 'vote', 'closed']),
+  closes_at: z.string(),
+  locked: z.array(z.string()),
+  of: z.number(),
+  me_locked: z.boolean(),
+});
+export type RoundProgressResult = z.infer<typeof roundProgressResult>;
+
 /** `api.request_cards`: `ok` carries the deal's counts when cards were dealt now. */
 export const requestCardsResult = z.discriminatedUnion('status', [
   z.object({
@@ -192,6 +219,20 @@ export const roomMatchRow = z.object({
   created_at: z.string(),
 });
 export type RoomMatch = z.infer<typeof roomMatchRow>;
+
+/** A row of `api.rounds`: one Final Cut or ranked vote of the room. */
+export const roomRoundRow = z.object({
+  id: z.string(),
+  room_id: z.string(),
+  seq: z.number(),
+  kind: z.enum(['final_cut', 'ranked_vote']),
+  stage: z.enum(['veto', 'rank', 'vote', 'closed']),
+  stage_closes_at: z.string(),
+  opened_at: z.string(),
+  closed_at: z.nullable(z.string()),
+  winner_title_id: z.nullable(z.number()),
+});
+export type RoomRound = z.infer<typeof roomRoundRow>;
 
 // --- Views -----------------------------------------------------------------------------
 
@@ -258,8 +299,9 @@ export const roomSeatRow = z.object({
   calibrated_at: z.nullable(z.string()),
   done_at: z.nullable(z.string()),
   swipe_count: z.number(),
-  super_likes_left: z.number(),
-  vetoes_left: z.number(),
+  // Null on seats the caller does not control: a spent veto must not show who vetoed (M6.5).
+  super_likes_left: z.nullable(z.number()),
+  vetoes_left: z.nullable(z.number()),
   is_me: z.nullable(z.boolean()),
   is_mine: z.nullable(z.boolean()),
 });

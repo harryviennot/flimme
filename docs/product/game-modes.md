@@ -194,7 +194,7 @@ If only one film qualifies, it's the pick without a vote ("The only film anyone 
 **Decided on 30 October 2026:** one round of 60 seconds, rather than the data model's veto stage (45 seconds) followed by a ranking stage (60 seconds). The current design has 45 seconds; in the [simulation](simulations.md), up to 7% of ballots missed a 45-second close and up to 2% a 60-second one, for at most 5 more seconds, since the round closes as soon as everyone locks in. The first playtest measures lock-in times. Everyone does both at once:
 
 - **Order the finalists.** Tap the posters in order. The first gets as many points as there are films, the last gets 1.
-- **Veto one** (Final Cut only, one per game). Long-press a poster. A vetoed film can't be in that player's order.
+- **Veto one** (Final Cut only, one per game). Long-press a poster. A vetoed film can't be in that player's order. Until lock-in, a long press on the vetoed poster lifts the veto and a long press on another poster moves it; the veto is spent at lock-in (decided on 4 November 2026).
 - **Lock in.** A ballot can't be changed afterwards. Locking in without reordering keeps the order shown, which is the seed order.
 - **Ranked vote** (Quick Match with 5 to 10 players) is the same screen without the veto.
 
@@ -309,11 +309,13 @@ One call per player with the whole ballot. This replaces the data model's one-ro
 | Refused | Not a seat in the room, or the seat has left (`not_in_room`); the round is closed or more than 2 seconds past its deadline (`closed`); the seat already voted (`already_voted`); the order isn't exactly the round's films minus the veto (`invalid`); a veto in a ranked vote, or with no veto left (`no_veto`) |
 | Writes | One `rank` row per film in the order, one `veto` or `pass` row. A veto spends the seat's `vetoes_left` |
 | Broadcasts | `round_progress`: which seats have locked in, out of how many present (never what they voted) |
-| Then | If every present seat has locked in, closes the round now |
+| Then | If every present seat has locked in, closes the round now (at least one seat must be present: with every present seat gone, the round closes at its deadline) |
+
+The deadline for a ballot is `stage_closes_at` plus a 2-second grace, so a ballot sent at zero always counts. A seat that left can't vote (`not_in_room`, a status); a seat that rejoins during the round can. `of` counts present seats only, and any present seat may vote, silent or not. Answers: `ok` with `locked` (seat ids) and `of`. Done in M6.5.
 
 ### `api.close_round_stage(round)` and `internal.close_round_stage(round)`
 
-Every phone counts down from `stage_closes_at` and calls `api.close_round_stage` at zero. It closes the round only if the deadline has passed or every present seat has locked in, and it does nothing if the round is already closed, so several phones calling it at once is harmless. The minute sweeper is only the backstop: on its own it could close a 60-second round a minute late.
+Every phone counts down from `stage_closes_at` and calls `api.close_round_stage` at zero. It closes the round only if the deadline (`stage_closes_at` plus the 2-second grace) has passed or every present seat has locked in (`not_yet` with `closes_at` otherwise, `closed` when it was already closed), and it does nothing if the round is already closed, so several phones calling it at once is harmless. The minute sweeper is only the backstop: on its own it could close a 60-second round a minute late.
 
 Closing a round:
 
@@ -323,6 +325,12 @@ Closing a round:
 4. Broadcasts `match` with kind `finale`, `decided` true, the winner and every finalist's points and whether it was vetoed.
 
 Edge cases: no ballots (the best seed wins); every present seat has left (it still closes at the deadline); a seat rejoins during the round (it can vote while the round is open).
+
+### `api.round_progress(round)`
+
+For a phone that restarted: `ok` with the `stage`, `closes_at`, `locked` (seat ids), `of` (seats present) and `me_locked`. Never what anyone voted. Done in M6.5.
+
+On a finalist, `vetoed_at` (and `vetoed` in `api.round_candidates`) means the film was knocked out by the vetoes at the close, not that someone vetoed it: it is empty until the round closes. `api.room_seats` shows `vetoes_left` and `super_likes_left` only on the caller's own seats, so a spent veto never shows who vetoed.
 
 ### `api.start_finale_now(room)`
 
@@ -378,7 +386,7 @@ Not yet in [data-model.md](../architecture/data-model.md) or [schema.sql](../arc
 | `rooms.finale_reason` | Why the finale started: `cards`, `time`, `all_done`, `vote_now` or `shortlist_full` (`cards` when the count and the time limit hold together). Done in M6.4; written for a round, a single-film pick and a no pick alike |
 | `match_rules` | `finale_after_seconds` on every row (see [Time to a pick](#time-to-a-pick)); 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for Quick Match with 5 to 10 and for Final Cut |
 | `rooms.stats` | Adds `outcome`: `match`, `finale`, `no_pick` or `abandoned` |
-| New functions | `api.cast_ballot` (whole ballot), `api.close_round_stage`, `api.start_finale_now`, `api.keep_swiping`, `api.play_again`, `internal.close_round_stage`, `internal.sweep_rooms` |
+| New functions | `api.cast_ballot` (whole ballot, done in M6.5), `api.close_round_stage` and `api.round_progress` (done in M6.5), `api.start_finale_now`, `api.keep_swiping`, `api.play_again`, `internal.close_round_stage` (done in M6.5), `internal.sweep_rooms` |
 | Realtime | New `next_room` (code of the new room) and `host_changed`. `round_progress` carries which seats have locked in. `match` for a finale carries the points and vetoes |
 | Card payload | A `super_liked` flag in Party mode |
 | Who sees what | In Party mode, the winner screen may show who liked each runner-up, after the pick. Swipes still never reach phones while the game runs |
