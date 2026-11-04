@@ -395,7 +395,7 @@ All placeholders until playtests.
 | Present | Heard from in the last 90 seconds |
 | A silence can create a match after | 3 minutes |
 | Host handover when the host is silent in the lobby | 2 minutes |
-| Near-miss teaser | From 2 likes, Party mode only |
+| Near-miss teaser | One like short of the match rule, at least 2 likes, Party mode only |
 | Majority rule, 5 to 10 players | 70% of voters |
 | Finalists | 3 for 2 players, 4 otherwise |
 | Finale card count | 40 for Quick Match with 2 to 4 players and Date Night; 30 for Quick Match with 5 to 10 and for Final Cut |

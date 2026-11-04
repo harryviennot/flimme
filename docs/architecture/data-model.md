@@ -494,11 +494,11 @@ The 10-minute limits are my starting values; the plan only gives 8 minutes for 3
 
 | Column | Type | Notes |
 | --- | --- | --- |
-| answer | vote_answer | `nope`, `like`, `super_like`, `seen` (swipe up) |
+| answer | vote_answer | `nope`, `like`, `super_like`, `seen` (swipe up), `seen_rewatch` ("Watch it again tonight? Yes", counts as a like and as seen) |
 | created_at | timestamptz | Server time |
 | client_created_at | timestamptz | When the phone recorded it, if it was queued offline |
 
-**swipe_log**: append-only record of every vote and undo, with the deck source, score and how long the card was on screen. Points at the seat, so it stays anonymous once an account is gone.
+**swipe_log**: append-only record of every vote and undo, with the deck source, score, how long the card was on screen and whether it was flipped (`flipped`, never shown to a phone). Points at the seat, so it stays anonymous once an account is gone.
 
 **matches**: every film that met the room's rule, plus the night's pick. `kind` is `unanimous`, `majority` or `finale`; `like_count` and `present_count` give "3 of 3"; `pick_order` 1 is the pick (2 and 3 for a double feature later).
 
@@ -800,7 +800,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state, optional reason and eligible (a start sent back to the lobby: `too_few_films`) | Moves to the next screen ("Shuffling" while dealing) |
 | `deck_updated` | room | cast_vote, deal_cards | seat ids | Those seats refetch behind their mounted cards |
-| `near_miss` | room | cast_vote, Party mode only | title, likes, of | "2 of 3 of you liked this" |
+| `near_miss` | room | cast_vote, Party mode only | title, likes, of, needed | "2 of 3 of you liked this" (only one like short of the rule, from 2 likes, with someone left to answer) |
 | `match` | room | cast_vote, leave_room, sweeper | title, kind, likes, of, decided | Match screen |
 | `finale_started` | room | start_finale | round, titles, kind, deadline | Final Cut screen |
 | `round_progress` | room | ballot functions | stage, ballots in | Progress dots |

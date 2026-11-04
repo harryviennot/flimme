@@ -163,7 +163,5 @@ export const PLANNED_CAST_BALLOT_ANSWERS = [
 ] as const;
 
 /** The answers on a card the database accepts today (the `vote_answer` enum). */
-export const VOTE_ANSWERS = ['nope', 'like', 'super_like', 'seen'] as const;
+export const VOTE_ANSWERS = ['nope', 'like', 'super_like', 'seen', 'seen_rewatch'] as const;
 export type VoteAnswer = (typeof VOTE_ANSWERS)[number];
-/** Planned: `seen_rewatch` in rooms that allow rewatches (roadmap M6.2). */
-export const PLANNED_VOTE_ANSWERS = ['seen_rewatch'] as const;

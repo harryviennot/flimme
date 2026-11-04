@@ -160,14 +160,14 @@ export type Database = {
                   ]
                 },"my_votes": {
                   Row: {
-                    "answer": "nope"|"like"|"super_like"|"seen","created_at": string,"room_id": string,"room_member_id": string,"title_id": number
+                    "answer": "nope"|"like"|"super_like"|"seen"|"seen_rewatch","created_at": string,"room_id": string,"room_member_id": string,"title_id": number
                   }
                   ComputedFields: never
                   Insert: {
-                           "answer"?: "nope"|"like"|"super_like"|"seen" | null,"created_at"?: string | null,"room_id"?: string | null,"room_member_id"?: string | null,"title_id"?: number | null
+                           "answer"?: "nope"|"like"|"super_like"|"seen"|"seen_rewatch" | null,"created_at"?: string | null,"room_id"?: string | null,"room_member_id"?: string | null,"title_id"?: number | null
                          }
                         Update: {
-                           "answer"?: "nope"|"like"|"super_like"|"seen" | null,"created_at"?: string | null,"room_id"?: string | null,"room_member_id"?: string | null,"title_id"?: number | null
+                           "answer"?: "nope"|"like"|"super_like"|"seen"|"seen_rewatch" | null,"created_at"?: string | null,"room_id"?: string | null,"room_member_id"?: string | null,"title_id"?: number | null
                          }
                         Relationships: [
                     
@@ -249,7 +249,7 @@ export type Database = {
 { Args: { "p_reaction"?: "love"|"fine"|"nope","p_room_id": string,"p_watched": "yes"|"no"|"something_else" }; Returns: Json
                            },
 "cast_vote":
-{ Args: { "p_answer": "nope"|"like"|"super_like"|"seen","p_client_at"?: string,"p_dwell_ms"?: number,"p_member_id"?: string,"p_room_id": string,"p_title_id": number }; Returns: Json
+{ Args: { "p_answer": "nope"|"like"|"super_like"|"seen"|"seen_rewatch","p_client_at"?: string,"p_dwell_ms"?: number,"p_flipped"?: boolean,"p_member_id"?: string,"p_room_id": string,"p_title_id": number }; Returns: Json
                            },
 "create_room":
 { Args: { "p_country"?: string,"p_mode"?: string,"p_settings"?: Json }; Returns: Json
