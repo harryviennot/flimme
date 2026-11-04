@@ -44,6 +44,7 @@ From [the winner](../moments.md#how-it-arrives). Tokens from `@/theme/motion`.
 | --- | --- |
 | The match overlay | Mounted under the overlay with no animation (match.md, "The hand-over"); the overlay fades out (`layout.fadeOut`) and the poster is already there, still. Nothing animates in |
 | The Final Cut (until M6.31, Q15.4) | The whole screen fades in (`layout.fadeIn`, `duration.base`) as "Counting the votes" goes. Here the players learn the winner, so focus goes to the title |
+| The Final Cut's reveal (from M6.31) | The layout replaces the Final Cut screen without a navigation animation, and the whole screen fades in (`layout.fadeIn`) with the same poster, still ([final-cut.md](final-cut.md#the-reveal)). Nothing else animates in; focus goes to the title |
 | The single-film pick (Q4.4, Q4.5) | No overlay, no vote. The swipe stack stops taking input as for a match (a drag springs back, `spring.card`), then the screen fades in (`layout.fadeIn`) |
 | A cold start or a return to a `done` room | Straight to the screen, no transition, once the overlay rule has played or skipped (`match-shown`) |
 
@@ -131,7 +132,7 @@ The service names are joined with `Intl.ListFormat` (`formatList`). The credit's
 ## Motion, haptics, sound
 
 - Almost nothing moves (the beat). The arrival fade as in [How it arrives](#how-it-arrives); the late card's fade (`layout.fadeIn`); the poster and logo images' own fade over their placeholder (`expo-image`'s `transition`, `duration.fast`, as `Poster` already does). The spotlight and bulbs are still.
-- **No haptic and no sound** on arrival, from any path: the overlay already fired `haptics.match()` and `playSound('match')`, and the reveal (M6.31) will bring its own. Until M6.31 the Final Cut and the single-film pick arrive in silence, on purpose. Buttons keep their `press` haptic.
+- **No haptic and no sound** on arrival, from any path: the overlay already fired `haptics.match()` and `playSound('match')`, and the reveal fires `haptics.match()` and `playSound('reveal')` before the hand-over ([final-cut.md](final-cut.md#the-reveal)). Until M6.31 the Final Cut and the single-film pick arrive in silence, on purpose. Buttons keep their `press` haptic.
 - No new token.
 
 ## Accessibility
