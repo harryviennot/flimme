@@ -317,6 +317,8 @@ describe('undo', () => {
     expect(mockPresence).toHaveBeenLastCalledWith({ swipe_count: 5, done: false });
     await act(async () => void result.current.undo());
     expect(mockPresence).toHaveBeenLastCalledWith({ swipe_count: 4, done: false });
+    // The player's own pill counts the same.
+    expect(result.current.count).toBe(4);
   });
 
   it('does nothing once the room moved on', async () => {

@@ -142,6 +142,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
         setSuperLikesLeft(answerer.superLikesLeft());
       }
       answerer.undone();
+      setCount(answerer.count());
       // Undoing the answer that emptied the stack: the others stop seeing "Done" for this seat.
       if (doneSent.current) {
         doneSent.current = false;
