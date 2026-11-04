@@ -9,7 +9,6 @@ import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
 import { TopBar } from '@/components/ui/top-bar';
 import {
-  ballotToSend,
   EMPTY_BALLOT,
   placesOf,
   pressFinalist,
@@ -129,8 +128,6 @@ function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void })
   function lockIn() {
     if (phase !== 'voting') return;
     setLock('sending');
-    // What a room would send; shown in the status for the tester.
-    void ballotToSend(seedOrder, ballot);
     setTimeout(() => setLock('locked'), 900);
   }
 

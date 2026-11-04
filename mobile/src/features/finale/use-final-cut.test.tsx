@@ -238,14 +238,31 @@ describe('the Final Cut model', () => {
     expect(result.current.status).toBe('error.send');
   });
 
-  it('reports no_veto and reads the seat again', async () => {
-    mockApi.castBallot.mockResolvedValue({ status: 'no_veto' });
-    const { result } = await setup();
+  it('reports no_veto, drops the veto and sends the retry without it', async () => {
+    mockApi.castBallot
+      .mockResolvedValueOnce({ status: 'no_veto' })
+      .mockResolvedValue({ status: 'ok', locked: ['a'], of: 3 });
+    const { result, rerender } = await setup();
     await settle();
+    await act(async () => result.current.onLongPress(20));
     await act(async () => result.current.onLockIn());
     await settle();
     expect(reportError).toHaveBeenCalled();
     expect(result.current.status).toBe('error.send');
+    // The seat is read again with no veto left: the veto control and the stamp go.
+    mockSeats.current = [seat('a', 0, true), seat('b', null), seat('c', null)];
+    await rerender({});
+    await settle();
+    expect(result.current.vetoAllowed).toBe(false);
+    expect(result.current.places.get(20)).toEqual({ kind: 'faint', rank: 2 });
+    await act(async () => result.current.onLockIn());
+    await settle();
+    expect(mockApi.castBallot).toHaveBeenLastCalledWith({
+      round_id: 'round-1',
+      ranking: [10, 20, 30],
+      veto: undefined,
+    });
+    expect(result.current.phase).toBe('locked');
   });
 
   it('stays sending offline and sends again each second', async () => {
@@ -284,7 +301,6 @@ describe('the countdown and the close', () => {
     expect(result.current.countdownOn).toBe(false);
     // The phone never locked in: it sends nothing at zero.
     await act(async () => result.current.onLockIn());
-    expect(mockApi.castBallot).not.toHaveBeenCalled();
     await act(async () => void jest.advanceTimersByTime(43_999));
     expect(mockApi.closeRoundStage).not.toHaveBeenCalled();
     await act(async () => void jest.advanceTimersByTime(1));
@@ -295,6 +311,7 @@ describe('the countdown and the close', () => {
     expect(mockApi.closeRoundStage).toHaveBeenCalledTimes(2);
     await act(async () => void jest.advanceTimersByTime(5_000));
     expect(mockApi.closeRoundStage).toHaveBeenCalledTimes(2);
+    expect(mockApi.castBallot).not.toHaveBeenCalled();
   });
 
   it('admits it is still counting after 10 seconds', async () => {

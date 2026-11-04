@@ -32,9 +32,16 @@ export function lockedCount(
   return of === null ? count : Math.min(count, of);
 }
 
-/** Every present seat has locked in: the round closes at once. */
-export function everyoneLocked(locked: readonly string[], of: number | null): boolean {
-  return of !== null && of > 0 && new Set(locked).size >= of;
+/**
+ * Every present seat has locked in: the round closes at once. `locked` can list seats that left,
+ * so only the seats still in the row count.
+ */
+export function everyoneLocked(
+  locked: readonly string[],
+  row: readonly RoomSeat[],
+  of: number | null,
+): boolean {
+  return of !== null && of > 0 && lockedInRow(locked, row).size >= of;
 }
 
 /** The `round_progress` event's payload, or null when it is not one. */

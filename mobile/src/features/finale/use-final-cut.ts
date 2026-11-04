@@ -166,7 +166,7 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
   const of = heardNow.of ?? own?.of ?? progress.data?.of ?? null;
   const row = rowSeats(seatsData);
   const lit = lockedInRow(locked, row);
-  const allLocked = everyoneLocked(locked, of);
+  const allLocked = everyoneLocked(locked, row, of);
 
   // Zero.
   const [ended, setEnded] = useState(false);
@@ -220,7 +220,10 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
     countingSlow,
   });
 
-  const places = placesOf(seedOrder, ballot);
+  // With no veto allowed (a `no_veto` answer re-read the seat) a held veto is dropped, so the
+  // retry goes without it and the stamped poster returns to the ranking.
+  const shown: Ballot = canVeto || ballot.veto === null ? ballot : { ...ballot, veto: null };
+  const places = placesOf(seedOrder, shown);
 
   function onTap(titleId: number) {
     if (!takesTaps(phase)) return;
@@ -246,7 +249,7 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
 
   function onLockIn() {
     if (phase !== 'voting' || !lockIn) return;
-    lockIn.submit(ballotToSend(seedOrder, ballot));
+    lockIn.submit(ballotToSend(seedOrder, shown));
   }
 
   const finalists = finalistViews(seedOrder, cards.data, imageBase, width);

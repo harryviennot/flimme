@@ -31,10 +31,16 @@ describe('the lock-in row', () => {
   });
 
   it('knows when everyone present has locked in', () => {
-    expect(everyoneLocked(['a', 'b'], 3)).toBe(false);
-    expect(everyoneLocked(['a', 'b', 'c'], 3)).toBe(true);
-    expect(everyoneLocked([], 0)).toBe(false);
-    expect(everyoneLocked(['a'], null)).toBe(false);
+    const row = rowSeats(SEATS);
+    expect(everyoneLocked(['a', 'b'], row, 3)).toBe(false);
+    expect(everyoneLocked(['a', 'b', 'c'], row, 3)).toBe(true);
+    expect(everyoneLocked([], row, 0)).toBe(false);
+    expect(everyoneLocked(['a'], row, null)).toBe(false);
+  });
+
+  it('does not count a seat that left: 2 present locked in of 3 is not everyone', () => {
+    // z left after locking in: locked lists 3 ids, but only 2 are present and 3 are needed.
+    expect(everyoneLocked(['a', 'b', 'z'], rowSeats(SEATS), 3)).toBe(false);
   });
 
   it('merges lock-ins, which only grow', () => {
