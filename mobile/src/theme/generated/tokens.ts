@@ -84,9 +84,7 @@ export const tokens = {
   "stroke": {
     "hairline": 1,
     "bold": 2,
-    "badge": 1.5,
-    "card-tilt": 10,
-    "card-tilt-max": 15
+    "badge": 1.5
   },
   "opacity": {
     "disabled": 0.4,
@@ -94,7 +92,9 @@ export const tokens = {
     "stack-far": 0.45
   },
   "rotation": {
-    "poster-fan": 8
+    "poster-fan": 8,
+    "card-tilt": 10,
+    "card-tilt-max": 15
   },
   "font": {
     "display": "Staatliches",

@@ -1,0 +1,337 @@
+import type { NextCard } from '@flimme/contract';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { AccessibilityActionEvent } from 'react-native';
+import {
+  GestureDetector,
+  useExclusiveGestures,
+  usePanGesture,
+  useTapGesture,
+} from 'react-native-gesture-handler';
+import Animated, {
+  cancelAnimation,
+  interpolate,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useDerivedValue,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
+import { MovieCard } from '@/components/shared/movie-card';
+import type { AnswerKind } from '@/features/swipe/answer';
+import { toMovieCard, type CardTextOptions } from '@/features/swipe/card-props';
+import {
+  commitLines,
+  decideRelease,
+  directionOf,
+  LIGHT_FROM,
+  PIVOT,
+  progressOf,
+  REDUCED_SLIDE,
+  SECOND_CARD_SCALE,
+  STACK_STEP,
+  THIRD_CARD_SCALE,
+  THROW_DISTANCE,
+  tiltFor,
+  TOUCH_SLOP,
+  type Direction,
+} from '@/features/swipe/feel';
+import { registerTopCard, useCardMotion } from '@/features/swipe/top-card';
+import { haptics } from '@/lib/haptics';
+import { tokens } from '@/theme/generated/tokens';
+import { duration, easing, layout, spring, timing } from '@/theme/motion';
+
+// One card of the stack. The card on top takes a drag and a tap; the others only sit behind.
+// A thrown card stays mounted and finishes its flight by itself (the stack hands it a `flight`),
+// so the next card is draggable at once. Everything per frame runs on the UI thread: shared
+// values, worklets and Gesture Handler. JavaScript hears about a card three times at most: the
+// commit tick, the release, and the end of the flight.
+
+/** The answer each button forces, as the stamp codes below. */
+const FORCED: Record<AnswerKind, number> = { like: 1, nope: 2, seen: 3, super_like: 4 };
+/** What `lit` holds for the matching button: 0 none, then the answer's code. */
+export const LIT = { none: 0, nope: 1, like: 2, seen: 3 } as const;
+
+export type Flight = { kind: AnswerKind; fromGesture: boolean; flipped: boolean };
+
+export type SwipeCardProps = {
+  card: NextCard;
+  /** 0 on top, 1 and 2 behind. Ignored while flying. */
+  depth: number;
+  flight?: Flight;
+  flipped: boolean;
+  /** The card's size in points, from the stack's room. */
+  size: { width: number; height: number };
+  /** The screen's size: the commit lines and the flight's reach come from it. */
+  screen: { width: number; height: number };
+  text: CardTextOptions;
+  /** 0 to 1: how far the top card is dragged, so the one behind grows toward full size. */
+  dragProgress: SharedValue<number>;
+  /** The button to light (`LIT`). */
+  lit: SharedValue<number>;
+  /** 1 while a finger is on the top card, for the frame meter. */
+  dragging: SharedValue<number>;
+  /** The room moved on: no more input. */
+  locked: boolean;
+  a11y: {
+    label: string;
+    actions: { name: string; label: string }[];
+    onAction: (name: string) => void;
+  };
+  onRelease: (titleId: number, direction: Direction) => void;
+  onFlip: () => void;
+  onLanded: (titleId: number) => void;
+};
+
+export function SwipeCard(props: SwipeCardProps) {
+  const { card, depth, flight, flipped, size, screen, dragProgress, lit, dragging, locked } = props;
+  const { i18n } = useTranslation();
+  const reduced = useReducedMotion();
+  const motion = useCardMotion();
+  const { x, y, forced, forcedProgress } = motion;
+  const startX = useSharedValue(0);
+  const startY = useSharedValue(0);
+  const touching = useSharedValue(0);
+  const crossed = useSharedValue(0);
+  const fade = useSharedValue(1);
+  const depthValue = useSharedValue(depth);
+  const isTop = depth === 0 && !flight;
+  const isTopValue = useSharedValue(isTop ? 1 : 0);
+  const titleId = card.title_id;
+  const lines = commitLines(screen.width, screen.height);
+
+  useEffect(() => {
+    isTopValue.set(isTop ? 1 : 0);
+    depthValue.set(withSpring(flight ? 0 : depth, spring.snappy));
+  }, [depth, flight, isTop, isTopValue, depthValue]);
+
+  useEffect(() => {
+    if (!isTop) return;
+    registerTopCard(motion);
+    return () => registerTopCard(null);
+    // The values are stable for the card's life.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTop]);
+
+  // The flight: from a finger it already runs, from a button it starts here with the stamp at full.
+  const fly = (direction: Direction, vx: number, vy: number) => {
+    'worklet';
+    const side = direction === 'left' ? -1 : 1;
+    if (reduced) {
+      // A short slide toward the answer's side with a fade, not a flight across the screen.
+      const slide = direction === 'up' ? 0 : side * screen.width * REDUCED_SLIDE;
+      x.set(withTiming(x.get() + slide, timing.base));
+      y.set(
+        withTiming(
+          direction === 'up' ? y.get() - screen.height * REDUCED_SLIDE : y.get(),
+          timing.base,
+        ),
+      );
+      fade.set(
+        withTiming(0, timing.base, (finished) => {
+          if (finished) scheduleOnRN(props.onLanded, titleId);
+        }),
+      );
+      return;
+    }
+    const targetX = direction === 'up' ? x.get() + vx * 0.2 : side * screen.width * THROW_DISTANCE;
+    const targetY = direction === 'up' ? -screen.height * THROW_DISTANCE : y.get() + vy * 0.15;
+    const distance = direction === 'up' ? Math.abs(targetY - y.get()) : Math.abs(targetX - x.get());
+    const speed = Math.abs(direction === 'up' ? vy : vx);
+    // The card carries the finger's speed, within the exit duration and a fast one.
+    const ms =
+      speed > 0
+        ? Math.min(duration.slow, Math.max(duration.fast, (distance / speed) * 1000))
+        : duration.slow;
+    const config = { duration: ms, easing: easing.exit };
+    x.set(
+      withTiming(targetX, config, (finished) => {
+        if (finished) scheduleOnRN(props.onLanded, titleId);
+      }),
+    );
+    y.set(withTiming(targetY, config));
+  };
+
+  useEffect(() => {
+    if (!flight || flight.fromGesture) return;
+    forced.set(FORCED[flight.kind]);
+    forcedProgress.set(withTiming(1, { duration: duration.instant, easing: easing.standard }));
+    fly(flight.kind === 'nope' ? 'left' : flight.kind === 'seen' ? 'up' : 'right', 0, 0);
+    // A flight starts once, when the card is handed over.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flight]);
+
+  const springBack = () => {
+    'worklet';
+    x.set(withSpring(0, spring.card));
+    y.set(withSpring(0, spring.card));
+  };
+
+  // The room moved on mid-drag: the card goes back to the middle.
+  useEffect(() => {
+    if (locked && !flight) {
+      cancelAnimation(x);
+      cancelAnimation(y);
+      springBack();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locked]);
+
+  const pan = usePanGesture({
+    minDistance: TOUCH_SLOP,
+    enabled: isTop && !locked,
+    onBegin: () => {
+      'worklet';
+      // A new touch takes the card from where it is, even mid-spring.
+      cancelAnimation(x);
+      cancelAnimation(y);
+      startX.set(x.get());
+      startY.set(y.get());
+      touching.set(1);
+      dragging.set(1);
+    },
+    onUpdate: (e) => {
+      'worklet';
+      x.set(startX.get() + e.translationX);
+      y.set(startY.get() + e.translationY);
+      const past = progressOf(x.get(), y.get(), lines) >= 1;
+      if (past && crossed.get() === 0) {
+        crossed.set(1);
+        scheduleOnRN(haptics.commit);
+      } else if (!past) {
+        crossed.set(0);
+      }
+    },
+    onDeactivate: (e) => {
+      'worklet';
+      touching.set(0);
+      dragging.set(0);
+      const direction = decideRelease(
+        { dx: x.get(), dy: y.get(), vx: e.velocityX, vy: e.velocityY },
+        lines,
+      );
+      if (direction === null) {
+        springBack();
+        return;
+      }
+      fly(direction, e.velocityX, e.velocityY);
+      scheduleOnRN(props.onRelease, titleId, direction);
+    },
+    onFinalize: (e) => {
+      'worklet';
+      touching.set(0);
+      dragging.set(0);
+      // Cancelled by the system or by the room moving on: back to the middle.
+      if (e.canceled) springBack();
+    },
+  });
+
+  const tap = useTapGesture({
+    maxDistance: TOUCH_SLOP,
+    enabled: isTop && !locked,
+    onActivate: () => {
+      'worklet';
+      scheduleOnRN(props.onFlip);
+    },
+  });
+
+  const gesture = useExclusiveGestures(pan, tap);
+
+  // Stamps: from the drag, or forced by a button (the SUPER stamp has no drag of its own).
+  const drag = useDerivedValue(() => {
+    const direction = directionOf(x.get(), y.get());
+    return { direction, progress: progressOf(x.get(), y.get(), lines) };
+  });
+  const stampOf = (code: number, direction: Direction) => () => {
+    'worklet';
+    if (forced.get() !== 0) return forced.get() === code ? forcedProgress.get() : 0;
+    return drag.get().direction === direction ? drag.get().progress : 0;
+  };
+  const like = useDerivedValue(stampOf(1, 'right'));
+  const nope = useDerivedValue(stampOf(2, 'left'));
+  const seen = useDerivedValue(stampOf(3, 'up'));
+  const superLike = useDerivedValue(() => {
+    return forced.get() === 4 ? forcedProgress.get() : 0;
+  });
+  const stampProgress = { like, nope, seen, super: superLike };
+
+  // The button for the answer being dragged lights up; the card behind grows with the drag.
+  useAnimatedReaction(
+    () => {
+      if (touching.get() === 0) return LIT.none;
+      const { direction, progress } = drag.get();
+      if (direction === null || progress < LIGHT_FROM) return LIT.none;
+      return direction === 'right' ? LIT.like : direction === 'left' ? LIT.nope : LIT.seen;
+    },
+    (value, previous) => {
+      if (isTopValue.get() === 1 && value !== previous) lit.set(value);
+    },
+  );
+  useAnimatedReaction(
+    () => (isTopValue.get() === 1 ? drag.get().progress : -1),
+    (progress) => {
+      if (progress >= 0) dragProgress.set(progress);
+    },
+  );
+
+  const style = useAnimatedStyle(() => {
+    const d = depthValue.get();
+    const behind = SECOND_CARD_SCALE + (1 - SECOND_CARD_SCALE) * dragProgress.get();
+    const pivot = size.height * PIVOT;
+    return {
+      opacity:
+        interpolate(d, [0, 1, 2], [1, tokens.opacity['stack-near'], tokens.opacity['stack-far']]) *
+        fade.get(),
+      transform: [
+        { translateX: x.get() },
+        { translateY: y.get() + d * STACK_STEP },
+        { translateY: pivot },
+        { rotate: `${reduced ? 0 : tiltFor(x.get(), lines)}deg` },
+        { translateY: -pivot },
+        { scale: interpolate(d, [0, 1, 2], [1, behind, THIRD_CARD_SCALE]) },
+      ],
+    };
+  });
+
+  const view = toMovieCard(card, { ...props.text, language: i18n.language });
+  const interactive = isTop;
+
+  return (
+    // The wrapper fades a new card in; the card inside moves and fades with the drag.
+    <Animated.View
+      entering={layout.fadeIn}
+      style={{ width: size.width, height: size.height, zIndex: flight ? 20 : 10 - depth }}
+      className="absolute"
+      pointerEvents={interactive ? 'auto' : 'none'}
+    >
+      <GestureDetector gesture={gesture}>
+        <Animated.View
+          style={[style, { width: size.width, height: size.height }]}
+          testID={`swipe-card-${titleId}`}
+          accessible={interactive}
+          accessibilityLabel={interactive ? props.a11y.label : undefined}
+          accessibilityActions={interactive ? props.a11y.actions : undefined}
+          onAccessibilityAction={
+            interactive
+              ? (event: AccessibilityActionEvent) =>
+                  props.a11y.onAction(event.nativeEvent.actionName)
+              : undefined
+          }
+          accessibilityElementsHidden={!interactive}
+          importantForAccessibility={interactive ? 'yes' : 'no-hide-descendants'}
+        >
+          <MovieCard
+            {...view}
+            flipped={flight ? flight.flipped : flipped}
+            stampProgress={isTop || flight ? stampProgress : undefined}
+          />
+        </Animated.View>
+      </GestureDetector>
+    </Animated.View>
+  );
+}

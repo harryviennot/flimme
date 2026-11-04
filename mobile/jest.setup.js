@@ -13,3 +13,11 @@ jest.mock('@sentry/react-native', () => ({
   nativeCrash: jest.fn(),
   wrap: (component) => component,
 }));
+
+// Gesture Handler has no native side in tests: its own mocks stand in (the swipe screen).
+require('react-native-gesture-handler/jestSetup');
+// Worklets' test build has no UI runtime: Gesture Handler asks for its holder on startup.
+jest.mock('react-native-worklets', () => ({
+  ...jest.requireActual('react-native-worklets'),
+  getUIRuntimeHolder: () => ({}),
+}));
