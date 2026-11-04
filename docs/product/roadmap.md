@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 109 of 262 tasks done.
+Progress: 110 of 262 tasks done.
 
 ```mermaid
 flowchart LR
@@ -449,7 +449,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: a round with a missing ballot still closes on time.
 - [x] **M6.16** The winner screen: the poster, the logos of the room's services that have it, the JustWatch credit, "More details" to TMDB's watch page · app · M · needs M6.14 · [game-modes](game-modes.md#after-the-pick), [tmdb](../integrations/tmdb.md#the-watch-link)
   Done when: shown after a match and after the Final Cut.
-- [ ] **M6.17** "Nothing left" and the closed-room screen · app · M · needs M6.9, M5.5, M6.29, M6.6 · [game-modes](game-modes.md#how-a-game-ends)
+- [x] **M6.17** "Nothing left" and the closed-room screen · app · M · needs M6.9, M5.5, M6.29, M6.6 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: both reachable in a test room.
 - [x] **M6.18** Hints over the first game's first cards: how to swipe, Seen it, super likes · app · M · needs M6.9 · [onboarding](onboarding.md#the-first-game)
   Done when: shown once per player.
