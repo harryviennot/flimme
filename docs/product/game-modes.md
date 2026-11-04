@@ -349,6 +349,8 @@ Host of a `done` or `abandoned` room. Creates a room with the same mode, country
 
 Runs every minute. Each room is handled in its own short transaction, skipping rooms another transaction has locked (they'll come round next minute), in batches, so the sweeper never holds up a vote.
 
+`internal.sweep_rooms()` is a procedure (cron calls it; it commits after each room, in batches of 100). The work for one room is `internal.sweep_room(room)`, which answers what it did: `abandoned`, `host_changed`, `dealt`, `finale`, `no_pick`, `closed_round`, `locked` or `nothing`. **One action per room per run**, in this order: close an expired round (two seconds after its deadline); abandon (fewer than 2 seats heard from in the last 6 minutes 30, which is 90 seconds of presence plus 5 minutes; or the 1-hour limit with nothing liked); the 1-hour finale; the room's own finale rules (`maybe_start_finale`, which also covers the time limit and everyone done); the everyone-done ending with no pick. The next row waits for the next minute, so a room nobody is in never opens a vote and a live round is never abandoned. A finale with no open round is abandoned at the 1-hour limit.
+
 | Rooms | Check | Action | Broadcast |
 | --- | --- | --- | --- |
 | Lobby or dealing, past `expires_at` | 3 hours without a start | `abandoned` | `state_changed` |

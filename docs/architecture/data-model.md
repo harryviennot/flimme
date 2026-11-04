@@ -829,7 +829,7 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 
 | When | Job |
 | --- | --- |
-| Every minute | `sweep_rooms` (to write): finales by time, stage deadlines, re-check matches after a seat times out, abandon expired lobbies |
+| Every minute | `sweep_rooms` (`call internal.sweep_rooms()`, M6.6): finales by time, stage deadlines, abandon expired lobbies and empty games, host handover, a stuck deal (re-checking matches after a seat times out is M6.30) |
 | Hourly | `internal.enqueue_due_letterboxd_syncs()`: queue accounts with no successful sync in 14 days, for players who have played in the last 12 months. Any sync resets the clock, so frequent players never reach it |
 | 04:30 daily | Retention cleanup |
 
