@@ -40,11 +40,28 @@ jest.mock('@/components/screens/room/room-banner', () => ({
 jest.mock('./top-bar', () => ({ SwipeTopBar: () => null }));
 jest.mock('@/features/swipe/index', () => ({ voteQueue: { has: () => false } }));
 const mockRoomEvents = new Map<string, (payload: unknown) => void>();
-const mockRoom: { data: { reveal: string; max_age?: number | null } } = {
+const mockRoom: { data: Record<string, unknown> } = {
   data: { reveal: 'party', max_age: null },
 };
+jest.mock('@/features/host/queries', () => ({
+  useCountryProviders: () => ({
+    data: [
+      { provider_id: 8, name: 'Netflix', logo_path: null, display_priority: 1 },
+      { provider_id: 119, name: 'Prime Video', logo_path: null, display_priority: 2 },
+    ],
+  }),
+}));
 jest.mock('@/features/room', () => ({
-  useRoom: () => mockRoom,
+  // A room without filters, unless a test sets some.
+  useRoom: () => ({
+    data: {
+      provider_ids: [],
+      runtime_max: null,
+      seen_rule: 'allow_rewatch',
+      quality: 'standard',
+      ...mockRoom.data,
+    },
+  }),
   useRoomEvent: (_room: string, event: string, handler: (payload: unknown) => void) => {
     mockRoomEvents.set(event, handler);
   },
@@ -87,6 +104,8 @@ async function makeSwipe(
     locked?: boolean;
     superLikes?: number;
     seenRule?: 'hide_seen' | 'allow_rewatch' | 'show_all';
+    /** The server answers `done` with this many films liked. */
+    doneLiked?: number;
   } = {},
 ) {
   const votes: QueuedVote[] = [];
@@ -94,7 +113,10 @@ async function makeSwipe(
   const stack = createCardStack(
     {
       fetchCards: async () => cards.filter((c) => !votes.some((v) => v.title_id === c.title_id)),
-      requestCards: async () => 'ok',
+      requestCards: async () =>
+        options.doneLiked === undefined
+          ? 'ok'
+          : { status: 'done' as const, liked: options.doneLiked },
       prefetch: () => undefined,
       isAnswered: (id) => votes.some((v) => v.title_id === id),
       now: () => Date.now(),
@@ -520,6 +542,74 @@ describe('when there is no card', () => {
     expect(
       screen.getByText("Your swipes are saved. They'll go as soon as you're back."),
     ).toBeTruthy();
+  });
+});
+
+describe('the done card', () => {
+  const doneRoom = {
+    reveal: 'party',
+    max_age: 12,
+    runtime_max: 105,
+    seen_rule: 'hide_seen',
+    quality: 'standard',
+    provider_ids: [8, 119],
+    country: 'FR',
+  };
+
+  it("shows tonight's filters and how many films the room liked", async () => {
+    mockRoom.data = doneRoom;
+    await setup({ cards: 0, doneLiked: 3 });
+    await layoutStack();
+    await act(async () => {
+      await new Promise((resolve) => setImmediate(resolve));
+    });
+    expect(screen.getByText("That's all your cards")).toBeTruthy();
+    expect(screen.getByText("Tonight's filters")).toBeTruthy();
+    expect(screen.getByText('Netflix')).toBeTruthy();
+    expect(screen.getByText('Prime Video')).toBeTruthy();
+    expect(screen.getByText('Under 1 h 45')).toBeTruthy();
+    expect(screen.getByText('Ages 12+')).toBeTruthy();
+    expect(screen.getByText('Unseen only')).toBeTruthy();
+    expect(screen.getByText('3 films liked so far')).toBeTruthy();
+  });
+
+  it('says 0 films and 1 film in the right plural, in both languages', async () => {
+    mockRoom.data = doneRoom;
+    await setup({ cards: 0, doneLiked: 1 });
+    await layoutStack();
+    await act(async () => {
+      await new Promise((resolve) => setImmediate(resolve));
+    });
+    expect(screen.getByText('1 film liked so far')).toBeTruthy();
+    expect(i18n.getFixedT('en', 'ending')('nothingLeft.liked', { count: 0 })).toBe(
+      '0 films liked so far',
+    );
+    expect(i18n.getFixedT('fr', 'ending')('nothingLeft.liked', { count: 0 })).toBe(
+      "0 film aimé pour l'instant",
+    );
+    expect(i18n.getFixedT('fr', 'ending')('nothingLeft.liked', { count: 2 })).toBe(
+      "2 films aimés pour l'instant",
+    );
+  });
+
+  it('leaves out the filter line for a room without filters, and has no buttons of its own', async () => {
+    mockRoom.data = {
+      ...doneRoom,
+      max_age: null,
+      runtime_max: null,
+      seen_rule: 'allow_rewatch',
+      provider_ids: [],
+    };
+    await setup({ cards: 0, doneLiked: 0 });
+    await layoutStack();
+    await act(async () => {
+      await new Promise((resolve) => setImmediate(resolve));
+    });
+    expect(screen.queryByText("Tonight's filters")).toBeNull();
+    expect(screen.getByText('0 films liked so far')).toBeTruthy();
+    expect(screen.queryByText('Change filters')).toBeNull();
+    expect(screen.queryByText('Vote now')).toBeNull();
+    expect(screen.getByLabelText('Like').props.accessibilityState.disabled).toBe(true);
   });
 });
 
