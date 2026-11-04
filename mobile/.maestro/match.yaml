@@ -2,11 +2,9 @@
 # a tap goes on, and it hands over by
 # itself at 4 seconds. The two-phone run (a shared like on both simulators) is done by hand, see
 # the pull request of M6.14.
-# Run: `maestro test mobile/.maestro/match.yaml -e METRO_URL=http://localhost:8095`
+# Run: `maestro test mobile/.maestro/match.yaml -e METRO_URL=http://localhost:<port>`
 # with the development build installed and Metro running.
 appId: com.harryviennot.flimme.dev
-env:
-  METRO_URL: http://localhost:8095
 ---
 - runFlow: subflows/open-app.yaml
 - openLink: flimme-dev://dev/match

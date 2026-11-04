@@ -9,11 +9,9 @@
 # The links carry the room reference (`?r=`), so the sheet previews before joining. The development scheme stands in for the
 # domain (M4.18). A development build asks which Metro to use on a cold start from a link: the
 # flow picks the one in METRO_URL from "Recently opened".
-# Run: `maestro test mobile/.maestro/join-link.yaml -e METRO_URL=http://localhost:8094 -e REF=<id> -e REF2=<id>` with the
+# Run: `maestro test mobile/.maestro/join-link.yaml -e METRO_URL=http://localhost:<port> -e REF=<id> -e REF2=<id>` with the
 # development build installed and Metro running.
 appId: com.harryviennot.flimme.dev
-env:
-  METRO_URL: http://localhost:8094
 ---
 # Open the app once on a fresh install so Metro is in "Recently opened".
 - runFlow: subflows/open-app-fresh.yaml
@@ -29,7 +27,7 @@ env:
       visible: 'Open'
     commands:
       - tapOn: 'Open'
-- tapOn: ${METRO_URL}
+- tapOn: "${METRO_URL || 'http://localhost:8094'}"
 - extendedWaitUntil:
     visible: '(?i)join .*movie night|join the movie night'
     timeout: 40000
@@ -50,7 +48,7 @@ env:
       visible: 'Open'
     commands:
       - tapOn: 'Open'
-- tapOn: ${METRO_URL}
+- tapOn: "${METRO_URL || 'http://localhost:8094'}"
 - extendedWaitUntil:
     visible: '(?i)lobby'
     timeout: 40000
@@ -82,7 +80,7 @@ env:
       visible: 'Open'
     commands:
       - tapOn: 'Open'
-- tapOn: ${METRO_URL}
+- tapOn: "${METRO_URL || 'http://localhost:8094'}"
 - extendedWaitUntil:
     visible: '(?i)join .*movie night'
     timeout: 40000
@@ -103,7 +101,7 @@ env:
       visible: 'Open'
     commands:
       - tapOn: 'Open'
-- tapOn: ${METRO_URL}
+- tapOn: "${METRO_URL || 'http://localhost:8094'}"
 - extendedWaitUntil:
     visible: '(?i)this movie night has ended.*'
     timeout: 40000
