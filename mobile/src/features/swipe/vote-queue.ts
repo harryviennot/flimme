@@ -52,7 +52,9 @@ export type VoteQueueEvent =
   | { type: 'closed'; room_id: string; state: RoomState }
   | { type: 'no_super_likes'; room_id: string; title_id: number }
   /** The film was never this seat's to swipe: refetch the cards. */
-  | { type: 'card_not_dealt'; room_id: string; title_id: number };
+  | { type: 'card_not_dealt'; room_id: string; title_id: number }
+  /** The vote left the queue without the server recording it (dropped, or denied for good). */
+  | { type: 'dropped'; room_id: string; title_id: number };
 
 export type VoteQueueDeps = {
   /** Tests pass their own; the app uses the SQLite store. */
@@ -256,6 +258,8 @@ export function createVoteQueue(deps: VoteQueueDeps) {
             // Denied after a fresh session: a bug or an attack. Drop it and say so.
             deps.report(error, context);
             remove(vote);
+            removeUndoFor(vote);
+            emit({ type: 'dropped', ...context });
             return 'next';
           }
           refreshed = true;
@@ -299,8 +303,13 @@ export function createVoteQueue(deps: VoteQueueDeps) {
           }
           break;
         case 'duplicate':
-        case 'dropped':
           remove(vote);
+          break;
+        case 'dropped':
+          // Never recorded: Undo must not take back the vote before it.
+          remove(vote);
+          removeUndoFor(vote);
+          emit({ type: 'dropped', ...context });
           break;
         case 'closed':
           removeRoom(vote.room_id);
