@@ -230,14 +230,14 @@ export type Database = {
                   ]
                 },"rounds": {
                   Row: {
-                    "closed_at": string | null,"id": string,"kind": "final_cut"|"ranked_vote","opened_at": string,"room_id": string,"seq": number,"stage": "veto"|"rank"|"closed","stage_closes_at": string,"winner_title_id": number | null
+                    "closed_at": string | null,"id": string,"kind": "final_cut"|"ranked_vote","opened_at": string,"room_id": string,"seq": number,"stage": "veto"|"rank"|"vote"|"closed","stage_closes_at": string,"winner_title_id": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                           "closed_at"?: string | null,"id"?: string | null,"kind"?: "final_cut"|"ranked_vote" | null,"opened_at"?: string | null,"room_id"?: string | null,"seq"?: number | null,"stage"?: "veto"|"rank"|"closed" | null,"stage_closes_at"?: string | null,"winner_title_id"?: number | null
+                           "closed_at"?: string | null,"id"?: string | null,"kind"?: "final_cut"|"ranked_vote" | null,"opened_at"?: string | null,"room_id"?: string | null,"seq"?: number | null,"stage"?: "veto"|"rank"|"vote"|"closed" | null,"stage_closes_at"?: string | null,"winner_title_id"?: number | null
                          }
                         Update: {
-                           "closed_at"?: string | null,"id"?: string | null,"kind"?: "final_cut"|"ranked_vote" | null,"opened_at"?: string | null,"room_id"?: string | null,"seq"?: number | null,"stage"?: "veto"|"rank"|"closed" | null,"stage_closes_at"?: string | null,"winner_title_id"?: number | null
+                           "closed_at"?: string | null,"id"?: string | null,"kind"?: "final_cut"|"ranked_vote" | null,"opened_at"?: string | null,"room_id"?: string | null,"seq"?: number | null,"stage"?: "veto"|"rank"|"vote"|"closed" | null,"stage_closes_at"?: string | null,"winner_title_id"?: number | null
                          }
                         Relationships: [
                     

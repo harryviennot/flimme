@@ -683,9 +683,9 @@ sequenceDiagram
 
 ### Finale
 
-1. When the rule's card count or time limit is reached (after every vote, and by the minute sweeper), `internal.start_finale` seeds 3 or 4 finalists: matches first, then the most liked, then group score.
-2. **Final Cut**: each seat may veto one finalist or pass, within 45 seconds. A veto can't remove the last two films standing.
-3. **Rank**: each seat orders the remaining films within 60 seconds. Borda count picks the winner; ties go to more super likes, then group score.
+1. When the rule's card count (seats seated at the start and present) or time limit is reached (after every vote; the minute sweeper adds the time check in M6.6), `internal.start_finale` seeds 3 or 4 finalists: matches first, then films with a like by score, then unnoped films by group score. One liked film is the pick without a vote; nothing liked ends the night with no pick. `rooms.finale_reason` says why.
+2. **One round of 60 seconds**, stage `vote`, for both kinds. **Final Cut**: each seat may veto one finalist or pass. A veto can't remove the last two films standing.
+3. **Ranked vote**: each seat orders the films. Borda count picks the winner; ties go to more super likes, then group score. (Ballots and closing are M6.5.)
 4. The winner becomes a `matches` row with kind `finale` and `pick_order` 1, and the room is done.
 
 The veto, rank and stage-closing functions are described here but not yet in schema.sql.
