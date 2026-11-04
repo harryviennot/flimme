@@ -1,0 +1,33 @@
+{
+  "nothingLeft": {
+    "filters": "Les filtres du soir",
+    "liked_one": "{{count}} film aimé pour l'instant",
+    "liked_other": "{{count}} films aimés pour l'instant"
+  },
+  "filters": {
+    "moreServices": "+{{count}}",
+    "services_one": "{{count}} plateforme",
+    "services_other": "{{count}} plateformes",
+    "runtime": "Moins de {{duration}}",
+    "age": "Dès {{age}} ans",
+    "allAges": "Tous publics",
+    "hideSeen": "Jamais vus",
+    "hiddenGems": "Pépites cachées",
+    "guiltyPleasures": "Plaisirs coupables"
+  },
+  "noPick": {
+    "title": "Rien à l'affiche ce soir",
+    "body": "Aucun film n'a trouvé preneur ce soir. La prochaine fois, ajoute des plateformes ou relâche un filtre."
+  },
+  "closed": {
+    "stamp": "Fermée",
+    "closedAt": "Fermée à {{time}}",
+    "title": "Cette salle est fermée",
+    "body": "Cette soirée film est terminée. Depuis l'accueil, lance la tienne ou rejoins tes amis avec un nouveau code.",
+    "home": "Accueil"
+  },
+  "a11y": {
+    "filters": "Les filtres du soir : {{list}}",
+    "home": "Retour à l'accueil"
+  }
+}

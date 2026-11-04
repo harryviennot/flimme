@@ -138,6 +138,8 @@ describe('the winner screen', () => {
     const onHome = jest.fn();
     await show({ status: 'no_pick' }, { onHome });
     expect(screen.queryByTestId('winner-poster')).toBeNull();
+    expect(screen.getByText('Nothing fits tonight')).toBeTruthy();
+    expect(screen.getByText(/No film got a like tonight/)).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: 'Back to Home' }));
     expect(onHome).toHaveBeenCalled();
   });

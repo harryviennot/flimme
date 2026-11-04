@@ -195,6 +195,7 @@ export function SwipeScreen({
       <View className="flex-1 px-5" pointerEvents="box-none">
         <CardStack
           swipe={swipe}
+          roomId={roomId}
           maxAge={maxAge}
           glowId={nearMiss ? topId : undefined}
           flying={flying}

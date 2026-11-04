@@ -31,7 +31,9 @@ const cards = (from: number, to: number) =>
   Array.from({ length: to - from + 1 }, (_, i) => card(from + i));
 const ids = (list: NextCard[]) => list.map((c) => c.title_id);
 
-function setup(initial: NextCard[], opts: { width?: number; answers?: RequestCardsAnswer[] } = {}) {
+type Answer = RequestCardsAnswer | { status: 'done'; liked: number };
+
+function setup(initial: NextCard[], opts: { width?: number; answers?: Answer[] } = {}) {
   let clock = 1000;
   const answered = new Set<number>();
   const fetchResults: NextCard[][] = [initial];
@@ -232,6 +234,34 @@ describe('card stack', () => {
       await flush();
       expect(t.get().mounted).toEqual([]);
       expect(t.get().status).toBe('empty');
+    });
+
+    it('keeps the liked count from the done answer, and updates it on the next one', async () => {
+      const t = setup(cards(1, 4), {
+        answers: [
+          { status: 'done', liked: 3 },
+          { status: 'done', liked: 4 },
+        ],
+      });
+      expect(t.get().liked).toBeNull();
+      t.stack.getState().start();
+      await flush();
+      for (let i = 0; i < 4; i++) t.get().answer();
+      await flush();
+      expect(t.get().status).toBe('empty');
+      expect(t.get().liked).toBe(3);
+      jest.advanceTimersByTime(REQUEST_RETRY_MS);
+      await flush();
+      expect(t.get().liked).toBe(4);
+    });
+
+    it('knows no count when done comes without one', async () => {
+      const t = setup(cards(1, 4), { answers: ['done'] });
+      t.stack.getState().start();
+      await flush();
+      for (let i = 0; i < 4; i++) t.get().answer();
+      await flush();
+      expect(t.get().liked).toBeNull();
     });
 
     it('is loading, not empty, while a refill is queued', async () => {
