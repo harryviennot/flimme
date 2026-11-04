@@ -1,0 +1,22 @@
+{
+  "eyebrow": "Tonight's pick",
+  "onlyFilm": "The only film anyone liked",
+  "whereToWatch": "Where to watch",
+  "notListed": "None of your services has it any more.",
+  "justwatch": "Streaming availability by JustWatch.",
+  "moreDetails": "More details",
+  "home": "Home",
+  "error": {
+    "title": "Couldn't load the film.",
+    "offline": "You're offline. The film shows when you're back."
+  },
+  "a11y": {
+    "title": "Tonight's pick: {{title}}",
+    "poster": "Poster for {{title}}",
+    "services": "Available on {{names}}",
+    "moreDetails": "More details on TMDB",
+    "moreDetailsHint": "Opens in a browser",
+    "home": "Back to Home",
+    "loading": "Loading the film"
+  }
+}
