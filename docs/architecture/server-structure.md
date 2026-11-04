@@ -194,7 +194,7 @@ The server calls these pgmq functions directly with SQL. No client library is ne
 | `letterboxd_match` | 300 s | 5 | Match an import's films, then finish it | Matched rows are applied and deleted; `finish_letterboxd_import` runs once per import |
 | `catalog_refresh` | 300 s | 5 | Fetch a batch of TMDB films or run a sweep step | Upserts; a sweep only deletes after it completed ([tmdb.md](../integrations/tmdb.md#the-daily-sweep)) |
 | `embed_titles` | 300 s | 5 | Embed changed films, re-score moods | Skips films whose `source_hash` is unchanged |
-| `room_finished` | 60 s | 5 | Room stats, card history, seen films, taste refreshes | Stats are overwritten; card history is skipped for a film whose `last_room_id` is already this room, so nothing is counted twice |
+| `room_finished` | 60 s | 5 | Room stats (built, M6.8: one call to `internal.write_room_stats`), card history, seen films, taste refreshes | Stats are overwritten; card history is skipped for a film whose `last_room_id` is already this room, so nothing is counted twice |
 
 `winner_links` is gone (migration `remove_v1_dropped`): Streaming Availability is dropped from v1. `letterboxd_match` is new (see [Changes this asks elsewhere](#changes-this-asks-elsewhere)).
 
