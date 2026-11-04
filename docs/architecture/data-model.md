@@ -664,7 +664,7 @@ sequenceDiagram
 - **Seen it.** Under `hide_seen`, a "seen it" answer drops the card for the room and removes it from every deck that hasn't reached it. Under `allow_rewatch` and `show_all` the phone asks "Watch it again tonight?": Yes (`seen_rewatch`) counts as a like and as seen, and a plain `seen` counts as a nope and as seen. Nobody abstains (game-modes.md#when-its-a-match). Under every seen rule the film is also saved as seen for that player (`user_titles`, source `app`), so their later rooms leave it out.
 - **Super likes** spend one of the seat's two, count as likes and count double when seeding the finale.
 - **Offline.** Votes are queued on the phone and retried. A retry returns `duplicate`; a vote after the room is decided returns `closed`.
-- **Undo** removes the seat's last vote while its card is still active, restores counters and the super like, and logs the undo.
+- **Undo** removes the seat's last vote (never two in a row) while its card is still active, reverses the counters by the answer's meaning, restores the super like and a film dropped by the seat's own "Seen it", clears the seen mark the vote made, and logs the undo. A seat that left or was removed raises 42501.
 
 ### Like propagation and refills
 

@@ -93,11 +93,11 @@ Today the data model makes "Seen it" an abstention under these rules: the film c
 
 **Undo**
 
-- Takes back the player's last swipe only, once: a second undo in a row isn't allowed. Default to confirm; today the function allows chained undos.
+- Takes back the player's last swipe only, once: a second undo in a row isn't allowed.
 - Only while the room is swiping and the card is still in play. A card that matched or became a finalist can't be undone.
 - A super like comes back.
 - A like that already moved the film up in other decks leaves it there. That's harmless.
-- Undoing a "Seen it" that dropped the film under `hide_seen` brings the film back for the room, unless another player also said "Seen it". Other players get it again at their next refill. Today the function refuses this undo; a mis-swipe would otherwise remove a film for good.
+- Undoing a "Seen it" that dropped the film under `hide_seen` brings the film back for the room, unless another player also said "Seen it". Other players get it again at their next refill. A mis-swipe never removes a film for good.
 
 **Super nope: dropped (decided on 29 October 2026).** The revival plan's 5-to-10-player rule said "and nobody used a super nope", but super nope isn't one of the four answers, and the design has none. It's dropped because a fifth gesture costs every new player something to learn, and the deck's misery rule already keeps films anyone is predicted to hate out of the deck. A veto doesn't stand in for it in big groups: Quick Match with 5 to 10 players ends in a ranked vote with no veto, on purpose, so one person can't block a film most of the group wants (reason corrected on 30 October 2026). Playtests should count majority matches that included a nope and how those players answered "Did you watch it?". If that shows a problem, the fix is a tighter majority rule (for example at most one nope), not a new answer.
 
