@@ -59,7 +59,8 @@ select is(
 );
 
 -- T4: client_at is clamped between the room's start and now; null stays null.
-update public.rooms set started_at = now() - interval '10 minutes' where id = tests.room_id();
+-- (1 minute back: M6.1 gave 2-player rooms a 6-minute limit, and 10 minutes would end the game.)
+update public.rooms set started_at = now() - interval '1 minute' where id = tests.room_id();
 select tests.authenticate_as('q1');
 select api.cast_vote(tests.room_id(), tests.film(18), 'nope', null, null, now() + interval '1 hour');
 select api.cast_vote(tests.room_id(), tests.film(17), 'nope', null, null, now() - interval '1 hour');

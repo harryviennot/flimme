@@ -156,11 +156,11 @@ The three environments are operations.md's: local, staging and production.
 | Fly.io | Week 1 | Two apps per environment, `flimme-api-<env>` and `flimme-workers-<env>`: staging in London, production in Frankfurt |
 | Sentry (EU) | Week 1 | Two projects (app and server), environments as tags |
 | PostHog (EU) | Before M9 | The free plan has one project, so staging and production share it: every event carries its environment, and development builds send nothing |
-| Domain and support email | After the name (M0.1, M0.2) | Blocks the domain hookup (M4.18), not the start |
+| Domain and support email | The name is decided (M0.1, 4 November 2026); the support email is M0.2 | Blocks the domain hookup (M4.18), not the start |
 
 Two-factor authentication on every account (M0.6). Harry opens them; an agent can write the checklist for each.
 
-**The bundle id doesn't have to wait for the name.** Players never see it, and it can't change once the store records exist. Choose a neutral one now (for example `com.harryviennot.<codename>`, with `.dev` and `.preview` variants) and M3 isn't blocked by M0.1. Only the display name, the URL scheme and the domain wait for the name.
+**The bundle id doesn't have to wait for the name.** Players never see it, and it can't change once the store records exist. Choose a neutral one now (for example `com.harryviennot.<codename>`, with `.dev` and `.preview` variants) and M3 isn't blocked by M0.1. The display name (Flimme), the URL scheme and the domain (flimme.com) are now decided.
 
 ## Secrets
 

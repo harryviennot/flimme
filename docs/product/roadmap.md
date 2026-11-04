@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 86 of 257 tasks done.
+Progress: 90 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -180,7 +180,7 @@ Everything that blocks building or publishing, started first. Several items take
 
 Done when: the name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, and the repository and the agents are set up.
 
-- [ ] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
+- [x] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
   Done when: the name is checked on both stores, in trademark databases and for domains, and recorded in decisions.md.
 - [ ] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the domain resolves and support@ receives mail.
@@ -408,9 +408,9 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 **Backend**
 
-- [ ] **M6.1** Match rules with the confirmed values: a time limit of 6 minutes on every rule, 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for 5 to 10 players and Final Cut, 3 finalists for 2 players in every mode, and a fixed re-check order after a leave or a removal (most likes, then most super likes, then group score, then lowest film id) · backend · M · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
+- [x] **M6.1** Match rules with the confirmed values: a time limit of 6 minutes on every rule, 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for 5 to 10 players and Final Cut, 3 finalists for 2 players in every mode, and a fixed re-check order after a leave or a removal (most likes, then most super likes, then group score, then lowest film id) · backend · M · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
   Done when: seeded and tested, the re-check order included.
-- [ ] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions; the near miss only one like short of the rule, with `needed` in the payload; `flipped` on `api.cast_vote` · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
+- [x] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions; the near miss only one like short of the rule, with `needed` in the payload; `flipped` on `api.cast_vote` · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: the match check is tested with both answers, and the near miss and `flipped` are tested too.
 - [ ] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back; undoing a like at the near-miss line sends `near_miss` with the corrected counts · backend · M · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: tested.
@@ -433,7 +433,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: smooth by the frame meter on the simulator, and usable with VoiceOver.
 - [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · M · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: flipping works mid-stack.
-- [ ] **M6.11** The vote queue module: persisted, sent in order, retried, a `denied` vote refreshed once and retried, votes for rooms the phone no longer keeps dropped on restart · app · M · needs M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
+- [x] **M6.11** The vote queue module: persisted, sent in order, retried, a `denied` vote refreshed once and retried, votes for rooms the phone no longer keeps dropped on restart · app · M · needs M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
   Done when: the queue's rules are tested. The airplane-mode run is M6.9's.
 - [ ] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · M · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: both answers reach the server.

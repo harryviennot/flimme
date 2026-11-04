@@ -5,6 +5,9 @@
 // error rejects, as an ApiError. A PR that changes a wrapped function changes its answer
 // list (answers.ts), its schema (payloads.ts) and its wrapper here.
 import {
+  CAST_VOTE_ANSWERS,
+  REQUEST_CARDS_ANSWERS,
+  UNDO_LAST_VOTE_ANSWERS,
   CREATE_ROOM_ANSWERS,
   JOIN_ROOM_ANSWERS,
   ROOM_PREVIEW_ANSWERS,
@@ -20,9 +23,18 @@ import {
   UPDATE_ROOM_SETTINGS_ANSWERS,
   type JoinVia,
   type ReportReason,
+  type VoteAnswer,
 } from '../answers';
 import {
   appConfigSchema,
+  castVoteResult,
+  requestCardsResult,
+  undoLastVoteResult,
+  roomMatchRow,
+  type CastVoteResult,
+  type RequestCardsResult,
+  type UndoLastVoteResult,
+  type RoomMatch,
   createRoomResult,
   joinRoomResult,
   roomPreviewResult,
@@ -300,7 +312,83 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
       );
     },
 
+    // --- Swiping -------------------------------------------------------------------------
+    /**
+     * One answer to one film. `client_at` is the phone's time at the swipe (ISO), `dwell_ms` how
+     * long the card was on screen. Safe to send twice: a saved vote answers `duplicate`.
+     */
+    castVote(args: {
+      room_id: string;
+      title_id: number;
+      answer: VoteAnswer;
+      member_id?: string;
+      dwell_ms?: number;
+      client_at?: string;
+    }): Promise<CastVoteResult> {
+      return callAnswer(
+        client,
+        options,
+        'cast_vote',
+        {
+          p_room_id: args.room_id,
+          p_title_id: args.title_id,
+          p_answer: args.answer,
+          p_member_id: args.member_id,
+          p_dwell_ms: args.dwell_ms,
+          p_client_at: args.client_at,
+        },
+        CAST_VOTE_ANSWERS,
+        castVoteResult,
+      );
+    },
+
+    /** Asks for more cards when the seat is running low. `enough` says how many are left. */
+    requestCards(args: { room_id: string; member_id?: string }): Promise<RequestCardsResult> {
+      return callAnswer(
+        client,
+        options,
+        'request_cards',
+        { p_room_id: args.room_id, p_member_id: args.member_id },
+        REQUEST_CARDS_ANSWERS,
+        requestCardsResult,
+      );
+    },
+
+    /** Takes back the seat's last vote while its card is still active. */
+    undoLastVote(args: { room_id: string; member_id?: string }): Promise<UndoLastVoteResult> {
+      return callAnswer(
+        client,
+        options,
+        'undo_last_vote',
+        { p_room_id: args.room_id, p_member_id: args.member_id },
+        UNDO_LAST_VOTE_ANSWERS,
+        undoLastVoteResult,
+      );
+    },
+
     // --- Views ---------------------------------------------------------------------------
+    /** The films the room has matched on, in the order they were found. */
+    async roomMatches(args: { room_id: string }): Promise<RoomMatch[]> {
+      const rows = await readView(
+        () =>
+          client.from('room_matches').select('*').eq('room_id', args.room_id).order('created_at'),
+        'room_matches',
+      );
+      if (options.validate) {
+        for (const row of rows ?? []) {
+          const parsed = roomMatchRow.safeParse(row);
+          if (!parsed.success) {
+            throw new ApiError(
+              'unexpected',
+              'room_matches',
+              `wrong shape: ${parsed.error.message}`,
+            );
+          }
+        }
+      }
+      return (rows ?? []) as RoomMatch[];
+    },
+
     /** The signed-in player's profile, or null when there is none yet. */
     async myProfile(): Promise<MyProfile | null> {
       const rows = await readView(
