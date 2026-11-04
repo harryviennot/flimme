@@ -6,7 +6,7 @@ import { AccessibilityInfo } from 'react-native';
 import { api } from '@/api';
 import { hideToast } from '@/components/ui/toast';
 import { ROOM_KEY, type RoomRealtime } from '@/features/room';
-import { matchShownStore } from '@/features/room/match-shown';
+import { matchShownStore, useMatchShown } from '@/features/room/match-shown';
 import { voteQueue } from '@/features/swipe';
 import { haptics } from '@/lib/haptics';
 import { playSound } from '@/lib/sound';
@@ -40,7 +40,7 @@ export function useMatchOverlay(
 ): { match: PlayingMatch | null; skip: () => void; finish: () => void; holdRoute: boolean } {
   const [controller, setController] = useState<MatchController | null>(null);
   const screenReader = useRef(false);
-  const shown = matchShownStore((s) => (roomId ? s.rooms.includes(roomId) : false));
+  const shown = useMatchShown(roomId);
 
   useEffect(() => {
     void AccessibilityInfo.isScreenReaderEnabled().then((on) => {

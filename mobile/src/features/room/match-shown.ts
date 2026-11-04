@@ -52,3 +52,12 @@ export function createMatchShownStore(kv?: KeyValueStore) {
 }
 
 export const matchShownStore = createMatchShownStore();
+
+/**
+ * Whether this room's match overlay has played, and re-renders when it does. A named hook:
+ * the React Compiler only treats `use...` functions as hooks, and would otherwise memoize
+ * the store call and change the hook order between renders.
+ */
+export function useMatchShown(roomId: string | undefined): boolean {
+  return matchShownStore((state) => (roomId ? state.rooms.includes(roomId) : false));
+}
