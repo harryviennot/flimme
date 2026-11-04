@@ -1,11 +1,9 @@
 # Slice 7, the lobby: Home, Host, open the room, close the invite sheet, then the lobby shows the
 # code, the own seat with the crown, and Start waiting for a second player. Leaving drops the
 # phone on Home, and a relaunch stays on Home (the kept room is forgotten). Needs the local stack.
-# Run: `maestro test mobile/.maestro/lobby.yaml -e METRO_URL=http://localhost:8094`
+# Run: `maestro test mobile/.maestro/lobby.yaml -e METRO_URL=http://localhost:<port>`
 # with the development build installed and Metro running.
 appId: com.harryviennot.flimme.dev
-env:
-  METRO_URL: http://localhost:8094
 ---
 - runFlow: subflows/open-app-fresh.yaml
 - extendedWaitUntil:

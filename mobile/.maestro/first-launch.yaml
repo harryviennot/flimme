@@ -1,10 +1,8 @@
 # Slice 4, first launch: a fresh install reaches Home in three taps with a typed name and a
 # chosen color, and a relaunch goes straight to Home. A blocked name shows its error, which
 # clears at the next edit. Run: `maestro test mobile/.maestro/first-launch.yaml` on a simulator
-# with the development build installed and Metro running (`-e METRO_URL=http://localhost:8096`).
+# with the development build installed and Metro running (`-e METRO_URL=http://localhost:<port>`).
 appId: com.harryviennot.flimme.dev
-env:
-  METRO_URL: http://localhost:8096
 ---
 - runFlow: subflows/open-app-fresh.yaml
 

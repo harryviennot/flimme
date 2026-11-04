@@ -233,7 +233,7 @@ A ballot locked in before its player left still counts. The result is broadcast 
 
 **Too few films at the start.** If tonight's filters leave fewer than 20 eligible films, the deck isn't dealt: the room goes back to the lobby with "Only 12 films fit: loosen a filter", and the host adjusts. `internal.deal_cards` does this (M5.5): `start_game` answers `too_few_films` with `eligible`, `state_changed` carries `reason` and `eligible`, and the attempt is logged in `rec.requests`. Refills and late joiners deal whatever there is.
 
-**The 1-hour limit.** Today a room's `expires_at` is set 3 hours after creation and isn't moved at the start, so a lobby left open for 2 h 55 min would be abandoned 5 minutes into its game. The start should set it to 1 hour after swiping begins: far beyond any real game, it only cleans up rooms nobody closed. If films have likes at that point, the finale starts instead.
+**The 1-hour limit.** A room's `expires_at` is set 3 hours after creation, and `internal.begin_swiping` moves it to 1 hour after swiping begins, so a lobby left open for 2 h 55 min isn't abandoned 5 minutes into its game. It is far beyond any real game: it only cleans up rooms nobody closed. If films have likes at that point, the finale starts instead.
 
 `rooms.stats` records the outcome (`match`, `finale`, `no_pick`, `abandoned`) next to the duration, swipes and players.
 

@@ -221,6 +221,16 @@ function Ring({ kind, progress }: { kind: StampKind; progress: SharedValue<numbe
   );
 }
 
+/**
+ * A stamp's opacity for its progress. With Reduce Motion it does not fade in: the stamp, label
+ * and all, shows still as soon as its coloured ring does (the ring alone says nothing).
+ */
+export function stampOpacity(progress: number, reduced: boolean): number {
+  'worklet';
+  if (reduced) return progress > 0 ? 1 : 0;
+  return progress;
+}
+
 function Stamp({ kind, progress }: { kind: StampKind; progress: SharedValue<number> }) {
   const { t } = useTranslation();
   const reduced = useReducedMotion();
@@ -228,7 +238,7 @@ function Stamp({ kind, progress }: { kind: StampKind; progress: SharedValue<numb
   const style = useAnimatedStyle(() => {
     const p = progress.get();
     return {
-      opacity: reduced ? (p >= 1 ? 1 : 0) : p,
+      opacity: stampOpacity(p, reduced),
       transform: [
         { rotate: `${look.rotate}deg` },
         { scale: reduced ? 1 : interpolate(p, [0, 1], [STAMP_SCALE_FROM, 1]) },

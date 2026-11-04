@@ -1,10 +1,8 @@
 # Slice 5, host setup: Home, Host, pick a seeded service, Open the room, and the room's screens
 # (placeholders until M4.11 and M4.12). Needs the local stack with the seed (services 8001 to
 # 8007 are listed for France: Lumo, Orbite, ...). Run: `maestro test mobile/.maestro/host.yaml`
-# with the development build installed and Metro running (`-e METRO_URL=http://localhost:8094`).
+# with the development build installed and Metro running (`-e METRO_URL=http://localhost:<port>`).
 appId: com.harryviennot.flimme.dev
-env:
-  METRO_URL: http://localhost:8094
 ---
 - runFlow: subflows/open-app-fresh.yaml
 
