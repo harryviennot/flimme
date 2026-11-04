@@ -101,7 +101,7 @@ The `NoPick` slot (`components/screens/winner/no-pick.tsx`), filled by M6.17 (Q1
 | `noPick.title` | Rien à l'affiche ce soir | Nothing fits tonight |
 | `noPick.body` | Aucun film n'a trouvé preneur ce soir. La prochaine fois, ajoute des plateformes ou relâche un filtre. | No film got a like tonight. Next time, add services or loosen a filter. |
 
-The French title borrows the marquee ("nothing on the bill tonight") rather than translating "fits".
+The French title borrows the marquee ("nothing on the bill tonight") rather than translating "fits". Harry decided it on 4 November 2026 ([closed.md, Decided](closed.md#decided) 2).
 
 ## Copy (`winner` namespace)
 

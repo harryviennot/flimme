@@ -98,6 +98,13 @@ Calm, no exclamation mark, nobody blamed. Glossary: room is "salle", movie night
 
 ## Differences from the Figma
 
-- One button, Home (Q17.3), in place of "Host a movie night" and "Enter another code": Home has both.
+- One button, Home (Q17.3), in place of "Host a movie night" and "Enter another code": Home has both ([Decided](#decided) 1).
 - The ticket's details are the date and the closing time, not "0 players" (a count that only invites "who left?").
 - The body names no rule: the Figma's note says "English until the M6.17 spec"; this spec is the copy, French and English.
+
+## Decided
+
+Harry answered on 4 November 2026 ([decisions.md](../../decisions.md)):
+
+1. **One button.** The closed screen has a single Home button, not the Figma's "Host a movie night" and "Enter another code".
+2. **The French for "Nothing fits tonight"** is "Rien à l'affiche ce soir" ([winner.md](winner.md#nothing-fits-tonight)).
