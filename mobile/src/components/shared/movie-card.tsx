@@ -465,24 +465,31 @@ function Back({
             </Text>
           ) : null}
         </View>
-        <View className="flex-row items-center gap-1.5">
-          <View className="flex-1">
-            {back.services ? (
-              <ServiceBadges services={back.services} />
-            ) : (
-              <Services services={services} />
-            )}
-          </View>
-          {back.onTrailer ? (
-            <View onTouchStart={back.onTrailerTouch}>
-              <Button
-                label={t('card.trailer')}
-                icon="play"
-                variant="secondary"
-                size="s"
-                onPress={back.onTrailer}
-              />
+        <View className="gap-1">
+          <View className="flex-row items-center gap-1.5">
+            <View className="flex-1">
+              {back.services ? (
+                <ServiceBadges services={back.services} />
+              ) : (
+                <Services services={services} />
+              )}
             </View>
+            {back.onTrailer ? (
+              <View onTouchStart={back.onTrailerTouch}>
+                <Button
+                  label={t('card.trailer')}
+                  icon="play"
+                  variant="secondary"
+                  size="s"
+                  onPress={back.onTrailer}
+                />
+              </View>
+            ) : null}
+          </View>
+          {(back.services ?? services).length > 0 ? (
+            <Text variant="body-s" tone="muted">
+              {t('card.justwatch')}
+            </Text>
           ) : null}
         </View>
         <Text variant="mono-eyebrow" tone="muted" align="center">

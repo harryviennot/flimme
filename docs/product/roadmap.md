@@ -99,7 +99,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 28 | In progress |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 32 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | Not started |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 7 | Not started |
@@ -112,7 +112,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M15](#m15-accounts-and-follow-up) | Accounts and follow-up | Players can save an account, and "Did you watch it?" is measured | 10 | Not started |
 | [M16](#m16-growth-loop) | Growth loop | The invite page and reactions bring new players | 2 | Not started |
 | [M17](#m17-fresher-decks-and-moods) | Fresher decks and moods | Repeat rate under 10%, moods live, the deck worker dealing | 15 | Not started |
-| [M18](#m18-more-modes-and-host-controls) | More modes and host controls | Final Cut and Date Night modes and the host controls are live | 8 | Not started |
+| [M18](#m18-more-modes-and-host-controls) | More modes and host controls | Final Cut and Date Night modes and the host controls are live | 9 | Not started |
 | [M19](#m19-smart-deck) | Smart deck | Taste-based decks beat the crowd deck in an A/B test | 10 | Not started |
 | [M20](#m20-letterboxd) | Letterboxd | Players connect by export and their history shapes decks | 11 | Not started |
 | [M21](#m21-monetization) | Monetization | Host Pro, the Night Pass and packs are on sale | 9 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 104 of 257 tasks done.
+Progress: 106 of 262 tasks done.
 
 ```mermaid
 flowchart LR
@@ -414,18 +414,22 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: the match check is tested with both answers, and the near miss and `flipped` are tested too.
 - [x] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back; undoing a like at the near-miss line sends `near_miss` with the corrected counts · backend · M · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: tested.
-- [x] **M6.4** Starting the finale: finalists need at least one like; one 60-second round; card counts use seats seated at the start; every time limit; everyone done · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
+- [x] **M6.4** Starting the finale: finalists need at least one like; one 60-second round; card counts use seats seated at the start; every time limit · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: each trigger and the finalist rule are tested.
-- [ ] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · L · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
+- [x] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · L · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tests cover vetoes, ties, missing ballots and phones closing at once.
-- [ ] **M6.6** `internal.sweep_rooms` every minute, as specified · backend · L · needs M6.5, M4.5, M1.13, M6.7 · [game-modes](game-modes.md#functions-still-to-write)
-  Done when: each row of the spec's table has a test.
+- [ ] **M6.6** `internal.sweep_rooms` every minute, as specified, without the silence re-check (M6.30) · backend · L · needs M6.5, M4.5, M1.13, M6.7, M6.29 · [game-modes](game-modes.md#functions-still-to-write)
+  Done when: each row of the spec's table, except the silence re-check, has a test.
 - [x] **M6.7** Starting to swipe moves `expires_at` to 1 hour after the start · backend · S · needs M1.5 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: a room opened 3 hours earlier isn't abandoned mid-game.
-- [ ] **M6.8** End of room on the server: `rooms.stats` with the outcome, seconds to the pick, players present, swipes per seat, why the finale started · server · M · needs M2.2, M6.5 · [analytics](analytics.md#changes-this-asks-elsewhere)
+- [x] **M6.8** End of room on the server: `rooms.stats` with the outcome, seconds to the pick, players present, swipes per seat, why the finale started · server · M · needs M2.2, M6.5, M6.4 · [analytics](analytics.md#changes-this-asks-elsewhere)
   Done when: every finished room on staging has its stats, written once even if the message comes twice.
 - [x] **M6.28** `allow_rewatch` as the default for Quick Match and Final Cut (Date Night keeps `hide_seen`): a data migration on `game_modes.defaults` · backend · S · needs M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: a new room in either mode gets `allow_rewatch`, tested in `610-rewatch-default.test.sql`.
+- [ ] **M6.29** Out of cards: seats done, the finale when everyone is done · backend · M · needs M6.4 · [game-modes](game-modes.md#how-a-game-ends)
+  Done when: the "Running out of cards" rule is tested, with the `done` answer and the finale with reason `all_done`.
+- [ ] **M6.30** The 3-minute silence: voters and the sweeper's re-check · backend · M · needs M6.6 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
+  Done when: the silence rule is tested, with the sweeper's re-check row.
 
 **App**
 
@@ -441,11 +445,11 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: shown on the right phones, never naming anyone.
 - [x] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
   Done when: it appears on every phone together.
-- [ ] **M6.15** The Final Cut screen: rank by tapping in order, veto one, a 60-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
+- [ ] **M6.15** The Final Cut screen, without the reveal (M6.31): rank by tapping in order, veto one, a 60-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
   Done when: a round with a missing ballot still closes on time.
-- [ ] **M6.16** The winner screen: the poster, the logos of the room's services that have it, the JustWatch credit, "More details" to TMDB's watch page · app · L · needs M6.14, M6.15 · [game-modes](game-modes.md#after-the-pick), [tmdb](../integrations/tmdb.md#the-watch-link)
+- [ ] **M6.16** The winner screen: the poster, the logos of the room's services that have it, the JustWatch credit, "More details" to TMDB's watch page · app · M · needs M6.14 · [game-modes](game-modes.md#after-the-pick), [tmdb](../integrations/tmdb.md#the-watch-link)
   Done when: shown after a match and after the Final Cut.
-- [ ] **M6.17** "Nothing left" and the closed-room screen · app · M · needs M6.9, M5.5 · [game-modes](game-modes.md#how-a-game-ends)
+- [ ] **M6.17** "Nothing left" and the closed-room screen · app · M · needs M6.9, M5.5, M6.29, M6.6 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: both reachable in a test room.
 - [x] **M6.18** Hints over the first game's first cards: how to swipe, Seen it, super likes · app · M · needs M6.9 · [onboarding](onboarding.md#the-first-game)
   Done when: shown once per player.
@@ -455,12 +459,16 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: a touch run on the simulator against staging brings the card back, and the server agrees.
 - [x] **M6.27** The swipe screen's top: player pills with each count (steps of 5), "Sam is done", Leave with its confirmation, the host menu to remove a player mid-game, and the Reconnecting banner · app · M · needs M6.9 · [moments](../design/moments.md#what-every-moment-keeps)
   Done when: every state of the top bar's spec is shown, checked in a three-player touch run.
+- [ ] **M6.31** The Final Cut's reveal · app · M · needs M6.15 · [game-modes](game-modes.md#the-finale)
+  Done when: the reveal plays once per room on every phone, and a phone that missed the event plays it after reading the candidates.
+- [ ] **M6.32** The winner screen's runners-up, with who liked them in Party mode after the pick, and a read for it · app · needs M6.16 · [game-modes](game-modes.md#after-the-pick)
+  Done when: the runners-up show after the pick, and in Party mode each one names who liked it.
 
 **Tests**
 
 - [ ] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
   Done when: bots can fill a room on staging.
-- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12 · [game-modes](game-modes.md#a-game-at-a-glance)
+- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12, M6.29, M6.30, M6.31 · [game-modes](game-modes.md#a-game-at-a-glance)
   Done when: every run ends with a pick within the limits; bugs become tasks.
 
 **Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
@@ -735,6 +743,8 @@ Done when: Final Cut and Date Night modes and the host controls are live.
   Done when: the host can switch it.
 - [ ] **M18.8** Decide on, then build, the "Reading the room" banner · app · needs M17.5 · [deck-engine](../architecture/deck-engine.md#how-a-game-unfolds)
   Done when: built, or dropped in decisions.md.
+- [ ] **M18.9** Backend for Keep swiping and Vote now: `api.keep_swiping` and `api.start_finale_now` · backend · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
+  Done when: backend function and button work together, for M18.4 and M18.5.
 
 ## M19 Smart deck
 

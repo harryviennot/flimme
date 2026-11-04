@@ -280,7 +280,7 @@ Not all of these are applied yet.
 | Where | Change |
 | --- | --- |
 | `api.join_room` | Applied in M4.1. Two optional arguments, `via` (`link`, `code`, `qr`, `rejoin`, `play_again`) and `link_opened_at` (when the phone opened the link), stored on the seat as `room_members.joined_via` and `link_opened_at` |
-| `rooms.stats` | Alongside game modes' `outcome`: `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median), `finale_reason` (`cards`, `time`, `vote_now`, `shortlist_full`, `all_done`), `used_keep_swiping`, `used_vote_now`, `changed_filters`, `next_room_id` (Play again). Written by `room_finished` |
+| `rooms.stats` | Alongside game modes' `outcome`: `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median), `players` (seats that swiped), `finale_reason` (`cards`, `time`, `vote_now`, `shortlist_full`, `all_done`; null without a finale), `used_keep_swiping`, `used_vote_now`, `changed_filters`, `next_room_id` (Play again). Written by `room_finished` (M6.8 writes `outcome`, `seconds_to_pick`, `present_at_pick`, `swipes_per_seat`, `players` and `finale_reason`; the host-control fields come with their tasks) |
 | New `analytics` schema | Aggregate-only views, refreshed nightly by the trainer: `daily_rooms`, `daily_cards`, `daily_players`, `weekly_cohorts`, `experiment_rooms`. No profile, seat or room ids. Read by a read-only role used by PostHog's Supabase source |
 | Account deletion | The server's deletion flow also deletes the person in PostHog, with a PostHog API key kept as a server secret ([operations.md](../architecture/operations.md)) |
 | The app's analytics wrapper | The typed event list above; drops every event while the phone is in a room with an age cap under 13; strips codes from route names |

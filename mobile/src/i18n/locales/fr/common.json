@@ -42,6 +42,7 @@
     "director": "Réalisation  {{name}}",
     "cast": "Avec  {{names}}",
     "trailer": "Bande-annonce",
+    "justwatch": "Disponibilités fournies par JustWatch.",
     "flipBack": "Touche la carte pour la retourner",
     "stampLike": "J'aime",
     "stampNope": "Bof",

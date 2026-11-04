@@ -62,7 +62,7 @@ export function SwipeScreen({
   const lastThrow = useRef<{ direction: Direction } | null>(null);
   // This game's hint signals, and how many super likes the hint announces.
   const [hintSignals] = useState(createHintSignals);
-  const [superLikesPerGame] = useState(seat.super_likes_left);
+  const [superLikesPerGame] = useState(seat.super_likes_left ?? 0);
 
   const { stack } = swipe;
   const topId = useStore(stack, (s) => s.mounted[0]?.title_id);

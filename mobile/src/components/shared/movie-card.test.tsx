@@ -62,6 +62,18 @@ describe('the back of the card', () => {
     expect(film.back.onTrailer).toHaveBeenCalledTimes(1);
   });
 
+  it('credits JustWatch under the services', async () => {
+    await render(<MovieCard {...film} flipped />);
+    expect(screen.getByText('Streaming availability by JustWatch.')).toBeOnTheScreen();
+  });
+
+  it('has no JustWatch credit when no service shows', async () => {
+    await render(
+      <MovieCard {...film} services={[]} flipped back={{ ...film.back, services: [] }} />,
+    );
+    expect(screen.queryByText('Streaming availability by JustWatch.')).toBeNull();
+  });
+
   it('has no Trailer button without a trailer, and no score box without a score', async () => {
     await render(
       <MovieCard

@@ -44,7 +44,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     live.setState({ realtime });
   }, [live, realtime]);
   const locked = useStore(live, (s) => s.locked);
-  const [superLikesLeft, setSuperLikesLeft] = useState(seat.super_likes_left);
+  const [superLikesLeft, setSuperLikesLeft] = useState(seat.super_likes_left ?? 0);
 
   // The answers given on this phone, so a refill that was already in flight never deals them back.
   const [answered] = useState(() => new Set<number>());
@@ -75,7 +75,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       queue: voteQueue,
       roomId,
       memberId: seat.member_id,
-      initialSuperLikes: seat.super_likes_left,
+      initialSuperLikes: seat.super_likes_left ?? 0,
       // What the server counted plus what is still waiting on this phone.
       initialCount: seat.swipe_count + voteQueue.pending(roomId),
       locked: () => live.getState().locked,

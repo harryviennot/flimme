@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  CAST_BALLOT_ANSWERS,
   CAST_VOTE_ANSWERS,
+  CLOSE_ROUND_STAGE_ANSWERS,
+  ROUND_PROGRESS_ANSWERS,
   REQUEST_CARDS_ANSWERS,
   UNDO_LAST_VOTE_ANSWERS,
   CREATE_ROOM_ANSWERS,
@@ -170,6 +173,37 @@ const cases = [
     call: (a: ReturnType<typeof createApi>) =>
       a.castVote({ room_id: ROOM, title_id: 7, answer: 'like' }),
     full: { ok: { match: false }, closed: { state: 'finale' } },
+  },
+  {
+    name: 'cast_ballot',
+    answers: CAST_BALLOT_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) =>
+      a.castBallot({ round_id: ROOM, ranking: [1, 2, 3], veto: 4 }),
+    full: { ok: { locked: [MEMBER], of: 3 } },
+  },
+  {
+    name: 'close_round_stage',
+    answers: CLOSE_ROUND_STAGE_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.closeRoundStage({ round_id: ROOM }),
+    full: {
+      ok: { winner_title_id: 7 },
+      closed: { winner_title_id: 7 },
+      not_yet: { closes_at: '2026-11-04T20:00:00Z' },
+    },
+  },
+  {
+    name: 'round_progress',
+    answers: ROUND_PROGRESS_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.roundProgress({ round_id: ROOM }),
+    full: {
+      ok: {
+        stage: 'vote',
+        closes_at: '2026-11-04T20:00:00Z',
+        locked: [MEMBER],
+        of: 3,
+        me_locked: true,
+      },
+    },
   },
   {
     name: 'request_cards',
