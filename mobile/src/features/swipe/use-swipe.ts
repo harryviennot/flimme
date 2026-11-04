@@ -16,6 +16,7 @@ import i18n from '@/i18n';
 
 import { createAnswerer, type AnswerKind } from './answer';
 import { createCardStack, type AnsweredCard } from './card-stack';
+import type { Direction } from './feel';
 import { createUndoer, type LastAnswer } from './undo';
 import { voteQueue } from './index';
 
@@ -95,7 +96,9 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     }),
   );
   // The card Undo just brought back and the answer it had: the card moves in from that side.
-  const [returning, setReturning] = useState<LastAnswer | null>(null);
+  const [returning, setReturning] = useState<(LastAnswer & { direction?: Direction }) | null>(null);
+  // Super likes already given back (by a refusal or by Undo), so the badge never counts one twice.
+  const [refunded] = useState(() => new Set<number>());
 
   // The room moved on (a match, the finale): no more input, and the room is read again so the
   // layout follows its state even if the event that said so never arrived.
@@ -111,25 +114,33 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
         answered.add(done.card.title_id);
         thrown.set(done.card.title_id, done.card);
         undoer.record(done.card, kind);
+        if (kind === 'super_like') refunded.delete(done.card.title_id);
         setReturning(null);
         setSuperLikesLeft(answerer.superLikesLeft());
       }
       return done;
     },
-    [answerer, answered, thrown, undoer],
+    [answerer, answered, thrown, undoer, refunded],
   );
 
-  const undo = useCallback((): LastAnswer | null => {
-    const back = undoer.undo();
-    if (!back) return null;
-    answered.delete(back.card.title_id);
-    if (back.kind === 'super_like') {
-      answerer.giveBackSuperLike();
-      setSuperLikesLeft(answerer.superLikesLeft());
-    }
-    setReturning(back);
-    return back;
-  }, [undoer, answered, answerer]);
+  /** `direction` is the side the card left from (a No to the rewatch question goes left). */
+  const undo = useCallback(
+    (direction?: Direction): LastAnswer | null => {
+      const back = undoer.undo();
+      if (!back) return null;
+      const titleId = back.card.title_id;
+      answered.delete(titleId);
+      if (back.kind === 'super_like' && !refunded.has(titleId)) {
+        refunded.add(titleId);
+        answerer.giveBackSuperLike();
+        setSuperLikesLeft(answerer.superLikesLeft());
+      }
+      answerer.undone();
+      setReturning({ ...back, direction });
+      return back;
+    },
+    [undoer, answered, answerer, refunded],
+  );
 
   // Undo wakes with the first answer and sleeps after use, or when the room moves on.
   const canUndo = useStore(undoer.state, (s) => s.last !== null) && !locked;
@@ -173,11 +184,19 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
           if (event.decided !== false) lock();
         } else if (event.type === 'finale' || event.type === 'closed') lock();
         else if (event.type === 'no_super_likes') {
-          answerer.giveBackSuperLike();
-          setSuperLikesLeft(answerer.superLikesLeft());
-        } else if (event.type === 'card_not_dealt') stack.getState().onDeckUpdated();
+          // The server has no vote for this film: Undo has nothing to take back there.
+          undoer.markNotRecorded(event.title_id);
+          if (!refunded.has(event.title_id)) {
+            refunded.add(event.title_id);
+            answerer.giveBackSuperLike();
+            setSuperLikesLeft(answerer.superLikesLeft());
+          }
+        } else if (event.type === 'card_not_dealt') {
+          undoer.markNotRecorded(event.title_id);
+          stack.getState().onDeckUpdated();
+        }
       }),
-    [roomId, answerer, stack, lock],
+    [roomId, answerer, stack, lock, undoer, refunded],
   );
 
   // Connection: the stack waits offline and refills on return; the queue sends what waited.

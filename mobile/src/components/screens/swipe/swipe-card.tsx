@@ -35,6 +35,7 @@ import {
   LIGHT_FROM,
   PIVOT,
   progressOf,
+  returnStart,
   REDUCED_SLIDE,
   SECOND_CARD_SCALE,
   STACK_STEP,
@@ -78,7 +79,7 @@ export type SwipeCardProps = {
   depth: number;
   flight?: Flight;
   /** Undo brought this card back: it comes in from the side it left (or fades, with Reduce Motion). */
-  returning?: { kind: AnswerKind };
+  returning?: { kind: AnswerKind; direction?: Direction };
   flipped: boolean;
   /** A near miss: the card takes the like glow, front and back. */
   glow?: boolean;
@@ -212,10 +213,14 @@ export function SwipeCard(props: SwipeCardProps) {
       return;
     }
     if (fade.get() === 0) {
-      const away = returning.kind === 'nope' ? -1 : 1;
-      const up = returning.kind === 'seen';
-      x.set(up ? 0 : away * screen.width * THROW_DISTANCE);
-      y.set(up ? -screen.height * THROW_DISTANCE : 0);
+      // The side it left from: where the flight went (a No to the rewatch question goes left).
+      const start = returnStart(
+        returning.direction ??
+          (returning.kind === 'nope' ? 'left' : returning.kind === 'seen' ? 'up' : 'right'),
+        screen,
+      );
+      x.set(start.x);
+      y.set(start.y);
       fade.set(1);
     }
     x.set(withTiming(0, timing.base));

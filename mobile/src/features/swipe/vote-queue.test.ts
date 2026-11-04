@@ -558,4 +558,21 @@ describe('undo', () => {
     queue.enqueueUndo(undoItem(1));
     expect(queue.pending(ROOM)).toBe(1);
   });
+
+  it.each([
+    ['no_super_likes', () => ({ status: 'no_super_likes' }) as CastVoteResult],
+    [
+      'card_not_dealt',
+      () => {
+        throw notDealtError();
+      },
+    ],
+  ])('drops the undo behind a vote the server never recorded (%s)', async (_name, answer) => {
+    const { queue, log } = setup(answer as () => CastVoteResult);
+    queue.enqueue(vote(1, { answer: 'super_like' }));
+    queue.enqueueUndo(undoItem(1));
+    queue.enqueue(vote(2));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(log).toEqual(['vote 1', 'vote 2']);
+  });
 });

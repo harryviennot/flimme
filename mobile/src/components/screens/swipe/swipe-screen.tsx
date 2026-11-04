@@ -48,6 +48,8 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
   const lit = useSharedValue<number>(LIT.none);
   const dragging = useSharedValue(0);
   const [swipes, setSwipes] = useState(0);
+  // Where the last answered card went, so Undo can bring it back from there.
+  const lastThrow = useRef<{ direction: Direction } | null>(null);
 
   const { stack } = swipe;
   const topId = useStore(stack, (s) => s.mounted[0]?.title_id);
@@ -111,6 +113,7 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
     if (heldRef.current !== null) setHold(null);
     const flight = throwCard(kind, fromGesture, direction);
     if (flight) {
+      lastThrow.current = { direction: flight.direction };
       setSwipes((n) => n + 1);
       AccessibilityInfo.announceForAccessibility(
         t('a11y.thrown', { answer: tc(ANSWER_LABEL[kind]), title: flight.card.title }),
@@ -121,7 +124,7 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
 
   // Undo: the card is back in the stack at once; a copy still in the air is called back.
   const undoLast = useCallback(() => {
-    const back = swipe.undo();
+    const back = swipe.undo(lastThrow.current?.direction);
     if (!back) return;
     landed(back.card.title_id);
     AccessibilityInfo.announceForAccessibility(t('a11y.undone', { title: back.card.title }));
