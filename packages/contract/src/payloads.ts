@@ -140,6 +140,59 @@ export const startGameResult = z.discriminatedUnion('status', [
 ]);
 export type StartGameResult = z.infer<typeof startGameResult>;
 
+// --- Swiping ---------------------------------------------------------------------------
+
+const matchKind = z.enum(['unanimous', 'majority', 'finale']);
+
+/**
+ * `api.cast_vote`. `match` is always there on `ok`; `kind` and `decided` only when it is a match,
+ * `finale_round_id` only when this vote opened the finale. M6.2 adds an argument, not an answer.
+ */
+export const castVoteResult = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('ok'),
+    match: z.boolean(),
+    kind: z.optional(matchKind),
+    decided: z.optional(z.boolean()),
+    finale_round_id: z.optional(z.string()),
+  }),
+  z.object({ status: z.literal('closed'), state: roomState }),
+  z.object({ status: z.enum(['duplicate', 'dropped', 'no_super_likes']) }),
+]);
+export type CastVoteResult = z.infer<typeof castVoteResult>;
+
+/** `api.request_cards`: `ok` carries the deal's counts when cards were dealt now. */
+export const requestCardsResult = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('ok'),
+    started: z.optional(z.boolean()),
+    seats: z.optional(z.number()),
+    fallback: z.optional(z.boolean()),
+  }),
+  z.object({ status: z.literal('queued') }),
+  z.object({ status: z.literal('enough'), remaining: z.number() }),
+  z.object({ status: z.literal('closed'), state: roomState }),
+]);
+export type RequestCardsResult = z.infer<typeof requestCardsResult>;
+
+export const undoLastVoteResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), title_id: z.number() }),
+  z.object({ status: z.enum(['closed', 'nothing_to_undo', 'locked']) }),
+]);
+export type UndoLastVoteResult = z.infer<typeof undoLastVoteResult>;
+
+/** A row of `api.room_matches`: a film the room agreed on. */
+export const roomMatchRow = z.object({
+  room_id: z.string(),
+  title_id: z.number(),
+  kind: matchKind,
+  like_count: z.number(),
+  present_count: z.number(),
+  pick_order: z.nullable(z.number()),
+  created_at: z.string(),
+});
+export type RoomMatch = z.infer<typeof roomMatchRow>;
+
 // --- Views -----------------------------------------------------------------------------
 
 /** The `app_config` keys the app reads. Unknown keys are ignored, missing ones are undefined. */

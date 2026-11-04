@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  CAST_VOTE_ANSWERS,
+  REQUEST_CARDS_ANSWERS,
+  UNDO_LAST_VOTE_ANSWERS,
   CREATE_ROOM_ANSWERS,
   JOIN_ROOM_ANSWERS,
   ROOM_PREVIEW_ANSWERS,
@@ -160,6 +163,25 @@ const cases = [
     answers: TITLE_CARDS_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.titleCards({ room_id: ROOM, title_ids: [1] }),
     full: { ok: { cards: [] }, too_many: { max: 50 } },
+  },
+  {
+    name: 'cast_vote',
+    answers: CAST_VOTE_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) =>
+      a.castVote({ room_id: ROOM, title_id: 7, answer: 'like' }),
+    full: { ok: { match: false }, closed: { state: 'finale' } },
+  },
+  {
+    name: 'request_cards',
+    answers: REQUEST_CARDS_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.requestCards({ room_id: ROOM }),
+    full: { enough: { remaining: 12 }, closed: { state: 'finale' } },
+  },
+  {
+    name: 'undo_last_vote',
+    answers: UNDO_LAST_VOTE_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.undoLastVote({ room_id: ROOM }),
+    full: { ok: { title_id: 7 } },
   },
 ] as const;
 
@@ -646,6 +668,114 @@ describe('my_next_cards', () => {
     await expect(createApi(client).myNextCards({ room_id: ROOM })).rejects.toMatchObject({
       kind: 'denied',
     });
+  });
+});
+
+describe('swiping', () => {
+  it('cast_vote sends the SQL parameter names and leaves unset ones out', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok', match: false }));
+    await createApi(client, { validate: true }).castVote({
+      room_id: ROOM,
+      title_id: 7,
+      answer: 'super_like',
+      member_id: MEMBER,
+      dwell_ms: 900,
+      client_at: '2026-11-04T10:00:00Z',
+    });
+    await createApi(client).castVote({ room_id: ROOM, title_id: 8, answer: 'nope' });
+    expect(calls[0]).toEqual({
+      fn: 'cast_vote',
+      args: {
+        p_room_id: ROOM,
+        p_title_id: 7,
+        p_answer: 'super_like',
+        p_member_id: MEMBER,
+        p_dwell_ms: 900,
+        p_client_at: '2026-11-04T10:00:00Z',
+      },
+    });
+    expect(calls[1]?.args).toMatchObject({ p_member_id: undefined, p_dwell_ms: undefined });
+  });
+
+  it('cast_vote reads a match and a finale', async () => {
+    const answer = {
+      status: 'ok',
+      match: true,
+      kind: 'unanimous',
+      decided: true,
+      finale_round_id: 'r1',
+    };
+    const { client } = fake(() => ok(answer));
+    await expect(
+      createApi(client, { validate: true }).castVote({
+        room_id: ROOM,
+        title_id: 1,
+        answer: 'like',
+      }),
+    ).resolves.toEqual(answer);
+  });
+
+  it('cast_vote with a wrong shape is unexpected when checks are on', async () => {
+    const { client } = fake(() => ok({ status: 'ok' }));
+    await expect(
+      createApi(client, { validate: true }).castVote({
+        room_id: ROOM,
+        title_id: 1,
+        answer: 'like',
+      }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
+  });
+
+  it('cast_vote keeps the database code of a card that was not dealt', async () => {
+    const { client } = fake(() => ({ data: null, error: { message: 'no', code: '22023' } }));
+    await expect(
+      createApi(client).castVote({ room_id: ROOM, title_id: 1, answer: 'like' }),
+    ).rejects.toMatchObject({ kind: 'unexpected', code: '22023' });
+  });
+
+  it('cast_vote, request_cards and undo_last_vote reject an unknown status', async () => {
+    const { client } = fake(() => ok({ status: 'maybe' }));
+    const api = createApi(client);
+    await expect(
+      api.castVote({ room_id: ROOM, title_id: 1, answer: 'like' }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
+    await expect(api.requestCards({ room_id: ROOM })).rejects.toMatchObject({ kind: 'unexpected' });
+    await expect(api.undoLastVote({ room_id: ROOM })).rejects.toMatchObject({ kind: 'unexpected' });
+  });
+
+  it('request_cards and undo_last_vote send p_room_id and p_member_id', async () => {
+    const { client, calls } = fake(() => ok({ status: 'queued' }));
+    await createApi(client).requestCards({ room_id: ROOM, member_id: MEMBER });
+    await createApi(fake(() => ok({ status: 'closed' })).client).undoLastVote({ room_id: ROOM });
+    expect(calls[0]).toEqual({
+      fn: 'request_cards',
+      args: { p_room_id: ROOM, p_member_id: MEMBER },
+    });
+  });
+
+  it("room_matches reads the room's rows and rejects a wrong shape", async () => {
+    const row = {
+      room_id: ROOM,
+      title_id: 7,
+      kind: 'majority',
+      like_count: 2,
+      present_count: 3,
+      pick_order: null,
+      created_at: '2026-11-04T10:00:00Z',
+    };
+    const { client, calls } = fake(() => ok([row]));
+    await expect(
+      createApi(client, { validate: true }).roomMatches({ room_id: ROOM }),
+    ).resolves.toEqual([row]);
+    expect(calls[0]).toEqual({ fn: 'room_matches.eq', args: ['room_id', ROOM] });
+    await expect(
+      createApi(fake(() => ok([{ ...row, kind: 'x' }])).client, { validate: true }).roomMatches({
+        room_id: ROOM,
+      }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
+    await expect(
+      createApi(fake(() => ok([])).client).roomMatches({ room_id: ROOM }),
+    ).resolves.toEqual([]);
   });
 });
 
