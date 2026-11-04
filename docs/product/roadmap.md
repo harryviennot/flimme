@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 91 of 257 tasks done.
+Progress: 92 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -182,7 +182,7 @@ Done when: the name is chosen, every account is open, TMDB is emailed, the game 
 
 - [x] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
   Done when: the name is checked on both stores, in trademark databases and for domains, and recorded in decisions.md.
-- [ ] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
+- [x] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the domain resolves and support@ receives mail.
 - [x] **M0.3** Enrol in the Apple Developer Program as an individual and declare trader status · publishing · S · [store-listing](store-listing.md#developer-accounts)
   Done when: enrolment is accepted.
