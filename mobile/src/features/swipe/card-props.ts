@@ -6,10 +6,13 @@ import { formatList } from '@/features/lobby/names';
 import { posterUrl } from './poster-url';
 
 // What a card from the server shows on the movie card: numbers through Intl in the profile's
-// language, services from the card's own offers. The back's content is M6.10's to refine.
+// language, services from the card's own offers. The back reads the same payload: nothing on it
+// waits on the network.
 
 const MAX_SERVICES = 3;
-const CAST_SHOWN = 3;
+const CAST_SHOWN = 5;
+const BACK_SERVICES = 6;
+const LOGO_SIZE = 'w92';
 const INCLUDED = new Set(['subscription', 'free', 'ads']);
 
 /** "1 h 43", "2 h 04" or "45 min". */
@@ -48,6 +51,30 @@ export function cardServices(card: NextCard): string[] {
   return names.slice(0, MAX_SERVICES);
 }
 
+export type BackService = { name: string; logo?: string };
+
+/** The room's services for the film, with their logos, once each, for the back of the card. */
+export function backServices(card: NextCard, imageBase: string | undefined): BackService[] {
+  const base = imageBase?.replace(/\/+$/, '');
+  const list: BackService[] = [];
+  for (const offer of card.providers) {
+    if (!INCLUDED.has(offer.kind) || list.some((s) => s.name === offer.name)) continue;
+    list.push({
+      name: offer.name,
+      logo:
+        base && offer.logo_path
+          ? `${base}/${LOGO_SIZE}/${offer.logo_path.replace(/^\/+/, '')}`
+          : undefined,
+    });
+  }
+  return list.slice(0, BACK_SERVICES);
+}
+
+/** The trailer opens on YouTube, outside the app. */
+export function trailerUrl(key: string): string {
+  return `https://www.youtube.com/watch?v=${encodeURIComponent(key)}`;
+}
+
 export type CardTextOptions = {
   language: string;
   /** `app_config.tmdb_image_base`. */
@@ -55,13 +82,18 @@ export type CardTextOptions = {
   screenWidth: number;
   /** `swipe:card.noSynopsis`. */
   noSynopsis: string;
+  /** Opens a trailer. Without it (or without a `trailer_key`) the back has no Trailer button. */
+  onTrailer?: (url: string) => void;
+  /** A touch started on the Trailer button. */
+  onTrailerTouch?: () => void;
 };
 
 export function toMovieCard(
   card: NextCard,
   options: CardTextOptions,
 ): Omit<MovieCardProps, 'flipped' | 'onFlip' | 'stamp'> {
-  const { language } = options;
+  const { language, onTrailer } = options;
+  const key = card.trailer_key;
   const url = posterUrl(options.imageBase, card.poster_path, options.screenWidth);
   const directors = card.directors.length > 0 ? formatList(card.directors, language) : undefined;
   const cast =
@@ -77,6 +109,9 @@ export function toMovieCard(
       synopsis: card.overview ?? options.noSynopsis,
       director: directors,
       cast,
+      services: backServices(card, options.imageBase),
+      onTrailer: key && onTrailer ? () => onTrailer(trailerUrl(key)) : undefined,
+      onTrailerTouch: options.onTrailerTouch,
     },
   };
 }

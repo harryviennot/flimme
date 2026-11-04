@@ -88,7 +88,7 @@ Placeholders, tuned at the first feel check. The gesture rules live in `features
 
 **Front** (screens 11 and 12): the poster, the `card-scrim`, the flip badge, the title in `title-l`, the meta in `mono-data` ("2019 · 2 h 04 · Thriller · ★ 7.4": the year, the runtime and the score through `Intl`, the first genre), the room's services for the film as `Tag`s. No reason tag in the first release (the First release frame's caption: watchlist and taste reasons wait for M17 to M20).
 
-**Back** (screen 13, M6.10): the 132-point header (poster, scrim, title, meta, the `refresh` flip badge); the TMDB score box (`star`, `display-m` in `marquee.default`, `common:card.tmdbRating`); `common:card.synopsis` and the overview in `body-m`, cut with an ellipsis to the space left (the back never scrolls, Q10.1); `common:card.director` and `common:card.cast` (the directors and the first 3 names, joined with `Intl.ListFormat`); the services tags; the Trailer button (`Button` secondary S, icon `play`, `common:card.trailer`), which opens the trailer outside the app; `common:card.flipBack`. No Letterboxd rating (M20).
+**Back** (screen 13, M6.10): the 132-point header (poster, scrim, title, meta, the `refresh` flip badge); the TMDB score box (`star`, `display-m` in `marquee.default`, `common:card.tmdbRating`); `common:card.synopsis` and the overview in `body-m`, cut with an ellipsis to the space left (the back never scrolls, Q10.1); `common:card.director` and `common:card.cast` (the directors and the first 5 names, joined with `Intl.ListFormat`; the cast line takes two lines); the room's services for the film, each with its logo when TMDB has one (`w92`, six at most); the Trailer button (`Button` secondary S, icon `play`, `common:card.trailer`), which opens the trailer outside the app; `common:card.flipBack`. No Letterboxd rating (M20).
 
 - **No trailer** when `trailer_key` is null: rooms capped under 13 always get null (M7.3), and so do films without one. The services tags take the row alone.
 - **The flip** (moments.md#the-flip): a tap turns the card in place (`timing.flip`, faces swap halfway), a second tap turns it back. The cards behind don't move. A drag mid-turn takes the card from where it is; a tap mid-turn reverses it. The back answers exactly like the front (drags, buttons, stamps over the back). No haptic, no sound. Whether the card was flipped goes with its vote (`flipped`, M6.2). Everything on the back is in the card's payload, so a flip never waits, offline included.
@@ -238,7 +238,10 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 | `a11y.actions.nope` | Bof | Nope |
 | `a11y.actions.superLike` | Coup de cœur | Super like |
 | `a11y.actions.seen` | Déjà vu | Seen it |
+| `a11y.cardBackNoRating` | {{title}}. {{synopsis}} | {{title}}. {{synopsis}} |
+| `a11y.cardBackServices` | Sur {{services}}. | On {{services}}. |
 | `a11y.actions.flip` | Retourner la carte | Flip the card |
+| `a11y.actions.trailer` | Voir la bande-annonce | Watch the trailer |
 | `a11y.superLeft_one` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superLeft_other` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superNone` | Plus de coup de cœur | No super likes left |
@@ -267,7 +270,7 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 ## Accessibility
 
 - **Focus order:** Leave, the pills (each a button but your own, hint `lobby:a11y.seat`), the banner, the top card, the hint, Undo, Nope, Super, Like, Seen it.
-- **The top card is one element:** `swipe:a11y.card` on the front, `swipe:a11y.cardBack` on the back, with custom actions like, nope, super like, seen it and flip (`swipe:a11y.actions.*`). After an action, `swipe:a11y.thrown` is announced and focus stays on the new top card. The Trailer button is its own element while the back shows.
+- **The top card is one element:** `swipe:a11y.card` on the front, `swipe:a11y.cardBack` on the back, with custom actions like, nope, super like, seen it and flip (`swipe:a11y.actions.*`). After an action, `swipe:a11y.thrown` is announced and focus stays on the new top card. While the back shows, the card also offers a `trailer` custom action (the card is one element, so a button inside it can't take focus). The back's reading adds the director, the cast and the services after the synopsis. The reason label waits for the reason codes (M17 to M20): until the app knows a code, no label shows, front or back.
 - **The buttons** use `common:answers.*` as labels; Super uses `swipe:a11y.superLeft_*` or `superNone`; a disabled Undo has `swipe:a11y.undoNone` as its hint.
 - **The rewatch question** takes focus on its title; Yes and No are labelled `swipe:a11y.seenYes` and `seenNo`; the escape gesture closes it with no vote.
 - **The near-miss toast** is announced once, politely, when it shows on the focused card.

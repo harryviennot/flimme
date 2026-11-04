@@ -57,6 +57,8 @@ export type CardStackState = {
   stale: boolean;
   /** The top card shows its back. */
   flipped: boolean;
+  /** How many times a card was turned to its back, for the card 3 hint (it leaves at the first). */
+  flips: number;
   /** When the top card reached the top (`deps.now()`), or null with no card. */
   shownAt: number | null;
   start: () => void;
@@ -200,6 +202,7 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
       status: 'loading',
       stale: false,
       flipped: false,
+      flips: 0,
       shownAt: null,
 
       start: () => void refetch(false),
@@ -236,7 +239,9 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
       },
 
       setFlipped: (flipped) => {
-        if (get().mounted.length > 0) set({ flipped });
+        const { mounted, flipped: was, flips } = get();
+        if (mounted.length === 0) return;
+        set({ flipped, flips: flipped && !was ? flips + 1 : flips });
       },
 
       onDeckUpdated: () => {
