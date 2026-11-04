@@ -78,7 +78,7 @@ Copies of the Release screens frames, changed on 30 October 2026 (M0.9) to match
 | | | | 12 Mid-swipe | `99:4093` | `19:938` | [swipe](screens/swipe.md) |
 | | | | 13 Card flipped | `99:4122` | `19:1332` | [swipe](screens/swipe.md) (the back) |
 | | | | 14 It's a match | `99:4149` | `22:921` | [match](screens/match.md) |
-| | | | 15 Final cut | `99:4187` | `22:1051` | No spec yet |
+| | | | 15 Final cut | `99:4187` | `22:1051` | [final-cut](screens/final-cut.md) (the reveal comes with M6.31) |
 | | | | 16 Winner | `99:4232` | `22:1304` | [winner](screens/winner.md) |
 | | | | 17 Recap card | `99:4268` | `22:1578` | No spec yet |
 | 05-06 Settings and edge states | `114:2022` | `114:2026` | 22 Settings | `99:4309` | `26:2113` | No spec yet |
