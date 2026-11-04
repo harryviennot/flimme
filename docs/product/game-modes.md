@@ -228,6 +228,7 @@ A ballot locked in before its player left still counts. The result is broadcast 
 **Running out of cards** (the "Nothing left" screen in the design):
 
 - A player whose deck is empty, after a refill and the SQL fallback brought nothing, is marked done and sees what caused it: tonight's filters and how many films the room has liked.
+- **How done is decided (M6.29).** A seat is done when it has no unanswered card and the SQL baseline, tried right then for that seat, deals it nothing (`room_members.done_at`). It is checked in `api.cast_vote` after a vote leaves 0 cards, and in `api.request_cards`. Under `deck_engine` `server` a queued refill holds it back until the 8-second second call runs the baseline and it deals nothing. `api.request_cards` then answers `done` with `liked`, the room's films with a like (a count, never which films or who). An undo that gives a card back clears `done_at`. Every present seat counts for "everyone done", a late joiner included; the finale's reason is `all_done`, and the card count or time limit wins when it also holds on the same vote.
 - The **host** can tap **Change filters**. **Default to confirm:** the host may change the time budget, moods, quality, seen rule and services during swiping, not only in the lobby; every deck is re-ranked at once (the 3 mounted cards stay). Or the host can tap **Vote now**.
 - When every present player is done, the finale starts by itself if any film has a like; otherwise the room waits for the host for 5 minutes, then ends with no pick.
 

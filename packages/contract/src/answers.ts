@@ -93,9 +93,10 @@ export type StartGameAnswer = (typeof START_GAME_ANSWERS)[number];
 
 /**
  * `api.request_cards` answers. `ok` means cards were dealt now: under `deck_engine`
- * `sql` (M1.13), or the 8-second fallback (with `fallback`).
+ * `sql` (M1.13), or the 8-second fallback (with `fallback`). `done` (M6.29): the seat has no card
+ * left and the baseline dealt it nothing; `liked` counts the room's films with a like.
  */
-export const REQUEST_CARDS_ANSWERS = ['ok', 'queued', 'enough', 'closed'] as const;
+export const REQUEST_CARDS_ANSWERS = ['ok', 'queued', 'enough', 'closed', 'done'] as const;
 export type RequestCardsAnswer = (typeof REQUEST_CARDS_ANSWERS)[number];
 
 /** `api.cast_vote` answers. */
