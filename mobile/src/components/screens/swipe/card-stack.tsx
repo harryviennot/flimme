@@ -6,7 +6,7 @@ import { useStore } from 'zustand';
 
 import type { AnswerKind } from '@/features/swipe/answer';
 import { openTrailer } from '@/features/swipe/trailer';
-import { backServices, cardMeta, cardServices } from '@/features/swipe/card-props';
+import { backServices, cardMeta, cardServices, trailerAllowed } from '@/features/swipe/card-props';
 import { STACK_STEP, type Direction } from '@/features/swipe/feel';
 import type { Flying } from '@/features/swipe/use-flights';
 import type { Swipe } from '@/features/swipe/use-swipe';
@@ -32,6 +32,8 @@ const ACTION: Record<string, AnswerKind> = {
 
 export type CardStackProps = {
   swipe: Swipe;
+  /** `rooms.max_age`: under 13 there is no Trailer (M7.3). */
+  maxAge: number | null | undefined;
   /** The film whose card takes the like glow (a near miss), if any. */
   glowId?: number;
   flying: Flying[];
@@ -53,6 +55,7 @@ export type CardStackProps = {
 
 export function CardStack({
   swipe,
+  maxAge,
   glowId,
   flying,
   throwCard,
@@ -128,7 +131,9 @@ export function CardStack({
     { name: 'seen', label: t('a11y.actions.seen') },
     { name: 'flip', label: t('a11y.actions.flip') },
     // The Trailer button sits inside the card, which is one element for a screen reader.
-    ...(flipped && top?.trailer_key ? [{ name: 'trailer', label: t('a11y.actions.trailer') }] : []),
+    ...(flipped && top?.trailer_key && trailerAllowed(maxAge)
+      ? [{ name: 'trailer', label: t('a11y.actions.trailer') }]
+      : []),
   ];
 
   const flip = () => {
@@ -137,7 +142,8 @@ export function CardStack({
   };
   const onAction = (name: string) => {
     if (name === 'flip') return flip();
-    if (name === 'trailer') return openTrailer(top?.trailer_key);
+    if (name === 'trailer')
+      return trailerAllowed(maxAge) ? openTrailer(top?.trailer_key) : undefined;
     const kind = ACTION[name];
     if (kind) throwCard(kind, false);
   };
@@ -184,6 +190,7 @@ export function CardStack({
                 imageBase: swipe.imageBase,
                 screenWidth: screen.width,
                 noSynopsis: t('card.noSynopsis'),
+                maxAge,
               }}
               dragProgress={dragProgress}
               lit={lit}
