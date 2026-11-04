@@ -1,6 +1,6 @@
 # Signature moments
 
-The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match. The winner was added on 4 November 2026, before M6.16, and the Final Cut the same day, before M6.15 (with Harry's answers Q5.1, Q5.2, Q5.5 and Q15.1 to Q15.5); the reveal comes before M6.31.
+The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match. The winner was added on 4 November 2026, before M6.16, and the Final Cut the same day, before M6.15 (with Harry's answers Q5.1, Q5.2, Q5.5 and Q15.1 to Q15.5). The reveal was added the same day, before M6.31 (with Q15.1, Q15.4 and Q31.1).
 
 It builds on [the answers](../product/game-modes.md#the-answers), [when it's a match](../product/game-modes.md#when-its-a-match) and [what players see](../product/game-modes.md#what-players-see-party-and-blind) in the game modes, [the card stack](../architecture/app-structure.md#the-card-stack), [the vote queue](../architecture/app-structure.md#the-vote-queue) and [realtime](../architecture/app-structure.md#realtime) in the app structure, [the first game](../product/onboarding.md#the-first-game) in onboarding, [the signature moments](../agent-workflow.md#the-signature-moments) in the agent workflow, and the `motion` skill (tokens, the haptic vocabulary, the two sounds). The backend facts come from the merged migrations of 3 November 2026: a deal is 25 cards per seat with a shared opening of 10, a vote counts on any active card in the room's pool, "Seen it" saves to the profile, and `api.cast_vote` checks matches (M1.13) while the match rules and their values are M6.1, not yet built.
 
@@ -15,9 +15,10 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 5. [The match](#the-match)
 6. [The winner](#the-winner)
 7. [The Final Cut](#the-final-cut)
-8. [Starting values](#starting-values)
-9. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
-10. [Questions for Harry](#questions-for-harry)
+8. [The reveal](#the-reveal)
+9. [Starting values](#starting-values)
+10. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
+11. [Questions for Harry](#questions-for-harry)
 
 ## What every moment keeps
 
@@ -30,14 +31,15 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 | A near miss | A count of likes on one film, `near_miss` with `likes` and `of` | After the like that makes it a near miss |
 | A match | The film, the kind, the count (`3 of 3`, `7 of 9`) and whether it decides the night, `match` | At once, on every phone |
 | The Final Cut | Which seats have locked in, `round_progress` with `locked` (seat ids) and `of`. Never a ballot, a veto or points | After each lock-in |
+| The reveal | The winner, the reason, and each finalist's seed, points and whether it was knocked out, `match` of kind `finale`. Never who vetoed or how anyone ranked | At the close, on every phone |
 
 **Never shown, in any moment:** who noped, who said "Seen it" and didn't want to rewatch, what anyone answered, the order in which people answered, and which player's like completed a match. Avatars always appear in seat order (the order of the player row), never in the order of votes. A count is the most any phone learns during a game.
 
 **Couch rule.** Most groups sit together and can see each other's faces and sometimes screens. A beat must not let a player work out someone's nope from timing: nothing appears on everyone's phone at the moment one person swipes, except the match itself (which only ever says yes). This is why [the near miss](#the-near-miss) shows on the cards still waiting for an answer, not on every phone.
 
-**Haptics** use the vocabulary in `@/lib/haptics`, one meaning each: `commit`, `throw` and `match` here, `veto` and `countdown` in the Final Cut; `press` comes with every `Pressable`. No moment adds a new haptic. The haptics setting turns all of them off.
+**Haptics** use the vocabulary in `@/lib/haptics`, one meaning each: `commit`, `throw` and `match` here, `veto` and `countdown` in the Final Cut, `veto` and `match` again in the reveal; `press` comes with every `Pressable`. No moment adds a new haptic. The haptics setting turns all of them off.
 
-**Sound** is only for the match here (`playSound('match')`), decided on 29 October 2026. The swipe, the flip and the near miss are silent.
+**Sound** is only for the match (`playSound('match')`) and the Final Cut's reveal (`playSound('reveal')`), decided on 29 October 2026. Every other moment is silent.
 
 **Reduce Motion.** Reanimated skips animations by default when the system setting is on, which would make things jump. Each beat says what replaces its movement: flights become short slides or fades, scales become fades, chases and pulses become still. Fades use opacity only. Haptics and sound don't change with Reduce Motion; they follow their own settings.
 
@@ -289,7 +291,7 @@ Every phone gets there on its own, from the same room state (`done` with a `pick
 | From | How the arrival feels |
 | --- | --- |
 | The match overlay ([the match](#the-match)) | A settling, not a new moment. The winner screen is already under the overlay; the overlay fades out (`layout.fadeOut`) and the same film's poster is there, still. Nothing on the winner screen animates in |
-| The Final Cut (until M6.31, Q15.4) | The news itself, told quietly. "Counting the votes" gives way to the winner screen with a fade (`layout.fadeIn`, `duration.base`). This is the one arrival where the players learn the winner here, so the title is what the screen reader reads first. When M6.31 ships, the reveal plays the celebration and hands over as the match overlay does |
+| The Final Cut (until M6.31, Q15.4) | The news itself, told quietly. "Counting the votes" gives way to the winner screen with a fade (`layout.fadeIn`, `duration.base`). This is the one arrival where the players learn the winner here, so the title is what the screen reader reads first. When M6.31 ships, [the reveal](#the-reveal) plays the celebration first and the winner screen fades in after it, with nothing else animating in |
 | A single-film pick (Q4.4) | No overlay (Q4.5) and no vote. The stack stops taking input as it does for a match (a card mid-drag springs back, `spring.card`), and the winner screen fades in (`layout.fadeIn`, `duration.base`). One line above the title says why: "The only film anyone liked". The reveal beat (M6.31) may give it more |
 | A cold start or a return to a `done` room | Straight to the screen, no transition, once the overlay rule has played or skipped (match-shown) |
 
@@ -406,6 +408,93 @@ Only lock-ins: the `round_progress` event `{round_id, locked, of}` lists seat id
 - **Status answers.** `invalid` and `no_veto` are client bugs: reported to Sentry, shown as a retry. `not_in_room` sends the phone Home as a left seat.
 - **Two seats on one phone** are out of scope for this beat.
 
+## The reveal
+
+### The beat
+
+**"Tonight's pick": the vetoes drop together, the points add up, one film is lit.** The round has closed after a minute of lobbying on the couch. The reveal answers it once and fast: every phone shows the same result at the same moment, then hands over to where to watch it. It should feel fair (you see why it won) and short (the group wants its film): under 5 seconds from the close to the winner screen.
+
+It shows the room's result, never a ballot. At the start every phone clears its own badges and stamp, so your screen and your neighbour's look the same.
+
+### How it arrives
+
+The close sends `match {title_id, kind: 'finale', decided: true, likes, of, reason, finalists: [{title_id, seed, points, vetoed}]}`, then `state_changed {state: 'done'}` (M6.5). The reveal starts on the `match` event, on the Final Cut screen the phone already shows ("Counting the votes", or the round itself if everyone locked in early). From then until the hand-over the reveal holds the route (`use-reveal-hold`), so `state_changed` doesn't swap the screen. The match overlay never plays for a finale pick (Q15.1). Each phone times the sequence from its own arrival of the event, so on a couch they land within network latency of each other.
+
+`vetoed` means knocked out, nothing more: when every finalist got a veto, the two still in show as still in. `points` only count for films still in.
+
+### The sequence
+
+Times from the event. A step with nothing to show is skipped, and the next one moves up.
+
+| Time | What every phone shows |
+| --- | --- |
+| 0 | "Counting the votes", the countdown and the lock-in row fade out (`layout.fadeOut`). The posters come back to full brightness where they were, in seed order, with every badge and this phone's own stamp gone. `playSound('reveal')` |
+| 300 ms | **The vetoes, together.** Every knocked-out film gets the Veto stamp at the same instant (`easing.arcade`, as in the round), with one `haptics.veto()`. The poster then falls away: it sinks a little and greys out (`timing.exit`) but keeps its place, so the row never reflows. No order, no stagger |
+| 800 ms | **The points.** Under each film still in, its points count up from 0, all together (`timing.celebrate`). Only from 3 ballots ([What never happens](#what-never-happens)) |
+| 1.8 s | **The winner.** The other films still in dim. The winner lifts slightly (`timing.celebrate`, the arcade overshoot) and `Spotlight tone="marquee"` fades in behind it. The heading becomes "Tonight's pick" and the reason's line pops in under it (`layout.popIn`). `haptics.match()`. "Where to watch" fades in (`layout.fadeIn`) |
+| From the winner | A tap anywhere, or the button, goes on. A touch that started earlier never counts |
+| Winner plus 2.5 s | The hand-over: the layout replaces the screen with `/room/[id]/winner` without a navigation animation, and the winner screen fades in with the same poster, still ([the winner](#how-it-arrives)) |
+
+The whole sequence takes about 4.3 s. Without knock-outs (a ranked vote, or nobody vetoed) it takes 3.8 s, without points 3.3 s, and with neither (`no_ballots`) 2.8 s.
+
+### Each reason
+
+| `reason` | Steps | The line under "Tonight's pick" |
+| --- | --- | --- |
+| `points` | Knock-outs if any, points from 3 ballots, the winner | "Top of the votes". On a tie at the top, with the points shown: "A tie, broken by your swipes" (ties go to super likes, then likes, then the group score) |
+| `only_unvetoed` | Knock-outs, then the winner. No points: with one film in, they say nothing | "The only film nobody vetoed" ([counting](../product/game-modes.md#counting)) |
+| `no_ballots` | The winner only: no vetoes, no points | "Top of your swipes". It never says nobody voted ([the Final Cut](#edge-cases-5)) |
+| `only_film` | No round, so no reveal (Q4.4): the winner screen fades in with "The only film anyone liked" ([the winner](#how-it-arrives)) | |
+
+A ranked vote has no vetoes, so it is always `points` without knock-outs. The French lines are for the screen spec (final-cut.md, the reveal section), proposed: « En tête des votes », « Égalité, départagée par vos swipes », « Le seul film que personne n'a éliminé », « Le préféré de vos swipes », and the heading « Le film du soir » (as the winner screen). No exclamation marks: the winner screen says it calmly too.
+
+### Haptics and sound
+
+- `playSound('reveal')` once at 0 (a no-op until M6.24). The match sound doesn't play: it belongs to the match.
+- `haptics.veto()` once when the stamps land, however many films are knocked out; none when nothing is.
+- `haptics.match()` once when the winner lifts ("the winner is revealed").
+- Nothing on the points, and nothing on the winner screen after it.
+
+### Reduce Motion
+
+- The stamps fade in at full size, and the knocked-out posters fade to grey without sinking.
+- The points appear at their totals with a fade, without counting.
+- The winner doesn't lift: the other films dim and the Spotlight fades in.
+- The times stay the same, so phones keep in step. Haptics and sound are unchanged.
+
+### The screen reader
+
+- At 0 the reveal takes focus and announces the result once, assertively: "Vetoed: Dune, Barbie. Tonight's pick: Heat. The only film nobody vetoed." The knock-outs come first only when there are some; the points aren't read here.
+- Each poster is one element: its title and year, then "Vetoed", "7 points" or "Tonight's pick, 9 points".
+- No automatic hand-over while VoiceOver or TalkBack is on: the button goes on, as in the match overlay.
+
+### A phone that missed it
+
+A phone that comes back (the foreground, a reconnect, a cold start), or gets `state_changed {state: 'done'}` without the event, re-reads the room (Q31.1). If the room is `done` with a kind `finale` pick and a closed round in `api.rounds`, and it isn't in `matchShownStore`, the phone reads `api.round_candidates` (`seed`, `points`, `vetoed`) and the finalists' cards. It plays the reveal once, in full, with the sound and haptics, then the winner screen. A player who missed the moment still deserves it. If the reads don't answer within 3 seconds, the winner screen shows and the room counts as shown: the film matters more than the show.
+
+The room is marked shown when the winner lifts, or when the reveal leaves, whichever comes first (the overlay is marked when its avatars land). A phone sent to the background before the winner plays the reveal again on its return; after it, the phone goes straight to the winner screen. A second `match` event, or the event after a re-read, plays nothing more.
+
+### What never happens
+
+- Who vetoed: `vetoed_by` never reaches a phone. No avatar, seat name or initial next to any film, and the lock-in row leaves at 0.
+- How many vetoes a film got, or that a film still in was vetoed.
+- How anyone ranked, including this phone's own ballot: during the reveal every phone shows only the room's result.
+- Vetoes one after another. They land at once, so timing can't tie a veto to a face on the couch.
+- Points from fewer than 3 ballots. With 2, your own ballot taken from the totals gives the other one exactly. The phone counts ballots without a read: every ballot ranks every film it didn't veto, so the n films still in share n × (n + 1) / 2 points per ballot. When everyone agrees, the points show it, as "3 of 3" does; they never isolate one person.
+- Points on a knocked-out film.
+- "Your vote didn't count", "Nobody voted", or anything about who didn't lock in.
+- The match overlay, the marquee bulbs or the match sound: they belong to the match.
+- A replay button or a countdown to the winner screen.
+
+**With 2 players**, the result itself gives the other's veto away: a knocked-out film you didn't veto is theirs, and "The only film nobody vetoed" says the same. The rules show knock-outs in every room ([what players see](../product/game-modes.md#what-players-see-party-and-blind)), and the round's intro tells each player their veto "stays secret until the end". So the beat shows them at every size and adds nothing on top (no points, no tie line). Whether 2-player rooms should hide them is [question 11](#questions-for-harry).
+
+### Edge cases
+
+- **Everyone locked in early.** The event can arrive before this phone's zero: the countdown stops and the reveal starts from there.
+- **A player who didn't lock in** sees the same reveal as everyone else.
+- **A poster that hasn't loaded.** Its placeholder takes the stamp, the points and the spotlight; the poster fades in over it if it arrives.
+- **The largest text.** The line wraps to two lines; each film's points stay on one line under its poster.
+
 ## Starting values
 
 Placeholders for the feel check (the `feel-check` skill) and the first playtests. The ones marked "token?" are new numbers the designer should either map to an existing token or add to `tokens.json` first.
@@ -428,6 +517,11 @@ Placeholders for the feel check (the `feel-check` skill) and the first playtests
 | Countdown red | The last 10 s (`Countdown`) | The Final Cut |
 | Countdown ticks | The last 5 s, only before lock-in | The Final Cut |
 | Screen reader time announcements | At 30 s, 10 s and zero | The Final Cut |
+| First step after the event | 300 ms | The reveal |
+| Step lengths | Knock-outs 500 ms, points 1 s (`timing.celebrate` plus 200 ms) | The reveal |
+| Winner before the hand-over | 2.5 s, a tap goes on earlier (token? `duration.reveal-hold`) | The reveal |
+| Points shown | From 3 ballots (question 12) | The reveal |
+| A missed reveal's reads | 3 s, then the winner screen | The reveal |
 
 ## Changes this asks elsewhere
 
@@ -441,6 +535,9 @@ None of these is decided; each follows from a question below or is a gap found w
 | `api.cast_vote` | The optional `flipped` argument for `swipe_log` ([deck engine](../architecture/deck-engine.md#changes-to-the-data-model), [app structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)). No roadmap task carries it yet; M6.10 needs it | The flip beat sends it with the vote |
 | `internal.recheck_room_matches`, M6.1 | Walk films in a fixed order (question 5) | Today ties in like counts come out in no defined order |
 | [game-modes.md](../product/game-modes.md#what-players-see-party-and-blind) | If question 4's default is accepted: a Party match shows every player's avatar and the count, not "who said yes" | A majority match would otherwise show who didn't |
+| `mobile/src/theme/tokens.json`, M6.31 | `duration.reveal-hold`, 2500ms, "The reveal before the winner screen (a starting value)" | The reveal's hand-over, as `duration.match-hold` for the overlay |
+| [final-cut.md](screens/final-cut.md#the-reveal-m631), M6.31 | The reveal section: the lines above in both languages, the points label (`_one`, `_other`), the announcement and the button | The section waits for this beat |
+| [game-modes.md](../product/game-modes.md#what-players-see-party-and-blind), the finale row | If question 12's default is accepted: "The points after the close, from 3 ballots" | The points are new on phones, and the row only lists the knock-outs |
 | The winner screen spec (screens/winner.md, to be written), M6.16 | The single-film pick's line, "The only film anyone liked" (Q4.4), above the title. The phone knows it from the `match` event's `reason: 'only_film'`, or on a cold start from a `finale` pick with no row in `api.rounds` | Q4.4's default puts this line on the winner screen, and M6.16's brief doesn't list it yet |
 
 ## Questions for Harry
@@ -460,3 +557,9 @@ Questions 9 and 10 come from the Final Cut beat. Harry took both defaults on 4 N
 
 9. **Can a veto be taken back before lock-in?** Decided on 4 November 2026: yes (the default). Until lock-in, a long press on the vetoed poster lifts the veto and a long press on another poster moves it; the one veto is spent only when the ballot is locked in. A slip of the thumb shouldn't cost the player the one veto of the game, and nothing reaches the other phones until the close anyway. The rule is in [the vote](../product/game-modes.md#the-vote-pick-one-veto-one).
 10. **What does a finalist show during the round?** Decided on 4 November 2026: the poster, the title and the year, with no details sheet (the default). Most finalists are films the players liked as cards, and the 60 seconds are for talking, not reading. A fill film ([the finalists](../product/game-modes.md#the-finalists), rule 3) may be one some players never saw; if playtests show people asking "what's that one?", a details button comes later.
+
+Questions 11 to 13 come from the reveal beat (4 November 2026). Each needs a yes before M6.31 starts; the beat follows the defaults.
+
+11. **Knock-outs in a 2-player room.** With 2 players, a knocked-out film you didn't veto is the other player's veto, and "The only film nobody vetoed" says the same. Default: show the knock-outs at every size, as [what players see](../product/game-modes.md#what-players-see-party-and-blind) says, with no points on top. The round already tells players their veto "stays secret until the end", and couples are a main Final Cut group: the vetoes landing is their moment. Alternative: at 2 players, show only the winner, without the line or the stamps. That hides less than it seems, since the winner alone still says a lot.
+12. **Points only from 3 ballots.** With 2 ballots, your own taken from the totals gives the other person's ranking exactly. Default: points show only when 3 or more ballots were counted (the phone works it out from the points, no extra read), and never on a knocked-out film. Alternative: never show numbers, only the winner.
+13. **The reveal's timings** (the steps, 2.5 s on the winner, 3 s for a missed reveal's reads) in [Starting values](#starting-values). Default: accept them as placeholders and tune them in the first feel check and playtest.
