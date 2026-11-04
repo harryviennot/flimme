@@ -1,6 +1,6 @@
 # M6.9, the frame meter (Q9.2): 50 swipes with a finger on a Release build that was built with
 # EXPO_PUBLIC_FRAME_METER=1 (the meter shows "fps ... janky ... swipes ..." under the card).
-# Run it on the phone that is swiping, after swipe-host.yaml (-e BUILD=release), swipe-join.yaml
+# Run it on the phone that is swiping, after swipe-host-release.yaml, swipe-join.yaml
 # on the second phone and "Start swiping". The bar: 55 fps or more on average and under 5%
 # janky frames. A regression guard on the simulator, not the Android bar (M3.12).
 # The swipes go right, left and up in turn so every direction is measured.

@@ -1,57 +1,13 @@
 # M6.9, the swipe screen, part 1 of 3 (the host's phone): a fresh guest on staging opens a room
 # with four services and waits in the lobby with the invite sheet closed. Part 2 is
 # swipe-join.yaml on the second phone, part 3 is swipe.yaml on both.
-# Needs Metro started with the staging environment (see mobile/CLAUDE.md), the development build
-# on two simulators and a screenshot of the lobby to read the code from.
+# Needs Metro started with the staging environment (see the expo-app skill) and the development
+# build on two simulators.
 # Run: `maestro --device <host sim> test mobile/.maestro/swipe-host.yaml -e METRO_URL=http://localhost:8094`
-# (add `-e BUILD=release` for the Release build).
 appId: com.harryviennot.flimme.dev
 env:
   METRO_URL: http://localhost:8094
-  # `dev` (a development build on Metro, switched to staging) or `release` (a Release build that
-  # already points at staging, for the frame meter: -e BUILD=release).
-  BUILD: dev
 ---
-- runFlow:
-    when:
-      true: ${BUILD == 'dev'}
-    commands:
-      - runFlow: subflows/open-app-fresh.yaml
-      - runFlow: subflows/use-staging.yaml
-- runFlow:
-    when:
-      true: ${BUILD == 'release'}
-    commands:
-      - launchApp:
-          clearState: true
-          stopApp: true
-- extendedWaitUntil:
-    visible: '(?i)get started'
-    timeout: 30000
-- tapOn: '(?i)get started'
-- inputText: 'Alice'
-- tapOn: '(?i)continue'
-- extendedWaitUntil:
-    visible: '(?i)open a room'
-    timeout: 15000
-- tapOn: '(?i)open a room'
-- extendedWaitUntil:
-    visible: 'Netflix'
-    timeout: 15000
-- tapOn: 'Netflix'
-- tapOn: 'Amazon Prime Video'
-- tapOn: 'Disney Plus'
-- tapOn: 'Canal\+'
-- tapOn: '(?i)open the room'
-- extendedWaitUntil:
-    visible: '(?i)invite friends'
-    timeout: 20000
-# In a development build the floating dev tools button sits over the sheet's Close button.
-- swipe:
-    start: 91%,10%
-    end: 50%,70%
-- tapOn: '(?i)close'
-- extendedWaitUntil:
-    visible: '(?i)in the room'
-    timeout: 15000
-- takeScreenshot: swipe-host-lobby
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/host-room.yaml
