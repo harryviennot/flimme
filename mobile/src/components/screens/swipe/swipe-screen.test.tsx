@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createStore } from 'zustand/vanilla';
 
 import { useHintsStore } from '@/features/swipe/hints';
+import { clearNearMisses } from '@/features/swipe/near-miss';
 import { createAnswerer, type Answerer } from '@/features/swipe/answer';
 import { createCardStack, type CardStack } from '@/features/swipe/card-stack';
 import type { QueuedVote } from '@/features/swipe/vote-queue';
@@ -31,6 +32,18 @@ jest.mock('@/components/screens/room/room-banner', () => ({
   RoomBanner: (props: { roomId: string; waitingVotes: number }) => {
     mockBanner(props);
     return null;
+  },
+}));
+
+jest.mock('@/features/swipe/index', () => ({ voteQueue: { has: () => false } }));
+const mockRoomEvents = new Map<string, (payload: unknown) => void>();
+const mockRoom: { data: { reveal: string; max_age?: number | null } } = {
+  data: { reveal: 'party', max_age: null },
+};
+jest.mock('@/features/room', () => ({
+  useRoom: () => mockRoom,
+  useRoomEvent: (_room: string, event: string, handler: (payload: unknown) => void) => {
+    mockRoomEvents.set(event, handler);
   },
 }));
 
@@ -65,7 +78,14 @@ function film(id: number): NextCard {
 const seat = { member_id: 'm1', super_likes_left: 2, swipe_count: 0 } as RoomSeat;
 const stacks: CardStack[] = [];
 
-async function makeSwipe(options: { cards?: number; locked?: boolean; superLikes?: number } = {}) {
+async function makeSwipe(
+  options: {
+    cards?: number;
+    locked?: boolean;
+    superLikes?: number;
+    seenRule?: 'hide_seen' | 'allow_rewatch' | 'show_all';
+  } = {},
+) {
   const votes: QueuedVote[] = [];
   const cards = Array.from({ length: options.cards ?? 20 }, (_, i) => film(i + 1));
   const stack = createCardStack(
@@ -116,6 +136,7 @@ async function makeSwipe(options: { cards?: number; locked?: boolean; superLikes
       },
       waitingVotes: 0,
       locked: options.locked ?? false,
+      seenRule: options.seenRule ?? 'hide_seen',
       online: true,
       imageBase: undefined,
     },
@@ -126,23 +147,20 @@ async function makeSwipe(options: { cards?: number; locked?: boolean; superLikes
 async function setup(options: Parameters<typeof makeSwipe>[0] = {}) {
   const made = await makeSwipe(options);
   mockSwipe.current = made.swipe as never;
-  const view = () =>
-    render(
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider
-          initialMetrics={{
-            frame: { x: 0, y: 0, width: 393, height: 852 },
-            insets: { top: 47, left: 0, right: 0, bottom: 34 },
-          }}
-        >
-          <SwipeScreen
-            roomId={ROOM}
-            seat={{ ...seat, super_likes_left: options.superLikes ?? 2 }}
-          />
-        </SafeAreaProvider>
-      </GestureHandlerRootView>,
-    );
-  return { ...made, ...(await view()) };
+  const tree = () => (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: { x: 0, y: 0, width: 393, height: 852 },
+          insets: { top: 47, left: 0, right: 0, bottom: 34 },
+        }}
+      >
+        <SwipeScreen roomId={ROOM} seat={{ ...seat, super_likes_left: options.superLikes ?? 2 }} />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+  const view = await render(tree());
+  return { ...made, ...view, tree };
 }
 
 async function layoutStack() {
@@ -233,6 +251,10 @@ describe('super likes', () => {
 });
 
 describe('the card for screen readers', () => {
+  beforeEach(() => {
+    mockRoom.data = { reveal: 'party', max_age: null };
+  });
+
   it('is one element that names the film and does every answer', async () => {
     const { votes } = await setup();
     await layoutStack();
@@ -290,6 +312,19 @@ describe('the card for screen readers', () => {
     open.mockRestore();
   });
 
+  it.each([0, 10, 12])('has no trailer action in a room capped at %i', async (maxAge) => {
+    mockRoom.data = { reveal: 'party', max_age: maxAge };
+    await setup();
+    await layoutStack();
+    const front = screen.getByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0');
+    await fireEvent(front, 'accessibilityAction', { nativeEvent: { actionName: 'flip' } });
+    const back = screen.getByLabelText('Film 1. TMDB rating 7.', { exact: false });
+    expect(back.props.accessibilityActions.map((a: { name: string }) => a.name)).not.toContain(
+      'trailer',
+    );
+    expect(screen.queryByLabelText('Trailer')).toBeNull();
+  });
+
   it('leaves out the super like action when there are none left', async () => {
     await setup({ superLikes: 0 });
     await layoutStack();
@@ -330,6 +365,81 @@ describe('the room moves on', () => {
       await fireEvent.press(screen.getByLabelText(label));
     }
     expect(votes).toEqual([]);
+  });
+});
+
+describe('the near miss', () => {
+  const nearMiss = (title_id: number, likes = 2) => ({ title_id, likes, of: 3, needed: 3 });
+  const send = (payload: unknown) =>
+    act(async () => void mockRoomEvents.get('near_miss')?.(payload));
+  const settle = () => act(async () => void jest.advanceTimersByTime(400));
+
+  beforeEach(() => {
+    // setup() waits on setImmediate for the first deal.
+    jest.useFakeTimers({ doNotFake: ['setImmediate'] });
+    clearNearMisses();
+    mockRoom.data = { reveal: 'party', max_age: null };
+  });
+  afterEach(() => jest.useRealTimers());
+
+  it('shows the toast and the glow on the top card, in place for a new count', async () => {
+    await setup();
+    await layoutStack();
+    await send(nearMiss(1));
+    expect(screen.queryByTestId('near-miss')).toBeNull();
+    await settle();
+    expect(screen.getByText('2 of 3 of you liked this')).toBeTruthy();
+    expect(screen.getByTestId('swipe-glow-1')).toBeTruthy();
+    await send({ title_id: 1, likes: 3, of: 4, needed: 4 });
+    expect(screen.getByText('3 of 4 of you liked this')).toBeTruthy();
+  });
+
+  it('waits for a card further down, and nothing stays once the card is gone', async () => {
+    await setup();
+    await layoutStack();
+    await settle();
+    await send(nearMiss(2));
+    expect(screen.queryByTestId('near-miss')).toBeNull();
+    expect(screen.queryByTestId('swipe-glow-2')).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    await settle();
+    expect(screen.getByText('2 of 3 of you liked this')).toBeTruthy();
+    expect(screen.getByTestId('swipe-glow-2')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Nope'));
+    await settle();
+    expect(screen.queryByText('2 of 3 of you liked this')).toBeNull();
+    expect(screen.queryByTestId('swipe-glow-2')).toBeNull();
+  });
+
+  it('never takes a touch from the card, the hints or the buttons', async () => {
+    await setup();
+    await layoutStack();
+    await send(nearMiss(1));
+    await settle();
+    // Drawn over the top bar's strip, apart from the stack, and it lets every touch through.
+    expect(screen.getByTestId('near-miss').parent?.props.pointerEvents).toBe('none');
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(screen.queryByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0')).toBeNull();
+  });
+
+  it('hides when the count drops below the line', async () => {
+    await setup();
+    await layoutStack();
+    await send({ title_id: 1, likes: 3, of: 5, needed: 4 });
+    await settle();
+    expect(screen.getByText('3 of 5 of you liked this')).toBeTruthy();
+    await send({ title_id: 1, likes: 2, of: 5, needed: 4 });
+    expect(screen.queryByTestId('near-miss')).toBeNull();
+    expect(screen.queryByTestId('swipe-glow-1')).toBeNull();
+  });
+
+  it('shows nothing in a blind room', async () => {
+    mockRoom.data = { reveal: 'blind' };
+    await setup();
+    await layoutStack();
+    await send(nearMiss(1));
+    await settle();
+    expect(screen.queryByTestId('near-miss')).toBeNull();
   });
 });
 
@@ -423,5 +533,79 @@ describe('the first-game hints', () => {
     for (const text of [SWIPE_HINT, SEEN_HINT, FLIP_HINT, SUPER_HINT]) {
       expect(screen.queryByText(text)).toBeNull();
     }
+  });
+});
+
+describe('the rewatch question', () => {
+  const ask = async (rule: 'allow_rewatch' | 'show_all' = 'allow_rewatch') => {
+    const made = await setup({ seenRule: rule });
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Seen it'));
+    return made;
+  };
+
+  it.each(['allow_rewatch', 'show_all'] as const)(
+    'opens on Seen it under %s and queues nothing',
+    async (rule) => {
+      const { votes, stack } = await ask(rule);
+      expect(screen.getByText('Watch it again tonight?')).toBeTruthy();
+      expect(votes).toEqual([]);
+      expect(stack.getState().mounted[0]?.title_id).toBe(1);
+    },
+  );
+
+  it('opens from the screen reader action too', async () => {
+    const { votes } = await setup({ seenRule: 'allow_rewatch' });
+    await layoutStack();
+    await fireEvent(screen.getByTestId('swipe-card-1'), 'accessibilityAction', {
+      nativeEvent: { actionName: 'seen' },
+    });
+    expect(screen.getByText('Watch it again tonight?')).toBeTruthy();
+    expect(votes).toEqual([]);
+  });
+
+  it('Yes sends seen_rewatch and takes the card', async () => {
+    const { votes } = await ask();
+    await fireEvent.press(screen.getByLabelText('Yes, watch it again tonight'));
+    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([[1, 'seen_rewatch']]);
+    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+  });
+
+  it('No sends seen and takes the card', async () => {
+    const { votes } = await ask();
+    await fireEvent.press(screen.getByLabelText('No, not tonight'));
+    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([[1, 'seen']]);
+  });
+
+  it('answers once when Yes is tapped twice', async () => {
+    const { votes } = await ask();
+    const yes = screen.getByLabelText('Yes, watch it again tonight');
+    await fireEvent.press(yes);
+    await fireEvent.press(yes);
+    expect(votes).toHaveLength(1);
+  });
+
+  it('closes with no vote when the screen reader escapes', async () => {
+    const { votes, stack } = await ask();
+    await fireEvent(screen.getByTestId('seen-question'), 'accessibilityEscape');
+    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+    expect(votes).toEqual([]);
+    expect(stack.getState().mounted[0]?.title_id).toBe(1);
+  });
+
+  it('closes with no vote when the room moves on', async () => {
+    const { votes, swipe, rerender, tree } = await ask();
+    (swipe as { locked: boolean }).locked = true;
+    await rerender(tree());
+    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+    expect(votes).toEqual([]);
+  });
+
+  it('is not asked under hide_seen: Seen it sends seen at once', async () => {
+    const { votes } = await setup({ seenRule: 'hide_seen' });
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Seen it'));
+    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+    expect(votes.map((v) => v.answer)).toEqual(['seen']);
   });
 });

@@ -6,6 +6,7 @@ import {
   cardServices,
   formatRuntime,
   toMovieCard,
+  trailerAllowed,
   trailerUrl,
 } from './card-props';
 
@@ -179,13 +180,47 @@ describe('toMovieCard back', () => {
 
   it('has a trailer button only with a trailer key', () => {
     const open = jest.fn();
-    expect(toMovieCard(base, { ...options, onTrailer: open }).back.onTrailer).toBeUndefined();
-    const view = toMovieCard({ ...base, trailer_key: 'xyz' }, { ...options, onTrailer: open });
+    const uncapped = { ...options, onTrailer: open, maxAge: null };
+    expect(toMovieCard(base, uncapped).back.onTrailer).toBeUndefined();
+    const view = toMovieCard({ ...base, trailer_key: 'xyz' }, uncapped);
     view.back.onTrailer?.();
     expect(open).toHaveBeenCalledWith('https://www.youtube.com/watch?v=xyz');
   });
 
+  it.each([0, 10, 12])('has no trailer button in a room capped at %i', (maxAge) => {
+    const view = toMovieCard(
+      { ...base, trailer_key: 'xyz' },
+      { ...options, onTrailer: jest.fn(), maxAge },
+    );
+    expect(view.back.onTrailer).toBeUndefined();
+  });
+
+  it.each([13, 16, 18, null])('has the trailer button in a room capped at %s', (maxAge) => {
+    const view = toMovieCard(
+      { ...base, trailer_key: 'xyz' },
+      { ...options, onTrailer: jest.fn(), maxAge },
+    );
+    expect(view.back.onTrailer).toBeDefined();
+  });
+
+  it('has no trailer button until the room is known', () => {
+    const view = toMovieCard({ ...base, trailer_key: 'xyz' }, { ...options, onTrailer: jest.fn() });
+    expect(view.back.onTrailer).toBeUndefined();
+  });
+
   it('has no trailer button when nobody can open it', () => {
     expect(toMovieCard({ ...base, trailer_key: 'xyz' }, options).back.onTrailer).toBeUndefined();
+  });
+});
+
+describe('trailerAllowed', () => {
+  it('allows uncapped rooms and caps of 13 or more only', () => {
+    expect(trailerAllowed(null)).toBe(true);
+    expect(trailerAllowed(13)).toBe(true);
+    expect(trailerAllowed(16)).toBe(true);
+    expect(trailerAllowed(12)).toBe(false);
+    expect(trailerAllowed(10)).toBe(false);
+    expect(trailerAllowed(0)).toBe(false);
+    expect(trailerAllowed(undefined)).toBe(false);
   });
 });

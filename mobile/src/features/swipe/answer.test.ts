@@ -1,6 +1,6 @@
 import type { NextCard } from '@flimme/contract';
 
-import { createAnswerer, PRESENCE_EVERY } from './answer';
+import { asksRewatch, createAnswerer, PRESENCE_EVERY, rewatchAnswer } from './answer';
 import { createCardStack, type CardStack } from './card-stack';
 import type { QueuedVote } from './vote-queue';
 
@@ -201,5 +201,38 @@ describe('presence count', () => {
     answerer.answer('like');
     expect(counts).toEqual([5]);
     expect(answerer.count()).toBe(5);
+  });
+});
+
+describe('the rewatch question', () => {
+  it.each([
+    ['allow_rewatch', true],
+    ['show_all', true],
+    ['hide_seen', false],
+    [undefined, false],
+  ] as const)('%s asks: %s', (rule, asks) => {
+    expect(asksRewatch(rule)).toBe(asks);
+  });
+
+  it('sends seen_rewatch for Yes and seen for No', () => {
+    expect(rewatchAnswer(true)).toBe('seen_rewatch');
+    expect(rewatchAnswer(false)).toBe('seen');
+  });
+
+  it('keeps the card and its dwell time running until an answer is queued', async () => {
+    const { answerer, votes, stack, tick } = await setup();
+    tick(4_000); // the question is open: nothing is answered yet
+    expect(votes).toEqual([]);
+    expect(stack.getState().mounted[0]?.title_id).toBe(1);
+    tick(1_000);
+    answerer.answer(rewatchAnswer(true));
+    expect(votes.map((v) => [v.answer, v.dwell_ms])).toEqual([['seen_rewatch', 5_000]]);
+  });
+
+  it('does not spend a super like on either answer', async () => {
+    const { answerer } = await setup({ superLeft: 2 });
+    answerer.answer('seen_rewatch');
+    answerer.answer('seen');
+    expect(answerer.superLikesLeft()).toBe(2);
   });
 });

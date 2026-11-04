@@ -56,12 +56,21 @@ import { duration, easing, layout, spring, timing } from '@/theme/motion';
 // values, worklets and Gesture Handler. JavaScript hears about a card three times at most: the
 // commit tick, the release, and the end of the flight.
 
-/** The answer each button forces, as the stamp codes below. */
-const FORCED: Record<AnswerKind, number> = { like: 1, nope: 2, seen: 3, super_like: 4 };
+/** The stamp a flight forces: its direction's (like, nope, seen), or SUPER for a super like. */
+function forcedOf(kind: AnswerKind, direction: Direction): number {
+  if (kind === 'super_like') return 4;
+  return direction === 'left' ? 2 : direction === 'up' ? 3 : 1;
+}
 /** What `lit` holds for the matching button: 0 none, then the answer's code. */
 export const LIT = { none: 0, nope: 1, like: 2, seen: 3 } as const;
 
-export type Flight = { kind: AnswerKind; fromGesture: boolean; flipped: boolean };
+export type Flight = {
+  kind: AnswerKind;
+  /** Defaults to the kind's own: like and super right, nope left, seen up. */
+  direction?: Direction;
+  fromGesture: boolean;
+  flipped: boolean;
+};
 
 export type SwipeCardProps = {
   card: NextCard;
@@ -69,6 +78,8 @@ export type SwipeCardProps = {
   depth: number;
   flight?: Flight;
   flipped: boolean;
+  /** A near miss: the card takes the like glow, front and back. */
+  glow?: boolean;
   /** The card's size in points, from the stack's room. */
   size: { width: number; height: number };
   /** The screen's size: the commit lines and the flight's reach come from it. */
@@ -87,6 +98,12 @@ export type SwipeCardProps = {
     actions: { name: string; label: string }[];
     onAction: (name: string) => void;
   };
+  /** The room asks "Watch it again tonight?": a release toward Seen it holds the card instead of throwing. */
+  asksSeen?: boolean;
+  /** Seen it was released past the line: the screen lifts the card and opens the question. */
+  onHold?: (titleId: number) => void;
+  /** A finger took the held card: the question closes and the card is the finger's. */
+  onGrab?: () => void;
   onRelease: (titleId: number, direction: Direction) => void;
   onFlip: () => void;
   onLanded: (titleId: number) => void;
@@ -94,7 +111,7 @@ export type SwipeCardProps = {
 
 export function SwipeCard(props: SwipeCardProps) {
   const { card, depth, flight, flipped, size, screen, dragProgress, lit, dragging, locked } = props;
-  const { onLanded, onRelease, onFlip } = props;
+  const { onLanded, onRelease, onFlip, onHold, onGrab, asksSeen } = props;
   const { i18n } = useTranslation();
   const reduced = useReducedMotion();
   const motion = useCardMotion();
@@ -165,9 +182,12 @@ export function SwipeCard(props: SwipeCardProps) {
 
   useEffect(() => {
     if (!flight || flight.fromGesture) return;
-    forced.set(FORCED[flight.kind]);
+    const direction =
+      flight.direction ??
+      (flight.kind === 'nope' ? 'left' : flight.kind === 'seen' ? 'up' : 'right');
+    forced.set(forcedOf(flight.kind, direction));
     forcedProgress.set(withTiming(1, { duration: duration.instant, easing: easing.standard }));
-    fly(flight.kind === 'nope' ? 'left' : flight.kind === 'seen' ? 'up' : 'right', 0, 0);
+    fly(direction, 0, 0);
     // A flight starts once, when the card is handed over.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flight]);
@@ -197,6 +217,12 @@ export function SwipeCard(props: SwipeCardProps) {
       // A new touch takes the card from where it is, even mid-spring.
       cancelAnimation(x);
       cancelAnimation(y);
+      // Grabbing the held card closes the rewatch question; the card is the finger's again.
+      if (forced.get() === 3) {
+        forced.set(0);
+        forcedProgress.set(0);
+        if (onGrab) scheduleOnRN(onGrab);
+      }
       startX.set(x.get());
       startY.set(y.get());
       touching.set(1);
@@ -231,6 +257,11 @@ export function SwipeCard(props: SwipeCardProps) {
         springBack();
         return;
       }
+      if (direction === 'up' && asksSeen && onHold) {
+        // The question comes first: the screen lifts the card and holds it, nothing flies yet.
+        scheduleOnRN(onHold, titleId);
+        return;
+      }
       fly(direction, e.velocityX, e.velocityY);
       scheduleOnRN(onRelease, titleId, direction);
     },
@@ -256,6 +287,7 @@ export function SwipeCard(props: SwipeCardProps) {
       'worklet';
       // A tap during the first-game lean flips the card and sends it back to the middle.
       if (x.get() !== 0 || y.get() !== 0) springBack();
+      // A tap on the held card puts it back (the stack's onFlip decides); otherwise it flips.
       scheduleOnRN(flipUnlessTrailer);
     },
   });
@@ -352,6 +384,16 @@ export function SwipeCard(props: SwipeCardProps) {
           accessibilityElementsHidden={!interactive}
           importantForAccessibility={interactive ? 'yes' : 'no-hide-descendants'}
         >
+          {props.glow ? (
+            // Behind the card, so the glow rides with the drag and the flip, and fades with it.
+            <Animated.View
+              testID={`swipe-glow-${titleId}`}
+              pointerEvents="none"
+              entering={reduced ? layout.fadeIn : layout.popIn}
+              exiting={layout.fadeOut}
+              className="absolute inset-0 rounded-xl bg-bg-surface glow-like"
+            />
+          ) : null}
           <MovieCard
             {...view}
             flipped={flight ? flight.flipped : flipped}

@@ -34,6 +34,7 @@ const mockHandlers = new Map<string, (payload: unknown) => void>();
 let mockKept: string | undefined = ROOM;
 jest.mock('@/features/room', () => ({
   ROOM_KEY: (id: string) => ['room', id],
+  useRoom: () => ({ data: { seen_rule: 'allow_rewatch' } }),
   useKeptRoom: () => ({ room: mockKept ? { id: mockKept, code: '123456' } : null }),
   useRoomEvent: (_room: string, event: string, handler: (payload: unknown) => void) => {
     mockHandlers.set(event, handler);

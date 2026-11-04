@@ -82,7 +82,7 @@ export function createHintSignals() {
         return {
           answers,
           starTapped,
-          seenAnswered: s.seenAnswered || kind === 'seen',
+          seenAnswered: s.seenAnswered || kind === 'seen' || kind === 'seen_rewatch',
           superFrom: s.superFrom ?? (due ? answers : null),
         };
       }),

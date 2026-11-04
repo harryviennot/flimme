@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 96 of 257 tasks done.
+Progress: 99 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -435,9 +435,9 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: flipping works mid-stack.
 - [x] **M6.11** The vote queue module: persisted, sent in order, retried, a `denied` vote refreshed once and retried, votes for rooms the phone no longer keeps dropped on restart · app · M · needs M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
   Done when: the queue's rules are tested. The airplane-mode run is M6.9's.
-- [ ] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · M · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
+- [x] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · M · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: both answers reach the server.
-- [ ] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · M · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
+- [x] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · M · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
   Done when: shown on the right phones, never naming anyone.
 - [x] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
   Done when: it appears on every phone together.
@@ -484,7 +484,7 @@ Done when: the security checklist for the closed beta is ticked.
   Done when: a report is stored, a repeat from the same reporter adds no row, and the limit answers `rate_limited`.
 - [x] **M7.2** Report a player, from the player list · app · M · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: works on both platforms.
-- [ ] **M7.3** No trailer button in rooms with an age cap under 13 · app · S · needs M6.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
+- [x] **M7.3** No trailer button in rooms with an age cap under 13 · app · S · needs M6.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tested in a capped room.
 - [ ] **M7.4** Walk the security checklist for the closed beta · test · M · needs M1.6, M1.7, M1.8, M1.9, M1.10, M1.11, M1.12, M4.1, M4.2, M4.3, M7.1, M1.2, M4.10, M5.6, M7.3, M8.4, M9.5 · [security](../architecture/security.md#checklist)
   Done when: every first-release item is ticked or deferred in decisions.md.

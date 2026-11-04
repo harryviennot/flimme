@@ -6,7 +6,7 @@ import { useStore } from 'zustand';
 
 import type { AnswerKind } from '@/features/swipe/answer';
 import { openTrailer } from '@/features/swipe/trailer';
-import { backServices, cardMeta, cardServices } from '@/features/swipe/card-props';
+import { backServices, cardMeta, cardServices, trailerAllowed } from '@/features/swipe/card-props';
 import { STACK_STEP, type Direction } from '@/features/swipe/feel';
 import type { Flying } from '@/features/swipe/use-flights';
 import type { Swipe } from '@/features/swipe/use-swipe';
@@ -32,8 +32,21 @@ const ACTION: Record<string, AnswerKind> = {
 
 export type CardStackProps = {
   swipe: Swipe;
+  /** `rooms.max_age`: under 13 there is no Trailer (M7.3). */
+  maxAge: number | null | undefined;
+  /** The film whose card takes the like glow (a near miss), if any. */
+  glowId?: number;
   flying: Flying[];
   throwCard: (kind: AnswerKind, fromGesture: boolean) => Flying | null;
+  /** The room asks the rewatch question under Seen it. */
+  asksSeen: boolean;
+  /** Seen it was released past the line (the card is held); the screen opens the question. */
+  onHold: (titleId: number) => void;
+  /** A finger took the held card. */
+  onGrab: () => void;
+  /** A tap on the card while the question is open (it puts the card back instead of flipping). */
+  held: boolean;
+  onDismiss: () => void;
   landed: (titleId: number) => void;
   dragProgress: SharedValue<number>;
   lit: SharedValue<number>;
@@ -42,8 +55,15 @@ export type CardStackProps = {
 
 export function CardStack({
   swipe,
+  maxAge,
+  glowId,
   flying,
   throwCard,
+  asksSeen,
+  onHold,
+  onGrab,
+  held,
+  onDismiss,
   landed,
   dragProgress,
   lit,
@@ -111,13 +131,19 @@ export function CardStack({
     { name: 'seen', label: t('a11y.actions.seen') },
     { name: 'flip', label: t('a11y.actions.flip') },
     // The Trailer button sits inside the card, which is one element for a screen reader.
-    ...(flipped && top?.trailer_key ? [{ name: 'trailer', label: t('a11y.actions.trailer') }] : []),
+    ...(flipped && top?.trailer_key && trailerAllowed(maxAge)
+      ? [{ name: 'trailer', label: t('a11y.actions.trailer') }]
+      : []),
   ];
 
-  const flip = () => stack.getState().setFlipped(!stack.getState().flipped);
+  const flip = () => {
+    if (held) return onDismiss();
+    stack.getState().setFlipped(!stack.getState().flipped);
+  };
   const onAction = (name: string) => {
     if (name === 'flip') return flip();
-    if (name === 'trailer') return openTrailer(top?.trailer_key);
+    if (name === 'trailer')
+      return trailerAllowed(maxAge) ? openTrailer(top?.trailer_key) : undefined;
     const kind = ACTION[name];
     if (kind) throwCard(kind, false);
   };
@@ -132,9 +158,14 @@ export function CardStack({
   ].sort((a, b) => a.card.title_id - b.card.title_id);
 
   return (
-    <View testID="swipe-stack" className="flex-1 items-center justify-center" onLayout={onLayout}>
+    <View
+      testID="swipe-stack"
+      className="flex-1 items-center justify-center"
+      pointerEvents="box-none"
+      onLayout={onLayout}
+    >
       {size ? (
-        <View style={{ width: size.width, height: size.height }}>
+        <View style={{ width: size.width, height: size.height }} pointerEvents="box-none">
           {mounted.length === 0 ? (
             status === 'waiting_offline' ? (
               <WaitingCard size={size} />
@@ -151,6 +182,7 @@ export function CardStack({
               depth={depth}
               flight={flight}
               flipped={card === top ? flipped : false}
+              glow={glowId === card.title_id}
               size={size}
               screen={screen}
               text={{
@@ -158,12 +190,16 @@ export function CardStack({
                 imageBase: swipe.imageBase,
                 screenWidth: screen.width,
                 noSynopsis: t('card.noSynopsis'),
+                maxAge,
               }}
               dragProgress={dragProgress}
               lit={lit}
               dragging={dragging}
               locked={swipe.locked}
               a11y={{ label: labelOf(card), actions, onAction }}
+              asksSeen={asksSeen}
+              onHold={onHold}
+              onGrab={onGrab}
               onRelease={onRelease}
               onFlip={flip}
               onLanded={landed}
