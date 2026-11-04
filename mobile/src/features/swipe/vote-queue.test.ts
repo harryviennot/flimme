@@ -464,6 +464,16 @@ describe('undo', () => {
     expect(queue.has(ROOM, 1)).toBe(true);
   });
 
+  it('does not take out a head whose send failed: it may have reached the server', async () => {
+    const { queue } = setup(() => {
+      throw networkError();
+    });
+    queue.enqueue(vote(1));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(queue.removeLast(ROOM)).toBeNull();
+    expect(queue.has(ROOM, 1)).toBe(true);
+  });
+
   it('answers null for another room or an empty queue', () => {
     const { queue } = setup();
     expect(queue.removeLast(ROOM)).toBeNull();

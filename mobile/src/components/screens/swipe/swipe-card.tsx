@@ -78,7 +78,7 @@ export type SwipeCardProps = {
   depth: number;
   flight?: Flight;
   /** Undo brought this card back: it comes in from the side it left (or fades, with Reduce Motion). */
-  returning?: { kind: string };
+  returning?: { kind: AnswerKind };
   flipped: boolean;
   /** A near miss: the card takes the like glow, front and back. */
   glow?: boolean;

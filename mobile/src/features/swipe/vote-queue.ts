@@ -147,7 +147,7 @@ export function createVoteQueue(deps: VoteQueueDeps) {
   const votes = () => store.getState().votes;
   const same = (a: QueueItem, b: QueueItem) =>
     a.room_id === b.room_id && a.title_id === b.title_id && isUndo(a) === isUndo(b);
-  /** The item being sent right now: it can't be taken back from the queue any more. */
+  /** The head, from its first send until it settles: it may have reached the server, so it can't be taken back from the queue. */
   let inFlight: QueueItem | undefined;
 
   function emit(event: VoteQueueEvent) {
@@ -307,9 +307,10 @@ export function createVoteQueue(deps: VoteQueueDeps) {
       const head = votes()[0];
       if (!head) return;
       inFlight = head;
-      const outcome = await (isUndo(head) ? attemptUndo(head) : attempt(head)).finally(() => {
-        inFlight = undefined;
-      });
+      // A head whose send failed may still have reached the server (only the answer was lost),
+      // so it stays "sent" until it settles.
+      const outcome = await (isUndo(head) ? attemptUndo(head) : attempt(head));
+      if (outcome === 'next') inFlight = undefined;
       if (outcome === 'retry') {
         const delay = RETRY_DELAYS_MS[Math.min(failures, RETRY_DELAYS_MS.length - 1)]!;
         failures += 1;
