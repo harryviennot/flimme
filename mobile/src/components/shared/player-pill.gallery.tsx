@@ -11,7 +11,9 @@ export const gallery: GalleryEntry = {
     <View className="flex-row flex-wrap gap-2">
       <PlayerPill name="Harry" color="blue" count={14} online />
       <PlayerPill name="Sam" color="green" count={12} online />
-      <PlayerPill name="Jo" color="violet" count={9} />
+      <PlayerPill name="Jo" color="violet" count={9} away />
+      <PlayerPill name="Alex" color="teal" count={20} online done />
+      <PlayerPill name="Harry" color="gold" count={15} online isHost isMe />
     </View>
   ),
 };

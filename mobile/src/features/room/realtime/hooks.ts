@@ -1,4 +1,4 @@
-import type { RoomEvent } from '@flimme/contract';
+import type { LivePresence, RoomEvent } from '@flimme/contract';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useEffect,
@@ -100,6 +100,7 @@ const IDLE: RoomRealtimeState = {
   events: 'connecting',
   live: 'connecting',
   present: new Set(),
+  progress: new Map(),
   lastSeen: new Map(),
   liveJoinedAt: null,
   problemSince: null,
@@ -160,6 +161,8 @@ export function useRoomConnection(roomId?: string): {
 export function useRoomPresence(roomId: string | undefined): {
   online: ReadonlySet<string>;
   away: ReadonlySet<string>;
+  /** What each seat last tracked: its swipe count and whether it is done. */
+  progress: ReadonlyMap<string, LivePresence>;
 } {
   const realtime = useRoomRealtime();
   const state = useRealtimeState(realtime);
@@ -186,7 +189,7 @@ export function useRoomPresence(roomId: string | undefined): {
     joinedAt,
   );
   const result = presenceOf(state, ids, mine, now, joinedAt);
-  return { online: result.online, away: result.away };
+  return { online: result.online, away: result.away, progress: state.progress };
 }
 
 /** Runs `handler` for each `event` the room hears. For the slices that act on events. */

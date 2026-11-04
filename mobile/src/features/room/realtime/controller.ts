@@ -26,6 +26,8 @@ export type RoomRealtimeState = {
   live: LinkStatus;
   /** Seat ids in the live channel's presence, as of the last sync. */
   present: ReadonlySet<string>;
+  /** What each seat last tracked: its swipe count and whether it is done (kept after it drops). */
+  progress: ReadonlyMap<string, LivePresence>;
   /** When each seat was last seen in presence (ms). */
   lastSeen: ReadonlyMap<string, number>;
   /** When the live channel last reached `SUBSCRIBED` (ms), or null if it never did. */
@@ -102,6 +104,7 @@ export function openRoomRealtime(options: RoomRealtimeOptions): RoomRealtime {
     events: 'connecting',
     live: 'connecting',
     present: new Set(),
+    progress: new Map(),
     lastSeen: new Map(),
     liveJoinedAt: null,
     problemSince: now(),
@@ -147,13 +150,22 @@ export function openRoomRealtime(options: RoomRealtimeOptions): RoomRealtime {
   }
 
   function readPresence(channel: RealtimeChannel) {
-    const keys = Object.keys(channel.presenceState());
+    const tracked = channel.presenceState() as Record<string, unknown>;
+    const keys = Object.keys(tracked);
     const at = now();
+    const progress = new Map(state.progress);
+    for (const key of keys) {
+      const metas = tracked[key];
+      const meta = Array.isArray(metas) ? (metas[metas.length - 1] as Partial<LivePresence>) : null;
+      if (meta && typeof meta.swipe_count === 'number') {
+        progress.set(key, { swipe_count: meta.swipe_count, done: meta.done === true });
+      }
+    }
     const lastSeen = new Map(state.lastSeen);
     // A seat that just dropped was here until now: its 90 seconds start at this sync.
     state.present.forEach((key) => lastSeen.set(key, at));
     keys.forEach((key) => lastSeen.set(key, at));
-    set({ present: new Set(keys), lastSeen });
+    set({ present: new Set(keys), lastSeen, progress });
   }
 
   function onStatus(slot: Slot, channel: RealtimeChannel, status: string) {

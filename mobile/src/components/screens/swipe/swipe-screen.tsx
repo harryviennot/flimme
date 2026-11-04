@@ -178,7 +178,7 @@ export function SwipeScreen({
         </View>
       }
     >
-      <SwipeTopBar roomId={roomId} />
+      <SwipeTopBar roomId={roomId} count={swipe.count} done={status === 'empty'} />
       <RoomBanner roomId={roomId} waitingVotes={swipe.waitingVotes} />
       <SwipeNearMiss titleId={topId} nearMiss={nearMiss} />
       {held !== null ? (
