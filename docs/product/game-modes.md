@@ -154,7 +154,7 @@ The host chooses before the start. Party is the default.
 | While swiping | "2 of 3 of you liked this" on a film one like short of a match (at least 2 likes), shown only on the card of each player who hasn't answered it, when it's their top card ([the near miss](../design/moments.md#the-near-miss)). No star on super-liked cards in the first release | Nothing about other players' answers |
 | Progress | Avatars with how far each player is, "Sam is done" | Same |
 | A match | The film, how many said yes ("3 of 3", "7 of 9") with every seated player's avatar in seat order and no marks, then where to watch. Never who said yes | The film, how many said yes ("7 of 9"), where to watch |
-| The finale | Who has locked in their vote (not what). Vetoed films shown as knocked out, without saying by whom | Same |
+| The finale | Who has locked in their vote (not what). After the close: vetoed films shown as knocked out, without saying by whom, in every room size; each film's points only when at least 3 ballots were counted, never on a knocked-out film (decided on 4 November 2026) | Same |
 | The winner screen | Runners-up with who liked them, as in the current design | Runners-up with how many liked them |
 
 Never shown in either mode: who noped a film, anyone's taste check answers, or another player's swipes while the game is running. A match never shows who said yes: in a majority match ("7 of 9") that would show who didn't (decided on 4 November 2026). Showing who liked the runners-up after the pick is a change: the data model says answers reach phones only as counts (see [Changes to the data model](#changes-to-the-data-model)).

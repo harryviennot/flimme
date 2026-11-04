@@ -9,7 +9,7 @@ The calm after the celebration. Every phone shows the same film and answers the 
 ## Which film
 
 - **The pick** is the `api.room_matches` row with `pick_order` 1, whatever its `kind` (`unanimous`, `majority` or `finale`). Every kind shows the same screen.
-- **A `done` room with no such row is no pick:** the screen's body is the `NoPick` slot (`components/screens/winner/no-pick.tsx`), which M6.16 creates rendering nothing and M6.17 fills with "Nothing fits tonight" (Q17.2). The footer's Home button stays, so the slot is never a dead end.
+- **A `done` room with no such row is no pick:** the screen's body is the `NoPick` slot (`components/screens/winner/no-pick.tsx`), which M6.16 creates rendering nothing and M6.17 fills with [Nothing fits tonight](#nothing-fits-tonight) (Q17.2). The footer's Home button stays, so the slot is never a dead end.
 - **The film's card** comes from `useMatchCard(roomId, titleId, language)`: the stack's held card, else one `api.title_cards` read. M6.16 makes the hook also return the read's error and a `retry`, for [the error state](#states).
 - **The single-film pick** (Q4.4) is a `finale` pick made with no vote. The phone knows it from the `match` event's `reason: 'only_film'` (M6.4 adds the field), or on a cold start from a `finale` pick with no row for the room in `api.rounds`.
 
@@ -64,10 +64,44 @@ The fade plays only when the room turned `done` while this phone was on the swip
 | A long title | Wraps to 3 lines, then an ellipsis |
 | The card read fails (`rate_limited`, `too_many`, an `ok` with no card, or a network error) | The poster frame stays; in place of the title, `winner:error.title` in `body-m` tone `secondary` and `Button` `secondary` S `common:actions.retry`, inline, never `ErrorScreen` ([Decided](#decided) 2). The Home footer stays |
 | Offline before the card came | `winner:error.offline` instead of the error line, same retry; the read also retries by itself when the phone is back online |
-| `done` with no `pick_order` 1 row | The `NoPick` slot as the body, the Home footer kept; no poster |
+| `done` with no `pick_order` 1 row | [Nothing fits tonight](#nothing-fits-tonight) in the `NoPick` slot, the Home footer kept; no poster |
 | A player leaves with Home | Nothing reaches the other phones; their screen doesn't change |
 
 There is no timer and no automatic exit: the screen stays until the player leaves.
+
+## Nothing fits tonight
+
+The `NoPick` slot (`components/screens/winner/no-pick.tsx`), filled by M6.17 (Q17.2). No Figma frame. It is the third ending without a film, next to [the closed room](closed.md) and the swipe screen's [done card](swipe.md#the-done-card-nothing-left); closed.md lists all three.
+
+**When.** The room is `done` and `api.room_matches` has no `pick_order` 1 row (`state_changed {state: 'done', outcome: 'no_pick'}`). That happens when everyone ran out of cards and no film has a like, after the host's 5 minutes; when the card count or time limit is reached with nothing liked (M6.4, Q4.1); or when the finale has no film to show ([how a game ends](../../product/game-modes.md#how-a-game-ends)). In every case nothing was liked, so the copy can say so without pointing at anyone.
+
+**Layout.** The slot fills the body above the winner screen's footer: one `EmptyState`, centred vertically (`flex-1 justify-center`), icon `film`, title `ending:noPick.title`, body `ending:noPick.body`, no action (the footer's Home is the way out, `winner:home`, as for a pick). No `Spotlight`, no `MarqueeBulbs`, no eyebrow: the lights are for a pick. No Play again (M6.23 takes the footer later) and no Change filters (M18.6).
+
+**States.**
+
+| State | What shows |
+| --- | --- |
+| The matches read is still loading | The winner screen's loading state (the poster frame and skeletons); when the read says no pick, the slot replaces it with `layout.fadeIn` |
+| No pick | The empty state and Home |
+| Offline before the matches read | The winner screen's offline line and retry (`winner:error.offline`); the read retries when the phone is back |
+| The largest text | The body scrolls, Home stays pinned; `display-s` is capped at 1.25 |
+| 375 by 667 | The icon, a two-line title and a three-line body fit with room to spare |
+| A player taps Home | Nothing reaches the other phones |
+
+**Motion, haptics, sound.** Arriving from the swipe or Final Cut screen, the whole winner screen fades in (`layout.fadeIn`, `duration.base`), as in [How it arrives](#how-it-arrives); a cold start or a return shows it with no transition. Nothing else moves. No haptic and no sound: nothing to celebrate, and it isn't a refusal. Reduce Motion: the fade stays.
+
+**Accessibility.** On arrival, focus goes to the title (`EmptyState` `autoFocus`, role `header`). Order: the title, the body, Home (`winner:a11y.home`). The edge swipe and Android's back go Home, as for a pick ([Decided](#decided) 1).
+
+**Never shown.** Who noped what, or how many likes any film got (there were none). No player names or avatars, no film titles or posters, no blame ("you were too picky"), no countdown, no "play again now".
+
+**Copy** (`ending` namespace; closed.md lists the rest):
+
+| Key | French | English |
+| --- | --- | --- |
+| `noPick.title` | Rien à l'affiche ce soir | Nothing fits tonight |
+| `noPick.body` | Aucun film n'a trouvé preneur ce soir. La prochaine fois, ajoute des plateformes ou relâche un filtre. | No film got a like tonight. Next time, add services or loosen a filter. |
+
+The French title borrows the marquee ("nothing on the bill tonight") rather than translating "fits". Harry decided it on 4 November 2026 ([closed.md, Decided](closed.md#decided) 2).
 
 ## Copy (`winner` namespace)
 
