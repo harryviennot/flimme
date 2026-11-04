@@ -274,7 +274,7 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 - **The buttons** use `common:answers.*` as labels; Super uses `swipe:a11y.superLeft_*` or `superNone`; a disabled Undo has `swipe:a11y.undoNone` as its hint.
 - **The rewatch question** takes focus on its title; Yes and No are labelled `swipe:a11y.seenYes` and `seenNo`; the escape gesture closes it with no vote.
 - **The near-miss toast** is announced once, politely, when it shows on the focused card.
-- **Reduce Motion:** the drag follows the finger without the tilt; a throw becomes a short slide toward its side with a fade (`timing.base`); the stamp shows at full once the line is crossed, without growing; the second card is already full size; Undo fades the card back in place; the flip crossfades in place (`timing.flip`); the toast fades (`layout.fadeIn`, `layout.fadeOut`) and the glow doesn't pulse; the hint lean becomes the still stamps.
+- **Reduce Motion:** the drag follows the finger without the tilt; a throw becomes a short slide toward its side with a fade (`timing.base`); the stamp (label included) shows at full as soon as the drag starts toward an answer, with its coloured border, without growing; the second card is already full size; Undo fades the card back in place; the flip crossfades in place (`timing.flip`); the toast fades (`layout.fadeIn`, `layout.fadeOut`) and the glow doesn't pulse; the hint lean becomes the still stamps.
 - Largest text: the pills scroll; the hint line wraps to two lines; the question's title wraps; the card's meta is cut before the title.
 
 ## Design-system changes
