@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -18,12 +18,15 @@ function ServiceTile({ service }: { service: ServiceLogo }) {
       testID="service-tile"
     >
       {service.logo ? (
-        <Image
-          source={{ uri: service.logo }}
-          transition={duration.fast}
-          className="size-6 rounded-xs"
-          accessible={false}
-        />
+        <View className="size-6 overflow-hidden rounded-xs">
+          <Image
+            source={{ uri: service.logo }}
+            contentFit="cover"
+            transition={duration.fast}
+            style={StyleSheet.absoluteFill}
+            accessible={false}
+          />
+        </View>
       ) : null}
       <Text variant="title-m" numberOfLines={1}>
         {service.name}
@@ -65,15 +68,17 @@ export function WhereToWatch({ services, watchLink, language }: WhereToWatchProp
         {t('justwatch')}
       </Text>
       {watchLink ? (
-        <Button
-          label={t('moreDetails')}
-          accessibilityLabel={t('a11y.moreDetails')}
-          accessibilityHint={t('a11y.moreDetailsHint')}
-          variant="ghost"
-          size="s"
-          icon="external-link"
-          onPress={() => void WebBrowser.openBrowserAsync(watchLink)}
-        />
+        <View className="flex-row justify-center self-stretch">
+          <Button
+            label={t('moreDetails')}
+            accessibilityLabel={t('a11y.moreDetails')}
+            accessibilityHint={t('a11y.moreDetailsHint')}
+            variant="ghost"
+            size="s"
+            icon="external-link"
+            onPress={() => void WebBrowser.openBrowserAsync(watchLink)}
+          />
+        </View>
       ) : null}
     </View>
   );
