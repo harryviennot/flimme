@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 90 of 257 tasks done.
+Progress: 91 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -412,7 +412,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: seeded and tested, the re-check order included.
 - [x] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions; the near miss only one like short of the rule, with `needed` in the payload; `flipped` on `api.cast_vote` · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: the match check is tested with both answers, and the near miss and `flipped` are tested too.
-- [ ] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back; undoing a like at the near-miss line sends `near_miss` with the corrected counts · backend · M · needs M1.5 · [game-modes](game-modes.md#the-answers)
+- [x] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back; undoing a like at the near-miss line sends `near_miss` with the corrected counts · backend · M · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: tested.
 - [ ] **M6.4** Starting the finale: finalists need at least one like; one 60-second round; card counts use seats seated at the start; every time limit; everyone done · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: each trigger and the finalist rule are tested.
