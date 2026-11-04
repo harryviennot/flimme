@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 96 of 257 tasks done.
+Progress: 97 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -437,7 +437,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: the queue's rules are tested. The airplane-mode run is M6.9's.
 - [ ] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · M · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: both answers reach the server.
-- [ ] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · M · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
+- [x] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · M · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
   Done when: shown on the right phones, never naming anyone.
 - [x] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
   Done when: it appears on every phone together.
