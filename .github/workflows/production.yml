@@ -1,6 +1,7 @@
 # Production by hand, after checking staging (roadmap M1.15). Harry runs this workflow, and the
 # `production` environment's required approval holds the job until he approves it.
 # The pipeline worker joins with M2.12, the API and app later: the order is database, server, app.
+# The invite page on flimme.com (web, M4.18) follows the server.
 # Needs the `production` GitHub environment: docs/architecture/operations.md#continuous-integration.
 name: Production
 
@@ -80,3 +81,64 @@ jobs:
         working-directory: server
         # One machine, never two (a second pipeline worker would only double the TMDB traffic).
         run: flyctl deploy --config fly.workers.production.toml --remote-only --ha=false --image-label "sha-$GITHUB_SHA"
+
+  web:
+    # The invite page and the app-link files on flimme.com (roadmap M4.18). Dokploy on Harry's VPS
+    # builds mobile/web.Dockerfile from main and swaps the container (Q18.4, Q18.6); its own
+    # auto-deploy stays off. Needs, in the `production` environment, the DOKPLOY_API_KEY secret and
+    # the DOKPLOY_URL (the panel's https address) and DOKPLOY_APPLICATION_ID variables
+    # (groundwork.md#secrets).
+    needs: server
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+      DOKPLOY_URL: ${{ vars.DOKPLOY_URL }}
+      DOKPLOY_APPLICATION_ID: ${{ vars.DOKPLOY_APPLICATION_ID }}
+    steps:
+      - name: Check the secret and the variables are set
+        run: |
+          missing=()
+          [ -n "$DOKPLOY_API_KEY" ] || missing+=("the secret DOKPLOY_API_KEY")
+          [ -n "$DOKPLOY_URL" ] || missing+=("the variable DOKPLOY_URL")
+          [ -n "$DOKPLOY_APPLICATION_ID" ] || missing+=("the variable DOKPLOY_APPLICATION_ID")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::The production environment lacks ${missing[*]} (groundwork.md#secrets)."
+            exit 1
+          fi
+          case "$DOKPLOY_URL" in
+            https://*) ;;
+            *) echo "::error::DOKPLOY_URL must be the panel's https:// address."; exit 1 ;;
+          esac
+      - name: Ask Dokploy to deploy
+        run: |
+          body="$(jq -n --arg id "$DOKPLOY_APPLICATION_ID" '{applicationId: $id}')"
+          status="$(curl -sS --max-time 60 -o "$RUNNER_TEMP/dokploy.txt" -w '%{http_code}' \
+            -X POST "${DOKPLOY_URL%/}/api/application.deploy" \
+            -H "x-api-key: $DOKPLOY_API_KEY" -H 'Content-Type: application/json' \
+            --data "$body" || true)"
+          if [ "${status:0:1}" != 2 ]; then
+            echo "::error::Dokploy answered ${status:-nothing} to application.deploy."
+            head -c 500 "$RUNNER_TEMP/dokploy.txt" 2>/dev/null || true
+            exit 1
+          fi
+          echo "Dokploy accepted the deploy ($status)."
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      # Dokploy builds on the VPS after answering, and swaps the container when the build is done,
+      # so a failing check is retried. The deploy call only queues the build: a check that passes
+      # early may still be the previous container; Dokploy's Deployments tab shows the build itself.
+      - name: Check flimme.com (retried for up to 10 minutes)
+        run: |
+          deadline=$((SECONDS + 600))
+          until node tools/check-well-known.mjs https://flimme.com; do
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "::error::https://flimme.com still fails the check after 10 minutes."
+              exit 1
+            fi
+            sleep 30
+          done

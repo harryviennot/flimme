@@ -1,0 +1,18 @@
+# The build context of mobile/web.Dockerfile is the repository root, so only what the web export
+# needs goes in (Docker reads this file because it sits next to the Dockerfile, with the same name).
+# Never an .env file: the page calls no API, and a value baked in would ship to every visitor.
+*
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!.npmrc
+!patches
+!packages
+!mobile
+**/node_modules
+**/.env
+**/.env.*
+mobile/dist
+mobile/.expo
+mobile/ios
+mobile/android

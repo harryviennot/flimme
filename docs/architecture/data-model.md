@@ -551,7 +551,7 @@ erDiagram
 
 **ingest_runs**: one row per catalog job run, with counts, errors, a resume cursor and `stats` (requests, 429s, guard trips and agreement, read by the alerts). Kinds: `backfill`, `availability_sweep`, `popularity_daily`, `changes_daily`, `details_weekly`, `details_monthly`, `reference_weekly`, `embeddings`, `moods`.
 
-**app_config**: key and value pairs the app reads at launch through `api.app_config`, starting with `min_app_version` per platform, so an old build can be asked to update before an incompatible change. Also `tmdb_image_base` (`"https://image.tmdb.org/t/p/"`, so no build hard-codes the image host) and `deck_engine`: `"sql"` (the first release, no deck worker) deals the SQL baseline at once on start and refills, `"server"` (from M17.4) waits for the deck worker. A missing key means `server`; the database reads it through `internal.deck_engine()`. `invite_base_url` comes with the domain (M0.2).
+**app_config**: key and value pairs the app reads at launch through `api.app_config`, starting with `min_app_version` per platform, so an old build can be asked to update before an incompatible change. Also `tmdb_image_base` (`"https://image.tmdb.org/t/p/"`, so no build hard-codes the image host) and `deck_engine`: `"sql"` (the first release, no deck worker) deals the SQL baseline at once on start and refills, `"server"` (from M17.4) waits for the deck worker. A missing key means `server`; the database reads it through `internal.deck_engine()`. `invite_base_url` (`"https://flimme.com"` on both projects, M4.18) starts every invite link: the app adds `/join/<code>?r=<room id>`, and development builds ignore it and use their own scheme.
 
 ## How it fits together
 

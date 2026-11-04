@@ -96,11 +96,18 @@ describe('the verification files', () => {
     const { applinks } = read('apple-app-site-association');
     expect(applinks.details).toHaveLength(1);
     const [detail] = applinks.details;
-    expect(detail.appIDs.map((id: string) => id.slice(id.indexOf('.') + 1)).sort()).toEqual([
-      'com.harryviennot.flimme',
-      'com.harryviennot.flimme.preview',
+    // The Apple Team ID (M4.18): the apps are `<team id>.<bundle id>`.
+    expect([...detail.appIDs].sort()).toEqual([
+      'QQJF5895MC.com.harryviennot.flimme',
+      'QQJF5895MC.com.harryviennot.flimme.preview',
     ]);
     expect(detail.components).toEqual([{ '/': '/join/*' }]);
+  });
+
+  it('apple-app-site-association has no placeholder left', () => {
+    expect(fs.readFileSync(path.join(dir, 'apple-app-site-association'), 'utf8')).not.toMatch(
+      /REPLACE_WITH/,
+    );
   });
 
   it('assetlinks.json lists the production and preview packages', () => {
@@ -112,6 +119,24 @@ describe('the verification files', () => {
       expect(l.relation).toEqual(['delegate_permission/common.handle_all_urls']);
       expect(l.target.namespace).toBe('android_app');
       expect(l.target.sha256_cert_fingerprints.length).toBeGreaterThan(0);
+    }
+  });
+
+  // A fingerprint is 32 uppercase hex pairs with colons, as `eas credentials` prints it. Until
+  // Harry sends them (M4.18, H2) each package keeps its own named placeholder; the deploy check
+  // (tools/check-well-known.mjs without --allow-placeholders) refuses a placeholder on the domain.
+  it('every assetlinks.json fingerprint is a SHA-256 or its package placeholder', () => {
+    const fingerprint = /^[0-9A-F]{2}(?::[0-9A-F]{2}){31}$/;
+    const placeholder: Record<string, string> = {
+      'com.harryviennot.flimme': 'REPLACE_WITH_PRODUCTION_KEY_SHA256',
+      'com.harryviennot.flimme.preview': 'REPLACE_WITH_PREVIEW_KEY_SHA256',
+    };
+    const links: { target: { package_name: string; sha256_cert_fingerprints: string[] } }[] =
+      read('assetlinks.json');
+    for (const { target } of links) {
+      for (const value of target.sha256_cert_fingerprints) {
+        if (value !== placeholder[target.package_name]) expect(value).toMatch(fingerprint);
+      }
     }
   });
 });
