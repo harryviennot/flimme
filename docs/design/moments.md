@@ -1,6 +1,6 @@
 # Signature moments
 
-The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match; the Final Cut, the reveal and the winner come before slice 12.
+The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match. The winner was added on 4 November 2026, before M6.16; the Final Cut and the reveal come before M6.15 and M6.31.
 
 It builds on [the answers](../product/game-modes.md#the-answers), [when it's a match](../product/game-modes.md#when-its-a-match) and [what players see](../product/game-modes.md#what-players-see-party-and-blind) in the game modes, [the card stack](../architecture/app-structure.md#the-card-stack), [the vote queue](../architecture/app-structure.md#the-vote-queue) and [realtime](../architecture/app-structure.md#realtime) in the app structure, [the first game](../product/onboarding.md#the-first-game) in onboarding, [the signature moments](../agent-workflow.md#the-signature-moments) in the agent workflow, and the `motion` skill (tokens, the haptic vocabulary, the two sounds). The backend facts come from the merged migrations of 3 November 2026: a deal is 25 cards per seat with a shared opening of 10, a vote counts on any active card in the room's pool, "Seen it" saves to the profile, and `api.cast_vote` checks matches (M1.13) while the match rules and their values are M6.1, not yet built.
 
@@ -13,9 +13,10 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 3. [The flip](#the-flip)
 4. [The near miss](#the-near-miss)
 5. [The match](#the-match)
-6. [Starting values](#starting-values)
-7. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
-8. [Questions for Harry](#questions-for-harry)
+6. [The winner](#the-winner)
+7. [Starting values](#starting-values)
+8. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
+9. [Questions for Harry](#questions-for-harry)
 
 ## What every moment keeps
 
@@ -271,6 +272,49 @@ Every phone in the room shows the same overlay on the `match` event, within netw
 - **The finale started at the same moment.** The room's lock orders them: if the like came first, the match wins and no finale starts; if the finale started first, the like gets `closed` and the Final Cut screen takes over.
 - **The phone is locked.** No notification in the first release; the overlay plays when the player comes back, as above.
 
+## The winner
+
+### The beat
+
+**"Tonight's pick": the film, and where to watch it.** The celebration is over (the match overlay, or later the Final Cut's reveal). This screen is the calm after it: one poster, the title, the logos of the room's services that have it, and "More details". It answers the only question left on the couch, "where do we put it on?", and then lets everyone look up at the TV.
+
+It's the same screen on every phone, and it belongs to the group: no names, no avatars, no counts, nothing about how anyone voted.
+
+### How it arrives
+
+Every phone gets there on its own, from the same room state (`done` with a `pick_order` 1 row), so all phones show it within network latency of each other.
+
+| From | How the arrival feels |
+| --- | --- |
+| The match overlay ([the match](#the-match)) | A settling, not a new moment. The winner screen is already under the overlay; the overlay fades out (`layout.fadeOut`) and the same film's poster is there, still. Nothing on the winner screen animates in |
+| The Final Cut (until M6.31, Q15.4) | The news itself, told quietly. "Counting the votes" gives way to the winner screen with a fade (`layout.fadeIn`, `duration.base`). This is the one arrival where the players learn the winner here, so the title is what the screen reader reads first. When M6.31 ships, the reveal plays the celebration and hands over as the match overlay does |
+| A single-film pick (Q4.4) | No overlay (Q4.5) and no vote. The stack stops taking input as it does for a match (a card mid-drag springs back, `spring.card`), and the winner screen fades in (`layout.fadeIn`, `duration.base`). One line above the title says why: "The only film anyone liked". The reveal beat (M6.31) may give it more |
+| A cold start or a return to a `done` room | Straight to the screen, no transition, once the overlay rule has played or skipped (match-shown) |
+
+### What moves
+
+Almost nothing. The poster's placeholder holds the poster's exact size, so the layout never jumps; the poster fades in over it (`layout.fadeIn`) when it loads. The logos sit still. There's no timer, no countdown and no automatic exit: the screen stays until the player leaves with Home (Q16.4) or the edge swipe. With Reduce Motion, the fades stay (they're opacity only).
+
+### Haptics and sound
+
+None. The match overlay fired `haptics.match()` and `playSound('match')` a few seconds earlier; the reveal (M6.31) will fire `haptics.match()` and `playSound('reveal')`. A second burst here would blur the one meaning. Until M6.31, the Final Cut and the single-film pick reach this screen in silence, on purpose: the reveal brings the feel, not a stand-in. Buttons keep their `press` haptic.
+
+### Never shown
+
+- Who liked the film, who super liked it, who noped it, or who vetoed anything. No avatar or seat name next to the film (game-modes.md#what-players-see-party-and-blind: "A match never shows who said yes").
+- The count of likes or the Final Cut's points. The overlay and the reveal already said them; on a still screen, "7 of 9" invites the question "who were the two?".
+- Any "Open in Netflix" link (decision row 35): the group watches on the TV.
+- Anything that pushes: no "play again now", no streak, no timer.
+
+Runners-up, with who liked them in Party mode, are M6.32, after this beat.
+
+### Edge cases
+
+- **No service lists the film any more.** The screen says so and keeps "More details" (Q16.2). No watch link: "More details" is hidden (Q16.1).
+- **A player leaves with Home.** Nothing reaches the other phones; their screen doesn't change.
+- **A screen reader is on.** On arrival, focus goes to the title, read with "Tonight's pick".
+- **The room is `done` with no pick.** Not this beat: the no-pick slot shows instead (M6.17).
+
 ## Starting values
 
 Placeholders for the feel check (the `feel-check` skill) and the first playtests. The ones marked "token?" are new numbers the designer should either map to an existing token or add to `tokens.json` first.
@@ -301,6 +345,7 @@ None of these is decided; each follows from a question below or is a gap found w
 | `api.cast_vote` | The optional `flipped` argument for `swipe_log` ([deck engine](../architecture/deck-engine.md#changes-to-the-data-model), [app structure](../architecture/app-structure.md#changes-this-asks-of-the-backend)). No roadmap task carries it yet; M6.10 needs it | The flip beat sends it with the vote |
 | `internal.recheck_room_matches`, M6.1 | Walk films in a fixed order (question 5) | Today ties in like counts come out in no defined order |
 | [game-modes.md](../product/game-modes.md#what-players-see-party-and-blind) | If question 4's default is accepted: a Party match shows every player's avatar and the count, not "who said yes" | A majority match would otherwise show who didn't |
+| The winner screen spec (screens/winner.md, to be written), M6.16 | The single-film pick's line, "The only film anyone liked" (Q4.4), above the title. The phone knows it from the `match` event's `reason: 'only_film'`, or on a cold start from a `finale` pick with no row in `api.rounds` | Q4.4's default puts this line on the winner screen, and M6.16's brief doesn't list it yet |
 
 ## Questions for Harry
 
