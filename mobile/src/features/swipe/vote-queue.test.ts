@@ -1,4 +1,4 @@
-import { ApiError, type CastVoteResult } from '@flimme/contract';
+import { ApiError, type CastVoteResult, type UndoLastVoteResult } from '@flimme/contract';
 
 import type { KeyValueStore } from '@/lib/storage';
 
@@ -50,8 +50,14 @@ function setup(
     status: 'ok',
     match: false,
   }),
-  options: { kv?: KeyValueStore; kept?: string | null } = {},
+  options: {
+    kv?: KeyValueStore;
+    kept?: string | null;
+    undo?: (attempt: number) => UndoLastVoteResult | Promise<UndoLastVoteResult>;
+  } = {},
 ) {
+  const log: string[] = [];
+  let undoAttempts = 0;
   const kv = options.kv ?? memoryKv();
   const sent: Sent[] = [];
   const attempts = new Map<number, number>();
@@ -65,9 +71,15 @@ function setup(
     castVote: async (args) => {
       const s = { room_id: args.room_id, title_id: args.title_id };
       sent.push({ ...s, flipped: args.flipped });
+      log.push(`vote ${args.title_id}`);
       const n = (attempts.get(args.title_id) ?? 0) + 1;
       attempts.set(args.title_id, n);
       return answer(s, n);
+    },
+    undoLastVote: async () => {
+      log.push('undo');
+      undoAttempts += 1;
+      return options.undo ? options.undo(undoAttempts) : { status: 'ok', title_id: 0 };
     },
     refreshSession,
     invalidateRoom: (id) => void invalidated.push(id),
@@ -75,7 +87,7 @@ function setup(
     keptRoomId: () => kept.id,
   });
   queue.onAnswer((e) => void events.push(e));
-  return { queue, kv, sent, events, reported, invalidated, refreshSession, kept };
+  return { queue, kv, sent, log, events, reported, invalidated, refreshSession, kept };
 }
 
 beforeEach(() => jest.useFakeTimers());
@@ -426,5 +438,124 @@ describe('restart', () => {
     );
     const { queue } = setup(undefined, { kv });
     expect(queue.store.getState().votes).toEqual([]);
+  });
+});
+
+describe('undo', () => {
+  const undoItem = (title_id: number) => ({ room_id: ROOM, member_id: MEMBER, title_id });
+
+  it('takes the last vote out when it is still waiting, and calls nothing for it', async () => {
+    const { queue, sent } = setup(() => {
+      throw networkError();
+    });
+    queue.enqueue(vote(1));
+    queue.enqueue(vote(2));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(queue.removeLast(ROOM)?.title_id).toBe(2);
+    expect(queue.has(ROOM, 2)).toBe(false);
+    expect(queue.has(ROOM, 1)).toBe(true);
+    expect(sent.map((s) => s.title_id)).toEqual([1]);
+  });
+
+  it('does not take out a vote that is being sent', () => {
+    const { queue } = setup(() => new Promise<CastVoteResult>(() => undefined));
+    queue.enqueue(vote(1));
+    expect(queue.removeLast(ROOM)).toBeNull();
+    expect(queue.has(ROOM, 1)).toBe(true);
+  });
+
+  it('does not take out a head whose send failed: it may have reached the server', async () => {
+    const { queue } = setup(() => {
+      throw networkError();
+    });
+    queue.enqueue(vote(1));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(queue.removeLast(ROOM)).toBeNull();
+    expect(queue.has(ROOM, 1)).toBe(true);
+  });
+
+  it('answers null for another room or an empty queue', () => {
+    const { queue } = setup();
+    expect(queue.removeLast(ROOM)).toBeNull();
+  });
+
+  it('sends the undo after the votes before it and before the votes after it', async () => {
+    const { queue, log } = setup();
+    queue.enqueue(vote(1));
+    queue.enqueueUndo(undoItem(1));
+    queue.enqueue(vote(1, { answer: 'nope' }));
+    queue.enqueue(vote(2));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(log).toEqual(['vote 1', 'undo', 'vote 1', 'vote 2']);
+  });
+
+  it('keeps an undo waiting offline and sends it once, in line, when the network is back', async () => {
+    const { queue, log } = setup(undefined, {
+      undo: (n) => {
+        if (n === 1) throw networkError();
+        return { status: 'ok', title_id: 1 };
+      },
+    });
+    queue.enqueueUndo(undoItem(1));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(queue.removeLast(ROOM)).toBeNull();
+    await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0]);
+    expect(log).toEqual(['undo', 'undo']);
+    expect(queue.store.getState().votes).toEqual([]);
+  });
+
+  it('reports nothing_to_undo and drops it', async () => {
+    const { queue, reported } = setup(undefined, { undo: () => ({ status: 'nothing_to_undo' }) });
+    queue.enqueueUndo(undoItem(1));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(reported).toHaveLength(1);
+    expect(queue.store.getState().votes).toEqual([]);
+  });
+
+  it('on locked reads the room again and shows no error', async () => {
+    const { queue, reported, invalidated, events } = setup(undefined, {
+      undo: () => ({ status: 'locked' }),
+    });
+    queue.enqueueUndo(undoItem(1));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(invalidated).toEqual([ROOM]);
+    expect(reported).toEqual([]);
+    expect(events).toEqual([]);
+    expect(queue.store.getState().votes).toEqual([]);
+  });
+
+  it('on closed drops the room and tells the screens', async () => {
+    const { queue, events } = setup(undefined, {
+      undo: () => ({ status: 'closed', state: 'closed' }),
+    });
+    queue.enqueue(vote(1, { room_id: ROOM }));
+    queue.enqueueUndo(undoItem(1));
+    queue.enqueue(vote(2));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(events.some((e) => e.type === 'closed')).toBe(true);
+    expect(queue.pending(ROOM)).toBe(0);
+  });
+
+  it('is saved on the device and read back after a restart', async () => {
+    const kv = memoryKv();
+    const first = setup(
+      () => {
+        throw networkError();
+      },
+      { kv },
+    );
+    first.queue.enqueue(vote(1));
+    first.queue.enqueueUndo(undoItem(1));
+    await jest.advanceTimersByTimeAsync(0);
+    const second = setup(undefined, { kv });
+    await second.queue.flush();
+    expect(second.log).toEqual(['vote 1', 'undo']);
+  });
+
+  it('does not count an undo as a waiting swipe', () => {
+    const { queue } = setup(() => new Promise<CastVoteResult>(() => undefined));
+    queue.enqueue(vote(1));
+    queue.enqueueUndo(undoItem(1));
+    expect(queue.pending(ROOM)).toBe(1);
   });
 });

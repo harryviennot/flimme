@@ -1,0 +1,58 @@
+# M6.26, Undo on the swipe screen: run on the host's phone with a second player in the room,
+# after "Start swiping". Undo is asleep until the first answer, brings the card back front side up,
+# sleeps again (once in a row), and gives a super like back to the badge. A double tap on Undo
+# undoes once. Whether the server really took the vote back is checked by hand: `api.room_seats`
+# (swipe_count, super_likes_left) as the other player, a few seconds after each step.
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-undo.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- extendedWaitUntil:
+    visible: 'Seen it'
+    timeout: 90000
+- assertVisible:
+    text: 'Undo'
+    enabled: false
+- takeScreenshot: undo-1-asleep
+
+# A card flipped to its back comes back front side up.
+- tapOn:
+    point: 50%,35%
+- waitForAnimationToEnd
+- tapOn: 'Like'
+- waitForAnimationToEnd
+- assertVisible:
+    text: 'Undo'
+    enabled: true
+- tapOn: 'Undo'
+- waitForAnimationToEnd
+- assertVisible:
+    text: 'Undo'
+    enabled: false
+- takeScreenshot: undo-2-back-front-up
+
+# A double tap undoes once.
+- tapOn: 'Nope'
+- waitForAnimationToEnd
+- doubleTapOn: 'Undo'
+- waitForAnimationToEnd
+- assertVisible:
+    text: 'Undo'
+    enabled: false
+
+# A super like goes back to the badge.
+- tapOn: 'Super like, 2 left'
+- waitForAnimationToEnd
+- assertVisible: 'Super like, 1 left'
+- tapOn: 'Undo'
+- waitForAnimationToEnd
+- assertVisible: 'Super like, 2 left'
+- takeScreenshot: undo-3-super-back
+
+# Offline: the last answer never left the phone, so Undo only takes it out of the queue.
+- setAirplaneMode: enabled
+- tapOn: 'Like'
+- waitForAnimationToEnd
+- tapOn: 'Undo'
+- waitForAnimationToEnd
+- setAirplaneMode: disabled
+- assertVisible: 'Undo'

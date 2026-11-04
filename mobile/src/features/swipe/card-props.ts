@@ -75,6 +75,16 @@ export function trailerUrl(key: string): string {
   return `https://www.youtube.com/watch?v=${encodeURIComponent(key)}`;
 }
 
+/**
+ * The card back opens YouTube, whose next video isn't ours to choose, so rooms capped under 13
+ * have no Trailer. The server already sends a null key there (`internal.card_payloads`); this is
+ * the phone's own check, so a card cached before a change can't show it. `null` is uncapped, 0
+ * ("All ages"), 10 and 12 are capped. `undefined` (the room isn't known yet) shows nothing.
+ */
+export function trailerAllowed(maxAge: number | null | undefined): boolean {
+  return maxAge === null || (maxAge !== undefined && maxAge >= 13);
+}
+
 export type CardTextOptions = {
   language: string;
   /** `app_config.tmdb_image_base`. */
@@ -82,6 +92,8 @@ export type CardTextOptions = {
   screenWidth: number;
   /** `swipe:card.noSynopsis`. */
   noSynopsis: string;
+  /** `rooms.max_age`; `undefined` while the room is loading. See `trailerAllowed`. */
+  maxAge?: number | null;
   /** Opens a trailer. Without it (or without a `trailer_key`) the back has no Trailer button. */
   onTrailer?: (url: string) => void;
   /** A touch started on the Trailer button. */
@@ -93,7 +105,7 @@ export function toMovieCard(
   options: CardTextOptions,
 ): Omit<MovieCardProps, 'flipped' | 'onFlip' | 'stamp'> {
   const { language, onTrailer } = options;
-  const key = card.trailer_key;
+  const key = trailerAllowed(options.maxAge) ? card.trailer_key : null;
   const url = posterUrl(options.imageBase, card.poster_path, options.screenWidth);
   const directors = card.directors.length > 0 ? formatList(card.directors, language) : undefined;
   const cast =

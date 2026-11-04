@@ -15,6 +15,7 @@ export type { QueuedVote, VoteQueue, VoteQueueEvent } from './vote-queue';
  */
 export const voteQueue = createVoteQueue({
   castVote: (args) => api.castVote(args),
+  undoLastVote: (args) => api.undoLastVote(args),
   refreshSession: async () => {
     const { error } = await supabase.auth.refreshSession();
     if (error) throw error;

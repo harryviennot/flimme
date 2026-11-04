@@ -52,6 +52,7 @@
     "superLeft_other": "Coup de cœur, il en reste {{count}}",
     "superNone": "Plus de coup de cœur",
     "undoNone": "Rien à annuler",
+    "undone": "{{title}} est de retour",
     "seenYes": "Oui, on le revoit ce soir",
     "seenNo": "Non, pas ce soir",
     "pill_one": "{{name}}, {{count}} film",

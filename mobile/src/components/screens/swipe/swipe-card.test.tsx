@@ -161,6 +161,39 @@ describe('with Reduce Motion', () => {
   });
 });
 
+describe('a card Undo brings back', () => {
+  it('comes in from the side it left and lands in the middle, fully shown', async () => {
+    await render(<Card returning={{ kind: 'nope' }} />);
+    await settle();
+    expect(part('translateX')).toBe(0);
+    expect(part('translateY')).toBe(0);
+    expect(style().opacity).toBe(1);
+  });
+
+  it('turns around in the air when it had not landed yet', async () => {
+    const view = await render(
+      <Card flight={{ kind: 'like', fromGesture: false, flipped: false }} />,
+    );
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+    await view.rerender(<Card returning={{ kind: 'like' }} />);
+    await settle();
+    expect(part('translateX')).toBe(0);
+    expect(style().opacity).toBe(1);
+  });
+
+  it('with Reduce Motion fades back in place, with no slide or tilt', async () => {
+    mockReduced = true;
+    await render(<Card returning={{ kind: 'like' }} />);
+    expect(style().opacity).toBe(0);
+    await settle();
+    expect(part('translateX')).toBe(0);
+    expect(part('rotate')).toBe('0deg');
+    expect(style().opacity).toBe(1);
+  });
+});
+
 describe('the cards behind', () => {
   it('sit lower, smaller and fainter, and take no touch', async () => {
     await render(<Card depth={2} />);

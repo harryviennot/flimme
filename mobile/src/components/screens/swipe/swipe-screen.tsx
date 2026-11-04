@@ -8,6 +8,7 @@ import { useStore } from 'zustand';
 import { RoomBanner } from '@/components/screens/room/room-banner';
 import { Pressable } from '@/components/ui/pressable';
 import { Screen } from '@/components/ui/screen';
+import { useRoom } from '@/features/room';
 import { FRAME_METER_ON } from '@/features/dev/frame-meter';
 import { asksRewatch, rewatchAnswer, type AnswerKind } from '@/features/swipe/answer';
 import type { Direction } from '@/features/swipe/feel';
@@ -51,6 +52,7 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
   const { stack } = swipe;
   const topId = useStore(stack, (s) => s.mounted[0]?.title_id);
   const status = useStore(stack, (s) => s.status);
+  const maxAge = useRoom(roomId).data?.max_age;
   const nearMiss = useNearMiss(roomId, topId);
 
   const { flying, throwCard, landed } = useFlights(swipe.answer);
@@ -117,6 +119,14 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
     return flight;
   };
 
+  // Undo: the card is back in the stack at once; a copy still in the air is called back.
+  const undoLast = useCallback(() => {
+    const back = swipe.undo();
+    if (!back) return;
+    landed(back.card.title_id);
+    AccessibilityInfo.announceForAccessibility(t('a11y.undone', { title: back.card.title }));
+  }, [swipe, landed, t]);
+
   const canAnswer = status === 'ready' && !swipe.locked;
   const rowStyle = useAnimatedStyle(() => ({
     opacity: withTiming(held === null ? 1 : 0, timing.base),
@@ -136,6 +146,8 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
             <ActionRow
               canAnswer={canAnswer}
               superLikesLeft={swipe.superLikesLeft}
+              canUndo={swipe.canUndo}
+              onUndo={undoLast}
               onAnswer={(kind) => throwAndSay(kind, false)}
               lit={lit}
             />
@@ -166,6 +178,7 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
       <View className="flex-1 px-5" pointerEvents="box-none">
         <CardStack
           swipe={swipe}
+          maxAge={maxAge}
           glowId={nearMiss ? topId : undefined}
           flying={flying}
           throwCard={throwAndSay}
