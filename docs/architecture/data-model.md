@@ -503,7 +503,7 @@ erDiagram
 
 ### The finale
 
-**rounds**: one finale per room at launch. `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank only). `stage_closes_at` is the current deadline.
+**rounds**: one finale per room at launch. `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank only). `stage_closes_at` is the current deadline. The finale is now one round with a single `vote` stage, then `closed` ([game modes](../product/game-modes.md#the-finale)). `round_stage`'s `veto` and `rank` values stay in the enum, unused, because migrations only add (decided on 4 November 2026).
 
 **round_candidates**: the 3 or 4 finalists, seeded by matches, then likes (super likes count double), then group score. `vetoed_at` (set only at the close, on a film knocked out by the vetoes), `vetoed_by` (stored, never sent to phones) and `points` for the Borda count, both written only at the close, so `api.round_candidates` shows nothing secret before it.
 
@@ -696,7 +696,7 @@ The veto, rank and stage-closing functions are described here but not yet in sch
 
 Every path to `done` fires a trigger that queues `room_finished`. The pipeline worker then:
 
-1. Writes `rooms.stats` for the recap card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes").
+1. Writes `rooms.stats` for the recap card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes"). Built (M6.8): `internal.write_room_stats` holds `outcome`, `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median over seats that swiped), `players` and `finale_reason`; the worker only calls it. The host-control fields wait for M18.9, M18.5, M18.6 and M6.22; steps 2 and 3 wait for M19.
 2. Turns "seen it" swipes into `user_titles` rows with source `app`.
 3. Queues a taste refresh for every seat.
 
@@ -821,7 +821,7 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 | `letterboxd_sync` | join_room when the last sync is over 6 hours old; the hourly job for accounts with no sync in 14 days | linked account, reason | pipeline worker |
 | `catalog_refresh` | cron | TMDB ids or the changes feed | pipeline worker |
 | `embed_titles` | catalog refresh | titles whose text changed | pipeline worker |
-| `room_finished` | trigger on rooms reaching `done` | room | pipeline worker |
+| `room_finished` | trigger on rooms reaching `done`, or `abandoned` after the start | room | pipeline worker |
 
 > How the server consumes each queue (visibility timeouts, poison messages, why running a message twice is safe) is in [server-structure.md](server-structure.md#consuming-the-queues). It adds a `letterboxd_match` queue, and `app_server` still needs read and delete grants on the queues it consumes.
 

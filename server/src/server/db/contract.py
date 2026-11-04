@@ -5,6 +5,8 @@ Only `internal.enqueue` for now. The others come with the tasks that call them
 """
 
 from collections.abc import Sequence
+from typing import Any
+from uuid import UUID
 
 from psycopg import AsyncConnection
 from psycopg.types.json import Jsonb
@@ -28,3 +30,11 @@ async def enqueue_many(conn: AsyncConnection, queue: str, messages: Sequence[Bas
             "select internal.enqueue(%s, %s)",
             [(queue, Jsonb(m.model_dump(mode="json"))) for m in messages],
         )
+
+
+async def write_room_stats(conn: AsyncConnection, room_id: UUID) -> dict[str, Any] | None:
+    """`internal.write_room_stats(room_id)`: computes and overwrites `rooms.stats`, returns it.
+    None for a room that is gone or has not ended."""
+    cur = await conn.execute("select internal.write_room_stats(%s)", (room_id,))
+    row = await cur.fetchone()
+    return row[0] if row else None

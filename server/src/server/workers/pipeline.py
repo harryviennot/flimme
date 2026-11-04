@@ -1,4 +1,4 @@
-"""The pipeline worker: it consumes `catalog_refresh` and nothing else yet (decision Q33).
+"""The pipeline worker: it consumes `catalog_refresh` and `room_finished` (decision Q33, M6.8).
 
 Handlers register by message kind. M2.5, M2.7, M2.9, M2.10 and M2.11 each add one line to
 `HANDLERS` or `JOBS`. A valid message whose kind has no handler is rejected (archived and
@@ -30,6 +30,7 @@ from server.db.payloads import (
 )
 from server.db.pool import Database
 from server.db.queues import PgmqClient
+from server.rooms.finished import make_room_finished_handler
 from server.workers.runner import (
     Delivery,
     Handler,
@@ -43,6 +44,8 @@ from server.workers.runner import (
 log = logging.getLogger(__name__)
 
 CATALOG_REFRESH = QueueSpec("catalog_refresh", vt_s=300, poison_after=5, concurrency=4)
+
+ROOM_FINISHED = QueueSpec("room_finished", vt_s=60, poison_after=5, concurrency=2)
 
 KindHandler = Callable[[CatalogRefreshMessage, Delivery], Awaitable[Outcome]]
 
@@ -163,6 +166,7 @@ async def run_pipeline_worker(settings: Settings) -> None:
     """Consume until SIGTERM or SIGINT, then let the handlers in progress finish."""
     database = await Database.open(settings.database_url_for(Process.PIPELINE))
     client = PgmqClient(database)
+    finished_client = PgmqClient(database)
     tmdb = TmdbClient(settings.tmdb_token.get_secret_value()) if settings.tmdb_token else None
     posters = Posters()
     context = Context(database, tmdb, load_curation(), posters=posters)
@@ -179,10 +183,18 @@ async def run_pipeline_worker(settings: Settings) -> None:
         stats = await apply_curation(database, context.curation)
         log.info("curation applied at start %s", stats)
         runner = QueueRunner(CATALOG_REFRESH, make_dispatcher(handlers), client)
-        await runner.run(stop)
+        # Its own client: read_with_poll holds a reader connection while it waits.
+        finished_runner = QueueRunner(
+            ROOM_FINISHED, make_room_finished_handler(database), finished_client
+        )
+        try:
+            await asyncio.gather(runner.run(stop), finished_runner.run(stop))
+        finally:
+            stop.set()
     finally:
         remove_signal_handlers()
         await client.close()
+        await finished_client.close()
         await posters.aclose()
         if tmdb is not None:
             await tmdb.aclose()

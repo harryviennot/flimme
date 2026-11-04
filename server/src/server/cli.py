@@ -76,7 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     commands.add_parser(
         "pipeline-worker",
-        help="consume the catalog_refresh queue (the other queues join with their tasks)",
+        help="consume the catalog_refresh and room_finished queues (others join with their tasks)",
     )
 
     backfill = commands.add_parser(

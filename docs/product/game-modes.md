@@ -382,7 +382,7 @@ Not yet in [data-model.md](../architecture/data-model.md) or [schema.sql](../arc
 | Where | Change |
 | --- | --- |
 | `vote_answer` | Add `seen_rewatch` ("Watch it again tonight? Yes", counts as a like and as seen). `seen` in rooms that allow rewatches counts as a nope |
-| `round_stage` | One open stage, `vote`, then `closed`. `veto` and `rank` go. Done in M6.4: `vote` is added; `veto` and `rank` stay in the type, unused, until a contract release |
+| `round_stage` | One open stage, `vote`, then `closed`. `veto` and `rank` stay in the type, unused, since migrations only add (decided on 4 Nov 2026). Done in M6.4: `vote` is added |
 | `rooms.finale_reason` | Why the finale started: `cards`, `time`, `all_done`, `vote_now` or `shortlist_full` (`cards` when the count and the time limit hold together). Done in M6.4; written for a round, a single-film pick and a no pick alike |
 | `match_rules` | `finale_after_seconds` on every row (see [Time to a pick](#time-to-a-pick)); 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for Quick Match with 5 to 10 and for Final Cut |
 | `rooms.stats` | Adds `outcome`: `match`, `finale`, `no_pick` or `abandoned` |
