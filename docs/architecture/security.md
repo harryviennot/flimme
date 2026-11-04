@@ -65,7 +65,7 @@ Read against the draft [schema.sql](schema.sql):
 - **Nobody can list rooms.** A room is found only by its code, through `api.join_room`, which counts the attempt first and never raises on a wrong code, so a failed guess can't roll back the counter.
 - **Realtime is split in two.** Phones can't send on `room:<id>`, so a fake `match` can't appear; they can only send on `room:<id>:live`.
 - **The server writes decks through one function** (`internal.deal_cards`), never votes or room state.
-- **`api.room_seats` hides profile ids**, showing only `is_me` and `is_mine`. Deleting an account blanks the name on past seats.
+- **`api.room_seats` hides profile ids**, showing only `is_me` and `is_mine`. Deleting an account blanks the name on past seats. It also hides other seats' `vetoes_left` and `super_likes_left` (null), so a spent veto never shows who vetoed.
 
 ## The database: gaps found
 

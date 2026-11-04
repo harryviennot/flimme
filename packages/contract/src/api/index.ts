@@ -5,7 +5,10 @@
 // error rejects, as an ApiError. A PR that changes a wrapped function changes its answer
 // list (answers.ts), its schema (payloads.ts) and its wrapper here.
 import {
+  CAST_BALLOT_ANSWERS,
   CAST_VOTE_ANSWERS,
+  CLOSE_ROUND_STAGE_ANSWERS,
+  ROUND_PROGRESS_ANSWERS,
   REQUEST_CARDS_ANSWERS,
   UNDO_LAST_VOTE_ANSWERS,
   CREATE_ROOM_ANSWERS,
@@ -27,7 +30,13 @@ import {
 } from '../answers';
 import {
   appConfigSchema,
+  castBallotResult,
   castVoteResult,
+  closeRoundStageResult,
+  roundProgressResult,
+  type CastBallotResult,
+  type CloseRoundStageResult,
+  type RoundProgressResult,
   requestCardsResult,
   undoLastVoteResult,
   roomMatchRow,
@@ -366,6 +375,56 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id, p_member_id: args.member_id },
         UNDO_LAST_VOTE_ANSWERS,
         undoLastVoteResult,
+      );
+    },
+
+    // --- The Final Cut -------------------------------------------------------------------
+    /**
+     * The whole ballot in one call: every film of the round in order, minus the vetoed one. Final
+     * Cut only; a ranked vote has no veto. A ballot can't be changed afterwards.
+     */
+    castBallot(args: {
+      round_id: string;
+      ranking: number[];
+      veto?: number;
+      member_id?: string;
+    }): Promise<CastBallotResult> {
+      return callAnswer(
+        client,
+        options,
+        'cast_ballot',
+        {
+          p_round_id: args.round_id,
+          p_ranking: args.ranking,
+          p_veto: args.veto,
+          p_member_id: args.member_id,
+        },
+        CAST_BALLOT_ANSWERS,
+        castBallotResult,
+      );
+    },
+
+    /** Every phone calls this at zero; it closes the round only when it is time, and is safe to repeat. */
+    closeRoundStage(args: { round_id: string }): Promise<CloseRoundStageResult> {
+      return callAnswer(
+        client,
+        options,
+        'close_round_stage',
+        { p_round_id: args.round_id },
+        CLOSE_ROUND_STAGE_ANSWERS,
+        closeRoundStageResult,
+      );
+    },
+
+    /** Who has locked in, out of how many present, for a phone that restarted. */
+    roundProgress(args: { round_id: string }): Promise<RoundProgressResult> {
+      return callAnswer(
+        client,
+        options,
+        'round_progress',
+        { p_round_id: args.round_id },
+        ROUND_PROGRESS_ANSWERS,
+        roundProgressResult,
       );
     },
 
