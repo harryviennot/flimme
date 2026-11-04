@@ -20,6 +20,7 @@ import { Pressable } from '@/components/ui/pressable';
 import { Tag, type TagTone } from '@/components/ui/tag';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/cn';
+import { tokens } from '@/theme/generated/tokens';
 import { duration, timing } from '@/theme/motion';
 
 import { Poster, type PosterSource } from './poster';
@@ -295,12 +296,18 @@ function ServiceBadges({ services }: { services: { name: string; logo?: string }
           className="h-6 flex-row items-center gap-1.5 self-start rounded-xs bg-bg-raised pr-2 pl-1"
         >
           {logo ? (
+            // An expo-image sized only by className has no width on iOS: it gets a style.
             <Image
               source={{ uri: logo }}
               contentFit="cover"
               transition={duration.fast}
-              className="size-4 rounded-xs"
+              style={{
+                width: tokens.space[16],
+                height: tokens.space[16],
+                borderRadius: tokens.radius.xs,
+              }}
               accessible={false}
+              testID="service-logo"
             />
           ) : null}
           <Text variant="mono-eyebrow" tone="secondary" numberOfLines={1}>

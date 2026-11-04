@@ -1,5 +1,6 @@
 import '@/i18n';
 
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import { MovieCard, stampOpacity, type MovieCardProps } from './movie-card';
@@ -47,6 +48,17 @@ const LAYOUT = { width: 300, x: 0, y: 0 };
 describe('the back of the card', () => {
   beforeEach(() => {
     mockReduced = false;
+  });
+
+  it('gives a service logo a size of its own, so the image has pixels', async () => {
+    await render(<MovieCard {...film} flipped />);
+    const logos = screen.getAllByTestId('service-logo');
+    expect(logos).toHaveLength(1);
+    const logo = logos[0]!;
+    const style = StyleSheet.flatten(logo.props.style);
+    expect(style).toMatchObject({ width: expect.any(Number), height: expect.any(Number) });
+    expect(style.width).toBeGreaterThan(0);
+    expect(style.height).toBeGreaterThan(0);
   });
 
   it('shows the score, the story, the credits, the services and the trailer', async () => {
