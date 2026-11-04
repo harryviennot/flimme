@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 87 of 257 tasks done.
+Progress: 88 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -410,7 +410,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 - [ ] **M6.1** Match rules with the confirmed values: a time limit of 6 minutes on every rule, 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for 5 to 10 players and Final Cut, 3 finalists for 2 players in every mode, and a fixed re-check order after a leave or a removal (most likes, then most super likes, then group score, then lowest film id) · backend · M · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
   Done when: seeded and tested, the re-check order included.
-- [ ] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions; the near miss only one like short of the rule, with `needed` in the payload; `flipped` on `api.cast_vote` · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
+- [x] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions; the near miss only one like short of the rule, with `needed` in the payload; `flipped` on `api.cast_vote` · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: the match check is tested with both answers, and the near miss and `flipped` are tested too.
 - [ ] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back; undoing a like at the near-miss line sends `near_miss` with the corrected counts · backend · M · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: tested.
