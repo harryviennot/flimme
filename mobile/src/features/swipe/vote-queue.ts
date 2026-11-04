@@ -48,7 +48,7 @@ export type VoteQueueDeps = {
   /** Re-reads the room after a `closed` answer. */
   invalidateRoom: (roomId: string) => void;
   /** Room and film ids only, never names (privacy rule 7). */
-  report: (error: unknown, context: { room_id: string; title_id: number }) => void;
+  report: (error: unknown, context: { room_id: string; title_id?: number }) => void;
   /** The room the phone keeps; votes for any other room are dropped unsent. */
   keptRoomId: () => string | null;
 };
@@ -121,7 +121,7 @@ export function createVoteQueue(deps: VoteQueueDeps) {
       try {
         listener(event);
       } catch (error) {
-        deps.report(error, { room_id: event.room_id, title_id: 0 });
+        deps.report(error, { room_id: event.room_id });
       }
     }
   }
