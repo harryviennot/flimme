@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 95 of 257 tasks done.
+Progress: 96 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -439,7 +439,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: both answers reach the server.
 - [ ] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · M · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
   Done when: shown on the right phones, never naming anyone.
-- [ ] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
+- [x] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
   Done when: it appears on every phone together.
 - [ ] **M6.15** The Final Cut screen: rank by tapping in order, veto one, a 60-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
   Done when: a round with a missing ballot still closes on time.
