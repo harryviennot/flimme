@@ -1,6 +1,26 @@
 import { act, renderHook } from '@testing-library/react-native';
 
-import { DEAL_RETRY_MS, DEAL_SLOW_MS, runStart, tooFewFromEvent, useDealingTimers } from './start';
+import {
+  DEAL_RETRY_MS,
+  DEAL_SLOW_MS,
+  runStart,
+  showsStartError,
+  tooFewFromEvent,
+  useDealingTimers,
+} from './start';
+
+describe('showsStartError', () => {
+  it('shows the error while the room is still in the lobby, or unknown', () => {
+    expect(showsStartError('lobby')).toBe(true);
+    expect(showsStartError(undefined)).toBe(true);
+  });
+
+  it('stays silent once the room moved on: a failed or late call over a started game is no error', () => {
+    for (const state of ['dealing', 'swiping', 'finale', 'done', 'abandoned'] as const) {
+      expect(showsStartError(state)).toBe(false);
+    }
+  });
+});
 
 describe('runStart', () => {
   it('re-reads the room after ok, dealing and closed', async () => {

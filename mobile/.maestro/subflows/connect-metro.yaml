@@ -2,7 +2,7 @@
 # developer menu's first-run sheet and the menu itself when they show.
 appId: com.harryviennot.flimme.dev
 ---
-- openLink: flimme-dev://expo-development-client/?url=${METRO_URL}
+- openLink: flimme-dev://expo-development-client/?url=${METRO_URL || 'http://localhost:8094'}
 - runFlow:
     when:
       visible: 'Open'
