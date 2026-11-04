@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 107 of 262 tasks done.
+Progress: 108 of 262 tasks done.
 
 ```mermaid
 flowchart LR
@@ -426,7 +426,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: every finished room on staging has its stats, written once even if the message comes twice.
 - [x] **M6.28** `allow_rewatch` as the default for Quick Match and Final Cut (Date Night keeps `hide_seen`): a data migration on `game_modes.defaults` · backend · S · needs M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: a new room in either mode gets `allow_rewatch`, tested in `610-rewatch-default.test.sql`.
-- [ ] **M6.29** Out of cards: seats done, the finale when everyone is done · backend · M · needs M6.4 · [game-modes](game-modes.md#how-a-game-ends)
+- [x] **M6.29** Out of cards: seats done, the finale when everyone is done · backend · M · needs M6.4 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: the "Running out of cards" rule is tested, with the `done` answer and the finale with reason `all_done`.
 - [ ] **M6.30** The 3-minute silence: voters and the sweeper's re-check · backend · M · needs M6.6 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
   Done when: the silence rule is tested, with the sweeper's re-check row.
