@@ -30,6 +30,9 @@ export const PIVOT = 0.75;
 export const THROW_DISTANCE = 1.3;
 /** A button's throw slides the card this far in Reduce Motion, in screen widths. */
 export const REDUCED_SLIDE = 0.12;
+/** A throw carries this share of the finger's speed along the other axis, in seconds. */
+export const CARRY_X = 0.2;
+export const CARRY_Y = 0.15;
 /** Dwell is only counted up to this many ms. */
 export const MAX_DWELL_MS = 10 * 60 * 1000;
 /** A card sits still this long before the loading card's "still dealing" line. */

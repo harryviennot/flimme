@@ -15,6 +15,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useReducedMotion,
+  ReduceMotion,
   useSharedValue,
   withSpring,
   withTiming,
@@ -26,6 +27,8 @@ import { MovieCard } from '@/components/shared/movie-card';
 import type { AnswerKind } from '@/features/swipe/answer';
 import { toMovieCard, type CardTextOptions } from '@/features/swipe/card-props';
 import {
+  CARRY_X,
+  CARRY_Y,
   commitLines,
   decideRelease,
   directionOf,
@@ -90,6 +93,7 @@ export type SwipeCardProps = {
 
 export function SwipeCard(props: SwipeCardProps) {
   const { card, depth, flight, flipped, size, screen, dragProgress, lit, dragging, locked } = props;
+  const { onLanded, onRelease, onFlip } = props;
   const { i18n } = useTranslation();
   const reduced = useReducedMotion();
   const motion = useCardMotion();
@@ -125,22 +129,23 @@ export function SwipeCard(props: SwipeCardProps) {
     if (reduced) {
       // A short slide toward the answer's side with a fade, not a flight across the screen.
       const slide = direction === 'up' ? 0 : side * screen.width * REDUCED_SLIDE;
-      x.set(withTiming(x.get() + slide, timing.base));
+      // Reanimated would skip these under Reduce Motion; the slide and fade are what replaces
+      // the flight, so they run.
+      const short = { ...timing.base, reduceMotion: ReduceMotion.Never };
+      x.set(withTiming(x.get() + slide, short));
       y.set(
-        withTiming(
-          direction === 'up' ? y.get() - screen.height * REDUCED_SLIDE : y.get(),
-          timing.base,
-        ),
+        withTiming(direction === 'up' ? y.get() - screen.height * REDUCED_SLIDE : y.get(), short),
       );
       fade.set(
-        withTiming(0, timing.base, (finished) => {
-          if (finished) scheduleOnRN(props.onLanded, titleId);
+        withTiming(0, short, (finished) => {
+          if (finished) scheduleOnRN(onLanded, titleId);
         }),
       );
       return;
     }
-    const targetX = direction === 'up' ? x.get() + vx * 0.2 : side * screen.width * THROW_DISTANCE;
-    const targetY = direction === 'up' ? -screen.height * THROW_DISTANCE : y.get() + vy * 0.15;
+    const targetX =
+      direction === 'up' ? x.get() + vx * CARRY_X : side * screen.width * THROW_DISTANCE;
+    const targetY = direction === 'up' ? -screen.height * THROW_DISTANCE : y.get() + vy * CARRY_Y;
     const distance = direction === 'up' ? Math.abs(targetY - y.get()) : Math.abs(targetX - x.get());
     const speed = Math.abs(direction === 'up' ? vy : vx);
     // The card carries the finger's speed, within the exit duration and a fast one.
@@ -151,7 +156,7 @@ export function SwipeCard(props: SwipeCardProps) {
     const config = { duration: ms, easing: easing.exit };
     x.set(
       withTiming(targetX, config, (finished) => {
-        if (finished) scheduleOnRN(props.onLanded, titleId);
+        if (finished) scheduleOnRN(onLanded, titleId);
       }),
     );
     y.set(withTiming(targetY, config));
@@ -183,6 +188,7 @@ export function SwipeCard(props: SwipeCardProps) {
   }, [locked]);
 
   const pan = usePanGesture({
+    testID: `swipe-pan-${titleId}`,
     minDistance: TOUCH_SLOP,
     enabled: isTop && !locked,
     onBegin: () => {
@@ -211,6 +217,11 @@ export function SwipeCard(props: SwipeCardProps) {
       'worklet';
       touching.set(0);
       dragging.set(0);
+      // A drag the system cancelled, or one cut short by the room moving on, is no release.
+      if (e.canceled) {
+        springBack();
+        return;
+      }
       const direction = decideRelease(
         { dx: x.get(), dy: y.get(), vx: e.velocityX, vy: e.velocityY },
         lines,
@@ -220,7 +231,7 @@ export function SwipeCard(props: SwipeCardProps) {
         return;
       }
       fly(direction, e.velocityX, e.velocityY);
-      scheduleOnRN(props.onRelease, titleId, direction);
+      scheduleOnRN(onRelease, titleId, direction);
     },
     onFinalize: (e) => {
       'worklet';
@@ -232,11 +243,12 @@ export function SwipeCard(props: SwipeCardProps) {
   });
 
   const tap = useTapGesture({
+    testID: `swipe-tap-${titleId}`,
     maxDistance: TOUCH_SLOP,
     enabled: isTop && !locked,
     onActivate: () => {
       'worklet';
-      scheduleOnRN(props.onFlip);
+      scheduleOnRN(onFlip);
     },
   });
 
@@ -281,7 +293,8 @@ export function SwipeCard(props: SwipeCardProps) {
 
   const style = useAnimatedStyle(() => {
     const d = depthValue.get();
-    const behind = SECOND_CARD_SCALE + (1 - SECOND_CARD_SCALE) * dragProgress.get();
+    // With Reduce Motion the card behind is already full size: no scale.
+    const behind = reduced ? 1 : SECOND_CARD_SCALE + (1 - SECOND_CARD_SCALE) * dragProgress.get();
     const pivot = size.height * PIVOT;
     return {
       opacity:

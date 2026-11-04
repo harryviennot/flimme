@@ -2,7 +2,8 @@ import i18n from '@/i18n';
 
 import type { NextCard } from '@flimme/contract';
 import { act, render, screen } from '@testing-library/react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
+import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 import { getAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 import { haptics } from '@/lib/haptics';
@@ -90,6 +91,7 @@ beforeAll(async () => {
   await i18n.changeLanguage('en');
 });
 beforeEach(() => {
+  jest.clearAllMocks();
   mockReduced = false;
   jest.useFakeTimers();
 });
@@ -175,4 +177,121 @@ describe('the cards behind', () => {
 it('gives no haptic on its own: the haptics belong to the release and the buttons', async () => {
   await render(<Card flight={{ kind: 'like', fromGesture: false, flipped: false }} />);
   expect(haptics.commit).not.toHaveBeenCalled();
+});
+
+describe('the finger', () => {
+  /** A drag of `dx`, `dy` points, released at `velocity` points per second. */
+  const drag = (
+    dx: number,
+    dy: number,
+    velocity: { x: number; y: number } = { x: 0, y: 0 },
+    end: State = State.END,
+  ) =>
+    fireGestureHandler(getByGestureTestId('swipe-pan-7'), [
+      { state: State.BEGAN },
+      { state: State.ACTIVE, translationX: dx / 2, translationY: dy / 2 },
+      {
+        state: State.ACTIVE,
+        translationX: dx,
+        translationY: dy,
+        velocityX: velocity.x,
+        velocityY: velocity.y,
+      },
+      {
+        state: end,
+        translationX: dx,
+        translationY: dy,
+        velocityX: velocity.x,
+        velocityY: velocity.y,
+      },
+    ]);
+
+  it.each([
+    ['right', 160, 0, 'right'],
+    ['left', -160, 0, 'left'],
+    ['up', 10, -200, 'up'],
+  ] as const)('released past the line to the %s answers %s', async (_name, dx, dy, direction) => {
+    const onRelease = jest.fn();
+    await render(<Card onRelease={onRelease} />);
+    await act(async () => drag(dx, dy));
+    await settle();
+    expect(onRelease).toHaveBeenCalledTimes(1);
+    expect(onRelease).toHaveBeenCalledWith(7, direction);
+  });
+
+  it('released before the line, slowly, answers nothing and the card goes back', async () => {
+    const onRelease = jest.fn();
+    await render(<Card onRelease={onRelease} />);
+    await act(async () => drag(90, 0));
+    await settle();
+    expect(onRelease).not.toHaveBeenCalled();
+    expect(part('translateX') as number).toBeCloseTo(0, 0);
+  });
+
+  it('thrown early by a flick faster than the throw speed', async () => {
+    const onRelease = jest.fn();
+    await render(<Card onRelease={onRelease} />);
+    await act(async () => drag(40, 0, { x: 1500, y: 0 }));
+    await settle();
+    expect(onRelease).toHaveBeenCalledWith(7, 'right');
+  });
+
+  it('ticks once when the drag crosses the commit line', async () => {
+    await render(<Card />);
+    await act(async () => drag(160, 0));
+    await settle();
+    expect(haptics.commit).toHaveBeenCalledTimes(1);
+  });
+
+  it('a drag the system cancels is no release: nothing is answered and the card goes back', async () => {
+    const onRelease = jest.fn();
+    await render(<Card onRelease={onRelease} />);
+    await act(async () => drag(200, 0, { x: 2000, y: 0 }, State.CANCELLED));
+    await settle();
+    expect(onRelease).not.toHaveBeenCalled();
+    expect(part('translateX') as number).toBeCloseTo(0, 0);
+  });
+
+  it('takes no touch once the room has moved on', async () => {
+    const onRelease = jest.fn();
+    await render(<Card onRelease={onRelease} locked />);
+    await act(async () => drag(200, 0));
+    await settle();
+    expect(onRelease).not.toHaveBeenCalled();
+  });
+
+  it('takes no touch when the card is not on top', async () => {
+    const onRelease = jest.fn();
+    await render(<Card depth={1} onRelease={onRelease} />);
+    await act(async () => drag(200, 0));
+    await settle();
+    expect(onRelease).not.toHaveBeenCalled();
+  });
+
+  it('flips on a tap', async () => {
+    const onFlip = jest.fn();
+    await render(<Card onFlip={onFlip} />);
+    await act(async () =>
+      fireGestureHandler(getByGestureTestId('swipe-tap-7'), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE },
+        { state: State.END },
+      ]),
+    );
+    await settle();
+    expect(onFlip).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('with Reduce Motion, the card behind', () => {
+  it('is already full size, while without it it waits smaller', async () => {
+    await render(<Card depth={1} />);
+    await settle();
+    expect(part('scale')).toBeLessThan(1);
+    await screen.unmount();
+    mockReduced = true;
+    await render(<Card depth={1} />);
+    await settle();
+    expect(part('scale')).toBe(1);
+  });
 });

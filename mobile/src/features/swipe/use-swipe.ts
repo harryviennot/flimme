@@ -109,7 +109,10 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     const ids = (payload as { member_ids?: unknown } | null)?.member_ids;
     if (Array.isArray(ids) && ids.includes(seat.member_id)) stack.getState().onDeckUpdated();
   });
-  useRoomEvent(roomId, 'match', lock);
+  // A match that is not decided (the Final Cut's shortlist) keeps the room swiping.
+  useRoomEvent(roomId, 'match', (payload) => {
+    if ((payload as { decided?: unknown } | null)?.decided !== false) lock();
+  });
   useRoomEvent(roomId, 'finale_started', lock);
   useRoomEvent(roomId, 'state_changed', (payload) => {
     if (movesOn(payload)) lock();
@@ -120,7 +123,9 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     () =>
       voteQueue.onAnswer((event) => {
         if (event.room_id !== roomId) return;
-        if (event.type === 'match' || event.type === 'finale' || event.type === 'closed') lock();
+        if (event.type === 'match') {
+          if (event.decided !== false) lock();
+        } else if (event.type === 'finale' || event.type === 'closed') lock();
         else if (event.type === 'no_super_likes') {
           answerer.giveBackSuperLike();
           setSuperLikesLeft(answerer.superLikesLeft());
@@ -148,12 +153,12 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   }, [kept, roomId, online]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state !== 'active') return;
+      if (state !== 'active' || !online) return;
       if (voteQueue.store.getState().votes.length > 0) void voteQueue.flush();
       stack.getState().onOnline();
     });
     return () => subscription.remove();
-  }, [stack]);
+  }, [stack, online]);
 
   // No cards left after the server was asked: say so in presence.
   const status = useStore(stack, (s) => s.status);

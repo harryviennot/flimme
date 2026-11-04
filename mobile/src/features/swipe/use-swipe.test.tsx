@@ -163,6 +163,17 @@ describe('the room moves on', () => {
     expect(result.current.answer('like')).toBeNull();
   });
 
+  it('does not lock on a match that is not decided, event or queue', async () => {
+    const { result } = await open();
+    await act(async () => mockHandlers.get('match')?.({ title_id: 1, decided: false }));
+    await act(async () =>
+      mockQueue.listeners.forEach((l) =>
+        l({ type: 'match', room_id: ROOM, title_id: 1, decided: false }),
+      ),
+    );
+    expect(result.current.locked).toBe(false);
+  });
+
   it('reads the room again when it locks, so the layout follows even if its event was missed', async () => {
     await open();
     await act(async () => mockHandlers.get('match')?.({ title_id: 1 }));
