@@ -99,7 +99,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 28 | Not started |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 28 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | Not started |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 7 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 85 of 257 tasks done.
+Progress: 86 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -449,7 +449,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: both reachable in a test room.
 - [ ] **M6.18** Hints over the first game's first cards: how to swipe, Seen it, super likes · app · M · needs M6.9 · [onboarding](onboarding.md#the-first-game)
   Done when: shown once per player.
-- [ ] **M6.25** The card stack store: one Zustand store for the stack's rules, with no UI. Down to 5 unanswered cards asks for more, the next 3 posters are prefetched, and posters are w780 on screens 600 points wide or more · app · M · needs M5.6, M4.10 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [x] **M6.25** The card stack store: one Zustand store for the stack's rules, with no UI. Down to 5 unanswered cards asks for more, the next 3 posters are prefetched, and posters are w780 on screens 600 points wide or more · app · M · needs M5.6, M4.10 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: fully unit-tested, with its two calls injected so that M6.9 wires the real ones.
 - [ ] **M6.26** Undo on the swipe screen: the rewind button, the last card coming back, and the queued vote removed or `api.undo_last_vote` sent · app · M · needs M6.9, M6.11, M6.3 · [moments](../design/moments.md#the-swipe)
   Done when: a touch run on the simulator against staging brings the card back, and the server agrees.
