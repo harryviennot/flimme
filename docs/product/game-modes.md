@@ -103,7 +103,7 @@ Today the data model makes "Seen it" an abstention under these rules: the film c
 
 ## When it's a match
 
-A like (or super like, or "Watch it again tonight? Yes") makes a match when the room's rule is met among the **voters**: present players who answered the card, plus present players who haven't reached it yet. In other words, every present player counts, and only likes help.
+A like (or super like, or "Watch it again tonight? Yes") makes a match when the room's rule is met among the **voters**: seats not left and heard from in the last 3 minutes, whether they answered the card or haven't reached it yet. In other words, every voter counts, and only likes help.
 
 | Mode | Players present | Instant match when | Otherwise, the finale |
 | --- | --- | --- | --- |
@@ -117,8 +117,8 @@ A like (or super like, or "Watch it again tonight? Yes") makes a match when the 
 
 When the finale starts is in [The finale](#the-finale); the card counts and time limits are in [Time to a pick](#time-to-a-pick).
 
-- **At least 2 voters.** A room with one player present can't match (solo play is a later mode).
-- **The rule follows who is present.** It's chosen for the current number of present players, so the 70% rule applies only while 5 or more are present.
+- **At least 2 voters.** A room with one voter can't match (solo play is a later mode).
+- **The rule follows the voters.** It's chosen for the current number of voters, so the 70% rule applies only while 5 or more are voting.
 - **A match is checked** after every like, when a player leaves (the players still here may all have liked a film), and by the minute sweeper after a player times out (below).
 - **Kinds.** `unanimous` when every voter liked it, `majority` otherwise. Shown as "3 of 3" or "7 of 9".
 - **Quick Match and Date Night:** the match is the night's pick, the room is done, and every phone shows "It's a match" with where to watch.
@@ -128,7 +128,7 @@ When the finale starts is in [The finale](#the-finale); the card counts and time
 
 ## Who counts: presence, joining and leaving
 
-**Present** means seated (not left) and heard from in the last 90 seconds. Phones send a heartbeat every 30 seconds while in a room, and every swipe counts as one. A phone that's locked or in another app should be treated as silent: JavaScript timers can't be relied on while an app is in the background on iOS (community reports and an Expo forum answer, checked on 29 October 2026). Only present players count for match rules, the finale's card count and finale ballots.
+**Present** means seated (not left) and heard from in the last 90 seconds. Phones send a heartbeat every 30 seconds while in a room, and every swipe counts as one. A phone that's locked or in another app should be treated as silent: JavaScript timers can't be relied on while an app is in the background on iOS (community reports and an Expo forum answer, checked on 29 October 2026). Only present players count for the finale's card count and finale ballots. For match rules the voters are the seats not left and heard from in the last 3 minutes (`internal.voter_member_ids`), so a seat silent for 91 seconds is no longer present but still a voter.
 
 | Situation | What happens |
 | --- | --- |
@@ -138,7 +138,7 @@ When the finale starts is in [The finale](#the-finale); the card counts and time
 | **Joining during the finale** | Refused with "They're voting on the final films". The new player is offered the next game if the host taps Play again |
 | **Reconnecting** | Same code, same seat. Votes made offline are queued and retried: a retry the server already has returns "duplicate", a vote after the room was decided returns "closed" and the phone shows the result. The deck continues where it was |
 | **Leaving** (the leave button) | The seat stops counting at once. Liked films are re-checked: if everyone still here liked one, that's a match now |
-| **Going silent** (phone locked, app killed, no network) | The seat stops counting after 90 seconds for presence and the finale's card count. **Default to confirm:** a silence alone never creates a match until it has lasted 3 minutes, so someone answering a message doesn't come back to a decided room |
+| **Going silent** (phone locked, app killed, no network) | The seat stops counting after 90 seconds for presence and the finale's card count. A silence alone never creates a match until it has lasted 3 minutes, so someone answering a message doesn't come back to a decided room |
 | **The host leaves** | The host role moves to the longest-seated player who is present. If nobody else is present, it goes to the longest-seated seat that has not left; if nobody else is seated, no seat holds it |
 | **The host goes silent in the lobby** | After 2 minutes, the host role moves the same way, so the room can still start |
 | **Fewer than 2 players present while swiping** | If it lasts 5 minutes, the room is abandoned. If someone comes back before that, the game carries on. A player who tapped Leave counts the same as a dropped connection: the room waits the 5 minutes from the moment they left (from 90 seconds after the last sign of life, for a dropped one), so a lone player can still bring someone in by code |
@@ -349,7 +349,7 @@ Host of a `done` or `abandoned` room. Creates a room with the same mode, country
 
 Runs every minute. Each room is handled in its own short transaction, skipping rooms another transaction has locked (they'll come round next minute), in batches, so the sweeper never holds up a vote.
 
-`internal.sweep_rooms()` is a procedure (cron calls it; it commits after each room, in batches of 100). The work for one room is `internal.sweep_room(room)`, which answers what it did: `abandoned`, `host_changed`, `dealt`, `finale`, `no_pick`, `closed_round`, `locked` or `nothing`. **One action per room per run**, in this order: close an expired round (two seconds after its deadline); abandon (fewer than 2 seats present for 5 minutes: a dropped seat stops being present 90 seconds after it was last heard from, a seat that left the moment it left; or the 1-hour limit with nothing liked); the 1-hour finale; the room's own finale rules (`maybe_start_finale`, which also covers the time limit and everyone done); the everyone-done ending with no pick. The next row waits for the next minute, so a room nobody is in never opens a vote and a live round is never abandoned. A finale with no open round is abandoned at the 1-hour limit.
+`internal.sweep_rooms()` is a procedure (cron calls it; it commits after each room, in batches of 100). The work for one room is `internal.sweep_room(room)`, which answers what it did: `abandoned`, `host_changed`, `dealt`, `finale`, `no_pick`, `closed_round`, `rechecked`, `locked` or `nothing`. **One action per room per run**, in this order: close an expired round (two seconds after its deadline); abandon (fewer than 2 seats present for 5 minutes: a dropped seat stops being present 90 seconds after it was last heard from, a seat that left the moment it left; or the 1-hour limit with nothing liked); the 1-hour finale; the re-check of liked films for a seat silent 3 minutes (once per silence, tracked by `room_members.silence_checked_at`); the room's own finale rules (`maybe_start_finale`, which also covers the time limit and everyone done); the everyone-done ending with no pick. The next row waits for the next minute, so a room nobody is in never opens a vote and a live round is never abandoned. A finale with no open round is abandoned at the 1-hour limit.
 
 | Rooms | Check | Action | Broadcast |
 | --- | --- | --- | --- |
