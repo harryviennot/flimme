@@ -9,6 +9,7 @@ import { Toggle } from '@/components/ui/toggle';
 import { TopBar } from '@/components/ui/top-bar';
 import { useDevStore } from '@/features/dev';
 import { switchBackend } from '@/features/dev/switch-backend';
+import { useHintsStore } from '@/features/swipe/hints';
 import { useSettingsStore } from '@/features/settings';
 import { getConfig, getStagingStatus } from '@/lib/config';
 
@@ -95,6 +96,11 @@ export default function DevScreen() {
             label="Open the gallery"
             icon="film"
             onPress={() => router.push('/dev/gallery')}
+          />
+          <ListRow
+            label="Reset the first-game hints"
+            icon="refresh"
+            onPress={() => useHintsStore.getState().reset()}
           />
           <ListRow label="Test a crash" icon="alert" onPress={() => router.push('/dev/crash')} />
           <ListRow
