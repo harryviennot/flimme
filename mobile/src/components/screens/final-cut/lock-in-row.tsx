@@ -12,6 +12,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import type { LockInSeat } from '@/features/finale/use-final-cut';
+import { formatList } from '@/features/lobby/names';
 import { toAvatarColor } from '@/features/profile';
 import { tokens } from '@/theme/generated/tokens';
 import { duration, easing, layout, spring } from '@/theme/motion';
@@ -61,15 +62,13 @@ export function LockInRow({
   count: number;
   of: number;
 }) {
-  const { t } = useTranslation('finale');
+  const { t, i18n } = useTranslation('finale');
   const summary = t('locked.count', { count, of });
   const names = seats.filter((seat) => seat.locked).map((seat) => seat.name);
   const label =
     names.length > 0
       ? t('a11y.lockedRow', {
-          names: new Intl.ListFormat(undefined, { style: 'long', type: 'conjunction' }).format(
-            names,
-          ),
+          names: formatList(names, i18n.language),
           summary,
         })
       : t('a11y.lockedRowNone', { summary });

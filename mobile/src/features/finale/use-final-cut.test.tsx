@@ -359,5 +359,7 @@ describe('who has locked in', () => {
     await act(async () => void (await result.current));
     await settle();
     expect(result.current.phase).toBe('locked');
+    // The phone has no ballot to show after a cold start: no numbers, not even faint ones.
+    expect(result.current.numbersHidden).toBe(true);
   });
 });

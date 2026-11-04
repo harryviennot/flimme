@@ -23,7 +23,7 @@ import { LeaveContext } from '@/features/lobby/leave-context';
 import { haptics } from '@/lib/haptics';
 
 // The Final Cut on fixture data, for the gestures, the ranked vote, the largest text size and the
-// feel check (Dev menu, Tools). No room: the other seats lock in on a timer, and the round
+// feel check (Dev menu, Tools). No room: the other seats lock in after this phone, and the round
 // counts at zero. The haptics are the real ones.
 
 const NAMES = ['Léa', 'Sam', 'Jo', 'Maya', 'Noé', 'Inès', 'Hugo', 'Zoé', 'Tom', 'Alix'] as const;
@@ -103,12 +103,12 @@ function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void })
   const seedOrder = films.map((f) => f.titleId);
   const canVeto = fixture.kind === 'final_cut' && fixture.vetoes > 0;
 
-  // The other seats lock in, one every few seconds.
+  // The other seats lock in after this phone does, one every 2.5 seconds.
   useEffect(() => {
-    if (others >= fixture.seats - 1) return;
-    const timer = setTimeout(() => setOthers((n) => n + 1), 6000 + others * 3000);
+    if (lock !== 'locked' || others >= fixture.seats - 1) return;
+    const timer = setTimeout(() => setOthers((n) => n + 1), 2500);
     return () => clearTimeout(timer);
-  }, [others, fixture.seats]);
+  }, [lock, others, fixture.seats]);
 
   const seats: LockInSeat[] = NAMES.slice(0, fixture.seats).map((name, i) => ({
     memberId: name,
@@ -157,6 +157,7 @@ function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void })
       countingSlow: false,
     }),
     meLocked: false,
+    numbersHidden: false,
     online: true,
     onTap: (id) => {
       if (!takesTaps(phase)) return;
@@ -194,8 +195,8 @@ export default function DevFinalCutScreen() {
     <Screen header={<TopBar title="Final Cut" onBack={() => router.back()} />}>
       <View className="flex-1 justify-center gap-4">
         <Text tone="secondary">
-          The Final Cut on fixture data. The other seats lock in on a timer; the leave button comes
-          back here.
+          The Final Cut on fixture data. The other seats lock in after you do; the leave button
+          comes back here.
         </Text>
         {FIXTURES.map((item) => (
           <Button

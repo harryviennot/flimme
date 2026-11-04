@@ -68,6 +68,8 @@ export type FinalCutModel = {
   status: ReturnType<typeof statusKey>;
   /** A restart where the server says this seat locked in. */
   meLocked: boolean;
+  /** A restart where the server says this seat locked in: the phone no longer has its ballot, so no numbers. */
+  numbersHidden: boolean;
   online: boolean;
   onTap: (titleId: number) => void;
   onLongPress: (titleId: number) => void;
@@ -271,6 +273,7 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
     of: of ?? row.length,
     status,
     meLocked: progress.data?.me_locked ?? false,
+    numbersHidden: (progress.data?.me_locked ?? false) && lockState.kind === 'idle',
     online,
     onTap,
     onLongPress,

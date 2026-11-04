@@ -44,6 +44,8 @@ export type FinalistProps = {
   vetoEnabled: boolean;
   /** The round is being counted: the poster dims. */
   counting: boolean;
+  /** A restart after locking in: the phone has no ballot to show, so no faint numbers. */
+  hideNumber?: boolean;
   /** The pop-in delay when the screen opens, in the seed order. Zero for none. */
   popDelay?: number;
   onTap: () => void;
@@ -56,6 +58,7 @@ export function Finalist({
   interactive,
   vetoEnabled,
   counting,
+  hideNumber = false,
   popDelay = 0,
   onTap,
   onLongPress,
@@ -85,9 +88,11 @@ export function Finalist({
   const stateText =
     place.kind === 'ranked'
       ? t('a11y.state.ranked', { rank: place.rank })
-      : place.kind === 'faint'
-        ? t('a11y.state.unranked', { rank: place.rank })
-        : t('a11y.state.vetoed');
+      : place.kind === 'faint' && hideNumber
+        ? ''
+        : place.kind === 'faint'
+          ? t('a11y.state.unranked', { rank: place.rank })
+          : t('a11y.state.vetoed');
 
   const actions = !interactive
     ? []
@@ -125,7 +130,7 @@ export function Finalist({
   return (
     <Animated.View entering={entering} className="max-w-36 flex-1">
       <Pressable
-        accessibilityLabel={view.title ? `${label}. ${stateText}` : stateText}
+        accessibilityLabel={[label, stateText].filter(Boolean).join('. ')}
         accessibilityActions={actions}
         onAccessibilityAction={onAction}
         accessibilityState={{ disabled: !interactive }}
@@ -178,7 +183,7 @@ export function Finalist({
               >
                 <Icon name="ban" size={44} color="nope-default" />
               </Animated.View>
-            ) : (
+            ) : place.kind === 'faint' && hideNumber ? null : (
               <Animated.View
                 key={place.kind}
                 entering={place.kind === 'ranked' ? (reduce ? fadeIn : badgePop) : undefined}

@@ -149,6 +149,7 @@ export function FinalCutScreen({ roomId, model }: { roomId: string; model: Final
                       interactive={interactive}
                       vetoEnabled={model.vetoAllowed}
                       counting={counting}
+                      hideNumber={model.numbersHidden}
                       popDelay={index * duration.instant}
                       onTap={() => model.onTap(view.titleId)}
                       onLongPress={() => model.onLongPress(view.titleId)}

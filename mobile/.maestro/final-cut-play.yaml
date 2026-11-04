@@ -1,0 +1,26 @@
+# Slice 12, reaching the Final Cut, part 2 of 2 (the phone): start the game with the curl guest in
+# the room, like the first two films and nope the rest. Meanwhile the guest nopes its own 40 cards:
+#   mobile/.maestro/scripts/guest-answers.sh answers <room id> 40 nope
+# No film can match (the guest likes nothing), so the card count opens the Final Cut with finalists
+# (Q0.4). It ends on the Final Cut screen, ready for the ballots and the countdown.
+# Run: `maestro --device <sim> test mobile/.maestro/final-cut-play.yaml` after final-cut-host.yaml.
+appId: com.harryviennot.flimme.dev
+---
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- tapOn: 'Like'
+- tapOn: 'Like'
+- repeat:
+    while:
+      visible: 'Nope'
+    times: 60
+    commands:
+      - tapOn:
+          text: 'Nope'
+          optional: true
+- extendedWaitUntil:
+    visible: '.*Pick one. Veto one..*|.*Rank them..*'
+    timeout: 60000
+- takeScreenshot: final-cut-room-1-arrived

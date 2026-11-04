@@ -59,6 +59,7 @@ function model(
     of: 2,
     status: null,
     meLocked: false,
+    numbersHidden: false,
     online: true,
     onTap: jest.fn(),
     onLongPress: jest.fn(),
