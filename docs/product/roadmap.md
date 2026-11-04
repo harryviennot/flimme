@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 108 of 262 tasks done.
+Progress: 109 of 262 tasks done.
 
 ```mermaid
 flowchart LR
@@ -418,7 +418,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: each trigger and the finalist rule are tested.
 - [x] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · L · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tests cover vetoes, ties, missing ballots and phones closing at once.
-- [ ] **M6.6** `internal.sweep_rooms` every minute, as specified, without the silence re-check (M6.30) · backend · L · needs M6.5, M4.5, M1.13, M6.7, M6.29 · [game-modes](game-modes.md#functions-still-to-write)
+- [x] **M6.6** `internal.sweep_rooms` every minute, as specified, without the silence re-check (M6.30) · backend · L · needs M6.5, M4.5, M1.13, M6.7, M6.29 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: each row of the spec's table, except the silence re-check, has a test.
 - [x] **M6.7** Starting to swipe moves `expires_at` to 1 hour after the start · backend · S · needs M1.5 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: a room opened 3 hours earlier isn't abandoned mid-game.
