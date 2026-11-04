@@ -99,7 +99,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 24 | Not started |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 28 | Not started |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | Not started |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 7 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 85 of 253 tasks done.
+Progress: 85 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -309,8 +309,8 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: raising the minimum shows the update screen.
 - [x] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · M · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
   Done when: the findings are written in app-structure.md.
-- [ ] **M3.12** Spike: the card stack at full frame rate on a low-end Android, styled with Uniwind · test · L · needs M3.4 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
-  Done when: the findings are written in app-structure.md, and Uniwind is confirmed (or NativeWind 4.2.7 chosen) in decisions.md.
+- [ ] **M3.12** Gate before the closed beta (before M6.20): the real swipe screen at full frame rate on a 3 to 4 GB Android phone that Harry owns or buys (about 100 to 150 euros), styled with Uniwind · test · L · needs M3.4, M6.9 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
+  Done when: the swipe screen is smooth on that phone, the findings are written in app-structure.md, and Uniwind is confirmed (or NativeWind 4.2.7 chosen) in decisions.md.
 - [x] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
   Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
 - [x] **M3.14** Motion tokens, the haptics vocabulary and the sound helper (the match and the reveal only) · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
@@ -408,11 +408,11 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 **Backend**
 
-- [ ] **M6.1** Match rules with the confirmed values: a time limit of 6 minutes on every rule, 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for 5 to 10 players and Final Cut, 3 finalists for 2 players in every mode · backend · L · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
-  Done when: seeded and tested.
-- [ ] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
-  Done when: the match check is tested with both answers.
-- [ ] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
+- [ ] **M6.1** Match rules with the confirmed values: a time limit of 6 minutes on every rule, 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for 5 to 10 players and Final Cut, 3 finalists for 2 players in every mode, and a fixed re-check order after a leave or a removal (most likes, then most super likes, then group score, then lowest film id) · backend · M · needs M0.7, M1.5 · [game-modes](game-modes.md#time-to-a-pick)
+  Done when: seeded and tested, the re-check order included.
+- [ ] **M6.2** "Seen it" in rooms that allow rewatches: the `seen_rewatch` answer counts as a like, a plain "Seen it" as a nope; no abstentions; the near miss only one like short of the rule, with `needed` in the payload; `flipped` on `api.cast_vote` · backend · L · needs M1.5 · [game-modes](game-modes.md#the-answers)
+  Done when: the match check is tested with both answers, and the near miss and `flipped` are tested too.
+- [ ] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back; undoing a like at the near-miss line sends `near_miss` with the corrected counts · backend · M · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: tested.
 - [ ] **M6.4** Starting the finale: finalists need at least one like; one 60-second round; card counts use seats seated at the start; every time limit; everyone done · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: each trigger and the finalist rule are tested.
@@ -424,18 +424,20 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: a room opened 3 hours earlier isn't abandoned mid-game.
 - [ ] **M6.8** End of room on the server: `rooms.stats` with the outcome, seconds to the pick, players present, swipes per seat, why the finale started · server · M · needs M2.2, M6.5 · [analytics](analytics.md#changes-this-asks-elsewhere)
   Done when: every finished room on staging has its stats, written once even if the message comes twice.
+- [ ] **M6.28** `allow_rewatch` as the default for Quick Match and Final Cut (Date Night keeps `hide_seen`): a data migration on `game_modes.defaults` · backend · S · needs M6.2 · [game-modes](game-modes.md#the-answers)
+  Done when: a new room in either mode gets `allow_rewatch`, tested in `610-rewatch-default.test.sql`.
 
 **App**
 
-- [ ] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched · app · L · needs M3.12, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
-  Done when: smooth on a low-end Android and usable with a screen reader.
-- [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · L · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [ ] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched, the undo button shown disabled until M6.26 · app · L · needs M6.25, M6.11, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
+  Done when: smooth by the frame meter on the simulator, and usable with VoiceOver.
+- [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · M · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: flipping works mid-stack.
-- [ ] **M6.11** The vote queue: persisted, sent in order, retried, swiping offline, undo · app · L · needs M6.9, M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
-  Done when: votes made in airplane mode all arrive in order.
+- [ ] **M6.11** The vote queue module: persisted, sent in order, retried, a `denied` vote refreshed once and retried, votes for rooms the phone no longer keeps dropped on restart · app · M · needs M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
+  Done when: the queue's rules are tested. The airplane-mode run is M6.9's.
 - [ ] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · M · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: both answers reach the server.
-- [ ] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · L · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
+- [ ] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · M · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
   Done when: shown on the right phones, never naming anyone.
 - [ ] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
   Done when: it appears on every phone together.
@@ -447,12 +449,18 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: both reachable in a test room.
 - [ ] **M6.18** Hints over the first game's first cards: how to swipe, Seen it, super likes · app · M · needs M6.9 · [onboarding](onboarding.md#the-first-game)
   Done when: shown once per player.
+- [ ] **M6.25** The card stack store: one Zustand store for the stack's rules, with no UI. Down to 5 unanswered cards asks for more, the next 3 posters are prefetched, and posters are w780 on screens 600 points wide or more · app · M · needs M5.6, M4.10 · [app-structure](../architecture/app-structure.md#the-card-stack)
+  Done when: fully unit-tested, with its two calls injected so that M6.9 wires the real ones.
+- [ ] **M6.26** Undo on the swipe screen: the rewind button, the last card coming back, and the queued vote removed or `api.undo_last_vote` sent · app · M · needs M6.9, M6.11, M6.3 · [moments](../design/moments.md#the-swipe)
+  Done when: a touch run on the simulator against staging brings the card back, and the server agrees.
+- [ ] **M6.27** The swipe screen's top: player pills with each count (steps of 5), "Sam is done", Leave with its confirmation, the host menu to remove a player mid-game, and the Reconnecting banner · app · M · needs M6.9 · [moments](../design/moments.md#what-every-moment-keeps)
+  Done when: every state of the top bar's spec is shown, checked in a three-player touch run.
 
 **Tests**
 
 - [ ] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
   Done when: bots can fill a room on staging.
-- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24 · [game-modes](game-modes.md#a-game-at-a-glance)
+- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12 · [game-modes](game-modes.md#a-game-at-a-glance)
   Done when: every run ends with a pick within the limits; bugs become tasks.
 
 **Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
