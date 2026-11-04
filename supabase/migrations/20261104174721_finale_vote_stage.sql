@@ -10,4 +10,4 @@ alter type public.round_stage add value if not exists 'vote' before 'closed';
 
 create type public.finale_reason as enum ('cards', 'time', 'all_done', 'vote_now', 'shortlist_full');
 
-alter table public.rooms add column finale_reason public.finale_reason;
+alter table public.rooms add column if not exists finale_reason public.finale_reason;
