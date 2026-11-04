@@ -18,6 +18,11 @@ export function setHeldCardSource(next: CardSource | null) {
   source = next;
 }
 
+/** A card the swipe screen still holds, if it is mounted (the Final Cut asks before reading). */
+export function heldCardOf(titleId: number): Card | undefined {
+  return source?.(titleId);
+}
+
 export function useMatchCard(
   roomId: string,
   titleId: number | undefined,

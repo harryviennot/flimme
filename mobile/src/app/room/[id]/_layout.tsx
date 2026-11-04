@@ -21,6 +21,8 @@ import {
   useRoomChannels,
   useRoomSeats,
 } from '@/features/room';
+import { useFinalePreload } from '@/features/finale/use-finale-preload';
+import { useRevealHold } from '@/features/finale/use-reveal-hold';
 import { useMatchOverlay } from '@/features/match/use-match-overlay';
 import { useOnline } from '@/features/network';
 import { rememberRoomScreen } from '@/features/winner/arrival';
@@ -83,13 +85,18 @@ export default function RoomLayout() {
     if (id && current) rememberRoomScreen(id, current);
   }, [id, current]);
 
+  // The reveal (M6.31) may keep the Final Cut screen up after the round closes; until then the
+  // close goes straight to the winner screen. The finalists' posters load on `finale_started`.
+  const revealHold = useRevealHold(id, state);
+  useFinalePreload(id, realtime);
+
   useEffect(() => {
-    if (match.holdRoute) return;
+    if (match.holdRoute || revealHold) return;
     if (!id || !state || !current || isAllowed(state, current)) return;
     // A sheet goes first, so the state's screen replaces the room screen under it.
     if (isSheet(current)) router.dismiss();
     router.replace(`/room/${id}/${roomScreenFor(state)}`);
-  }, [id, state, current, match.holdRoute]);
+  }, [id, state, current, match.holdRoute, revealHold]);
 
   if (online && (room.isError || seats.isError) && !room.data) {
     return (

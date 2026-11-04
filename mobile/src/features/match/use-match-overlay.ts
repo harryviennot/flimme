@@ -11,7 +11,12 @@ import { voteQueue } from '@/features/swipe';
 import { haptics } from '@/lib/haptics';
 import { playSound } from '@/lib/sound';
 
-import { createMatchController, type MatchController, type PlayingMatch } from './controller';
+import {
+  createMatchController,
+  type MatchController,
+  type MatchSignal,
+  type PlayingMatch,
+} from './controller';
 
 const NONE = () => null;
 const NEVER = () => () => {};
@@ -24,6 +29,9 @@ function readEvent(payload: unknown) {
     likes: typeof p.likes === 'number' ? p.likes : undefined,
     of: typeof p.of === 'number' ? p.of : undefined,
     decided: typeof p.decided === 'boolean' ? p.decided : undefined,
+    kind: (p.kind === 'unanimous' || p.kind === 'majority' || p.kind === 'finale'
+      ? p.kind
+      : undefined) as MatchSignal['kind'],
   };
 }
 
@@ -68,7 +76,7 @@ export function useMatchOverlay(
     setController(created);
     const off = voteQueue.onAnswer((event) => {
       if (event.type === 'match' && event.room_id === roomId) {
-        created.signal({ title_id: event.title_id, decided: event.decided });
+        created.signal({ title_id: event.title_id, decided: event.decided, kind: event.kind });
       }
     });
     return () => {
@@ -115,6 +123,9 @@ export function useMatchOverlay(
     holdRoute:
       match !== null ||
       (reading &&
-        (matches.data ? matches.data.some((row) => row.pick_order === 1) : matches.isFetching)),
+        // A finale pick has no overlay (Q15.1): the route goes straight to the winner screen.
+        (matches.data
+          ? matches.data.some((row) => row.pick_order === 1 && row.kind !== 'finale')
+          : matches.isFetching)),
   };
 }

@@ -41,7 +41,9 @@ import {
   undoLastVoteResult,
   roomMatchRow,
   roomRoundRow,
+  roundCandidateRow,
   type RoomRound,
+  type RoundCandidate,
   type CastVoteResult,
   type RequestCardsResult,
   type UndoLastVoteResult,
@@ -468,6 +470,28 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         }
       }
       return (rows ?? []) as RoomRound[];
+    },
+
+    /** The finalists of a round, by seed (the order the cards are shown in). */
+    async roundCandidates(args: { round_id: string }): Promise<RoundCandidate[]> {
+      const rows = await readView(
+        () =>
+          client.from('round_candidates').select('*').eq('round_id', args.round_id).order('seed'),
+        'round_candidates',
+      );
+      if (options.validate) {
+        for (const row of rows ?? []) {
+          const parsed = roundCandidateRow.safeParse(row);
+          if (!parsed.success) {
+            throw new ApiError(
+              'unexpected',
+              'round_candidates',
+              `wrong shape: ${parsed.error.message}`,
+            );
+          }
+        }
+      }
+      return (rows ?? []) as RoundCandidate[];
     },
 
     /** The signed-in player's profile, or null when there is none yet. */
