@@ -77,11 +77,13 @@ function Card(props: Partial<SwipeCardProps>) {
   );
 }
 
+// Reanimated's test helper reads the style the UI thread would have applied.
+const animatedStyle = getAnimatedStyle as unknown as (element: unknown) => {
+  opacity: number;
+  transform: Record<string, unknown>[];
+};
 const style = () =>
-  getAnimatedStyle(screen.getByTestId('swipe-card-7', { includeHiddenElements: true })) as {
-    opacity: number;
-    transform: Record<string, unknown>[];
-  };
+  animatedStyle(screen.getByTestId('swipe-card-7', { includeHiddenElements: true }));
 const part = (key: string) => style().transform.find((t) => key in t)?.[key];
 
 beforeAll(async () => {
