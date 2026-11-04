@@ -221,12 +221,13 @@ begin
     return 'nothing';
   end if;
 
-  -- Swiping. Fewer than two seats heard from in the last 6 min 30 (90 seconds of presence plus
-  -- five minutes) means nobody is playing.
+  -- Swiping. Fewer than two seats present for five minutes means nobody is playing. A seat stops
+  -- being present 90 seconds after it was last heard from, or the moment it leaves (Harry, 4 Nov
+  -- 2026: a lone player who tapped Leave waits the same five minutes as a dropped connection).
   v_liked := internal.liked_count(p_room_id);
   if (select count(*) from public.room_members m
-      where m.room_id = p_room_id and m.left_at is null and m.removed_at is null
-        and m.last_active_at > now() - interval '6 minutes 30 seconds') < 2
+      where m.room_id = p_room_id and m.removed_at is null
+        and coalesce(m.left_at, m.last_active_at + interval '90 seconds') > now() - interval '5 minutes') < 2
      or (now() > v_room.expires_at and v_liked = 0) then
     perform internal.abandon_room(p_room_id);
     return 'abandoned';

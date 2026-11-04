@@ -4,7 +4,7 @@
 -- Times are moved back with update. One action per room per run, in the order of the spec.
 
 begin;
-select plan(67);
+select plan(73);
 
 select tests.create_catalog(25);
 select tests.use_deck_engine('sql');
@@ -170,6 +170,22 @@ select pg_temp.game(3, 'tp');
 update public.room_members set last_active_at = now() - interval '7 minutes' where id = tests.member_id('tp3');
 update public.room_members set last_active_at = now() - interval '6 minutes' where id = tests.member_id('tp2');
 select is(pg_temp.sweep(), 'nothing', 'two seats heard from in the last 6 min 30: nothing');
+
+-- A player who taps Leave waits the same five minutes as a dropped connection (decision of 4 Nov 2026).
+select pg_temp.game(2, 'lv');
+update public.room_members set left_at = now() - interval '4 minutes' where id = tests.member_id('lv2');
+select is(pg_temp.sweep(), 'nothing', 'one of two players left 4 minutes ago: the room waits');
+select is(pg_temp.state(), 'swiping', 'and is still swiping');
+update public.room_members set left_at = now() - interval '5 minutes 1 second' where id = tests.member_id('lv2');
+select is(pg_temp.sweep(), 'abandoned', 'left over 5 minutes ago: abandoned');
+select isnt((select ended_at from public.rooms where id = tests.room_id()), null, 'with its end time');
+
+-- A dropped connection: 90 seconds of presence plus five minutes.
+select pg_temp.game(2, 'dc');
+update public.room_members set last_active_at = now() - interval '6 minutes 29 seconds' where id = tests.member_id('dc2');
+select is(pg_temp.sweep(), 'nothing', 'one of two silent for 6 min 29 s: the room waits');
+update public.room_members set last_active_at = now() - interval '6 minutes 31 seconds' where id = tests.member_id('dc2');
+select is(pg_temp.sweep(), 'abandoned', 'silent for 6 min 31 s: abandoned');
 
 -- ---------------------------------------------------------------------------------------------
 -- 8. The one-hour limit.
