@@ -788,6 +788,33 @@ describe('swiping', () => {
       createApi(fake(() => ok([])).client).roomMatches({ room_id: ROOM }),
     ).resolves.toEqual([]);
   });
+
+  it("rounds reads the room's rounds in order and rejects a wrong shape", async () => {
+    const row = {
+      id: 'r-1',
+      room_id: ROOM,
+      seq: 1,
+      kind: 'final_cut',
+      stage: 'closed',
+      stage_closes_at: '2026-11-04T10:01:00Z',
+      opened_at: '2026-11-04T10:00:00Z',
+      closed_at: '2026-11-04T10:01:00Z',
+      winner_title_id: 7,
+    };
+    const { client, calls } = fake(() => ok([row]));
+    await expect(createApi(client, { validate: true }).rounds({ room_id: ROOM })).resolves.toEqual([
+      row,
+    ]);
+    expect(calls[0]).toEqual({ fn: 'rounds.eq', args: ['room_id', ROOM] });
+    await expect(
+      createApi(fake(() => ok([{ ...row, stage: 'x' }])).client, { validate: true }).rounds({
+        room_id: ROOM,
+      }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
+    await expect(createApi(fake(() => ok([])).client).rounds({ room_id: ROOM })).resolves.toEqual(
+      [],
+    );
+  });
 });
 
 describe('avatars', () => {

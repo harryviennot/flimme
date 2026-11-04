@@ -193,6 +193,20 @@ export const roomMatchRow = z.object({
 });
 export type RoomMatch = z.infer<typeof roomMatchRow>;
 
+/** A row of `api.rounds`: one Final Cut or ranked vote of the room. */
+export const roomRoundRow = z.object({
+  id: z.string(),
+  room_id: z.string(),
+  seq: z.number(),
+  kind: z.enum(['final_cut', 'ranked_vote']),
+  stage: z.enum(['veto', 'rank', 'vote', 'closed']),
+  stage_closes_at: z.string(),
+  opened_at: z.string(),
+  closed_at: z.nullable(z.string()),
+  winner_title_id: z.nullable(z.number()),
+});
+export type RoomRound = z.infer<typeof roomRoundRow>;
+
 // --- Views -----------------------------------------------------------------------------
 
 /** The `app_config` keys the app reads. Unknown keys are ignored, missing ones are undefined. */

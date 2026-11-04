@@ -22,7 +22,13 @@ export function useMatchCard(
   roomId: string,
   titleId: number | undefined,
   language: string,
-): { card: Card | null; posterUri: string | null } {
+): {
+  card: Card | null;
+  posterUri: string | null;
+  /** The read failed (a refusal, no card, or the network) and no card is held. */
+  failed: boolean;
+  retry: () => void;
+} {
   const { width } = useWindowDimensions();
   const imageBase = useAppConfig().data?.tmdb_image_base;
   const held = titleId === undefined ? undefined : source?.(titleId);
@@ -35,11 +41,19 @@ export function useMatchCard(
         title_ids: [titleId ?? 0],
         language,
       });
-      return answer.status === 'ok' ? (answer.cards[0] ?? null) : null;
+      const found = answer.status === 'ok' ? answer.cards[0] : undefined;
+      // A refusal or an `ok` with no card is a failed read, so the winner screen can retry it.
+      if (!found) throw new Error(`title_cards: ${answer.status}`);
+      return found;
     },
     staleTime: Infinity,
     retry: 1,
   });
   const card = held ?? read.data ?? null;
-  return { card, posterUri: card ? posterUrl(imageBase, card.poster_path, width) : null };
+  return {
+    card,
+    posterUri: card ? posterUrl(imageBase, card.poster_path, width) : null,
+    failed: !card && read.isError,
+    retry: () => void read.refetch(),
+  };
 }

@@ -23,6 +23,7 @@ import {
 } from '@/features/room';
 import { useMatchOverlay } from '@/features/match/use-match-overlay';
 import { useOnline } from '@/features/network';
+import { rememberRoomScreen } from '@/features/winner/arrival';
 import { tokens } from '@/theme/generated/tokens';
 
 // Every room screen sits under this layout. It reads the room and the phone's seat, shows the
@@ -77,6 +78,11 @@ export default function RoomLayout() {
   // holds its route change until the overlay hands over (match.md#the-sequence).
   const match = useMatchOverlay(id, state, mine !== null, realtime);
 
+  // The winner screen fades in only when it replaces the swipe or Final Cut screen live.
+  useEffect(() => {
+    if (id && current) rememberRoomScreen(id, current);
+  }, [id, current]);
+
   useEffect(() => {
     if (match.holdRoute) return;
     if (!id || !state || !current || isAllowed(state, current)) return;
@@ -98,7 +104,11 @@ export default function RoomLayout() {
 
   return (
     <RoomRealtimeProvider value={realtime}>
-      <RoomLeaveGuard roomId={id ?? ''} active={!current || !isSheet(current)}>
+      <RoomLeaveGuard
+        roomId={id ?? ''}
+        active={!current || !isSheet(current)}
+        finished={state === 'done'}
+      >
         <View className="flex-1">
           <Stack
             screenOptions={{

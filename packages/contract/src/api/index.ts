@@ -31,6 +31,8 @@ import {
   requestCardsResult,
   undoLastVoteResult,
   roomMatchRow,
+  roomRoundRow,
+  type RoomRound,
   type CastVoteResult,
   type RequestCardsResult,
   type UndoLastVoteResult,
@@ -390,6 +392,23 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         }
       }
       return (rows ?? []) as RoomMatch[];
+    },
+
+    /** The room's rounds (Final Cut, ranked vote), oldest first. Empty for a room that never had one. */
+    async rounds(args: { room_id: string }): Promise<RoomRound[]> {
+      const rows = await readView(
+        () => client.from('rounds').select('*').eq('room_id', args.room_id).order('seq'),
+        'rounds',
+      );
+      if (options.validate) {
+        for (const row of rows ?? []) {
+          const parsed = roomRoundRow.safeParse(row);
+          if (!parsed.success) {
+            throw new ApiError('unexpected', 'rounds', `wrong shape: ${parsed.error.message}`);
+          }
+        }
+      }
+      return (rows ?? []) as RoomRound[];
     },
 
     /** The signed-in player's profile, or null when there is none yet. */
