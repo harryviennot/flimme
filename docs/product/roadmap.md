@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 92 of 257 tasks done.
+Progress: 93 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -429,7 +429,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 **App**
 
-- [ ] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched, the undo button shown disabled until M6.26 · app · L · needs M6.25, M6.11, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [x] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched, the undo button shown disabled until M6.26 · app · L · needs M6.25, M6.11, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: smooth by the frame meter on the simulator, and usable with VoiceOver.
 - [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · M · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: flipping works mid-stack.
