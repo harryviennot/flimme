@@ -32,7 +32,7 @@ Nobody matched, so the room votes on 2 to 4 finalists in 60 seconds. The couch t
 
 The whole finalist (poster and text) is one `Pressable` with `haptic={false}`: the screen fires `haptics.press()` itself on a tap that ranks or unranks, so a long press never buzzes twice.
 
-**Components:** `Screen`, `TopBar`, `RoomBanner`, `Text`, `Countdown`, `Poster`, `Icon`, `Pressable`, `Avatar`, `Button`, `Skeleton`. Screen pieces in `components/screens/final-cut/`: `FinalCutScreen` (`final-cut-screen.tsx`), `Finalist` (`finalist.tsx`), `LockInRow` (`lock-in-row.tsx`), `LockInFooter` (`lock-in-footer.tsx`), and `Reveal` (`reveal.tsx`, the slot M6.31 fills; it renders nothing and the layout moves on). No new `ui/` or `shared/` component and no new token. One small change to `Countdown` ([Design-system changes](#design-system-changes)).
+**Components:** `Screen`, `TopBar`, `RoomBanner`, `Text`, `Countdown`, `Poster`, `Icon`, `Pressable`, `Avatar`, `Button`, `Skeleton`. Screen pieces in `components/screens/final-cut/`: `FinalCutScreen` (`final-cut-screen.tsx`), `Finalist` (`finalist.tsx`), `LockInRow` (`lock-in-row.tsx`), `LockInFooter` (`lock-in-footer.tsx`), and `Reveal` (`reveal.tsx`, the slot M6.31 fills: [The reveal](#the-reveal)). No new `ui/` or `shared/` component; the reveal adds duration tokens. One small change to `Countdown` ([Design-system changes](#design-system-changes)).
 
 **Where the data comes from.** `api.rounds` (the open round: `id`, `kind`, `stage_closes_at`), `api.round_candidates` (`title_id`, `seed`), the cards through `api.title_cards` (one call for every finalist, the stack's held cards first, as `useMatchCard` does), `api.room_seats` (the seats for the row, `vetoes_left` on the phone's own seat) and `api.roundProgress` (`locked`, `of`, `me_locked`) on open. Then `round_progress` events. `finale_started` may prefetch the cards and posters while the swipe screen is still up; only `state_changed` moves the phone here.
 
@@ -113,7 +113,7 @@ The footer's button area has four looks. Each keeps the same height (56 plus the
 | **The round or candidates can't be read** | In place of the finalists, `finale:error.load` in `body-m`, tone `secondary`, and `Button` secondary S `common:actions.retry`, inline. The countdown and the row stay if known. Read again by itself when back online |
 | **The cards can't be read** (the round is) | The frames with `Icon` `film`, no title; under the posters `finale:error.posters` and `Button` secondary S `common:actions.retry`. Ranking, the veto and Lock in still work (the ballot needs only the ids) |
 | **No open round** (it closed between the room read and the round read) | Counting the votes, and the room is re-read |
-| **Done** (`state_changed {state: 'done'}`) | The layout moves to the winner screen, which fades in (winner.md, "How it arrives"). Until M6.31 the `Reveal` slot renders nothing (Q15.4) |
+| **Done** (the finale `match` event, then `state_changed {state: 'done'}`) | [The reveal](#the-reveal) plays here, then the layout moves to the winner screen. Until M6.31 the `Reveal` slot renders nothing and the winner screen fades in at once (Q15.4) |
 | **Abandoned** | The layout moves to the closed screen |
 | **Joining during the round** | A new player is refused on the join sheet (`join:errors.inFinale`) and never sees this screen. An existing seat that rejoins gets here and can vote while the round is open |
 
@@ -205,9 +205,9 @@ From the beat; every duration is a token from `@/theme/motion`.
 | Last 10 seconds | `Countdown` turns red | None |
 | Last 5 seconds | None | `haptics.countdown()` each second, only before lock-in |
 | Zero, or everyone locked in | Countdown `layout.fadeOut`; Counting `layout.fadeIn`; posters to `opacity-stack-near`, `timing.base` | None |
-| Done | The winner screen fades in | None |
+| Done | [The reveal](#the-reveal) | [The reveal](#the-reveal) |
 
-**No sound.** The reveal's `playSound('reveal')` is M6.31's.
+**No sound** during the round. The reveal plays `playSound('reveal')` once ([The sequence](#the-sequence)).
 
 **The veto's buzz** fires as the stamp starts popping, not 250 ms later when the pop ends: the arcade curve reaches full size early, and a late buzz feels disconnected. A starting point for the feel check.
 
@@ -225,21 +225,188 @@ From the beat; every duration is a token from `@/theme/motion`.
 ## Never shown
 
 - Who vetoed, how many vetoes there are, or which film anyone vetoed. The stamp is on this phone only.
-- How anyone ranked, which film is ahead, or any points.
+- How anyone ranked, which film is ahead, or any points while the round runs (the reveal shows the room's points, [The points](#the-points)).
 - The order in which people locked in, beyond the live lights.
 - "Waiting for Sam", "deciding", or any line naming who hasn't locked in. No nudge, no buzz on another player's phone, no extra time.
 - "Your vote didn't count" for a player who didn't lock in. Everyone sees Counting the votes.
 - Another seat's `vetoes_left` (null for seats the phone doesn't control).
 - A details sheet or a card back for a finalist.
 
-## The reveal (M6.31)
+## The reveal
 
-Written with M6.31, after its beat in [the signature moments](../moments.md). Until then the close goes straight to the winner screen (Q15.4), and `Reveal` renders nothing.
+Built in M6.31, from [the reveal](../moments.md#the-reveal) (the beat, which wins where this differs). Harry decided its questions 11 to 13 on 4 November 2026: knock-outs show in every room, points only from 3 ballots and never on a knocked-out film, and every time below is a starting value for his feel check ([decisions.md](../../decisions.md)).
+
+The round has closed. On every phone, the same screen shows the room's result in under 5 seconds: the knocked-out films, the points, the winner. Then the winner screen. It shows the room's result, never a ballot, including this phone's own.
+
+### How it starts
+
+- **The signal:** the `match` event with `kind: 'finale'` and `finalists` (`title_id`, `seed`, `points`, `vetoed`), heard through the room's realtime `listen`. Time 0 is this phone's arrival of the event, so phones on a couch land within network latency of each other.
+- **The screen:** the Final Cut screen the phone already shows, in whatever look it has (Counting the votes, Locked in, Sending, or still voting if everyone else locked in first). `useRevealHold` returns true from time 0 (or from the waiting look of a missed reveal) to the hand-over, so `state_changed {state: 'done'}` doesn't swap the route. The match overlay never plays for a finale pick (Q15.1).
+- **Not on this screen yet** (the phone missed `finale_started` and is still on the swipe screen): the layout replaces the route with `/room/[id]/final-cut` without an animation, in the waiting look of [A phone that missed it](#a-phone-that-missed-it), and the reveal plays from the event as soon as the cards are read.
+- **No reveal:** a `only_film` pick (no round, Q4.4), and a room already in `matchShownStore`. The hold stays false and the layout moves on as before.
+
+### Pieces
+
+No new `ui/` or `shared/` component. The reveal reuses the round's pieces, each with a reveal look:
+
+- **`FinalCutScreen`**: the heading and the reason line; the body scrolls to the top at 0.
+- **`Finalist`** gains a `reveal` prop (`out`, `in` or `winner`, and the points when they show). While it's set, the finalist ignores `place`: no badge, no faint number, no stamp of this phone's own, no taps.
+- **`LockInFooter`** gains a fifth look, **Where to watch**: `Button` marquee L, `block`, icon `tv`, `match:cta`.
+- **`Reveal`** (`reveal.tsx`, the slot M6.15 left): the tap-anywhere layer, Android's back, the announcement and the hand-over timer. It renders nothing before time 0.
+- **`Spotlight`** `tone="marquee"`, in the finalists row (see [The winner](#the-winner)).
+- **The logic** without JSX in `features/finale/reveal.ts` (the steps and their times, the ballot count, the line, the announcement's parts, the reason on a re-read) and the hold in `use-reveal-hold.ts`.
+
+### The sequence
+
+Every step's time comes from the reveal's duration tokens ([Design-system changes](#design-system-changes)). A step with nothing to show is skipped and the next one moves up.
+
+| Step | Starts at | What every phone shows | Haptic, sound |
+| --- | --- | --- | --- |
+| **Clear** | 0 | The countdown (if still on), the lock-in row and the footer's look fade out (`layout.fadeOut`); the row leaves the layout. The `TopBar` drops its leave action. Every badge, ring and this phone's own stamp go (`layout.fadeOut`); rings go back to `border border-border-strong`. The posters come back to full opacity where they were (`timing.base`). The intro fades out (`layout.fadeOut`) and its slot shrinks to the reason line's height (Reanimated's `LinearTransition`, `timing.base`), so the posters rise once, here, and nothing moves later. The body scrolls to the top (`duration.base`). Taps and long presses stop; a ballot in flight is dropped quietly | `playSound('reveal')` |
+| **Knock-outs** | `duration.reveal-lead` (300 ms) | Every film with `vetoed` true at once: the `ban` stamp (`Icon` 44, `nope-default`) pops on (`layout.popIn`, the arcade overshoot, as in the round), the ring turns `border-2 border-nope-default`. With the stamp the poster falls away: it sinks 4 points (the lip's travel) and fades to `opacity-disabled` (`timing.exit`), keeping its place in the row. No order, no stagger | `haptics.veto()` once, as the stamps start popping |
+| **Points** | + `duration.reveal-vetoes` (500 ms) | Only when [the points show](#the-points). On each film still in, the points band fades in (`layout.fadeIn`) and counts up from 0 to its total, all together, over `duration.celebrate` with `easing.standard` (never the arcade curve: a number must not overshoot). The number steps at most every `duration.instant` and lands on the total | None |
+| **The winner** | + `duration.reveal-points` (1 s) | The other films still in dim to `opacity-stack-near` (`timing.base`). The winner rises 8 points (`space.8`) with `timing.celebrate` (the arcade overshoot); its ring turns `border-2 border-marquee-default glow-marquee`; the spotlight fades in behind it (`duration.celebrate`, `easing.standard`). The heading swaps to `winner:eyebrow` in tone `marquee` (old text `layout.fadeOut`, new `layout.fadeIn`), and the reason line pops in under it (`layout.popIn`). Where to watch fades in (`layout.fadeIn`). The tap-anywhere layer mounts. The room is marked shown | `haptics.match()` once, with the lift |
+| **Hand-over** | + `duration.reveal-hold` (2.5 s), or the first tap | The layout replaces the screen with `/room/[id]/winner` without a navigation animation; the winner screen fades in with the same poster, still ([winner.md](winner.md#how-it-arrives)) | None |
+
+**The times by case.** "Knock-outs" means at least one finalist has `vetoed` true.
+
+| Case | Knock-outs | Points | Winner | Hand-over |
+| --- | --- | --- | --- | --- |
+| Knock-outs and points | 300 ms | 800 ms | 1.8 s | 4.3 s |
+| Points, no knock-outs (a ranked vote, or nobody vetoed) | | 300 ms | 1.3 s | 3.8 s |
+| Knock-outs, no points (`only_unvetoed`, or fewer than 3 ballots) | 300 ms | | 800 ms | 3.3 s |
+| Neither (`no_ballots`, or fewer than 3 ballots and no veto) | | | 300 ms | 2.8 s |
+
+**Going on early.** From the winner step, a tap anywhere on the screen, Where to watch, or Android's back goes to the hand-over at once. The tap layer is a `Pressable` (`haptic={false}`, the winner's buzz just fired) under the content, mounted at the winner step, so a touch that started earlier never counts. Before the winner step, Android's back does nothing (it is consumed) and taps do nothing. Where to watch keeps the button's `press` haptic.
+
+### The winner
+
+- **The ring and lift** as in the sequence. The winner keeps its column: rising 8 points never touches a neighbour.
+- **The spotlight** is the finalists row's first layer, behind every poster, centred on the winner's poster frame and reaching 24 points (`space.24`) past it on every side (measured with `onLayout`). The row doesn't clip; the radial fade makes the screen edge harmless when the winner is the first or last of 4.
+- **The winner is `title_id`** from the event, or `winner_title_id` from `api.rounds` on a re-read.
+
+### The points
+
+- **They show only when** the reason is `points`, at least 2 films are still in, and at least 3 ballots were counted. Never on a knocked-out film.
+- **The ballot count, without a read** (`features/finale/reveal.ts`): with n films still in, every ballot gives them n, n minus 1, down to 1 points (a film it vetoed that is still in comes last), so ballots = the films still in's points added up, divided by n × (n + 1) / 2.
+- **The band:** on the bottom of each poster still in, `absolute inset-x-0 bottom-0 items-center pt-4 pb-1.5` over `GradientFill gradient="card-scrim"`, the label `finale:reveal.points` in `mono-data`, tone `primary` (`marquee` on the winner from the winner step), one line. It sits on the poster, so nothing reflows when it appears. "40 pts" (10 ballots, 4 films) fits a 76-point poster at `mono-data`'s largest scale.
+- **No points:** no band, and the step is skipped. A 2-player room always lands here (decided, question 11).
+
+### Each reason
+
+| `reason` | Steps | The line (`finale:reveal.reason.*`) |
+| --- | --- | --- |
+| `points` | Knock-outs if any, the points if they show, the winner | `points`. When the points show and the top two films have the same points: `tie` |
+| `only_unvetoed` | Knock-outs, then the winner (one film in: no points) | `onlyUnvetoed` |
+| `no_ballots` | The winner only | `noBallots`. Never "nobody voted" |
+| `only_film` | No reveal (Q4.4): the winner screen as today | |
+| Missing or unknown | The steps the data calls for | `points` if points show, otherwise no line |
+
+**On a re-read** the views carry no `reason`, so `reveal.ts` works it out: exactly one film still in with at least one knocked out is `only_unvetoed`; every point 0 and nothing knocked out is `no_ballots`; anything else is `points`. `vetoed` null reads as false.
+
+### A phone that missed it
+
+- **When:** a return to the foreground, a reconnect, a cold start, or `state_changed {state: 'done'}` without the event. The room re-read says `done` with a kind `finale` pick and a closed row in `api.rounds`, and the room isn't in `matchShownStore` (Q31.1).
+- **The waiting look** (the layout puts the phone on `/room/[id]/final-cut` without an animation, the hold already true): the heading for the round's kind, no intro, one `Skeleton` per finalist in the poster's shape (3 until the candidates are read), no countdown, no lock-in row, no top bar action, and Counting the votes in the footer. Nothing plays yet.
+- **The reads:** `api.rounds` (`kind`, `winner_title_id`), `api.round_candidates` (`seed`, `points`, `vetoed`) and the finalists' cards (`api.title_cards`, one call), together, with a 3-second limit (`REVEAL_READ_LIMIT_MS` in `reveal.ts`: a network limit, not a motion token).
+- **In time** (the round and its candidates; the cards may still be on their way): the Skeletons give way to the posters (`layout.fadeIn`) and the reveal plays once, in full, from the Clear step, with the sound and haptics. A card that hasn't come shows its placeholder, which takes the stamp, the band and the spotlight; the poster fades in over it if it arrives.
+- **Not in time, or a read fails:** the hand-over at once (the winner screen fades in) and the room counts as shown. The film matters more than the show.
+- **Shown** is marked at the winner step, or when the reveal leaves the screen if that comes first (a leave, the timeout). A phone sent to the background before the winner step plays the reveal again from the re-read on its return; after it, the phone goes straight to the winner screen.
+- **Once:** a second `match` event, or the event after a re-read started the reveal (or the other way round), plays nothing more.
+
+### The reveal's states
+
+| State | What shows |
+| --- | --- |
+| **Knock-outs, points, winner** (a Final Cut, 3 or more ballots, a veto landed) | The full sequence, 4.3 s |
+| **Two ballots** (a 2-player room, or 2 seats of a bigger room locked in) | Knock-outs, then the winner, no band; the line is `points`, never `tie` |
+| **One ballot** | The same: no band. Its knock-out, if any, shows (Decided 3) |
+| **A ranked vote** | No knock-outs; the points if 3 or more ballots, then the winner |
+| **`only_unvetoed`** | Knock-outs, then the winner with `onlyUnvetoed` |
+| **`no_ballots`** | The winner alone, 300 ms after the event, with `noBallots` |
+| **Every finalist got a veto** (2 stay in) | Only the films with `vetoed` true take the stamp; the 2 still in show as in, with points if they show |
+| **Everyone locked in before zero** | The countdown, still on, fades out at 0 with the rest |
+| **This phone was Sending** | The button's spinner fades out with the footer; the ballot is dropped |
+| **This phone never locked in** | The same reveal as everyone |
+| **A poster not loaded** | The placeholder (thumbhash or `Icon` `film`) takes the stamp, band and spotlight; the poster fades in over it if it comes |
+| **A card not read at all** (no title) | The frame with `Icon` `film`; the film is left out of the announcement's names |
+| **The leave alert open at 0** | It stays open over the reveal; leaving now goes Home (the room is `done`) |
+| **Offline during the reveal** | `RoomBanner` as usual; the reveal plays from the event it already has |
+| **The missed reveal, waiting** | As in [A phone that missed it](#a-phone-that-missed-it) |
+| **The missed reveal, reads too slow** | The winner screen, at most 3 seconds after the re-read |
+| **Background during the reveal** | Before the winner step: the reveal again on return. After it: the winner screen |
+| **Screen reader on** | As in [The reveal's accessibility](#the-reveals-accessibility): no automatic hand-over |
+
+**Sizes.** The reveal only takes things away (the row, the intro, the countdown) and changes things in place, so wherever the round fit, the reveal fits.
+
+- **375 by 667, default text:** every state fits without scrolling, with 2, 3 or 4 finalists and any number of seats (the row is gone). Where to watch is pinned in the footer.
+- **The largest text size:** the heading keeps 2 lines at `display-m`'s capped scale ("LE FILM DU SOIR" is one line at 375 points). The reason line is `title-m` and wraps to 2 lines at most; its slot is sized to it at 0, so the posters never move after that. The band stays one line ("40 pts" fits 76 points); stamps and the spotlight keep their size. Where to watch ("OÙ REGARDER") stays on one line. If the heading, the line and the posters don't all fit, the body scrolls at 0 to show the finalists row rather than the top: the posters are the reveal.
+- **The waiting look** has the loading state's sizes.
+
+### The reveal's copy
+
+Reused, unchanged: `winner:eyebrow` (the heading, "Le film du soir" / "Tonight's pick", Harry kept it), `match:cta` and `match:a11y.cta` (Where to watch), `finale:a11y.film`, `finale:a11y.filmNoYear` and `finale:a11y.state.vetoed`. M6.31 adds these to `finale.json`, both languages (Decided 1). Calm, no exclamation marks, counts only. The French lines are the beat's.
+
+| Key | French | English |
+| --- | --- | --- |
+| `reveal.reason.points` | En tête des votes | Top of the votes |
+| `reveal.reason.tie` | Égalité, départagée par vos swipes | A tie, broken by your swipes |
+| `reveal.reason.onlyUnvetoed` | Le seul film que personne n'a éliminé | The only film nobody vetoed |
+| `reveal.reason.noBallots` | Le préféré de vos swipes | Top of your swipes |
+| `reveal.points_one` | {{count}} pt | {{count}} pt |
+| `reveal.points_other` | {{count}} pts | {{count}} pts |
+| `reveal.a11y.vetoed_one` | Éliminé : {{titles}}. | Vetoed: {{titles}}. |
+| `reveal.a11y.vetoed_other` | Éliminés : {{titles}}. | Vetoed: {{titles}}. |
+| `reveal.a11y.pick` | Le film du soir : {{title}}. {{reason}} | Tonight's pick: {{title}}. {{reason}} |
+| `reveal.a11y.pickNoTitle` | Le film du soir. {{reason}} | Tonight's pick. {{reason}} |
+| `reveal.a11y.points_one` | {{count}} point | {{count}} point |
+| `reveal.a11y.points_other` | {{count}} points | {{count}} points |
+| `reveal.a11y.winner` | Le film du soir | Tonight's pick |
+| `reveal.a11y.winnerPoints_one` | Le film du soir, {{count}} point | Tonight's pick, {{count}} point |
+| `reveal.a11y.winnerPoints_other` | Le film du soir, {{count}} points | Tonight's pick, {{count}} points |
+
+`{{titles}}` is joined with `Intl.ListFormat` (`formatList`), in seed order. `{{reason}}` is the line's text, or empty. The points are at least 3 when they show, so `_one` is there for i18next, not the screen. "pts" reads in both languages and fits a 76-point poster.
+
+### The reveal's accessibility
+
+- **At 0**, focus goes to the heading and the result is announced once, assertively: `reveal.a11y.vetoed` with the knocked-out films' titles (only when there are some), then `reveal.a11y.pick` (`pickNoTitle` without the winner's card). The points aren't read here. Example: "Vetoed: Dune, Barbie. Tonight's pick: Heat. The only film nobody vetoed."
+- **Each poster is one element** with no actions: `a11y.film`, then `a11y.state.vetoed` (out), `reveal.a11y.points` (in, with points), nothing more (in, no points), or `reveal.a11y.winner` / `winnerPoints` (the winner). The labels change with the steps.
+- **Focus order:** the heading, the reason line, the finalists in seed order, Where to watch (`match:a11y.cta` with the winner's title).
+- **No automatic hand-over while VoiceOver or TalkBack is on** (`AccessibilityInfo.isScreenReaderEnabled`, as the match overlay): Where to watch goes on. The tap layer is hidden from screen readers. The winner screen then takes focus on its title.
+- **Reduce Motion:** the same times, so phones keep in step; every fade uses `ReduceMotion.Never` so it fades rather than jumps. The stamps fade in at full size (`duration.fast`); knocked-out posters fade to `opacity-disabled` without sinking; the bands fade in at their totals without counting; the winner doesn't rise (the others dim, the ring turns, the spotlight fades in); the reason line fades in instead of popping; the intro's slot and the scroll change at once. Haptics and the sound are unchanged.
+
+### What never shows
+
+- Who vetoed (`vetoed_by` never reaches a phone): no avatar, seat name or initial near any film. The lock-in row leaves at 0.
+- How many vetoes a film got, or that a film still in was vetoed.
+- Any ballot, including this phone's own: its badges and stamp clear at 0.
+- Vetoes one after another: they land at once.
+- Points from fewer than 3 ballots, points on a knocked-out film, or the tie line without the points.
+- "Your vote didn't count", "Nobody voted", or anything about who didn't lock in.
+- The match overlay, `MarqueeBulbs` or the match sound.
+- A replay button, or a countdown to the winner screen.
+
+### Feel check (for M6.31's pull request)
+
+- [ ] Dev menu, Final Cut fixture, "Play the reveal" with 3 ballots and one veto → the stamps land together at about 300 ms with one veto buzz, the points count up and settle, the winner rises with the match buzz at about 1.8 s.
+- [ ] Tap during the knock-outs → nothing. Tap after the winner → the winner screen at once, no slide.
+- [ ] Do nothing → the winner screen about 2.5 s after the winner, the poster still.
+- [ ] 2 ballots → stamps, no points, the line "Top of the votes". `no_ballots` → the winner alone, quickly.
+- [ ] Reduce Motion on → fades only, same rhythm, nothing jumps.
+- [ ] VoiceOver on → one announcement, no hand-over until Where to watch.
+- [ ] Kill the app right after the close, reopen → the reveal plays once; reopen again → the winner screen.
+
+Both phones: [ ] iPhone [ ] low-end Android
 
 ## Design-system changes
 
 - **`Countdown`** (`ui/countdown`): its `accessibilityLabel` becomes `common:countdown.a11y_*` with the seconds left (a screen reader reads "0:42" badly), through `t()`. Its gallery entry is unchanged. No new prop: the 60-second cap is the screen's (`features/finale/countdown.ts`), and `tick` already exists.
-- No new token, no new `ui/` or `shared/` component. If a second screen needs the finalist (the reveal is the same screen), it stays here.
+- **Tokens (M6.31)**, in `mobile/src/theme/tokens.json` under `duration`, then `mise run tokens`. Each `$description` ends "(a starting value)", since Harry tunes them in his feel check (decided, question 13). The beat named only the last; the three step lengths become tokens too, so the whole rhythm is tuned in one file:
+  - `duration.reveal-lead`, 300ms, "The reveal: from the close to the knock-outs (a starting value)";
+  - `duration.reveal-vetoes`, 500ms, "The reveal: the knock-outs before the points (a starting value)";
+  - `duration.reveal-points`, 1000ms, "The reveal: the points before the winner (a starting value)";
+  - `duration.reveal-hold`, 2500ms, "The reveal before the winner screen (a starting value)", as `duration.match-hold` for the overlay.
+- No new `ui/` or `shared/` component. `Finalist` and `LockInFooter` gain the reveal looks and stay screen pieces (one screen); `Spotlight`, `GradientFill` and `Button` are used as they are.
 
 ## Differences from the Figma
 
@@ -260,3 +427,7 @@ On 4 November 2026:
 
 1. **The reveal's keys.** M6.31 adds the reveal's own keys to `finale.json`; M6.15 doesn't. M6.31 starts only after M6.15 has merged, so the two never share the file at once (decided by the coordinator, since it's sequencing).
 2. **The French for "locked in" and the ranked vote.** Harry kept "Vote validé", "{{count}} sur {{of}} ont validé" and "Vote final", marked proposed in the copy glossary until the first playtest ([decisions.md](../../decisions.md)).
+
+On 5 November 2026:
+
+3. **Knock-outs with a single ballot.** They show, the same rule in every room size, even though the lock-in row showed who locked in. Harry took the default ([decisions.md](../../decisions.md)); the alternative was the winner alone, with no stamps.
