@@ -19,6 +19,7 @@ const mockSet = jest.fn();
 const mockDelay = jest.fn();
 const mockTiming = jest.fn();
 const mockSpring = jest.fn();
+const mockSequence = jest.fn();
 
 jest.mock('react-native-reanimated', () => {
   const actual = jest.requireActual('react-native-reanimated');
@@ -29,7 +30,10 @@ jest.mock('react-native-reanimated', () => {
       mockDelay(...args);
       return { delayed: args };
     },
-    withSequence: (...args: unknown[]) => ({ sequence: args }),
+    withSequence: (...args: unknown[]) => {
+      mockSequence(...args);
+      return { sequence: args };
+    },
     withTiming: (...args: unknown[]) => {
       mockTiming(...args);
       return { timing: args };
@@ -59,6 +63,7 @@ beforeEach(() => {
   mockDelay.mockClear();
   mockTiming.mockClear();
   mockSpring.mockClear();
+  mockSequence.mockClear();
   registerTopCard(null);
 });
 
@@ -66,7 +71,7 @@ describe('the card 1 lean', () => {
   it('waits the hint delay, then leans right and left, once, a third of the way to the commit line', async () => {
     const motion = fakeMotion();
     registerTopCard(motion);
-    const { rerender } = await renderHook(({ active }) => useLean(active), {
+    const { rerender } = await renderHook(({ active }: { active: boolean }) => useLean(active), {
       initialProps: { active: true },
     });
     expect(mockSet).toHaveBeenCalledTimes(1);
@@ -105,6 +110,9 @@ describe('the card 1 lean', () => {
     registerTopCard(fakeMotion());
     await renderHook(() => useLean(true));
     expect(mockSpring).not.toHaveBeenCalled();
+    // Reanimated skips a wrapper that follows the system setting straight to its end.
+    for (const call of mockSequence.mock.calls) expect(call[0]).toBe('never');
+    for (const call of mockDelay.mock.calls) expect(call[2]).toBe('never');
     const timings = mockTiming.mock.calls;
     // Jumps to the stamp (1 ms) and back after holding it for `slow`, right then left.
     expect(timings.map((call) => call[0]).sort((a, b) => a - b)).toEqual([-reach, 0, reach]);

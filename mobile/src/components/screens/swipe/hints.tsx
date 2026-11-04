@@ -122,12 +122,19 @@ export function useLean(active: boolean) {
         ? withTiming(to, { duration: 1, ...never })
         : withTiming(to, { duration: duration.slow, easing: easing.standard, ...never });
     const back = reduced
-      ? withDelay(duration.slow, withTiming(0, { duration: 1, ...never }))
+      ? withDelay(duration.slow, withTiming(0, { duration: 1, ...never }), ReduceMotion.Never)
       : withSpring(0, spring.card);
     motion.x.set(
+      // Every wrapper says Never too: under Reduce Motion Reanimated would skip the whole
+      // sequence to its end, and the stamps are what replaces the lean.
       withDelay(
         duration['hint-delay'],
-        withSequence(withSequence(out(reach), back), withSequence(out(-reach), back)),
+        withSequence(
+          ReduceMotion.Never,
+          withSequence(ReduceMotion.Never, out(reach), back),
+          withSequence(ReduceMotion.Never, out(-reach), back),
+        ),
+        ReduceMotion.Never,
       ),
     );
   }, [active, motion, reduced, screen.width, screen.height]);
