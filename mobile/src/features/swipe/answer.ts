@@ -59,6 +59,8 @@ export function createAnswerer(deps: AnswererDeps) {
   // has the vote, so the phone keeps its own count: what it opened with, minus what it spent.
   let superLikes = Math.max(0, deps.initialSuperLikes - deps.queue.pendingSuperLikes(deps.roomId));
   let count = deps.initialCount;
+  // The last count sent to the others (presence), to correct it when an undo lowers it.
+  let sent: number | null = null;
 
   return {
     /** Takes the top card and queues the vote; null when nothing was answered. */
@@ -78,7 +80,10 @@ export function createAnswerer(deps: AnswererDeps) {
       });
       if (kind === 'super_like') superLikes -= 1;
       count += 1;
-      if (count % PRESENCE_EVERY === 0) deps.onCount(count);
+      if (count % PRESENCE_EVERY === 0) {
+        sent = count;
+        deps.onCount(count);
+      }
       return done;
     },
 
@@ -87,6 +92,15 @@ export function createAnswerer(deps: AnswererDeps) {
     /** The server had none to spend (`no_super_likes`), or Undo took one back. */
     giveBackSuperLike(): void {
       superLikes += 1;
+    },
+
+    /** Undo took the last answer back: one fewer, and the others hear it if they were told more. */
+    undone(): void {
+      count = Math.max(0, count - 1);
+      if (sent !== null && count < sent) {
+        sent = count;
+        deps.onCount(count);
+      }
     },
 
     count: () => count,

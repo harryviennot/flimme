@@ -272,6 +272,55 @@ describe('undo', () => {
     expect(result.current.returning).toBeNull();
   });
 
+  it('gives a refused super like back once, whether the refusal or the undo comes first', async () => {
+    const refuse = (id: number) =>
+      mockQueue.listeners.forEach((l) =>
+        l({ type: 'no_super_likes', room_id: ROOM, title_id: id }),
+      );
+    // The refusal first, then the undo.
+    const first = await open();
+    await act(async () => void first.result.current.answer('super_like'));
+    await act(async () => refuse(1));
+    expect(first.result.current.superLikesLeft).toBe(2);
+    await act(async () => void first.result.current.undo());
+    expect(first.result.current.superLikesLeft).toBe(2);
+    expect(mockQueue.enqueueUndo).not.toHaveBeenCalled();
+    // The undo first, then the refusal.
+    await first.unmount();
+    await act(async () => mockQueue.store.setState({ votes: [] }));
+    const second = await open();
+    await act(async () => void second.result.current.answer('super_like'));
+    await act(async () => void second.result.current.undo());
+    expect(second.result.current.superLikesLeft).toBe(2);
+    await act(async () => refuse(1));
+    expect(second.result.current.superLikesLeft).toBe(2);
+  });
+
+  it('answers the same super like again after an undo, and spends it again', async () => {
+    const { result } = await open();
+    await act(async () => void result.current.answer('super_like'));
+    await act(async () => void result.current.undo());
+    await act(async () => void result.current.answer('super_like'));
+    expect(result.current.superLikesLeft).toBe(1);
+  });
+
+  it('remembers the side the card left from, for the way back', async () => {
+    const { result } = await open();
+    await act(async () => void result.current.answer('seen'));
+    await act(async () => void result.current.undo('left'));
+    expect(result.current.returning?.direction).toBe('left');
+  });
+
+  it('lowers the swipe count it reports', async () => {
+    const { result } = await open();
+    for (let i = 0; i < 5; i++) await act(async () => void result.current.answer('like'));
+    expect(mockPresence).toHaveBeenLastCalledWith({ swipe_count: 5, done: false });
+    await act(async () => void result.current.undo());
+    expect(mockPresence).toHaveBeenLastCalledWith({ swipe_count: 4, done: false });
+    // The player's own pill counts the same.
+    expect(result.current.count).toBe(4);
+  });
+
   it('does nothing once the room moved on', async () => {
     const { result } = await open();
     await act(async () => void result.current.answer('like'));
@@ -304,6 +353,26 @@ describe('presence', () => {
     await open();
     await flush();
     expect(mockPresence).toHaveBeenCalledWith({ swipe_count: 0, done: true });
+  });
+
+  it('says not done any more when Undo brings back the card that emptied the stack', async () => {
+    jest.useFakeTimers({ doNotFake: ['setImmediate', 'nextTick'] });
+    try {
+      mockApi.myNextCards.mockResolvedValueOnce(deck(1)).mockResolvedValue([]);
+      mockApi.requestCards.mockResolvedValue({ status: 'enough' });
+      const { result } = await open();
+      await act(async () => void result.current.answer('like'));
+      // The stack asks the server again when its retry timer runs, and finds nothing left.
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(9000);
+      });
+      await flush();
+      expect(mockPresence).toHaveBeenLastCalledWith({ swipe_count: 1, done: true });
+      await act(async () => void result.current.undo());
+      expect(mockPresence).toHaveBeenLastCalledWith({ swipe_count: 0, done: false });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 

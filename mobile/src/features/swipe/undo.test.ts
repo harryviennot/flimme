@@ -120,4 +120,22 @@ describe('undo', () => {
     expect(t.queue.enqueueUndo).not.toHaveBeenCalled();
     expect(t.stack.getState().mounted[0]?.title_id).toBe(2);
   });
+
+  it('takes the card back without asking the server when its vote never counted', async () => {
+    const t = await setup();
+    t.answer('super_like');
+    t.undoer.markNotRecorded(1);
+    expect(t.undoer.undo()?.card.title_id).toBe(1);
+    expect(t.queue.removeLast).not.toHaveBeenCalled();
+    expect(t.queue.enqueueUndo).not.toHaveBeenCalled();
+    expect(t.stack.getState().mounted[0]?.title_id).toBe(1);
+  });
+
+  it('ignores a vote that did not count when it is not the last answer', async () => {
+    const t = await setup();
+    t.answer();
+    t.undoer.markNotRecorded(99);
+    t.undoer.undo();
+    expect(t.queue.enqueueUndo).toHaveBeenCalledTimes(1);
+  });
 });

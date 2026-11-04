@@ -24,7 +24,12 @@ export type UndoDeps = {
   locked: () => boolean;
 };
 
-export type LastAnswer = { card: NextCard; kind: VoteAnswer };
+export type LastAnswer = {
+  card: NextCard;
+  kind: VoteAnswer;
+  /** The server never recorded this vote (`no_super_likes`, a card not dealt): nothing to take back. */
+  dropped?: boolean;
+};
 
 export type UndoState = {
   /** The last answer given on this phone, until it is undone; null before the first answer. */
@@ -42,13 +47,19 @@ export function createUndoer(deps: UndoDeps) {
       state.setState({ last: { card, kind } });
     },
 
+    /** The queue says the server never recorded this film's vote: Undo must not ask it to. */
+    markNotRecorded(titleId: number): void {
+      const { last } = state.getState();
+      if (last?.card.title_id === titleId) state.setState({ last: { ...last, dropped: true } });
+    },
+
     /** Brings the last card back; null when there is nothing to undo or the room moved on. */
     undo(): LastAnswer | null {
       const { last } = state.getState();
       if (!last || deps.locked()) return null;
       state.setState({ last: null });
       const titleId = last.card.title_id;
-      if (!deps.queue.removeLast(deps.roomId, titleId)) {
+      if (!last.dropped && !deps.queue.removeLast(deps.roomId, titleId)) {
         deps.queue.enqueueUndo({
           room_id: deps.roomId,
           member_id: deps.memberId,
