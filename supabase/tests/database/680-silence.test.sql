@@ -5,7 +5,7 @@
 -- back and went silent again" is set up with an older silence_checked_at.
 
 begin;
-select plan(22);
+select plan(24);
 
 select tests.create_catalog(25);
 select tests.use_deck_engine('sql');
@@ -73,12 +73,19 @@ select pg_temp.game(2, 'c');
 select pg_temp.silent('c2', interval '3 minutes 1 second');
 select is(tests.vote('c1', 1)->>'match', 'false', 'T2 two seats, one gone: one voter, no match');
 
--- 3. Silent for 91 seconds: not present, still a voter. Five seats, 70% of 5 is 4 likes.
+-- 3. Silent for 91 seconds: not present, still a voter. Four seats need all four to like.
+select pg_temp.game(4, 'g');
+select pg_temp.silent('g4', interval '91 seconds');
+select tests.vote('g1', 1); select tests.vote('g2', 1);
+select is(tests.vote('g3', 1)->>'match', 'false', 'T3 3 likes of 4 voters is no match (3 of 3 present would have been)');
+select is(cardinality(internal.present_member_ids(tests.room_id())), 3, 'T3 presence is unchanged: the silent seat is not present');
+
+-- 3b. Five seats, 70% of 5 is 4 likes.
 select pg_temp.game(5, 'd');
 select pg_temp.silent('d5', interval '91 seconds');
 select tests.vote('d1', 1); select tests.vote('d2', 1);
-select is(tests.vote('d3', 1)->>'match', 'false', 'T3 3 likes of 5 voters is no match (3 of 4 present would have been)');
-select is(cardinality(internal.present_member_ids(tests.room_id())), 4, 'T3 presence is unchanged: the silent seat is not present');
+select is(tests.vote('d3', 1)->>'match', 'false', 'T3b 3 likes of 5 voters is no match (3 of 4 present would have been 70%)');
+select is(cardinality(internal.present_member_ids(tests.room_id())), 4, 'T3b presence is unchanged: 4 present');
 
 -- 6. The near miss uses the voters: 3 likes, of 5, needed 4, and a present seat is left to answer.
 select is((select n->>'likes' || '/' || (n->>'of') || '/' || (n->>'needed') from tests.broadcasts(tests.room_id(), 'near_miss') n),

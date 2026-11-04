@@ -103,7 +103,7 @@ Today the data model makes "Seen it" an abstention under these rules: the film c
 
 ## When it's a match
 
-A like (or super like, or "Watch it again tonight? Yes") makes a match when the room's rule is met among the **voters**: present players who answered the card, plus present players who haven't reached it yet. In other words, every present player counts, and only likes help.
+A like (or super like, or "Watch it again tonight? Yes") makes a match when the room's rule is met among the **voters**: seats not left and heard from in the last 3 minutes, whether they answered the card or haven't reached it yet. In other words, every voter counts, and only likes help.
 
 | Mode | Players present | Instant match when | Otherwise, the finale |
 | --- | --- | --- | --- |
@@ -117,8 +117,8 @@ A like (or super like, or "Watch it again tonight? Yes") makes a match when the 
 
 When the finale starts is in [The finale](#the-finale); the card counts and time limits are in [Time to a pick](#time-to-a-pick).
 
-- **At least 2 voters.** A room with one player present can't match (solo play is a later mode).
-- **The rule follows who is present.** It's chosen for the current number of present players, so the 70% rule applies only while 5 or more are present.
+- **At least 2 voters.** A room with one voter can't match (solo play is a later mode).
+- **The rule follows the voters.** It's chosen for the current number of voters, so the 70% rule applies only while 5 or more are voting.
 - **A match is checked** after every like, when a player leaves (the players still here may all have liked a film), and by the minute sweeper after a player times out (below).
 - **Kinds.** `unanimous` when every voter liked it, `majority` otherwise. Shown as "3 of 3" or "7 of 9".
 - **Quick Match and Date Night:** the match is the night's pick, the room is done, and every phone shows "It's a match" with where to watch.
@@ -138,7 +138,7 @@ When the finale starts is in [The finale](#the-finale); the card counts and time
 | **Joining during the finale** | Refused with "They're voting on the final films". The new player is offered the next game if the host taps Play again |
 | **Reconnecting** | Same code, same seat. Votes made offline are queued and retried: a retry the server already has returns "duplicate", a vote after the room was decided returns "closed" and the phone shows the result. The deck continues where it was |
 | **Leaving** (the leave button) | The seat stops counting at once. Liked films are re-checked: if everyone still here liked one, that's a match now |
-| **Going silent** (phone locked, app killed, no network) | The seat stops counting after 90 seconds for presence and the finale's card count. **Default to confirm:** a silence alone never creates a match until it has lasted 3 minutes, so someone answering a message doesn't come back to a decided room |
+| **Going silent** (phone locked, app killed, no network) | The seat stops counting after 90 seconds for presence and the finale's card count. A silence alone never creates a match until it has lasted 3 minutes, so someone answering a message doesn't come back to a decided room |
 | **The host leaves** | The host role moves to the longest-seated player who is present. If nobody else is present, it goes to the longest-seated seat that has not left; if nobody else is seated, no seat holds it |
 | **The host goes silent in the lobby** | After 2 minutes, the host role moves the same way, so the room can still start |
 | **Fewer than 2 players present while swiping** | If it lasts 5 minutes, the room is abandoned. If someone comes back before that, the game carries on. A player who tapped Leave counts the same as a dropped connection: the room waits the 5 minutes from the moment they left (from 90 seconds after the last sign of life, for a dropped one), so a lone player can still bring someone in by code |
