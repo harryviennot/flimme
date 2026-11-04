@@ -26,6 +26,7 @@ import { MarqueeBulbs } from '@/components/ui/marquee-bulbs';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { formatList } from '@/features/lobby/names';
+import { matchMotion } from '@/features/match/motion';
 import { duration, layout, spring, timing } from '@/theme/motion';
 
 // "It's a match" (match.md): the whole room celebrates one film at the same second. It shows
@@ -46,9 +47,6 @@ export type MatchOverlayProps = {
   /** A tap, the button or Android's back. The caller ignores the first 800 ms. */
   onContinue: () => void;
 };
-
-// The poster starts at about the swipe card's width: the screen less its 20-point margins.
-const CARD_MARGIN = 40;
 
 export function MatchOverlay({
   film,
@@ -88,8 +86,9 @@ export function MatchOverlay({
   }, [onContinue]);
 
   // The poster scales from card size to full screen; with Reduce Motion it fades in instead.
-  const scale = useSharedValue(reduced ? 1 : (width - CARD_MARGIN) / width);
-  const opacity = useSharedValue(reduced ? 0 : 1);
+  const motion = matchMotion(reduced, width);
+  const scale = useSharedValue(motion.posterStart.scale);
+  const opacity = useSharedValue(motion.posterStart.opacity);
   useEffect(() => {
     if (reduced) opacity.set(withTiming(1, timing.base));
     else scale.set(withTiming(1, timing.celebrate));
@@ -99,13 +98,11 @@ export function MatchOverlay({
     transform: [{ scale: scale.get() }],
   }));
 
-  const landing = reduced ? 0 : duration.celebrate;
-  const stagger = (index: number) => (reduced ? 0 : index * duration.instant);
-  const lateIn = FadeIn.duration(duration.base).delay(landing + stagger(players.length));
+  const lateIn = FadeIn.duration(duration.base).delay(motion.detailsDelay(players.length));
   const avatarIn = (index: number) =>
     reduced
       ? FadeIn.duration(duration.base)
-      : ZoomIn.delay(landing + stagger(index))
+      : ZoomIn.delay(motion.avatarDelay(index))
           .springify()
           .damping(spring.bouncy.damping)
           .stiffness(spring.bouncy.stiffness)
@@ -149,7 +146,7 @@ export function MatchOverlay({
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
       >
         <View className="items-center gap-3 px-5 pt-6" pointerEvents="none">
-          <MarqueeBulbs count={16} chasing={!reduced} />
+          <MarqueeBulbs count={16} chasing={motion.chasing} />
           <Animated.View
             ref={title}
             entering={reduced ? FadeIn.duration(duration.base) : layout.popIn.delay(duration.slow)}
