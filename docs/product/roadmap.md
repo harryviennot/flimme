@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 89 of 257 tasks done.
+Progress: 90 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -180,7 +180,7 @@ Everything that blocks building or publishing, started first. Several items take
 
 Done when: the name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, and the repository and the agents are set up.
 
-- [ ] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
+- [x] **M0.1** Choose the app's name · decision · S · [store-listing](store-listing.md#choosing-the-name)
   Done when: the name is checked on both stores, in trademark databases and for domains, and recorded in decisions.md.
 - [ ] **M0.2** Buy the domain and set up a support email on it · ops · S · needs M0.1 · [app-structure](../architecture/app-structure.md#invites-and-deep-links)
   Done when: the domain resolves and support@ receives mail.

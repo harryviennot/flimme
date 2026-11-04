@@ -86,7 +86,7 @@ Copies of the Release screens frames, changed on 30 October 2026 (M0.9) to match
 
 Not copied, because the first release doesn't have them: 06 Game mode and 07 Set the vibe as separate steps (merged into Host setup), 10 Taste check (M19), 18 Profile, 19 Connect Letterboxd, 20 Import history and 21 Save account (M15, M20), 23 Delete account (its account and Letterboxd wording waits for the Settings spec), and section 07. Not copied because nothing changed for the first release: 24 Reconnecting (the banner is in [reconnecting](screens/reconnecting.md), and the swipe screen's offline note in [swipe](screens/swipe.md#states)) and 26 Nothing left (it needs a decision first: its Vote on our likes and Change filters wait for M18).
 
-Drawn as overrides until the components catch up: the `PinBox` error border on 05b (the component has no `Error` variant yet) and the host `Tag` without the `crown` icon (the icon set has none yet). Service logos on 16 Winner are placeholder tiles: the app shows TMDB's provider logos. The invite domain `flimme.app` is a placeholder until M0.2.
+Drawn as overrides until the components catch up: the `PinBox` error border on 05b (the component has no `Error` variant yet) and the host `Tag` without the `crown` icon (the icon set has none yet). Service logos on 16 Winner are placeholder tiles: the app shows TMDB's provider logos. The invite domain is flimme.com (decided 4 November 2026); `flimme.app` was a placeholder.
 
 ## Design tokens (page `2:3`)
 

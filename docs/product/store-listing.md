@@ -4,7 +4,7 @@ How Flimme gets into the App Store and Google Play: choosing the name, the devel
 
 It builds on the [onboarding](onboarding.md) (the invite page, accounts), the [app structure](../architecture/app-structure.md) (builds, links, sign-in), [monetization](monetization.md) (free at launch, kids' safety, not the Kids category), [tmdb.md](../integrations/tmdb.md) (credits, countries at launch) and the [Letterboxd integration](../integrations/letterboxd.md). It replaces the Store part of the revival plan's [publishing checklist](revival-plan.md#publishing-checklist). The App Privacy labels and the Data safety form are in [privacy.md](privacy.md); store and install metrics are in [analytics.md](analytics.md). Decisions are in [decisions.md](../decisions.md).
 
-The app's name is still open, so this doc writes **[Name]** wherever it goes. Every number marked as a starting value is a placeholder.
+The app's name is Flimme (decided 4 November 2026). This doc still writes **[Name]** where it goes; read it as Flimme. Every number marked as a starting value is a placeholder.
 
 ## Contents
 
@@ -27,7 +27,7 @@ The app's name is still open, so this doc writes **[Name]** wherever it goes. Ev
 
 ## Choosing the name
 
-The name blocks more than the listing: the bundle id and package name, the invite domain, the URL scheme and the universal links all wait on it (see [app structure](../architecture/app-structure.md#invites-and-deep-links)). This section doesn't pick one; it says how to check one.
+**Flimme was chosen on 4 November 2026.** The bundle id and package name, the invite domain (flimme.com), the URL scheme and the universal links follow from it (see [app structure](../architecture/app-structure.md#invites-and-deep-links)). The rest of this section says how to check a name.
 
 **What makes a name work here**
 
@@ -69,7 +69,7 @@ Both stores need an account before any build reaches a tester. The choice of **i
 
 | Item | Choice | Notes |
 | --- | --- | --- |
-| Bundle id and package name | Reverse of the invite domain, e.g. `app.<domain>` | Treat as permanent once a build is uploaded. Waits on the name. The app structure's development and preview builds use suffixed ids |
+| Bundle id and package name | Reverse of the invite domain, e.g. `app.<domain>` | Treat as permanent once a build is uploaded. The name is Flimme. The app structure's development and preview builds use suffixed ids |
 | Primary language | French (France) | Launch countries are French-speaking. Add English (U.S.) and English (U.K.) localizations |
 | Category | Entertainment, as JustWatch uses | Secondary on Apple: Lifestyle (default) |
 | Apple capabilities | Sign in with Apple, Associated Domains | From the app config ([app structure](../architecture/app-structure.md#sign-in)) |

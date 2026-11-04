@@ -95,7 +95,7 @@ The fastest path, and the one most guests take.
 
 ### The link
 
-- **Format:** `https://<domain>/join/<code>?r=<room ref>`. The domain waits on the app's name (open in [decisions.md](../decisions.md)).
+- **Format:** `https://flimme.com/join/<code>?r=<room ref>`. The domain is flimme.com (decided 4 November 2026, see [decisions.md](../decisions.md)).
 - **Why the room reference:** codes are only unique among open rooms and get reused. A guest who taps an old link for a room that has ended could otherwise land in a stranger's newer room with the same code. With the reference, the app can say "This movie night has ended" instead.
 - **The QR code** in the invite sheet encodes the same link, so a guest can scan it with their phone's normal camera: it recognises the code and offers to open the link (Apple support, checked today). The in-app scanner is only a second option.
 - **No link service.** Firebase Dynamic Links shut down on 25 August 2025, and an attribution SDK would send guests' data to a third party for little gain. Universal links (iOS) and App Links (Android), set up in the Expo app config and served from the same domain as the invite page, are enough.
