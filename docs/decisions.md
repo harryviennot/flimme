@@ -271,6 +271,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | M5.9 (Q9.1, default accepted): `api.title_cards` takes `(p_room_id, p_title_ids, p_language)` and answers `ok` with cards, `too_many` (over 50, `max: 50`, refused and not truncated) or `rate_limited` (30 calls per 10 minutes per profile). A caller with no seat in the room raises `42501`. Films outside the room's pool are left out. It's replaced in place, not as `_v2`, since nothing else calls it | 3 Nov 2026 | [The database gaps](architecture/security.md#the-database-gaps-found) |
 | M5.9 (Q9.2, default accepted): `api.title_cards` leaves out the taste check pool, which `api.taste_check_cards()` serves | 3 Nov 2026 | [Changes to the data model](architecture/deck-engine.md#changes-to-the-data-model) |
 | M5.8 (Q13.1, default accepted): M5.8 needs only M2.13's staging load. Production runs when Harry chooses, before M10.3 | 3 Nov 2026 | [Roadmap](product/roadmap.md#m5-basic-deck) |
+| M6.2, M6.9 and M6.14 (L briefs, approved): Harry said yes to the three L briefs, on 4 Nov 2026 | 4 Nov 2026 | [Roadmap](product/roadmap.md#m6-the-game) |
 | M3.12 (Q0.1, default accepted): M3.12 becomes a gate before the closed beta (before M6.20). It measures the real swipe screen on a 3 to 4 GB Android that Harry owns or buys. Uniwind stays until then. M6.9 no longer needs it, and its done-when is smooth by the frame meter on the simulator, with VoiceOver usable | 4 Nov 2026 | [M3.12](product/roadmap.md#m3-app-foundation) |
 | Slices 10 and 11 (Q0.2, default accepted): M6.25 (the card stack store), M6.26 (undo on the swipe screen), M6.27 (the swipe screen's top) and M6.28 (`allow_rewatch` default) are added, and M6.11 is narrowed to the queue module | 4 Nov 2026 | [Roadmap](product/roadmap.md#m6-the-game) |
 | M6.1, M6.3, M6.10, M6.11 and M6.13 (Q0.3, default accepted): resized from L to M. M6.2, M6.9 and M6.14 stay L | 4 Nov 2026 | [Roadmap](product/roadmap.md#m6-the-game) |
@@ -386,7 +387,6 @@ Chosen while designing; each is easy to change.
 | "Reading the room" banner after the warm-up | Optional fun beat built from the room's leanings; needs a realtime event | [How a game unfolds](architecture/deck-engine.md#how-a-game-unfolds) |
 | Hosting cap month | "Resets on the 1st" in UTC or in the host's time zone. Only matters once Pro exists | [Monetization](product/monetization.md) |
 | Re-export reminder | Watchlist changes and films marked watched without a diary entry only refresh with a new export. Suggest one every 6 months, before Watchlist Showdown, or only when a gap is found | [Keeping it fresh](integrations/letterboxd.md#keeping-it-fresh) |
-| Harry's yes on the three L briefs, M6.2, M6.9 and M6.14, once each is written | Not approved yet. Slice 10 and 11's waves 2 onward wait for it | [Roadmap](product/roadmap.md#m6-the-game) |
 
 ## Dropped
 
