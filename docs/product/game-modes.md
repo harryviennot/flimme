@@ -374,7 +374,7 @@ Not yet in [data-model.md](../architecture/data-model.md) or [schema.sql](../arc
 | Where | Change |
 | --- | --- |
 | `vote_answer` | Add `seen_rewatch` ("Watch it again tonight? Yes", counts as a like and as seen). `seen` in rooms that allow rewatches counts as a nope |
-| `round_stage` | One open stage, `vote`, then `closed`. `veto` and `rank` go |
+| `round_stage` | One open stage, `vote`, then `closed`. `veto` and `rank` stay in the enum, unused, since migrations only add (decided on 4 Nov 2026) |
 | `match_rules` | `finale_after_seconds` on every row (see [Time to a pick](#time-to-a-pick)); 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for Quick Match with 5 to 10 and for Final Cut |
 | `rooms.stats` | Adds `outcome`: `match`, `finale`, `no_pick` or `abandoned` |
 | New functions | `api.cast_ballot` (whole ballot), `api.close_round_stage`, `api.start_finale_now`, `api.keep_swiping`, `api.play_again`, `internal.close_round_stage`, `internal.sweep_rooms` |
