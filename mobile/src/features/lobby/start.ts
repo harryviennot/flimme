@@ -1,6 +1,6 @@
 // What Start does (lobby.md#starting), without JSX: one call, every answer turned into an
 // outcome the screen shows, and the two timers that follow a `dealing` room.
-import type { StartGameResult } from '@flimme/contract';
+import type { RoomState, StartGameResult } from '@flimme/contract';
 import { useEffect, useEffectEvent, useState } from 'react';
 
 /** Still `dealing` this long after the tap: the host's phone calls `start_game` again. */
@@ -32,6 +32,16 @@ export async function runStart(startGame: () => Promise<StartGameResult>): Promi
   } catch {
     return { kind: 'failed' };
   }
+}
+
+/**
+ * Whether a failed Start (the call threw) earns the "couldn't start" toast. The call can throw after the room
+ * already started (a timeout on a call that went through, a retry answered by a room that is no
+ * longer in the lobby), and the realtime event may have moved the phone on: a room that is past
+ * the lobby has nothing to report (statuses are answers, not errors).
+ */
+export function showsStartError(roomState: RoomState | undefined): boolean {
+  return roomState === undefined || roomState === 'lobby';
 }
 
 /**

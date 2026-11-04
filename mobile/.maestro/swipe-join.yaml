@@ -3,8 +3,6 @@
 # Run: `maestro --device <second sim> test mobile/.maestro/swipe-join.yaml -e CODE=123456`
 # (swipe-join-release.yaml does the same on a Release build).
 appId: com.harryviennot.flimme.dev
-env:
-  METRO_URL: http://localhost:8094
 ---
 - runFlow: subflows/open-app-fresh.yaml
 - runFlow: subflows/use-staging.yaml
