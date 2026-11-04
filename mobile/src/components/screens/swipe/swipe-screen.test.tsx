@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createStore } from 'zustand/vanilla';
 
+import { useHintsStore } from '@/features/swipe/hints';
 import { clearNearMisses } from '@/features/swipe/near-miss';
 import { createAnswerer, type Answerer } from '@/features/swipe/answer';
 import { createCardStack, type CardStack } from '@/features/swipe/card-stack';
@@ -21,6 +22,9 @@ import { SwipeScreen } from './swipe-screen';
 
 const mockSwipe: { current: ReturnType<typeof makeSwipe> | null } = { current: null };
 jest.mock('@/features/swipe/use-swipe', () => ({ useSwipe: () => mockSwipe.current }));
+jest.mock('@/lib/storage', () => ({
+  storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
+}));
 jest.mock('@/lib/haptics', () => ({
   haptics: { throw: jest.fn(), press: jest.fn(), commit: jest.fn() },
 }));
@@ -201,6 +205,9 @@ beforeAll(async () => {
   await i18n.changeLanguage('en');
 });
 afterEach(() => {
+  useHintsStore.setState({
+    done: { swipe: false, seen: false, flip: false, superLikes: false },
+  });
   stacks.splice(0).forEach((stack) => stack.getState().stop());
   mockSwipe.current = null;
 });
@@ -511,6 +518,76 @@ describe('when there is no card', () => {
     expect(
       screen.getByText("Your swipes are saved. They'll go as soon as you're back."),
     ).toBeTruthy();
+  });
+});
+
+const SWIPE_HINT = 'Swipe right to like, left to nope.';
+const SEEN_HINT = "Seen it? Swipe up. We'll ask if you'd watch it again.";
+const FLIP_HINT = 'Tap the card for the story.';
+const SUPER_HINT = '2 super likes per game. They count double if it comes to a final vote.';
+
+describe('the first-game hints', () => {
+  it('walk the first cards: swipe, Seen it, then the flip hint, each at its card', async () => {
+    await setup();
+    await layoutStack();
+    expect(screen.getByText(SWIPE_HINT)).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(screen.queryByText(SWIPE_HINT)).toBeNull();
+    expect(screen.getByText(SEEN_HINT)).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(screen.queryByText(SEEN_HINT)).toBeNull();
+    expect(screen.getByText(FLIP_HINT)).toBeTruthy();
+  });
+
+  it('drop the Seen it hint at the first Seen it', async () => {
+    await setup();
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    await fireEvent.press(screen.getByLabelText('Seen it'));
+    expect(screen.queryByText(SEEN_HINT)).toBeNull();
+    expect(useHintsStore.getState().done.seen).toBe(true);
+  });
+
+  it('show the super likes hint at the first star tap and keep it until dismissed', async () => {
+    await setup();
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Super like, 2 left'));
+    expect(screen.getByText(SUPER_HINT)).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(screen.getByText(SUPER_HINT)).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Hide this tip'));
+    expect(screen.queryByText(SUPER_HINT)).toBeNull();
+    expect(useHintsStore.getState().done.superLikes).toBe(true);
+  });
+
+  it('show the super likes hint at card 5 without a star tap', async () => {
+    await setup();
+    await layoutStack();
+    for (let i = 0; i < 4; i++) await fireEvent.press(screen.getByLabelText('Nope'));
+    expect(screen.getByText(SUPER_HINT)).toBeTruthy();
+  });
+
+  it('never come back once gone, and one not finished shows in the next game', async () => {
+    useHintsStore.setState({ done: { swipe: true, seen: true, flip: false, superLikes: false } });
+    const first = await setup();
+    await layoutStack();
+    expect(screen.queryByText(SWIPE_HINT)).toBeNull();
+    expect(first.votes).toHaveLength(0);
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(screen.queryByText(SEEN_HINT)).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(screen.getByText(FLIP_HINT)).toBeTruthy();
+  });
+
+  it('show nothing at all in a second game', async () => {
+    useHintsStore.setState({ done: { swipe: true, seen: true, flip: true, superLikes: true } });
+    await setup();
+    await layoutStack();
+    for (let i = 0; i < 6; i++) await fireEvent.press(screen.getByLabelText('Nope'));
+    for (const text of [SWIPE_HINT, SEEN_HINT, FLIP_HINT, SUPER_HINT]) {
+      expect(screen.queryByText(text)).toBeNull();
+    }
   });
 });
 

@@ -11,6 +11,7 @@ import { Screen } from '@/components/ui/screen';
 import { useRoom } from '@/features/room';
 import { FRAME_METER_ON } from '@/features/dev/frame-meter';
 import { asksRewatch, rewatchAnswer, type AnswerKind } from '@/features/swipe/answer';
+import { createHintSignals } from '@/features/swipe/hints';
 import type { Direction } from '@/features/swipe/feel';
 import { useNearMiss } from '@/features/swipe/near-miss';
 import { useFlights } from '@/features/swipe/use-flights';
@@ -39,7 +40,16 @@ const ANSWER_LABEL = {
   seen_rewatch: 'answers.like',
 } as const satisfies Record<AnswerKind, string>;
 
-export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }) {
+export function SwipeScreen({
+  roomId,
+  seat,
+  hideSeen = false,
+}: {
+  roomId: string;
+  seat: RoomSeat;
+  /** The room hides seen films: the Seen it hint says they leave the game. */
+  hideSeen?: boolean;
+}) {
   const { t } = useTranslation('swipe');
   const { t: tc } = useTranslation();
   const screen = useWindowDimensions();
@@ -50,6 +60,9 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
   const [swipes, setSwipes] = useState(0);
   // Where the last answered card went, so Undo can bring it back from there.
   const lastThrow = useRef<{ direction: Direction } | null>(null);
+  // This game's hint signals, and how many super likes the hint announces.
+  const [hintSignals] = useState(createHintSignals);
+  const [superLikesPerGame] = useState(seat.super_likes_left);
 
   const { stack } = swipe;
   const topId = useStore(stack, (s) => s.mounted[0]?.title_id);
@@ -115,6 +128,7 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
     if (flight) {
       lastThrow.current = { direction: flight.direction };
       setSwipes((n) => n + 1);
+      hintSignals.getState().record(kind);
       AccessibilityInfo.announceForAccessibility(
         t('a11y.thrown', { answer: tc(ANSWER_LABEL[kind]), title: flight.card.title }),
       );
@@ -196,7 +210,12 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
           dragging={dragging}
         />
       </View>
-      <SwipeHints roomId={roomId} />
+      <SwipeHints
+        hideSeen={hideSeen}
+        stack={stack}
+        signals={hintSignals}
+        superLikes={superLikesPerGame}
+      />
       {FRAME_METER_ON ? (
         <FrameMeter dragging={dragging} flights={flying.length} swipes={swipes} />
       ) : null}
