@@ -2,7 +2,19 @@ import '@/i18n';
 
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
-import { MovieCard, type MovieCardProps } from './movie-card';
+import { MovieCard, stampOpacity, type MovieCardProps } from './movie-card';
+
+describe('stampOpacity', () => {
+  it('grows with the drag normally', () => {
+    expect(stampOpacity(0.4, false)).toBe(0.4);
+  });
+
+  it('with Reduce Motion shows the whole stamp, label included, as soon as the ring shows', () => {
+    expect(stampOpacity(0, true)).toBe(0);
+    expect(stampOpacity(0.05, true)).toBe(1);
+    expect(stampOpacity(1, true)).toBe(1);
+  });
+});
 
 let mockReduced = false;
 jest.mock('react-native-reanimated', () => {

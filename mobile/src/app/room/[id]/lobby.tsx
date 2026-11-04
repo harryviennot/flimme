@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, findNodeHandle, Platform, View } from 'react-native';
 
+import type { RoomState } from '@flimme/contract';
+
 import { api } from '@/api';
 import { LobbyFooter } from '@/components/screens/lobby/lobby-footer';
 import { SeatRow } from '@/components/screens/lobby/seat-row';
@@ -28,7 +30,12 @@ import { formatList, serviceNames } from '@/features/lobby/names';
 import { useGameModes } from '@/features/lobby/queries';
 import { hostSeat, presentSeats, seatedSeats, startGate } from '@/features/lobby/seats';
 import { useRoomLock } from '@/features/lobby/use-room-lock';
-import { runStart, tooFewFromEvent, useDealingTimers } from '@/features/lobby/start';
+import {
+  runStart,
+  showsStartError,
+  tooFewFromEvent,
+  useDealingTimers,
+} from '@/features/lobby/start';
 import { useOnline } from '@/features/network';
 import { toAvatarColor } from '@/features/profile';
 import {
@@ -143,7 +150,12 @@ export default function RoomLobbyScreen() {
       haptics.error();
       refused(tooFewLine(outcome.eligible));
     } else if (outcome.kind === 'failed') {
-      showToast({ tone: 'warn', title: t('errors.start') });
+      // The call may have gone through (or the room moved on under a retry): look again first.
+      await reread();
+      const latest = client.getQueryData<{ state: RoomState }>(ROOM_KEY(id ?? ''));
+      if (showsStartError(latest?.state)) {
+        showToast({ tone: 'warn', title: t('errors.start') });
+      }
     }
   };
 
