@@ -327,7 +327,6 @@ select is(
 
 -- 14. A vote that ends the room asks for no cards.
 select pg_temp.game(2, 'q');
-select tests.vote('q1', 1, 'like');
 select pg_temp.swipes('q1', 40);
 select pg_temp.swipes('q2', 37);
 delete from public.deck_entries d
@@ -346,8 +345,8 @@ select tests.vote('q2', 4, 'nope');
 select is(
   (select r.state::text from public.rooms r where r.id = tests.room_id()) || '/'
   || (select count(*) from tests.queued('deck_requests') q where (q ->> 'room_id')::uuid = tests.room_id() and q ->> 'kind' = 'refill'),
-  'finale/2',
-  'M6.4 the vote that opened the finale asks for no cards (only the vote before it did)'
+  'done/2',
+  'M6.4 the vote that ended the room (nothing liked) asks for no cards (only the votes before it did)'
 );
 select pg_temp.game(2, 'r');
 select tests.use_deck_engine('sql');
