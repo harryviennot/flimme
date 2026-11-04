@@ -294,6 +294,12 @@ export function createVoteQueue(deps: VoteQueueDeps) {
           }
           if (result.finale_round_id) {
             emit({ type: 'finale', room_id: vote.room_id, round_id: result.finale_round_id });
+          } else if (result.state) {
+            // The vote ended the room (one film, no pick): the screens learn it as if it had
+            // answered closed, and the votes behind it are not sent.
+            removeRoom(vote.room_id);
+            deps.invalidateRoom(vote.room_id);
+            emit({ type: 'closed', room_id: vote.room_id, state: result.state });
           }
           break;
         case 'duplicate':

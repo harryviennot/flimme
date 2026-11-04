@@ -227,6 +227,21 @@ describe('answers', () => {
     expect(events).toEqual([{ type: 'closed', room_id: ROOM, state: 'finale' }]);
   });
 
+  it('an ok that carries the room state drops the room and tells the screens it closed', async () => {
+    const { queue, sent, events, invalidated } = setup(() => ({
+      status: 'ok',
+      match: false,
+      state: 'done',
+    }));
+    queue.enqueue(vote(1));
+    queue.enqueue(vote(2));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(sent.map((s) => s.title_id)).toEqual([1]);
+    expect(queue.pending(ROOM)).toBe(0);
+    expect(invalidated).toEqual([ROOM]);
+    expect(events).toEqual([{ type: 'closed', room_id: ROOM, state: 'done' }]);
+  });
+
   it('no_super_likes removes the vote and gives the super like back', async () => {
     const { queue, events } = setup(() => ({ status: 'no_super_likes' }));
     queue.enqueue(vote(1, { answer: 'super_like' }));

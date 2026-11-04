@@ -172,7 +172,7 @@ const cases = [
     answers: CAST_VOTE_ANSWERS,
     call: (a: ReturnType<typeof createApi>) =>
       a.castVote({ room_id: ROOM, title_id: 7, answer: 'like' }),
-    full: { ok: { match: false }, closed: { state: 'finale' } },
+    full: { ok: { match: false, state: 'done' }, closed: { state: 'finale' } },
   },
   {
     name: 'cast_ballot',
@@ -209,7 +209,7 @@ const cases = [
     name: 'request_cards',
     answers: REQUEST_CARDS_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.requestCards({ room_id: ROOM }),
-    full: { enough: { remaining: 12 }, closed: { state: 'finale' } },
+    full: { enough: { remaining: 12 }, closed: { state: 'finale' }, done: { liked: 3 } },
   },
   {
     name: 'undo_last_vote',
