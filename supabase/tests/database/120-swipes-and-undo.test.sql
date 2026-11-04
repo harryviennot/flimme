@@ -2,8 +2,8 @@
 -- #like-propagation-and-refills, game-modes.md#the-answers). G3b, G8b and G8d are
 -- beyond the 120 checks of data-model.md#what-was-tested.
 --
--- "Seen it" is tested only under hide_seen, set on the room explicitly (M6.2 changes the
--- other rules). Undo is used once per seat, on a seat with one vote (M6.3 changes it).
+-- "Seen it" is tested only under hide_seen, set on the room explicitly (590 covers the
+-- other rules). Undo is used once per seat, on a seat with one vote (a second undo in a row is refused, see 600).
 
 begin;
 select plan(32);

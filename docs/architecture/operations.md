@@ -269,12 +269,13 @@ Prices checked on 29 October 2026, in US dollars, before tax. France only.
 | Recommendation server host | See [server-structure.md](server-structure.md) | See [server-structure.md](server-structure.md) | Production and staging |
 | TMDB | $0 or $149 | $149 | $149 a month under $1 million revenue; whether the deck engine needs it from the beta is open ([tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution)) |
 | EAS | $0 (Free: 15 Android and 15 iOS builds, 1,000 update users, low-priority queue) | $19 (Starter: $45 of build credit, 3,000 update users, then $0.005 each) | Free caps updates at 1,000 monthly users, so launch needs Starter |
+| VPS with Dokploy (Docker and Traefik) | $0 extra | $0 extra | Hosts the invite page and the verification files; the VPS is an existing cost (decided 4 November 2026) |
 | Sentry | $0 (Developer: 1 user, 5,000 errors) | $0, or $26 a month (Team, billed yearly) if 5,000 errors isn't enough | |
 | PostHog | $0 | $0 | Free: 1 million events, 5,000 recordings, 1 project, 1 year of data; usage stops at the limit, so no surprise bill |
 | GitHub Actions | $0 | $0 | $12 of compute included a month for private repositories |
 | Apple Developer Program | About $8 ($99 a year) | About $8 | |
 | Google Play | $25 once | | One-time registration |
-| Domain for invite links | Depends on the name | | Open with the app's name |
+| Domain for invite links | Depends on the name | | flimme.com, owned by Harry (decided 4 November 2026) |
 | **Total, before the server host** | **About $43, or $192 with TMDB** | **About $211 with TMDB** | |
 
 The public launch total matches the monetization doc's estimate of $200 to $250 a month in fixed costs ([Break-even](../product/monetization.md#break-even)) once the server host is added.

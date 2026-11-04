@@ -159,7 +159,7 @@ Sentry in its EU data region (Frankfurt), with personal data off: no IP, no name
 | Complaint | The policy names the CNIL | |
 
 - **Deadline**: one month from the request (GDPR art. 12(3)).
-- **Email requests** go to a privacy address. A guest can't be identified by email, so guests are pointed to the in-app buttons.
+- **Email requests** go to support@flimme.com, until a separate privacy address exists (decided 4 November 2026). A guest can't be identified by email, so guests are pointed to the in-app buttons.
 - **Analytics and crash data** aren't in the export: they're not linked to the player.
 
 ## Children
@@ -249,7 +249,7 @@ The final answers are filled in with [store-listing.md](store-listing.md).
 
 In French and English, on the website, linked from the app's Settings and both store listings. Plain words, short sections:
 
-1. **Who we are** and how to reach us: a privacy email address.
+1. **Who we are** and how to reach us: support@flimme.com, until a separate privacy address exists.
 2. **What we collect**: the data map, summarised in one table.
 3. **Why, and on what basis**: one line per use.
 4. **Letterboxd**: what's read, what isn't, what others in your rooms can see, how to disconnect.

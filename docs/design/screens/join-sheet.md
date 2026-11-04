@@ -20,7 +20,7 @@ A `formSheet` over Home (over Welcome for a player with no name yet). On a cold 
 
 ## Links
 
-The link is `https://<domain>/join/<code>?r=<ref>` (or `flimme://join/<code>?r=<ref>`, and the development scheme). It is parsed strictly:
+The link is `https://flimme.com/join/<code>?r=<ref>` (or `flimme://join/<code>?r=<ref>`, and the development scheme). It is parsed strictly:
 
 | Link | What happens |
 | --- | --- |
