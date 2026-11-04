@@ -36,6 +36,7 @@ Expo SDK 58 (React Native 0.88, React 19.3), Expo Router with routes in `mobile/
 - The card stack and the vote queue: Zustand stores (the queue persisted to expo-sqlite).
 - Never put cards in TanStack Query: the deck changes under the phone.
 - Zustand stores live in `src/features/<feature>/store.ts`. A persisted one uses `persistOptions({ name, version, migrate, partialize })` from `src/lib/persisted-store.ts` (name `flimme.<store>`, synchronous reads over `lib/storage.ts`, so the first render has the values). Export a `create...Store(kv?)` factory so tests can recreate the store over the same kv store. See `features/settings/`.
+- **Never call a store as a hook in a component or hook** (`someStore((s) => ...)`): the React Compiler only treats `use...` functions as hooks, memoizes the call and changes the hook order between renders ("Cannot read property 'length' of undefined" at the next `useEffect`). Wrap it in a named hook (`useMatchShown(roomId)`, `useKeptRoom()`). Jest does not run the compiler, so only a device run shows it.
 
 ## Answers and errors
 
