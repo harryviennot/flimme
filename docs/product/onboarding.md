@@ -163,7 +163,7 @@ Hints on a player's first game only. They never block a card and never cover the
 | When | Hint | Gone when |
 | --- | --- | --- |
 | Card 1 | The card leans right, then left, once, showing the Like and Nope stamps, with "Swipe right to like, left to nope" under it | The first swipe |
-| Card 2 | "Seen it? Swipe up. It doesn't count as a no." under the buttons | Card 10, or the first "Seen it" |
+| Card 2 | "Seen it? Swipe up. We'll ask if you'd watch it again." between the card and the buttons | Card 10, or the first "Seen it" |
 | Card 3 | "Tap the card for the story" | The first flip, or card 10 |
 | First tap on the star, or card 5 | "2 super likes per game. They count double if it comes to a final vote." | Dismissed |
 

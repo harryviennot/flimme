@@ -99,7 +99,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 28 | Not started |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 28 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | Not started |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 7 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 85 of 257 tasks done.
+Progress: 86 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -309,7 +309,7 @@ Done when: a development build on iOS and Android signs in as a guest and reads 
   Done when: raising the minimum shows the update screen.
 - [x] **M3.11** Spike: a private room channel across a token refresh, offline and back · test · M · needs M3.5 · [app-structure](../architecture/app-structure.md#spikes-to-run-first)
   Done when: the findings are written in app-structure.md.
-- [ ] **M3.12** Gate before the closed beta (before M6.20): the real swipe screen at full frame rate on a 3 to 4 GB Android phone that Harry owns or buys (about 100 to 150 euros), styled with Uniwind · test · L · needs M3.4 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
+- [ ] **M3.12** Gate before the closed beta (before M6.20): the real swipe screen at full frame rate on a 3 to 4 GB Android phone that Harry owns or buys (about 100 to 150 euros), styled with Uniwind · test · L · needs M3.4, M6.9 · [app-structure](../architecture/app-structure.md#spikes-to-run-first), [groundwork](../architecture/groundwork.md#styling-nativewind-or-uniwind)
   Done when: the swipe screen is smooth on that phone, the findings are written in app-structure.md, and Uniwind is confirmed (or NativeWind 4.2.7 chosen) in decisions.md.
 - [x] **M3.13** The `ui/` and `shared/` components from the Figma, each with its gallery entry, and the gallery at `/dev/gallery` · app · S · needs M3.4 · [groundwork](../architecture/groundwork.md#components)
   Done when: every component of the Figma's library is in the gallery in all its states, checked on both phones against the Figma.
@@ -424,7 +424,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: a room opened 3 hours earlier isn't abandoned mid-game.
 - [ ] **M6.8** End of room on the server: `rooms.stats` with the outcome, seconds to the pick, players present, swipes per seat, why the finale started · server · M · needs M2.2, M6.5 · [analytics](analytics.md#changes-this-asks-elsewhere)
   Done when: every finished room on staging has its stats, written once even if the message comes twice.
-- [ ] **M6.28** `allow_rewatch` as the default for Quick Match and Final Cut (Date Night keeps `hide_seen`): a data migration on `game_modes.defaults` · backend · S · needs M6.2, M6.12 · [game-modes](game-modes.md#the-answers)
+- [ ] **M6.28** `allow_rewatch` as the default for Quick Match and Final Cut (Date Night keeps `hide_seen`): a data migration on `game_modes.defaults` · backend · S · needs M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: a new room in either mode gets `allow_rewatch`, tested in `610-rewatch-default.test.sql`.
 
 **App**
@@ -449,7 +449,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: both reachable in a test room.
 - [ ] **M6.18** Hints over the first game's first cards: how to swipe, Seen it, super likes · app · M · needs M6.9 · [onboarding](onboarding.md#the-first-game)
   Done when: shown once per player.
-- [ ] **M6.25** The card stack store: one Zustand store for the stack's rules, with no UI. Down to 5 unanswered cards asks for more, the next 3 posters are prefetched, and posters are w780 on screens 600 points wide or more · app · M · needs M5.6, M4.10 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [x] **M6.25** The card stack store: one Zustand store for the stack's rules, with no UI. Down to 5 unanswered cards asks for more, the next 3 posters are prefetched, and posters are w780 on screens 600 points wide or more · app · M · needs M5.6, M4.10 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: fully unit-tested, with its two calls injected so that M6.9 wires the real ones.
 - [ ] **M6.26** Undo on the swipe screen: the rewind button, the last card coming back, and the queued vote removed or `api.undo_last_vote` sent · app · M · needs M6.9, M6.11, M6.3 · [moments](../design/moments.md#the-swipe)
   Done when: a touch run on the simulator against staging brings the card back, and the server agrees.
@@ -460,7 +460,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
 
 - [ ] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
   Done when: bots can fill a room on staging.
-- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24 · [game-modes](game-modes.md#a-game-at-a-glance)
+- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12 · [game-modes](game-modes.md#a-game-at-a-glance)
   Done when: every run ends with a pick within the limits; bugs become tasks.
 
 **Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
