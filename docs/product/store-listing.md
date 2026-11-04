@@ -76,7 +76,7 @@ Both stores need an account before any build reaches a tester. The choice of **i
 | Content rights (Apple) | Yes, the app shows third-party content | Posters and synopses come from TMDB under its licence; see [tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution) |
 | Encryption (Apple export compliance) | Standard HTTPS only | Set the exemption in the app config so each build doesn't ask |
 | Privacy policy URL | Required by both stores and inside the app (App Store guideline 5.1.1(i)) | From [privacy.md](privacy.md) |
-| Support URL | A page with a contact email | Apple requires real contact details on it |
+| Support URL | A page with a contact email: support@flimme.com (M0.2) | Apple requires real contact details on it |
 | Account deletion web page | Required by Google Play for apps with accounts | A page where players can ask for deletion without the app; also linked in the Data safety form ([privacy.md](privacy.md)) |
 | Android target | API level 36 (Android 16) | Required for new apps and updates on Google Play since 31 August 2026; check what Expo SDK 58 sets |
 

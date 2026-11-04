@@ -311,6 +311,9 @@ Everything decided so far, the defaults chosen while designing that still need a
 | M6.27 (Q27.2, default accepted): presence `done` is true when the seat has reached the rule's card count for the present players, or has no cards left. Until the rule is in `api.rooms`, the phone reads the count from `my_next_cards` running dry only | 4 Nov 2026 | [What every moment keeps](design/moments.md#what-every-moment-keeps) |
 | The app is called **Flimme**. Harry owns flimme.fr and flimme.com. This closes M0.1 | 4 Nov 2026 | [Choosing the name](product/store-listing.md#choosing-the-name) |
 | Invite links use **flimme.com**: `https://flimme.com/join/<code>?r=<room id>`, and flimme.fr redirects to flimme.com (M4.18, M0.2) | 4 Nov 2026 | [Invites and deep links](architecture/app-structure.md#invites-and-deep-links), [The invite page](product/store-listing.md#invite-links-and-the-web-page) |
+| The domains (M0.2): Harry owns **flimme.com** and **flimme.fr**. The support email is **support@flimme.com**. DNS is at OVH today | 4 Nov 2026 | [Choosing the name](product/store-listing.md#choosing-the-name), [Release checklist](product/store-listing.md#release-checklist) |
+| M4.18 (Q18.1): the invite page and the verification files are hosted on **Harry's VPS with Dokploy**, free beyond the VPS he already pays for. Not EAS Hosting, whose custom domains need the paid Starter plan. DNS stays at OVH | 4 Nov 2026 | [The invite web page](product/store-listing.md#invite-links-and-the-web-page), [Monthly costs](architecture/operations.md#monthly-costs) |
+| Privacy requests (M8.1): email requests go to **support@flimme.com** until a separate privacy address exists | 4 Nov 2026 | [Players' rights in practice](product/privacy.md#players-rights-in-practice) |
 
 ## Defaults, not yet confirmed
 
