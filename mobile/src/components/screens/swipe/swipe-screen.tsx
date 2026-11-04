@@ -8,6 +8,7 @@ import { useStore } from 'zustand';
 import { RoomBanner } from '@/components/screens/room/room-banner';
 import { Pressable } from '@/components/ui/pressable';
 import { Screen } from '@/components/ui/screen';
+import { useRoom } from '@/features/room';
 import { FRAME_METER_ON } from '@/features/dev/frame-meter';
 import { asksRewatch, rewatchAnswer, type AnswerKind } from '@/features/swipe/answer';
 import type { Direction } from '@/features/swipe/feel';
@@ -51,6 +52,7 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
   const { stack } = swipe;
   const topId = useStore(stack, (s) => s.mounted[0]?.title_id);
   const status = useStore(stack, (s) => s.status);
+  const maxAge = useRoom(roomId).data?.max_age;
   const nearMiss = useNearMiss(roomId, topId);
 
   const { flying, throwCard, landed } = useFlights(swipe.answer);
@@ -166,6 +168,7 @@ export function SwipeScreen({ roomId, seat }: { roomId: string; seat: RoomSeat }
       <View className="flex-1 px-5" pointerEvents="box-none">
         <CardStack
           swipe={swipe}
+          maxAge={maxAge}
           glowId={nearMiss ? topId : undefined}
           flying={flying}
           throwCard={throwAndSay}

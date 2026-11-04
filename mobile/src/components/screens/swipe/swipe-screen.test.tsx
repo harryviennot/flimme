@@ -33,7 +33,9 @@ jest.mock('@/components/screens/room/room-banner', () => ({
 
 jest.mock('@/features/swipe/index', () => ({ voteQueue: { has: () => false } }));
 const mockRoomEvents = new Map<string, (payload: unknown) => void>();
-const mockRoom: { data: { reveal: string } } = { data: { reveal: 'party' } };
+const mockRoom: { data: { reveal: string; max_age?: number | null } } = {
+  data: { reveal: 'party', max_age: null },
+};
 jest.mock('@/features/room', () => ({
   useRoom: () => mockRoom,
   useRoomEvent: (_room: string, event: string, handler: (payload: unknown) => void) => {
@@ -242,6 +244,10 @@ describe('super likes', () => {
 });
 
 describe('the card for screen readers', () => {
+  beforeEach(() => {
+    mockRoom.data = { reveal: 'party', max_age: null };
+  });
+
   it('is one element that names the film and does every answer', async () => {
     const { votes } = await setup();
     await layoutStack();
@@ -299,6 +305,19 @@ describe('the card for screen readers', () => {
     open.mockRestore();
   });
 
+  it.each([0, 10, 12])('has no trailer action in a room capped at %i', async (maxAge) => {
+    mockRoom.data = { reveal: 'party', max_age: maxAge };
+    await setup();
+    await layoutStack();
+    const front = screen.getByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0');
+    await fireEvent(front, 'accessibilityAction', { nativeEvent: { actionName: 'flip' } });
+    const back = screen.getByLabelText('Film 1. TMDB rating 7.', { exact: false });
+    expect(back.props.accessibilityActions.map((a: { name: string }) => a.name)).not.toContain(
+      'trailer',
+    );
+    expect(screen.queryByLabelText('Trailer')).toBeNull();
+  });
+
   it('leaves out the super like action when there are none left', async () => {
     await setup({ superLikes: 0 });
     await layoutStack();
@@ -352,7 +371,7 @@ describe('the near miss', () => {
     // setup() waits on setImmediate for the first deal.
     jest.useFakeTimers({ doNotFake: ['setImmediate'] });
     clearNearMisses();
-    mockRoom.data = { reveal: 'party' };
+    mockRoom.data = { reveal: 'party', max_age: null };
   });
   afterEach(() => jest.useRealTimers());
 
