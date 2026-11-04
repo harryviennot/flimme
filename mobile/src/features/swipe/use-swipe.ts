@@ -203,6 +203,9 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
             answerer.giveBackSuperLike();
             setSuperLikesLeft(answerer.superLikesLeft());
           }
+        } else if (event.type === 'dropped') {
+          // Never recorded: Undo would take back an earlier film's vote.
+          undoer.markNotRecorded(event.title_id);
         } else if (event.type === 'card_not_dealt') {
           undoer.markNotRecorded(event.title_id);
           stack.getState().onDeckUpdated();
