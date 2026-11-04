@@ -188,14 +188,14 @@ export type Database = {
                   ]
                 },"room_seats": {
                   Row: {
-                    "avatar_key": string,"calibrated_at": string | null,"display_name": string,"done_at": string | null,"is_me": boolean | null,"is_mine": boolean | null,"joined_at": string,"left_at": string | null,"member_id": string,"provider_ids": (number)[],"role": "host"|"guest","room_id": string,"super_likes_left": number,"swipe_count": number,"vetoes_left": number
+                    "avatar_key": string,"calibrated_at": string | null,"display_name": string,"done_at": string | null,"is_me": boolean | null,"is_mine": boolean | null,"joined_at": string,"left_at": string | null,"member_id": string,"provider_ids": (number)[],"role": "host"|"guest","room_id": string,"super_likes_left": number | null,"swipe_count": number,"vetoes_left": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                           "avatar_key"?: string | null,"calibrated_at"?: string | null,"display_name"?: string | null,"done_at"?: string | null,"is_me"?: never,"is_mine"?: never,"joined_at"?: string | null,"left_at"?: string | null,"member_id"?: string | null,"provider_ids"?: (number)[] | null,"role"?: "host"|"guest" | null,"room_id"?: string | null,"super_likes_left"?: number | null,"swipe_count"?: number | null,"vetoes_left"?: number | null
+                           "avatar_key"?: string | null,"calibrated_at"?: string | null,"display_name"?: string | null,"done_at"?: string | null,"is_me"?: never,"is_mine"?: never,"joined_at"?: string | null,"left_at"?: string | null,"member_id"?: string | null,"provider_ids"?: (number)[] | null,"role"?: "host"|"guest" | null,"room_id"?: string | null,"super_likes_left"?: never,"swipe_count"?: number | null,"vetoes_left"?: never
                          }
                         Update: {
-                           "avatar_key"?: string | null,"calibrated_at"?: string | null,"display_name"?: string | null,"done_at"?: string | null,"is_me"?: never,"is_mine"?: never,"joined_at"?: string | null,"left_at"?: string | null,"member_id"?: string | null,"provider_ids"?: (number)[] | null,"role"?: "host"|"guest" | null,"room_id"?: string | null,"super_likes_left"?: number | null,"swipe_count"?: number | null,"vetoes_left"?: number | null
+                           "avatar_key"?: string | null,"calibrated_at"?: string | null,"display_name"?: string | null,"done_at"?: string | null,"is_me"?: never,"is_mine"?: never,"joined_at"?: string | null,"left_at"?: string | null,"member_id"?: string | null,"provider_ids"?: (number)[] | null,"role"?: "host"|"guest" | null,"room_id"?: string | null,"super_likes_left"?: never,"swipe_count"?: number | null,"vetoes_left"?: never
                          }
                         Relationships: [
                     
@@ -248,8 +248,14 @@ export type Database = {
             "answer_followup":
 { Args: { "p_reaction"?: "love"|"fine"|"nope","p_room_id": string,"p_watched": "yes"|"no"|"something_else" }; Returns: Json
                            },
+"cast_ballot":
+{ Args: { "p_member_id"?: string,"p_ranking": (number)[],"p_round_id": string,"p_veto"?: number }; Returns: Json
+                           },
 "cast_vote":
 { Args: { "p_answer": "nope"|"like"|"super_like"|"seen"|"seen_rewatch","p_client_at"?: string,"p_dwell_ms"?: number,"p_flipped"?: boolean,"p_member_id"?: string,"p_room_id": string,"p_title_id": number }; Returns: Json
+                           },
+"close_round_stage":
+{ Args: { "p_round_id": string }; Returns: Json
                            },
 "create_room":
 { Args: { "p_country"?: string,"p_mode"?: string,"p_settings"?: Json }; Returns: Json
@@ -280,6 +286,9 @@ export type Database = {
                            },
 "room_preview":
 { Args: { "p_code": string,"p_ref": string }; Returns: Json
+                           },
+"round_progress":
+{ Args: { "p_round_id": string }; Returns: Json
                            },
 "set_my_providers":
 { Args: { "p_provider_ids": (number)[] }; Returns: Json

@@ -150,10 +150,11 @@ export const ANSWER_FOLLOWUP_ANSWERS = ['ok', 'not_found'] as const;
 export type AnswerFollowupAnswer = (typeof ANSWER_FOLLOWUP_ANSWERS)[number];
 
 /**
- * Planned: `api.cast_ballot` (roadmap M6.5, game-modes.md#apicast_ballotround-ranking-veto).
- * No SQL function yet, so there is no real list.
+ * `api.cast_ballot` answers (M6.5). `ok` carries `locked` (the seats that have locked in) and `of`
+ * (the seats present), never what anyone voted. A round that doesn't exist, or a caller with no seat
+ * in the room, raises (denied): it is not an answer.
  */
-export const PLANNED_CAST_BALLOT_ANSWERS = [
+export const CAST_BALLOT_ANSWERS = [
   'ok',
   'not_in_room',
   'closed',
@@ -161,6 +162,19 @@ export const PLANNED_CAST_BALLOT_ANSWERS = [
   'invalid',
   'no_veto',
 ] as const;
+export type CastBallotAnswer = (typeof CAST_BALLOT_ANSWERS)[number];
+
+/**
+ * `api.close_round_stage` answers (M6.5). `ok`: this call closed the round. `closed`: it was already
+ * closed (several phones calling at once). `not_yet`: before the deadline plus the 2 seconds of grace,
+ * with `closes_at` the time to call again.
+ */
+export const CLOSE_ROUND_STAGE_ANSWERS = ['ok', 'closed', 'not_yet'] as const;
+export type CloseRoundStageAnswer = (typeof CLOSE_ROUND_STAGE_ANSWERS)[number];
+
+/** `api.round_progress` answers (M6.5): a restarted phone re-reads who has locked in. */
+export const ROUND_PROGRESS_ANSWERS = ['ok'] as const;
+export type RoundProgressAnswer = (typeof ROUND_PROGRESS_ANSWERS)[number];
 
 /** The answers on a card the database accepts today (the `vote_answer` enum). */
 export const VOTE_ANSWERS = ['nope', 'like', 'super_like', 'seen', 'seen_rewatch'] as const;

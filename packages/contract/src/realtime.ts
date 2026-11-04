@@ -36,7 +36,7 @@ export type RoomState = (typeof ROOM_STATES)[number];
 /**
  * Payloads of the events the SQL sends today, as `internal.broadcast_room` builds them.
  * Events not listed here carry no payload the phone reads yet (`host_changed`,
- * `round_progress`, `next_room` are planned: roadmap M6 and M7). `match` has no `result`.
+ * `next_room` are planned: roadmap M7). `match` has no `result`.
  */
 export type RoomEventPayloads = {
   member_joined: { member_id: string; display_name: string; avatar_key: string };
@@ -75,11 +75,17 @@ export type RoomEventPayloads = {
     likes: number;
     of: number;
     decided: boolean;
-    reason?: 'only_film';
-    finalists?: number[];
+    /** `only_film` (M6.4, no finalists), or how a Final Cut was decided (M6.5). */
+    reason?: 'only_film' | 'only_unvetoed' | 'points' | 'no_ballots';
+    finalists?: FinalistResult[];
   };
+  /** Who has locked in, never what they voted (M6.5). */
+  round_progress: { round_id: string; locked: string[]; of: number };
   finale_started: { round_id: string; title_ids: number[]; kind: FinaleKind; closes_at: string };
 };
+
+/** A finalist as the finale's `match` event reports it; `vetoed` means knocked out, never by whom. */
+export type FinalistResult = { title_id: number; seed: number; points: number; vetoed: boolean };
 
 export type MatchKind = 'unanimous' | 'majority' | 'finale';
 export type FinaleKind = 'final_cut' | 'ranked_vote';
