@@ -66,7 +66,7 @@ select is(
 );
 select is(
   (select r.seen_rule::text || '/' || r.quality::text from public.rooms r where r.id = tests.room_id()),
-  'hide_seen/standard',
+  'allow_rewatch/standard',
   'T4 the valid keys were not saved'
 );
 
@@ -142,7 +142,7 @@ select is(
 select is(
   (select (p->>'seen_rule') || '/' || (p->>'service_rule') || '/' || (p->>'reveal')
    from tests.broadcasts(tests.room_id(), 'settings_changed') p),
-  'hide_seen/any_member/party',
+  'allow_rewatch/any_member/party',
   'T6 the broadcast carries the untouched values read back from the room'
 );
 select is(

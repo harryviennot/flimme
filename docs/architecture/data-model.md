@@ -422,7 +422,7 @@ erDiagram
 | service_rule | service_rule | `any_member` (default: one screen) or `every_member` (long-distance) |
 | offer_kinds | offer_kind[] | Default subscription, free, ads. Rent and buy are there for a later "rent it" option |
 | runtime_max | smallint | "We have 2 hours" |
-| seen_rule | seen_rule | `hide_seen` (default), `allow_rewatch` (only films everyone who saw them rated 4★ or more), `show_all` |
+| seen_rule | seen_rule | `allow_rewatch` (default for Quick Match and Final Cut: only films everyone who saw them rated 4★ or more), `hide_seen` (default for Date Night), `show_all` |
 | quality | quality_preset | `standard` (150+ votes, 6.2+), `hidden_gems`, `guilty_pleasures` |
 | max_age | smallint | Age cap from certifications |
 | reveal | reveal_mode | `party` (near-miss teasers) or `blind` |
