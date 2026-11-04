@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Tag } from '@/components/ui/tag';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
+import { tonightsFilters } from '@/features/ending/filters';
+import { useCountryProviders } from '@/features/host/queries';
+import { useRoom } from '@/features/room';
 import { SLOW_LOADING_MS } from '@/features/swipe/feel';
 import { layout } from '@/theme/motion';
 
@@ -68,12 +72,49 @@ export function WaitingCard({ size }: { size: Size }) {
   );
 }
 
-/** This player has answered every card the room has for them. */
-export function DoneCard({ size }: { size: Size }) {
+/**
+ * This player is out of cards: the server dealt nothing more (swipe.md#the-done-card-nothing-left).
+ * Tonight's filters say why; the count is how many films the room has liked, never which.
+ */
+export function DoneCard({
+  size,
+  roomId,
+  liked,
+}: {
+  size: Size;
+  roomId: string;
+  liked: number | null;
+}) {
   const { t } = useTranslation('swipe');
+  const { t: te, i18n } = useTranslation('ending');
+  const room = useRoom(roomId).data;
+  const providers = useCountryProviders(room?.country).data;
+  const filters = room ? tonightsFilters(room, providers, te, i18n.language) : null;
   return (
     <Frame size={size}>
-      <EmptyState icon="popcorn" title={t('done.title')} body={t('done.body')} />
+      <ScrollView contentContainerClassName="grow justify-center">
+        <EmptyState icon="popcorn" title={t('done.title')} body={t('done.body')} autoFocus>
+          <View className="items-center gap-2">
+            {filters && filters.tags.length > 0 ? (
+              <View accessible accessibilityLabel={filters.a11y} className="items-center gap-2">
+                <Text variant="mono-eyebrow" tone="secondary" align="center">
+                  {te('nothingLeft.filters')}
+                </Text>
+                <View className="flex-row flex-wrap justify-center gap-1.5">
+                  {filters.tags.map((tag) => (
+                    <Tag key={tag.id} label={tag.label} icon={tag.icon} tone="neutral" />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+            {liked !== null ? (
+              <Text variant="mono-data" tone="like" align="center">
+                {te('nothingLeft.liked', { count: liked })}
+              </Text>
+            ) : null}
+          </View>
+        </EmptyState>
+      </ScrollView>
     </Frame>
   );
 }

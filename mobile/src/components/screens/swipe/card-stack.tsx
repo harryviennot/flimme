@@ -32,6 +32,7 @@ const ACTION: Record<string, AnswerKind> = {
 
 export type CardStackProps = {
   swipe: Swipe;
+  roomId: string;
   /** `rooms.max_age`: under 13 there is no Trailer (M7.3). */
   maxAge: number | null | undefined;
   /** The film whose card takes the like glow (a near miss), if any. */
@@ -55,6 +56,7 @@ export type CardStackProps = {
 
 export function CardStack({
   swipe,
+  roomId,
   maxAge,
   glowId,
   flying,
@@ -76,6 +78,7 @@ export function CardStack({
   const { stack } = swipe;
   const mounted = useStore(stack, (s) => s.mounted);
   const status = useStore(stack, (s) => s.status);
+  const liked = useStore(stack, (s) => s.liked);
   const flipped = useStore(stack, (s) => s.flipped);
 
   const onLayout = (event: LayoutChangeEvent) => {
@@ -170,7 +173,7 @@ export function CardStack({
             status === 'waiting_offline' ? (
               <WaitingCard size={size} />
             ) : status === 'empty' ? (
-              <DoneCard size={size} />
+              <DoneCard size={size} roomId={roomId} liked={liked} />
             ) : (
               <LoadingCard size={size} onRetry={() => stack.getState().onOnline()} />
             )

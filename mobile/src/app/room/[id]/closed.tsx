@@ -1,5 +1,8 @@
-import { PlaceholderScreen } from '@/components/shared/placeholder-screen';
+import { useLocalSearchParams } from 'expo-router';
+
+import { ClosedScreen } from '@/components/screens/closed/closed-screen';
 
 export default function RoomClosedScreen() {
-  return <PlaceholderScreen title="Room closed" task="M6.17" />;
+  const { id } = useLocalSearchParams<{ id: string }>();
+  return <ClosedScreen roomId={id ?? ''} />;
 }

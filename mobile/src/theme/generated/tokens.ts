@@ -94,7 +94,8 @@ export const tokens = {
   "rotation": {
     "poster-fan": 8,
     "card-tilt": 10,
-    "card-tilt-max": 15
+    "card-tilt-max": 15,
+    "ticket-stamp": -8
   },
   "font": {
     "display": "Staatliches",
