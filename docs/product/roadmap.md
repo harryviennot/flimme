@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 105 of 262 tasks done.
+Progress: 106 of 262 tasks done.
 
 ```mermaid
 flowchart LR
@@ -416,7 +416,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: tested.
 - [x] **M6.4** Starting the finale: finalists need at least one like; one 60-second round; card counts use seats seated at the start; every time limit · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: each trigger and the finalist rule are tested.
-- [ ] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · L · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
+- [x] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · L · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tests cover vetoes, ties, missing ballots and phones closing at once.
 - [ ] **M6.6** `internal.sweep_rooms` every minute, as specified, without the silence re-check (M6.30) · backend · L · needs M6.5, M4.5, M1.13, M6.7, M6.29 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: each row of the spec's table, except the silence re-check, has a test.
