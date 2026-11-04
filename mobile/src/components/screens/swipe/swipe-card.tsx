@@ -44,6 +44,7 @@ import {
   TOUCH_SLOP,
   type Direction,
 } from '@/features/swipe/feel';
+import { isTrailerTap, markTrailerTouch, openTrailerUrl } from '@/features/swipe/trailer';
 import { registerTopCard, useCardMotion } from '@/features/swipe/top-card';
 import { haptics } from '@/lib/haptics';
 import { tokens } from '@/theme/generated/tokens';
@@ -242,13 +243,18 @@ export function SwipeCard(props: SwipeCardProps) {
     },
   });
 
+  // A tap that began on the Trailer button is the button's, not a flip.
+  const flipUnlessTrailer = () => {
+    if (!isTrailerTap()) onFlip();
+  };
+
   const tap = useTapGesture({
     testID: `swipe-tap-${titleId}`,
     maxDistance: TOUCH_SLOP,
     enabled: isTop && !locked,
     onActivate: () => {
       'worklet';
-      scheduleOnRN(onFlip);
+      scheduleOnRN(flipUnlessTrailer);
     },
   });
 
@@ -311,7 +317,13 @@ export function SwipeCard(props: SwipeCardProps) {
     };
   });
 
-  const view = toMovieCard(card, { ...props.text, language: i18n.language });
+  const view = toMovieCard(card, {
+    ...props.text,
+    language: i18n.language,
+    onTrailer: openTrailerUrl,
+    // Not passed straight on: a touch event would land in `now`.
+    onTrailerTouch: () => markTrailerTouch(),
+  });
   const interactive = isTop;
 
   return (

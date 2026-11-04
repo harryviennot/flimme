@@ -6,6 +6,7 @@ import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
 import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 import { getAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
+import { markTrailerTouch } from '@/features/swipe/trailer';
 import { haptics } from '@/lib/haptics';
 
 import { SwipeCard, type SwipeCardProps } from './swipe-card';
@@ -280,6 +281,21 @@ describe('the finger', () => {
     );
     await settle();
     expect(onFlip).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not flip on a tap that started on the Trailer button', async () => {
+    const onFlip = jest.fn();
+    await render(<Card onFlip={onFlip} />);
+    markTrailerTouch();
+    await act(async () =>
+      fireGestureHandler(getByGestureTestId('swipe-tap-7'), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE },
+        { state: State.END },
+      ]),
+    );
+    await settle();
+    expect(onFlip).not.toHaveBeenCalled();
   });
 });
 

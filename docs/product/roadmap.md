@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 93 of 257 tasks done.
+Progress: 95 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -424,14 +424,14 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: a room opened 3 hours earlier isn't abandoned mid-game.
 - [ ] **M6.8** End of room on the server: `rooms.stats` with the outcome, seconds to the pick, players present, swipes per seat, why the finale started · server · M · needs M2.2, M6.5 · [analytics](analytics.md#changes-this-asks-elsewhere)
   Done when: every finished room on staging has its stats, written once even if the message comes twice.
-- [ ] **M6.28** `allow_rewatch` as the default for Quick Match and Final Cut (Date Night keeps `hide_seen`): a data migration on `game_modes.defaults` · backend · S · needs M6.2 · [game-modes](game-modes.md#the-answers)
+- [x] **M6.28** `allow_rewatch` as the default for Quick Match and Final Cut (Date Night keeps `hide_seen`): a data migration on `game_modes.defaults` · backend · S · needs M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: a new room in either mode gets `allow_rewatch`, tested in `610-rewatch-default.test.sql`.
 
 **App**
 
 - [x] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched, the undo button shown disabled until M6.26 · app · L · needs M6.25, M6.11, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: smooth by the frame meter on the simulator, and usable with VoiceOver.
-- [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · M · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [x] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · M · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: flipping works mid-stack.
 - [x] **M6.11** The vote queue module: persisted, sent in order, retried, a `denied` vote refreshed once and retried, votes for rooms the phone no longer keeps dropped on restart · app · M · needs M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
   Done when: the queue's rules are tested. The airplane-mode run is M6.9's.

@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
+import { Image } from 'expo-image';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { View, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   interpolate,
+  ReduceMotion,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -18,7 +20,7 @@ import { Pressable } from '@/components/ui/pressable';
 import { Tag, type TagTone } from '@/components/ui/tag';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/cn';
-import { timing } from '@/theme/motion';
+import { duration, timing } from '@/theme/motion';
 
 import { Poster, type PosterSource } from './poster';
 
@@ -57,39 +59,66 @@ export type MovieCardProps = {
     synopsis: string;
     director?: string;
     cast?: string;
+    /** The room's services for the film, by name and logo. Without it the front's `services` show. */
+    services?: { name: string; logo?: string }[];
     /** Hidden in rooms with an age cap under 13 (security.md). */
     onTrailer?: () => void;
+    /** A touch started on the Trailer button, so a card that flips on a tap can tell it apart. */
+    onTrailerTouch?: () => void;
   };
 };
 
 export function MovieCard(props: MovieCardProps) {
   const { title, flipped = false, onFlip } = props;
   const { t } = useTranslation();
+  const reduced = useReducedMotion();
   const progress = useSharedValue(flipped ? 1 : 0);
 
   useEffect(() => {
-    progress.set(withTiming(flipped ? 1 : 0, timing.flip));
+    // Reanimated would skip a timing under Reduce Motion; the crossfade is what replaces the
+    // turn, so it runs. A flip in either direction starts from where the card is now.
+    progress.set(withTiming(flipped ? 1 : 0, { ...timing.flip, reduceMotion: ReduceMotion.Never }));
   }, [flipped, progress]);
 
-  const front = useAnimatedStyle(() => ({
-    transform: [
-      { perspective: 1200 },
-      { rotateY: `${interpolate(progress.value, [0, 1], [0, 180])}deg` },
-    ],
-  }));
-  const back = useAnimatedStyle(() => ({
-    transform: [
-      { perspective: 1200 },
-      { rotateY: `${interpolate(progress.value, [0, 1], [180, 360])}deg` },
-    ],
-  }));
+  // Turning: the faces swap halfway, each hidden when it faces away. Reduce Motion: they crossfade.
+  const front = useAnimatedStyle(() =>
+    reduced
+      ? { opacity: interpolate(progress.get(), [0, 1], [1, 0]) }
+      : {
+          transform: [
+            { perspective: 1200 },
+            { rotateY: `${interpolate(progress.get(), [0, 1], [0, 180])}deg` },
+          ],
+        },
+  );
+  const back = useAnimatedStyle(() =>
+    reduced
+      ? { opacity: interpolate(progress.get(), [0, 1], [0, 1]) }
+      : {
+          transform: [
+            { perspective: 1200 },
+            { rotateY: `${interpolate(progress.get(), [0, 1], [180, 360])}deg` },
+          ],
+        },
+  );
+  const faceStyle = reduced ? undefined : { backfaceVisibility: 'hidden' as const };
 
   const faces = (
     <>
-      <Animated.View style={[front, { backfaceVisibility: 'hidden' }]} className="absolute inset-0">
+      <Animated.View
+        testID="movie-card-front"
+        style={[front, faceStyle]}
+        pointerEvents={flipped ? 'none' : 'auto'}
+        className="absolute inset-0"
+      >
         <Front {...props} />
       </Animated.View>
-      <Animated.View style={[back, { backfaceVisibility: 'hidden' }]} className="absolute inset-0">
+      <Animated.View
+        testID="movie-card-back"
+        style={[back, faceStyle]}
+        pointerEvents={flipped ? 'auto' : 'none'}
+        className="absolute inset-0"
+      >
         <Back {...props} />
       </Animated.View>
     </>
@@ -247,6 +276,60 @@ function Services({ services }: { services: string[] }) {
   );
 }
 
+function ServiceBadges({ services }: { services: { name: string; logo?: string }[] }) {
+  return (
+    <View className="flex-row flex-wrap gap-1.5">
+      {services.map(({ name, logo }) => (
+        <View
+          key={name}
+          className="h-6 flex-row items-center gap-1.5 self-start rounded-xs bg-bg-raised pr-2 pl-1"
+        >
+          {logo ? (
+            <Image
+              source={{ uri: logo }}
+              contentFit="cover"
+              transition={duration.fast}
+              className="size-4 rounded-xs"
+              accessible={false}
+            />
+          ) : null}
+          <Text variant="mono-eyebrow" tone="secondary" numberOfLines={1}>
+            {name}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/**
+ * The synopsis, cut with an ellipsis to the space the back leaves it: the back never scrolls
+ * (a scroll would fight the swipe up). The line count comes from the room it has and the height
+ * of one line, so it follows the text size.
+ */
+function FitText({ children }: { children: string }) {
+  const [room, setRoom] = useState(0);
+  const [line, setLine] = useState(0);
+  const lines = room > 0 && line > 0 ? Math.max(1, Math.floor(room / line + 0.01)) : undefined;
+  return (
+    <View
+      className="min-h-0 flex-1 overflow-hidden"
+      onLayout={(e: LayoutChangeEvent) => setRoom(e.nativeEvent.layout.height)}
+    >
+      <Text
+        variant="body-m"
+        numberOfLines={lines}
+        onTextLayout={(e) => {
+          const height = e.nativeEvent.lines[0]?.height;
+          if (height) setLine(height);
+        }}
+      >
+        {children}
+      </Text>
+    </View>
+  );
+}
+
 function Front({
   title,
   meta,
@@ -354,13 +437,11 @@ function Back({
             </View>
           ) : null}
         </View>
-        <View className="gap-1">
+        <View className="min-h-0 flex-1 gap-1">
           <Text variant="mono-eyebrow" tone="secondary">
             {t('card.synopsis')}
           </Text>
-          <Text variant="body-m" numberOfLines={5}>
-            {back.synopsis}
-          </Text>
+          <FitText>{back.synopsis}</FitText>
         </View>
         <View className="gap-0.5">
           {back.director ? (
@@ -369,30 +450,34 @@ function Back({
             </Text>
           ) : null}
           {back.cast ? (
-            <Text variant="body-s" tone="secondary" numberOfLines={1}>
+            <Text variant="body-s" tone="secondary" numberOfLines={2}>
               {t('card.cast', { names: back.cast })}
             </Text>
           ) : null}
         </View>
         <View className="flex-row items-center gap-1.5">
           <View className="flex-1">
-            <Services services={services} />
+            {back.services ? (
+              <ServiceBadges services={back.services} />
+            ) : (
+              <Services services={services} />
+            )}
           </View>
           {back.onTrailer ? (
-            <Button
-              label={t('card.trailer')}
-              icon="play"
-              variant="secondary"
-              size="s"
-              onPress={back.onTrailer}
-            />
+            <View onTouchStart={back.onTrailerTouch}>
+              <Button
+                label={t('card.trailer')}
+                icon="play"
+                variant="secondary"
+                size="s"
+                onPress={back.onTrailer}
+              />
+            </View>
           ) : null}
         </View>
-        <View className="flex-1 justify-end">
-          <Text variant="mono-eyebrow" tone="muted" align="center">
-            {t('card.flipBack')}
-          </Text>
-        </View>
+        <Text variant="mono-eyebrow" tone="muted" align="center">
+          {t('card.flipBack')}
+        </Text>
       </View>
       {stamps?.map(({ kind, progress }) => (
         <Stamp key={kind} kind={kind} progress={progress} />

@@ -38,12 +38,15 @@
     "card": "{{title}}, {{meta}}. Sur {{services}}.",
     "cardBare": "{{title}}, {{meta}}",
     "cardBack": "{{title}}. Note TMDB {{rating}}. {{synopsis}}",
+    "cardBackNoRating": "{{title}}. {{synopsis}}",
+    "cardBackServices": "Sur {{services}}.",
     "actions": {
       "like": "J'aime",
       "nope": "Bof",
       "superLike": "Coup de cœur",
       "seen": "Déjà vu",
-      "flip": "Retourner la carte"
+      "flip": "Retourner la carte",
+      "trailer": "Voir la bande-annonce"
     },
     "superLeft_one": "Coup de cœur, il en reste {{count}}",
     "superLeft_other": "Coup de cœur, il en reste {{count}}",
