@@ -1,6 +1,6 @@
 # Reconnecting
 
-Screen 24 in the Figma (`30:1722`). Not a route: the room layout (`/room/[id]/_layout.tsx`) owns the connection state, and each room screen shows it. Built in M4.21 (M4.10 was split: M4.10 is the layout, M4.21 Realtime and this banner, M4.22 rejoining). Written on 30 October 2026 from [realtime](../../architecture/app-structure.md#realtime) and [who counts](../../product/game-modes.md#who-counts-presence-joining-and-leaving); updated on 3 November 2026 with the [M3.11 spike's findings](../../architecture/app-structure.md#spike-4-findings-the-private-room-channel-m311-3-november-2026) and slice 7's answers. This slice uses it in the [lobby](lobby.md); the swipe screen's part (votes waiting, the offline header) comes with slice 10.
+Screen 24 in the Figma (`30:1722`). Not a route: the room layout (`/room/[id]/_layout.tsx`) owns the connection state, and each room screen shows it. Built in M4.21 (M4.10 was split: M4.10 is the layout, M4.21 Realtime and this banner, M4.22 rejoining). Written on 30 October 2026 from [realtime](../../architecture/app-structure.md#realtime) and [who counts](../../product/game-modes.md#who-counts-presence-joining-and-leaving); updated on 3 November 2026 with the [M3.11 spike's findings](../../architecture/app-structure.md#spike-4-findings-the-private-room-channel-m311-3-november-2026) and slice 7's answers. The [lobby](lobby.md) uses it, and so does the [swipe screen](swipe.md#states), whose banner also counts the votes waiting while offline.
 
 ## Purpose
 
@@ -60,7 +60,7 @@ While this phone's live channel is down, the others see its seat leave presence;
 
 ## Differences from the Figma
 
-- The Figma draws a toast-like card over the swiping card and an offline status in the header. In the lobby the `Banner` sits under the top bar instead, so the code and Start stay visible. The swipe screen's version is slice 10's to spec.
+- The Figma draws a toast-like card over the swiping card and an offline status in the header. In the lobby the `Banner` sits under the top bar instead, so the code and Start stay visible. On the swipe screen it sits under the top bar too and the card shrinks to make room; offline, it says how many swipes are waiting ([swipe](swipe.md#states)).
 
 ## Questions
 
