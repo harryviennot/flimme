@@ -53,6 +53,7 @@ The words players see, used the same way everywhere. French terms marked "propos
 | A ballot sent | Locked in | Vote validé (proposed) |
 | Who has locked in | 2 of 4 locked in | 2 sur 4 ont validé (proposed) |
 | The result | tonight's pick | le film du soir (decided on 4 November 2026) |
+| No pick | Nothing fits tonight | Rien à l'affiche ce soir (decided on 4 November 2026) |
 | The share image | recap card | récap (proposed) |
 | Streaming services | services | plateformes |
 | Time budget | time budget, "Under 2 h" | durée, « Moins de 2 h » (proposed) |

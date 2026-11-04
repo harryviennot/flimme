@@ -13,6 +13,7 @@ Built in parts, each with its own section here:
 | M6.18 | The four first-game hints | [Hints](#first-game-hints) |
 | M6.26 | Undo | [Undo](#undo) |
 | M6.27 | The top bar: pills, done, Leave, the host menu | [The top bar](#the-top-bar) |
+| M6.17 | The done card's filters and liked count ("Nothing left", screen 26) | [The done card](#the-done-card-nothing-left) |
 
 ## Purpose
 
@@ -90,7 +91,7 @@ Placeholders, tuned at the first feel check. The gesture rules live in `features
 
 **Back** (screen 13, M6.10): the 132-point header (poster, scrim, title, meta, the `refresh` flip badge); the TMDB score box (`star`, `display-m` in `marquee.default`, `common:card.tmdbRating`); `common:card.synopsis` and the overview in `body-m`, cut with an ellipsis to the space left (the back never scrolls, Q10.1); `common:card.director` and `common:card.cast` (the directors and the first 5 names, joined with `Intl.ListFormat`; the cast line takes two lines); the room's services for the film, each with its logo when TMDB has one (`w92`, six at most), with the JustWatch credit under them (`common:card.justwatch`, `body-s` in `text-muted`, wraps at large text sizes; the same wording as the invite page, and it shows whenever the back shows services, TMDB's rule in [tmdb.md](../../integrations/tmdb.md#terms-licence-and-attribution)); the Trailer button (`Button` secondary S, icon `play`, `common:card.trailer`), which opens the trailer outside the app; `common:card.flipBack`. No Letterboxd rating (M20).
 
-- **No trailer** when `trailer_key` is null: rooms capped under 13 always get null (M7.3), and so do films without one. The services tags take the row alone.
+- **No trailer** when `trailer_key` is null: rooms capped under 13 always get null (M7.3), and so do films without one. The services badges take the row alone.
 - **The flip** (moments.md#the-flip): a tap turns the card in place (`timing.flip`, faces swap halfway), a second tap turns it back. The cards behind don't move. A drag mid-turn takes the card from where it is; a tap mid-turn reverses it. The back answers exactly like the front (drags, buttons, stamps over the back). No haptic, no sound. Whether the card was flipped goes with its vote (`flipped`, M6.2). Everything on the back is in the card's payload, so a flip never waits, offline included.
 - **Missing data:** no overview shows `swipe:card.noSynopsis`; no score hides its box; no director or cast hides its line.
 
@@ -164,6 +165,60 @@ Undoing either answer brings the card back to its front, without the question.
 - Any touch on the card cancels the lean at once and gives the card to the finger. A tap during the lean flips the card.
 - Reduce Motion: instead of the lean, the LIKE stamp and then the NOPE stamp show still at the same share for `duration.slow` each.
 
+## The done card (Nothing left)
+
+`DoneCard` in `screens/swipe/status-cards.tsx`, from M6.29; M6.17 adds the filters and the liked count. Screen 26 Nothing left (`30:2000`, the original page only; the first release page has no copy, figma-map.md). Q17.1: the card shows what caused it, tonight's filters and how many films the room has liked, and no buttons until M18 ([how a game ends](../../product/game-modes.md#how-a-game-ends), "Running out of cards").
+
+**When.** Only after `request_cards` answers `done` `{liked}` (M6.29): the seat has no unanswered card and the SQL baseline dealt it nothing. A seat that reached the card count but still has cards keeps swiping (decision row 14), even if its pill says Done (Q27.2). The card stack keeps `liked` from the answer (`features/swipe/card-stack.ts`). The stack asks again on its retry timer; each new `done` answer updates the count in place, with no animation.
+
+**Layout.** The same card-size frame as the waiting card (`bg-bg-surface`, `rounded-xl`, `border border-border-default`, entering with `layout.fadeIn`). Inside, a `ScrollView` whose content is centred when it fits and scrolls when it doesn't (the largest text). The content is one `EmptyState`:
+
+1. Icon `popcorn`; title `swipe:done.title`; body `swipe:done.body` (both from M6.9, unchanged).
+2. In `EmptyState`'s new `children` slot ([design-system changes](#design-system-changes)), `gap-2`, centred:
+   - `ending:nothingLeft.filters` in `mono-eyebrow`, tone `secondary`.
+   - **The filter tags:** a centred `flex-row flex-wrap justify-center gap-1.5` of `Tag` tone `neutral`, in this order, each only when it applies (a filter that doesn't narrow the deck has no tag, and no empty line is ever left):
+
+     | Tag | Icon | Shown when | Label |
+     | --- | --- | --- | --- |
+     | The services | `tv` on the first only | Always: up to 2 names from `api.rooms.provider_ids`, in `useCountryProviders(country)` order (`display_priority`), one tag each | The service's name. Then one more tag `ending:filters.moreServices` (`+{{count}}`) for the rest. If the providers list hasn't loaded or failed, one tag `ending:filters.services_*` with the count instead |
+     | The time budget | `clock` | `runtime_max` is set | `ending:filters.runtime`, the duration through `formatRuntime` ("1 h 45", "2 h 00") |
+     | The age cap | `shield` | `max_age` is set (null is "Adults") | `ending:filters.age` with the age, or `ending:filters.allAges` for 0 |
+     | The seen rule | `eye` | `seen_rule` is `hide_seen` | `ending:filters.hideSeen` |
+     | The quality | `star` | `quality` is `hidden_gems` or `guilty_pleasures` | `ending:filters.hiddenGems` or `ending:filters.guiltyPleasures` |
+
+   - **The liked count:** `ending:nothingLeft.liked_*` with `liked`, in `mono-data`, tone `like`. Left out while `liked` is unknown.
+3. No button inside the card: no Change filters (M18.6), no Vote now (M18.5). The answer buttons below stay disabled; Undo follows [its own rule](#undo) (an undo gives a card back, clears `done_at`, and the done card gives way to the card).
+
+Measured at 375 by 667 (a card about 324 by 487): the icon, a two-line title, the body, the eyebrow, two rows of tags and the count fit without scrolling. A long service name is cut by `Tag`'s one line; the full names are in the label.
+
+**States.** Offline before the `done` answer: the [waiting card](#states), not this one. Offline after it: the done card stays, the count stops updating, `RoomBanner` shows the offline note. The finale starts or the room ends: the layout replaces the screen, as for any state change.
+
+**Motion, haptics, sound.** The frame's `layout.fadeIn` only; the count changes without motion. No haptic (it isn't a refusal, and nobody pressed anything), no sound. Reduce Motion: the fade stays.
+
+**Accessibility.** When the done card replaces the top card, focus moves to its title (`EmptyState` `autoFocus`), since the focused card is gone. Then the body; then the eyebrow and the tags as one element, `ending:a11y.filters` with every service name in full and every tag's label, joined by `formatList`; then the count; then the buttons row as today (disabled answer buttons announce as dimmed).
+
+**Never shown.** Which films were liked, or who liked anything: a count only. No player names on the card. Nothing about the other players' decks or how many cards they have left (their pills already say Done or a count).
+
+**Copy** (`ending` namespace; the `swipe` files are not touched, [closed.md](closed.md) lists the namespace's other keys):
+
+| Key | French | English |
+| --- | --- | --- |
+| `nothingLeft.filters` | Les filtres du soir | Tonight's filters |
+| `nothingLeft.liked_one` | {{count}} film aimé pour l'instant | {{count}} film liked so far |
+| `nothingLeft.liked_other` | {{count}} films aimés pour l'instant | {{count}} films liked so far |
+| `filters.moreServices` | +{{count}} | +{{count}} |
+| `filters.services_one` | {{count}} plateforme | {{count}} service |
+| `filters.services_other` | {{count}} plateformes | {{count}} services |
+| `filters.runtime` | Moins de {{duration}} | Under {{duration}} |
+| `filters.age` | Dès {{age}} ans | Ages {{age}}+ |
+| `filters.allAges` | Tous publics | All ages |
+| `filters.hideSeen` | Jamais vus | Unseen only |
+| `filters.hiddenGems` | Pépites cachées | Hidden gems |
+| `filters.guiltyPleasures` | Plaisirs coupables | Guilty pleasures |
+| `a11y.filters` | Les filtres du soir : {{list}} | Tonight's filters: {{list}} |
+
+French puts 0 in the singular ("0 film aimé pour l'instant"), English in the plural ("0 films liked so far"). Counts go through `Intl` (i18next's `count`).
+
 ## States
 
 | State | What the player sees |
@@ -174,7 +229,7 @@ Undoing either answer brings the card back to its front, without the question.
 | Offline, cards left | Swiping carries on, feel unchanged. `RoomBanner` shows `common:states.offlineVotes_*` with the queue's count, or `common:states.offlineRoom` while nothing waits. M6.9 gives `RoomBanner` an optional `waitingVotes` count for this |
 | Offline, no cards left | **The waiting card:** a card-size `bg-bg-surface` frame, `rounded-xl`, `border-border-default`, with `EmptyState` icon `wifi-off`, `swipe:waiting.title`, `swipe:waiting.body`. Answer buttons disabled. When the connection is back, the queue sends, the cards are fetched, and the next card replaces it with `layout.fadeIn` |
 | Reconnecting | `RoomBanner` as in [Reconnecting](reconnecting.md); on `SUBSCRIBED` the re-read includes the matches and the next cards |
-| This player is done (Q27.2: reached the rule's card count, once `api.rooms` carries it, or no cards left after `request_cards`) | **The done card:** the same frame, `EmptyState` icon `popcorn`, `swipe:done.title`, `swipe:done.body`. Answer buttons disabled; Undo follows its own rule. Presence says `done` |
+| This player is out of cards (`request_cards` answered `done`, M6.29) | **[The done card](#the-done-card-nothing-left):** the same frame, `EmptyState` icon `popcorn`, `swipe:done.title`, `swipe:done.body`, tonight's filters and the liked count (M6.17). Answer buttons disabled; Undo follows its own rule. Presence says `done`. A seat that only reached the card count keeps its cards and keeps swiping (decision row 14) |
 | A match | The [match overlay](match.md) takes over from the room layout. A drag springs back (`spring.card`), thrown cards finish their flight, the question closes, the near-miss toast leaves with `layout.fadeOut` |
 | The room moves on (`finale`, `abandoned`) | The layout replaces the screen. A drag springs back first |
 | Removed | Home with `join:errors.removed` ([the removed side](host-menu.md#the-removed-players-side)) |
@@ -191,6 +246,7 @@ Undoing either answer brings the card back to its front, without the question.
 | `cast_vote` denied (`42501`, an expired session) | The session is refreshed once and the vote retried; a second denial drops it, to Sentry (Q11.1) |
 | `request_cards` `ok`, `enough` | Nothing (the cards arrive) |
 | `request_cards` `queued` | The loading card if the stack is empty |
+| `request_cards` `done` `{liked}` | [The done card](#the-done-card-nothing-left) once the stack is empty, with the count |
 | `request_cards` `closed` | The room is re-read |
 
 ## Live changes
@@ -269,7 +325,7 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 
 ## Accessibility
 
-- **Focus order:** Leave, the pills (each a button but your own, hint `lobby:a11y.seat`), the banner, the top card, the hint, Undo, Nope, Super, Like, Seen it.
+- **Focus order:** Leave, the pills (each a button but your own, hint `lobby:a11y.seat`), the banner, the top card, the hint, Undo, Nope, Super, Like, Seen it. When the done card shows, it takes the top card's place in this order (its own order is in [the done card](#the-done-card-nothing-left)).
 - **The top card is one element:** `swipe:a11y.card` on the front, `swipe:a11y.cardBack` on the back, with custom actions like, nope, super like, seen it and flip (`swipe:a11y.actions.*`). After an action, `swipe:a11y.thrown` is announced and focus stays on the new top card. While the back shows, the card also offers a `trailer` custom action (the card is one element, so a button inside it can't take focus). The back's reading adds the director, the cast and the services after the synopsis. The reason label waits for the reason codes (M17 to M20): until the app knows a code, no label shows, front or back.
 - **The buttons** use `common:answers.*` as labels; Super uses `swipe:a11y.superLeft_*` or `superNone`; a disabled Undo has `swipe:a11y.undoNone` as its hint.
 - **The rewatch question** takes focus on its title; Yes and No are labelled `swipe:a11y.seenYes` and `seenNo`; the escape gesture closes it with no vote.
@@ -288,6 +344,7 @@ Spec here; app-dev builds them with their gallery states in the task named.
 | `MovieCard`: `glow` (the near miss's `glow-like` around the card, under the drag's border) | M6.13 |
 | `PlayerPill`: `you` (the label), `away` (muted name, no dot), `done` (the count replaced by `swipe:pills.done` in tone `like`), `host` (the crown), and `onPress` | M6.27 |
 | `RoomBanner`: an optional `waitingVotes` count for the offline note | M6.9 |
+| `EmptyState`: an optional `children` slot between the body and the action (the done card's filters and count). A gallery state with a row of tags | M6.17 |
 | Tokens: `rotation.card-tilt` 10 and `rotation.card-tilt-max` 15 (degrees, the swipe), `duration.hint-delay` 600ms (the card 1 lean's wait), each with a `$description`, then `mise run tokens` | M6.9, M6.18 |
 
 No new component: the new pieces are single-use screen pieces in `components/screens/swipe/`.
@@ -297,6 +354,7 @@ No new component: the new pieces are single-use screen pieces in `components/scr
 - The Figma's top row (an avatar stack, "3 swiping", "You're on card 14" and a sliders button) becomes Leave and the player pills with each count (Q27.1). No sliders button: the host's tools are on the pills.
 - The near-miss toast drops "One more yes and it's a match": the count only, always true (moments.md#copy). It sits over the pills and keeps Leave visible.
 - The hints share one line between the card and the buttons, so the card never moves when one arrives. Onboarding put the card 2 hint under the buttons; this spec moves it (onboarding.md and moments.md are updated).
+- Nothing left (26, `30:2000`): no top-row avatars or sliders, and no Vote on our likes or Change filters until M18.5 and M18.6 (Q17.1). The title and body stay M6.9's ("That's all your cards"), not "You've seen the whole lineup", because the body has to say what happens next while there is no button. The filters are `Tag`s, not selected `Chip`s: a chip looks pressable, and nothing here can be pressed yet. The icon is `EmptyState`'s, without the Figma's marquee glow: a glow is for the shared moments. The count says "liked so far", not "liked by at least one player".
 - Copy on the Figma's game screens is English only; this spec is the copy.
 
 ## Questions
