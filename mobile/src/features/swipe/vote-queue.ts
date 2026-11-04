@@ -164,6 +164,15 @@ export function createVoteQueue(deps: VoteQueueDeps) {
     store.setState({ votes: votes().filter((v) => v !== vote) });
   }
 
+  /** The server never recorded this vote, so an undo queued behind it would take back another. */
+  function removeUndoFor(vote: QueuedVote) {
+    store.setState({
+      votes: votes().filter(
+        (v) => !(isUndo(v) && v.room_id === vote.room_id && v.title_id === vote.title_id),
+      ),
+    });
+  }
+
   function removeRoom(roomId: string) {
     store.setState({ votes: votes().filter((v) => v.room_id !== roomId) });
   }
@@ -260,6 +269,7 @@ export function createVoteQueue(deps: VoteQueueDeps) {
         if (error instanceof ApiError && error.kind === 'unexpected' && error.code === '22023') {
           deps.report(error, context);
           remove(vote);
+          removeUndoFor(vote);
           emit({ type: 'card_not_dealt', ...context });
           return 'next';
         }
@@ -293,6 +303,7 @@ export function createVoteQueue(deps: VoteQueueDeps) {
           break;
         case 'no_super_likes':
           remove(vote);
+          removeUndoFor(vote);
           emit({ type: 'no_super_likes', ...context });
           break;
       }

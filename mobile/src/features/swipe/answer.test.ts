@@ -182,6 +182,29 @@ describe('presence count', () => {
     expect(counts).toEqual([5, 10, 15]);
   });
 
+  it('drops by one with an undo, and says so when the last count sent is now too high', async () => {
+    const { answerer, counts } = await setup();
+    for (let i = 1; i <= 5; i++) {
+      answerer.answer('like');
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+    expect(counts).toEqual([5]);
+    answerer.undone();
+    expect(answerer.count()).toBe(4);
+    expect(counts).toEqual([5, 4]);
+    // Another undo while the others already know less than that says nothing new... except the new count.
+    answerer.undone();
+    expect(counts).toEqual([5, 4, 3]);
+  });
+
+  it('says nothing for an undo when no count was sent yet', async () => {
+    const { answerer, counts } = await setup();
+    answerer.answer('like');
+    answerer.undone();
+    expect(answerer.count()).toBe(0);
+    expect(counts).toEqual([]);
+  });
+
   it('counts on from the seat the server already knows', async () => {
     const { stack } = await setup();
     const counts: number[] = [];

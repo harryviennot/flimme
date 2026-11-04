@@ -1,4 +1,12 @@
-import { commitLines, decideRelease, directionOf, progressOf, THROW_SPEED, tiltFor } from './feel';
+import {
+  commitLines,
+  decideRelease,
+  directionOf,
+  progressOf,
+  returnStart,
+  THROW_SPEED,
+  tiltFor,
+} from './feel';
 
 const SCREEN = { width: 400, height: 800 };
 const lines = commitLines(SCREEN.width, SCREEN.height);
@@ -90,5 +98,15 @@ describe('tiltFor', () => {
     expect(tiltFor(-120, lines)).toBe(-10);
     expect(tiltFor(1000, lines)).toBe(15);
     expect(tiltFor(-1000, lines)).toBe(-15);
+  });
+});
+
+describe('returnStart', () => {
+  const screen = { width: 400, height: 800 };
+  it('starts off the side the card left from', () => {
+    expect(returnStart('left', screen).x).toBeLessThan(-400);
+    expect(returnStart('right', screen).x).toBeGreaterThan(400);
+    expect(returnStart('up', screen)).toEqual({ x: 0, y: expect.any(Number) });
+    expect(returnStart('up', screen).y).toBeLessThan(-800);
   });
 });

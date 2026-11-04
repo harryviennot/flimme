@@ -99,3 +99,13 @@ export function tiltFor(dx: number, lines: Lines): number {
   const max = tokens.rotation['card-tilt-max'];
   return Math.max(-max, Math.min(max, tilt));
 }
+
+/** Where a card Undo brings back starts: off the side it left from, the reverse of its throw. */
+export function returnStart(
+  direction: Direction,
+  screen: { width: number; height: number },
+): { x: number; y: number } {
+  'worklet';
+  if (direction === 'up') return { x: 0, y: -screen.height * THROW_DISTANCE };
+  return { x: (direction === 'left' ? -1 : 1) * screen.width * THROW_DISTANCE, y: 0 };
+}
