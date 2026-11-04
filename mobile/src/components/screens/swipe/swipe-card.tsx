@@ -254,6 +254,8 @@ export function SwipeCard(props: SwipeCardProps) {
     enabled: isTop && !locked,
     onActivate: () => {
       'worklet';
+      // A tap during the first-game lean flips the card and sends it back to the middle.
+      if (x.get() !== 0 || y.get() !== 0) springBack();
       scheduleOnRN(flipUnlessTrailer);
     },
   });
