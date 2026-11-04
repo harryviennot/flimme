@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 99 of 257 tasks done.
+Progress: 100 of 257 tasks done.
 
 ```mermaid
 flowchart LR
@@ -451,7 +451,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: shown once per player.
 - [x] **M6.25** The card stack store: one Zustand store for the stack's rules, with no UI. Down to 5 unanswered cards asks for more, the next 3 posters are prefetched, and posters are w780 on screens 600 points wide or more · app · M · needs M5.6, M4.10 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: fully unit-tested, with its two calls injected so that M6.9 wires the real ones.
-- [ ] **M6.26** Undo on the swipe screen: the rewind button, the last card coming back, and the queued vote removed or `api.undo_last_vote` sent · app · M · needs M6.9, M6.11, M6.3 · [moments](../design/moments.md#the-swipe)
+- [x] **M6.26** Undo on the swipe screen: the rewind button, the last card coming back, and the queued vote removed or `api.undo_last_vote` sent · app · M · needs M6.9, M6.11, M6.3 · [moments](../design/moments.md#the-swipe)
   Done when: a touch run on the simulator against staging brings the card back, and the server agrees.
 - [ ] **M6.27** The swipe screen's top: player pills with each count (steps of 5), "Sam is done", Leave with its confirmation, the host menu to remove a player mid-game, and the Reconnecting banner · app · M · needs M6.9 · [moments](../design/moments.md#what-every-moment-keeps)
   Done when: every state of the top bar's spec is shown, checked in a three-player touch run.
