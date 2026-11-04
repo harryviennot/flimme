@@ -1,5 +1,8 @@
-import { PlaceholderScreen } from '@/components/shared/placeholder-screen';
+import { useLocalSearchParams } from 'expo-router';
+
+import { WinnerRoom } from '@/components/screens/winner/winner-room';
 
 export default function RoomWinnerScreen() {
-  return <PlaceholderScreen title="Tonight's pick" task="M6.16" />;
+  const { id } = useLocalSearchParams<{ id: string }>();
+  return <WinnerRoom roomId={id ?? ''} />;
 }
