@@ -133,6 +133,14 @@ export function SwipeScreen({
     return flight;
   };
 
+  // Undo: the card is back in the stack at once; a copy still in the air is called back.
+  const undoLast = useCallback(() => {
+    const back = swipe.undo();
+    if (!back) return;
+    landed(back.card.title_id);
+    AccessibilityInfo.announceForAccessibility(t('a11y.undone', { title: back.card.title }));
+  }, [swipe, landed, t]);
+
   const canAnswer = status === 'ready' && !swipe.locked;
   const rowStyle = useAnimatedStyle(() => ({
     opacity: withTiming(held === null ? 1 : 0, timing.base),
@@ -152,6 +160,8 @@ export function SwipeScreen({
             <ActionRow
               canAnswer={canAnswer}
               superLikesLeft={swipe.superLikesLeft}
+              canUndo={swipe.canUndo}
+              onUndo={undoLast}
               onAnswer={(kind) => throwAndSay(kind, false)}
               lit={lit}
             />

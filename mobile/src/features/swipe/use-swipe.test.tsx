@@ -57,6 +57,14 @@ const mockQueue = (() => {
     pending: (room: string) => store.getState().votes.filter((v) => v.room_id === room).length,
     pendingSuperLikes: (room: string) =>
       store.getState().votes.filter((v) => v.room_id === room && v.answer === 'super_like').length,
+    removeLast: jest.fn((room: string, id?: number) => {
+      const list = store.getState().votes;
+      const last = list[list.length - 1];
+      if (!last || last.room_id !== room || (id !== undefined && last.title_id !== id)) return null;
+      store.setState({ votes: list.slice(0, -1) });
+      return last;
+    }),
+    enqueueUndo: jest.fn(),
     has: (room: string, id: number) =>
       store.getState().votes.some((v) => v.room_id === room && v.title_id === id),
     onAnswer: (listener: (event: VoteQueueEvent) => void) => {
@@ -113,6 +121,8 @@ beforeEach(() => {
   mockPresence.mockClear();
   mockInvalidate.mockClear();
   mockQueue.flush.mockClear();
+  mockQueue.removeLast.mockClear();
+  mockQueue.enqueueUndo.mockClear();
   mockQueue.store.setState({ votes: [] });
   mockApi.myNextCards.mockReset();
   mockApi.requestCards.mockReset();
@@ -218,6 +228,57 @@ describe('super likes', () => {
       mockQueue.listeners.forEach((l) => l({ type: 'no_super_likes', room_id: ROOM, title_id: 1 })),
     );
     expect(result.current.superLikesLeft).toBe(2);
+  });
+});
+
+describe('undo', () => {
+  it('is asleep until the first answer, then removes a vote still waiting and puts the card back', async () => {
+    const { result } = await open();
+    expect(result.current.canUndo).toBe(false);
+    await act(async () => void result.current.answer('like'));
+    expect(result.current.canUndo).toBe(true);
+    await act(async () => void result.current.undo());
+    expect(mockQueue.store.getState().votes).toEqual([]);
+    expect(mockQueue.enqueueUndo).not.toHaveBeenCalled();
+    expect(result.current.stack.getState().mounted.map((c) => c.title_id)).toEqual([1, 2, 3]);
+    expect(result.current.canUndo).toBe(false);
+    expect(result.current.returning?.card.title_id).toBe(1);
+  });
+
+  it('queues one undo when the vote already left the phone', async () => {
+    const { result } = await open();
+    await act(async () => void result.current.answer('nope'));
+    await act(async () => mockQueue.store.setState({ votes: [] }));
+    await act(async () => void result.current.undo());
+    expect(mockQueue.enqueueUndo).toHaveBeenCalledTimes(1);
+    expect(result.current.undo()).toBeNull();
+    expect(mockQueue.enqueueUndo).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives a super like back', async () => {
+    const { result } = await open();
+    await act(async () => void result.current.answer('super_like'));
+    expect(result.current.superLikesLeft).toBe(1);
+    await act(async () => void result.current.undo());
+    expect(result.current.superLikesLeft).toBe(2);
+  });
+
+  it('is not dealt back by a refill that was already in flight, but can be answered again', async () => {
+    const { result } = await open();
+    await act(async () => void result.current.answer('like'));
+    await act(async () => void result.current.undo());
+    await act(async () => void result.current.answer('nope'));
+    expect(result.current.canUndo).toBe(true);
+    expect(result.current.returning).toBeNull();
+  });
+
+  it('does nothing once the room moved on', async () => {
+    const { result } = await open();
+    await act(async () => void result.current.answer('like'));
+    await act(async () => mockHandlers.get('finale_started')?.({}));
+    expect(result.current.canUndo).toBe(false);
+    await act(async () => void result.current.undo());
+    expect(mockQueue.removeLast).not.toHaveBeenCalled();
   });
 });
 

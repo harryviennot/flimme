@@ -181,6 +181,9 @@ export function CardStack({
               card={card}
               depth={depth}
               flight={flight}
+              returning={
+                swipe.returning?.card.title_id === card.title_id ? swipe.returning : undefined
+              }
               flipped={card === top ? flipped : false}
               glow={glowId === card.title_id}
               size={size}

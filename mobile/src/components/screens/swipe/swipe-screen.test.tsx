@@ -11,6 +11,7 @@ import { useHintsStore } from '@/features/swipe/hints';
 import { clearNearMisses } from '@/features/swipe/near-miss';
 import { createAnswerer, type Answerer } from '@/features/swipe/answer';
 import { createCardStack, type CardStack } from '@/features/swipe/card-stack';
+import { createUndoer } from '@/features/swipe/undo';
 import type { QueuedVote } from '@/features/swipe/vote-queue';
 
 import { SwipeScreen } from './swipe-screen';
@@ -118,18 +119,46 @@ async function makeSwipe(
     now: () => Date.now(),
     onCount: (n) => void counts.push(n),
   });
-  const state = createStore(() => ({ superLikesLeft: answerer.superLikesLeft() }));
+  const undone: number[] = [];
+  const undoer = createUndoer({
+    stack,
+    queue: {
+      removeLast: () => null,
+      enqueueUndo: (item) => void undone.push(item.title_id),
+    },
+    roomId: ROOM,
+    memberId: seat.member_id,
+    locked: () => false,
+  });
+  const state = createStore(() => ({
+    superLikesLeft: answerer.superLikesLeft(),
+    returning: null as ReturnType<typeof undoer.undo>,
+  }));
   return {
     stack,
     votes,
     counts,
+    undone,
     state,
     swipe: {
       stack,
       answer: (kind: Parameters<Answerer['answer']>[0]) => {
         const done = answerer.answer(kind);
-        state.setState({ superLikesLeft: answerer.superLikesLeft() });
+        if (done) undoer.record(done.card, kind);
+        state.setState({ superLikesLeft: answerer.superLikesLeft(), returning: null });
         return done;
+      },
+      undo: () => {
+        const back = undoer.undo();
+        if (back?.kind === 'super_like') answerer.giveBackSuperLike();
+        state.setState({ superLikesLeft: answerer.superLikesLeft(), returning: back });
+        return back;
+      },
+      get canUndo() {
+        return undoer.state.getState().last !== null;
+      },
+      get returning() {
+        return state.getState().returning;
       },
       get superLikesLeft() {
         return state.getState().superLikesLeft;
@@ -212,6 +241,32 @@ describe('the buttons', () => {
     expect(undo.props.accessibilityState.disabled).toBe(true);
     expect(undo.props.accessibilityHint).toBe('Nothing to undo');
     await fireEvent.press(undo);
+  });
+
+  it('wakes Undo with the first answer, brings the card back and sleeps it again', async () => {
+    const { undone } = await setup();
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Nope'));
+    expect(screen.getByLabelText('Film 2, 2020 · 1 h 40 · ★ 7.0')).toBeTruthy();
+    const undo = screen.getByLabelText('Undo');
+    expect(undo.props.accessibilityState.disabled).toBeFalsy();
+    await fireEvent.press(undo);
+    expect(undone).toEqual([1]);
+    expect(screen.getByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0')).toBeTruthy();
+    expect(screen.getByLabelText('Undo').props.accessibilityState.disabled).toBe(true);
+    await fireEvent.press(screen.getByLabelText('Undo'));
+    expect(undone).toEqual([1]);
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(screen.getByLabelText('Undo').props.accessibilityState.disabled).toBeFalsy();
+  });
+
+  it('gives a super like back to the badge when it is undone', async () => {
+    await setup();
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Super like, 2 left'));
+    expect(screen.getByLabelText('Super like, 1 left')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Undo'));
+    expect(screen.getByLabelText('Super like, 2 left')).toBeTruthy();
   });
 
   it('keep answering while the last card is still flying', async () => {
@@ -570,6 +625,19 @@ describe('the rewatch question', () => {
     expect(votes.map((v) => [v.title_id, v.answer])).toEqual([[1, 'seen_rewatch']]);
     expect(screen.queryByText('Watch it again tonight?')).toBeNull();
   });
+
+  it.each(['Yes, watch it again tonight', 'No, not tonight'])(
+    'undoing the answer ("%s") brings the card back without asking again',
+    async (label) => {
+      const { undone } = await ask();
+      await fireEvent.press(screen.getByLabelText(label));
+      expect(screen.getByLabelText('Film 2, 2020 · 1 h 40 · ★ 7.0')).toBeTruthy();
+      await fireEvent.press(screen.getByLabelText('Undo'));
+      expect(undone).toEqual([1]);
+      expect(screen.getByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0')).toBeTruthy();
+      expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+    },
+  );
 
   it('No sends seen and takes the card', async () => {
     const { votes } = await ask();

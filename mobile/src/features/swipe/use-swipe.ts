@@ -16,6 +16,7 @@ import i18n from '@/i18n';
 
 import { createAnswerer, type AnswerKind } from './answer';
 import { createCardStack, type AnsweredCard } from './card-stack';
+import { createUndoer, type LastAnswer } from './undo';
 import { voteQueue } from './index';
 
 // Everything the swipe screen needs from the app, in one hook: the card stack for this seat,
@@ -84,6 +85,18 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     }),
   );
 
+  const [undoer] = useState(() =>
+    createUndoer({
+      stack,
+      queue: voteQueue,
+      roomId,
+      memberId: seat.member_id,
+      locked: () => live.getState().locked,
+    }),
+  );
+  // The card Undo just brought back and the answer it had: the card moves in from that side.
+  const [returning, setReturning] = useState<LastAnswer | null>(null);
+
   // The room moved on (a match, the finale): no more input, and the room is read again so the
   // layout follows its state even if the event that said so never arrived.
   const lock = useCallback(() => {
@@ -97,12 +110,29 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       if (done) {
         answered.add(done.card.title_id);
         thrown.set(done.card.title_id, done.card);
+        undoer.record(done.card, kind);
+        setReturning(null);
         setSuperLikesLeft(answerer.superLikesLeft());
       }
       return done;
     },
-    [answerer, answered, thrown],
+    [answerer, answered, thrown, undoer],
   );
+
+  const undo = useCallback((): LastAnswer | null => {
+    const back = undoer.undo();
+    if (!back) return null;
+    answered.delete(back.card.title_id);
+    if (back.kind === 'super_like') {
+      answerer.giveBackSuperLike();
+      setSuperLikesLeft(answerer.superLikesLeft());
+    }
+    setReturning(back);
+    return back;
+  }, [undoer, answered, answerer]);
+
+  // Undo wakes with the first answer and sleeps after use, or when the room moves on.
+  const canUndo = useStore(undoer.state, (s) => s.last !== null) && !locked;
 
   // The match overlay asks this screen for the film's card first: one the phone already holds
   // (thrown, mounted or behind) needs no read.
@@ -192,6 +222,9 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   return {
     stack,
     answer,
+    undo,
+    canUndo,
+    returning,
     superLikesLeft,
     waitingVotes,
     locked,

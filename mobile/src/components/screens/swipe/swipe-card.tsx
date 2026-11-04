@@ -77,6 +77,8 @@ export type SwipeCardProps = {
   /** 0 on top, 1 and 2 behind. Ignored while flying. */
   depth: number;
   flight?: Flight;
+  /** Undo brought this card back: it comes in from the side it left (or fades, with Reduce Motion). */
+  returning?: { kind: AnswerKind };
   flipped: boolean;
   /** A near miss: the card takes the like glow, front and back. */
   glow?: boolean;
@@ -120,7 +122,8 @@ export function SwipeCard(props: SwipeCardProps) {
   const startY = useSharedValue(0);
   const touching = useSharedValue(0);
   const crossed = useSharedValue(0);
-  const fade = useSharedValue(1);
+  // A card that returns starts invisible: it is placed off to its side before it shows.
+  const fade = useSharedValue(props.returning ? 0 : 1);
   const depthValue = useSharedValue(depth);
   const isTop = depth === 0 && !flight;
   const isTopValue = useSharedValue(isTop ? 1 : 0);
@@ -191,6 +194,35 @@ export function SwipeCard(props: SwipeCardProps) {
     // A flight starts once, when the card is handed over.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flight]);
+
+  // Undo: the reverse of the throw (`timing.base`), from the side the card left. A card still in
+  // the air turns around where it is; one that landed enters from the side. Under Reduce Motion
+  // the card fades back in place.
+  const returning = props.returning;
+  useEffect(() => {
+    if (!returning) return;
+    cancelAnimation(x);
+    cancelAnimation(y);
+    forced.set(0);
+    forcedProgress.set(0);
+    if (reduced) {
+      x.set(0);
+      y.set(0);
+      fade.set(withTiming(1, { ...timing.base, reduceMotion: ReduceMotion.Never }));
+      return;
+    }
+    if (fade.get() === 0) {
+      const away = returning.kind === 'nope' ? -1 : 1;
+      const up = returning.kind === 'seen';
+      x.set(up ? 0 : away * screen.width * THROW_DISTANCE);
+      y.set(up ? -screen.height * THROW_DISTANCE : 0);
+      fade.set(1);
+    }
+    x.set(withTiming(0, timing.base));
+    y.set(withTiming(0, timing.base));
+    // Once per undo: `returning` is a new object each time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [returning]);
 
   const springBack = () => {
     'worklet';
