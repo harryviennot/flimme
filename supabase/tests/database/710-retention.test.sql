@@ -4,7 +4,7 @@
 -- still in play is never touched. Times are moved with plain inserts and updates.
 
 begin;
-select plan(43);
+select plan(47);
 
 select tests.create_catalog(6);
 select tests.create_player('rt-host');
@@ -161,6 +161,17 @@ insert into public.member_reports (room_id, reporter_member_id, reported_member_
 select room_id, a, b, 'spam'::public.report_reason, now() - interval '12 months 1 day' from rep
 union all select room_id, a, c, 'spam'::public.report_reason, now() - interval '11 months' from rep;
 
+-- Lobbies holding a report: the room waits for the report's 12 months.
+create temp table replobby as
+  with r as (select pg_temp.mkroom('abandoned', interval '8 days') as fresh, pg_temp.mkroom('abandoned', interval '8 days') as stale)
+  select r.fresh, r.stale,
+         pg_temp.mkseat(r.fresh, 'rt-f1') as f1, pg_temp.mkseat(r.fresh, 'rt-f2') as f2,
+         pg_temp.mkseat(r.stale, 'rt-s1') as s1, pg_temp.mkseat(r.stale, 'rt-s2') as s2
+  from r;
+insert into public.member_reports (room_id, reporter_member_id, reported_member_id, reason, created_at)
+select fresh, f1, f2, 'spam'::public.report_reason, now() - interval '11 months' from replobby
+union all select stale, s1, s2, 'spam'::public.report_reason, now() - interval '12 months 1 day' from replobby;
+
 -- ---------------------------------------------------------------------------------------------
 -- The run.
 -- ---------------------------------------------------------------------------------------------
@@ -218,7 +229,7 @@ select is((select count(*) from public.member_reports where reporter_member_id =
 -- The answer and the ingest_runs row
 select is((select r->'lobbies'->>'deleted' from run1), '2', 'the answer counts the lobbies deleted');
 select is((select r->'rate_limits'->>'deleted' from run1), '1', 'and the rate limits');
-select is((select r->'member_reports'->>'deleted' from run1), '1', 'and the reports');
+select is((select r->'member_reports'->>'deleted' from run1), '2', 'and the reports');
 select is((select (r->'lobbies'->>'capped')::boolean from run1), false, 'a rule under its cap says capped false');
 
 select is((select count(*) from public.ingest_runs where id = (select (r->>'run_id')::bigint from run1) and kind = 'retention' and finished_at is not null),
@@ -240,6 +251,13 @@ select is((select r->'rate_limits' from run3), '{"deleted": 2, "capped": true}':
 select is((select count(*) from public.rate_limits where key like 'rt:cap%'), 1::bigint, 'and one waits for the next night');
 create temp table run4 as select internal.run_retention(2) as r;
 select is((select r->'rate_limits' from run4), '{"deleted": 1, "capped": false}'::jsonb, 'the next run takes the rest, not capped');
+
+-- Reports in abandoned lobbies
+select ok(pg_temp.has_room((select fresh from replobby)), 'an abandoned lobby with a report under 12 months old survives the 7-day rule');
+select is((select count(*) from public.member_reports where room_id = (select fresh from replobby)), 1::bigint, 'and keeps its report');
+select ok(pg_temp.has_room((select stale from replobby)), 'a lobby whose report went at 12 months waits for the next night');
+create temp table run5 as select internal.run_retention() as r;
+select ok(not pg_temp.has_room((select stale from replobby)), 'and goes then, with nothing left to hold it');
 
 -- Access
 select ok(not (has_function_privilege('authenticated', 'internal.run_retention(integer)', 'execute')

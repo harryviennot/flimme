@@ -44,11 +44,16 @@ begin
 
   insert into public.ingest_runs (kind) values ('retention') returning id into v_run_id;
 
-  -- Lobbies that never started: abandoned, 7 days after they ended. Seats and cards cascade.
+  -- Lobbies that never started: abandoned, 7 days after they ended, and with no report under 12
+  -- months old. Seats and cards cascade.
   with doomed as (
     select r.id from public.rooms r
     where r.state = 'abandoned' and r.started_at is null
       and coalesce(r.ended_at, r.expires_at) < now() - interval '7 days'
+      -- A report is a safety record kept 12 months (data-model.md#retention) and would cascade
+      -- with its room: the room waits until the report rule has deleted its reports.
+      and not exists (select 1 from public.member_reports mr
+                      where mr.room_id = r.id and mr.created_at >= now() - interval '12 months')
     order by r.id limit p_cap + 1),
   gone as (
     delete from public.rooms where id in (select id from doomed order by id limit p_cap) returning 1)
