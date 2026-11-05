@@ -87,6 +87,7 @@ Deduplicated from the docs above. "DB" means the database through the nightly vi
 | Not there anymore | Picks reported unavailable on the winner screen, out of all picks: how stale TMDB's data is | DB: `api.report_unavailable` | Under 2% | TMDB |
 | Host controls | Rooms using Keep swiping, Vote now, changing filters while swiping, Play again | DB: `rooms.stats` | Watch | Game modes |
 | Taste check | Offered and skipped (PostHog); finished (DB: calibration answers) | PostHog and DB | Watch | Deck engine, onboarding |
+| Solo | Solo rooms are left out of every group row above, and out of the second-game rate (a solo room is neither a first game nor a return); a first seat in a solo room is entry `solo` in the onboarding time. Solo on its own (`analytics.solo_sessions`): sessions, median cards answered, picks and pick share, by day and country | DB: `rooms`, `room_members` | Watch | Solo and My films |
 
 ### Getting in
 
