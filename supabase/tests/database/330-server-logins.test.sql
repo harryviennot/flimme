@@ -159,7 +159,8 @@ select is(
       and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e')
       and has_function_privilege('app_http', p.oid, 'execute')
       and p.oid::regprocedure::text not in (
-        'internal.start_letterboxd_import(uuid,jsonb)', 'internal.enqueue(text,jsonb)')),
+        'internal.start_letterboxd_import(uuid,jsonb)', 'internal.enqueue(text,jsonb)',
+        'internal.http_profile_exists(uuid)')),
   0,
   'T6 app_http executes no other function of ours'
 );

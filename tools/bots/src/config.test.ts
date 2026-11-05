@@ -1,0 +1,76 @@
+import { describe, expect, it } from 'vitest';
+
+import { localBackend, parseArgs, parseStatusEnv, stagingBackend, UsageError } from './config';
+
+describe('parseArgs', () => {
+  it('defaults to three bots on the local stack that only stay present', () => {
+    expect(parseArgs(['--code', '482913'])).toEqual({
+      code: '482913',
+      count: 3,
+      target: 'local',
+      swipeMs: null,
+      likeRate: 0.5,
+    });
+  });
+
+  it('accepts the separator mise passes and every option', () => {
+    const config = parseArgs([
+      '--',
+      '--code',
+      'abc123',
+      '--count',
+      '5',
+      '--target',
+      'staging',
+      '--swipe-ms',
+      '1500',
+      '--like-rate',
+      '0.2',
+    ]);
+    expect(config).toEqual({
+      code: 'ABC123',
+      count: 5,
+      target: 'staging',
+      swipeMs: 1500,
+      likeRate: 0.2,
+    });
+  });
+
+  it.each([
+    [[], 'code'],
+    [['--code', '12'], 'code'],
+    [['--code', '482913', '--count', '0'], 'count'],
+    [['--code', '482913', '--count', '12'], 'count'],
+    [['--code', '482913', '--target', 'production'], 'target'],
+    [['--code', '482913', '--swipe-ms', '10'], 'swipe-ms'],
+    [['--code', '482913', '--like-rate', '2'], 'like-rate'],
+    [['--code', '482913', '--nope', '1'], 'nope'],
+    [['--code'], 'code'],
+  ])('refuses %j', (argv, word) => {
+    expect(() => parseArgs(argv)).toThrow(UsageError);
+    expect(() => parseArgs(argv)).toThrow(word);
+  });
+});
+
+describe('backends', () => {
+  it('reads the local stack from `supabase status -o env`', () => {
+    const text =
+      'API_URL="http://127.0.0.1:54321"\nPUBLISHABLE_KEY="sb_publishable_x"\nOTHER="y"\n';
+    expect(parseStatusEnv(text).OTHER).toBe('y');
+    expect(localBackend(text)).toEqual({ url: 'http://127.0.0.1:54321', key: 'sb_publishable_x' });
+  });
+
+  it('says so when the local stack is not running', () => {
+    expect(() => localBackend('')).toThrow(UsageError);
+  });
+
+  it('takes staging from the environment and never from a file', () => {
+    expect(
+      stagingBackend({ FLIMME_STAGING_URL: 'https://x.example', FLIMME_STAGING_KEY: 'k' }),
+    ).toEqual({
+      url: 'https://x.example',
+      key: 'k',
+    });
+    expect(() => stagingBackend({})).toThrow(UsageError);
+  });
+});

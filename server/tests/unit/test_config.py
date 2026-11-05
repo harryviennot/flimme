@@ -18,6 +18,7 @@ def clean_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: pytest.TempPath
         "API_DATABASE_URL",
         "TMDB_READ_TOKEN",
         "TMDB_TOKEN",
+        "SUPABASE_URL",
         "SENTRY_DSN",
     ):
         monkeypatch.delenv(name, raising=False)
@@ -133,3 +134,40 @@ def test_staging_does_not_fall_back_to_database_url(monkeypatch: pytest.MonkeyPa
 
     assert error.value.variable == "PIPELINE_DATABASE_URL"
     assert "s3cret" not in str(error.value)
+
+
+@pytest.mark.parametrize(
+    ("environment", "url", "valid"),
+    [
+        ("staging", "https://project.supabase.co", True),
+        ("production", "http://project.supabase.co", False),
+        ("staging", "http://127.0.0.1:54321", False),
+        ("local", "http://127.0.0.1:54321", True),
+        ("local", "http://localhost:54321", True),
+        ("local", "http://elsewhere.test", False),
+        ("staging", "project.supabase.co", False),
+    ],
+)
+def test_supabase_url_must_be_https_or_loopback_when_local(
+    monkeypatch: pytest.MonkeyPatch, environment: str, url: str, valid: bool
+) -> None:
+    monkeypatch.setenv("ENVIRONMENT", environment)
+    monkeypatch.setenv("SUPABASE_URL", url)
+
+    if valid:
+        assert Settings.load().supabase_url == url
+    else:
+        with pytest.raises(ValidationError):
+            Settings.load()
+
+
+def test_api_without_supabase_url_exits_1_and_names_it(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from server.cli import main
+
+    monkeypatch.setenv("ENVIRONMENT", "staging")
+    monkeypatch.setenv("API_DATABASE_URL", DATABASE_URL)
+
+    assert main(["api"]) == 1
+    assert "SUPABASE_URL" in capsys.readouterr().err
