@@ -710,7 +710,7 @@ Connecting by export, the RSS check, syncing and gaps are in [integrations/lette
 ### Deleting an account, exporting data
 
 - **Delete** (App Store guideline 5.1.1(v)): the phone calls the server's HTTP API, which deletes the auth user through Supabase's admin API. That cascades to the profile, services, consents, linked accounts, imports, diary entries, film history and taste profile. Seats in past rooms keep their votes but lose `profile_id`, `controlled_by` and their name, so the swipe log, training data and other players' history stay correct and anonymous.
-- **Export** (GDPR): `api.export_my_data()` returns the profile, services, consents, linked accounts, the Letterboxd diary, film history, taste affinities and the player's own votes as JSON.
+- **Export** (GDPR): `api.export_my_data()` returns the profile, services, consents, linked accounts, the Letterboxd diary, film history, taste affinities and, for each game the player sat in, their own seat (name, how it joined, services), votes with titles, swipes, Final Cut ballots, the room's pick and the after-game answers, as JSON. Never another seat's data, and never reports (decisions.md). Card memory joins the export when the table exists.
 
 ## The app's API
 
