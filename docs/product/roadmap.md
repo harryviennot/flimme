@@ -63,6 +63,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | Rooms | Create a room, join by code, link or QR code, a live lobby. The host picks the room's services, an age cap and a time budget |
 | Safety | The host can remove a player and lock the room. Names are filtered. Anyone can report a player |
 | The game | Quick Match for 2 to 10 players: like, nope, super like, seen it, undo. Instant matches, the Final Cut round when no match comes, a winner screen that says where to watch, the recap card to share, Play again, sound for the match and the reveal |
+| Solo and My films | Play alone, with a film for tonight when you want one, up to 100 solo cards a day. My films: the films you liked and the films you've seen, in a grid |
 | The deck | Built in SQL: films on the room's services in France, ranked by quality and popularity, shuffled differently every game, one film per franchise, films a player marked as seen left out, likes moved into the others' next cards |
 | Catalog | France only, from TMDB, refreshed every night |
 | Settings | Language, the analytics opt-out, download and delete my data, credits |
@@ -99,12 +100,12 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 38 | In progress |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 46 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 12 | In progress |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 9 | In progress |
 | [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | Not started |
-| [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the reviewers' demo room are ready on both stores | 9 | Not started |
+| [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the review notes are ready on both stores, and Play alone reaches a pick on one device | 8 | Not started |
 | [M12](#m12-closed-beta) | Closed beta | Friend groups and families play, Google's 12 testers have run 14 days, and the go decision is made | 7 | Not started |
 | [M13](#m13-public-launch) | Public launch | Live on both stores in France | 6 | Not started |
 | **After launch** | | | | |
@@ -115,12 +116,12 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M18](#m18-more-modes-and-host-controls) | More modes and host controls | Final Cut and Date Night modes and the host controls are live | 8 | Not started |
 | [M19](#m19-smart-deck) | Smart deck | Taste-based decks beat the crowd deck in an A/B test | 10 | Not started |
 | [M20](#m20-letterboxd) | Letterboxd | Players connect by export and their history shapes decks | 11 | Not started |
-| [M21](#m21-monetization) | Monetization | Host Pro, the Night Pass and packs are on sale | 9 | Not started |
+| [M21](#m21-monetization) | Monetization | Host Pro, the Night Pass and packs are on sale | 10 | Not started |
 | [M22](#m22-learning-engine) | Learning engine | A trained model ranks decks for part of the traffic | 5 | Not started |
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 131 of 270 tasks done.
+Progress: 133 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -436,6 +437,12 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: the vote between matches, the single-match pick, and rounds of 2 and 3 films closing are tested.
 - [x] **M6.36** One seat each among the finalists: after the matches, the liked film that gives a seat to the most present players without one · backend · M · needs M6.4 · [game-modes](game-modes.md#the-finalists)
   Done when: rule 2 of "The finalists" is tested, ties and a player who left included.
+- [ ] **M6.40** The solo game mode: a `solo` mode with one seat, `api.start_solo` and `api.solo_pick`, no join, no match and no finale, an idle solo room ended after 30 minutes, solo decks without films answered in earlier solo rooms · backend · L · needs M6.29, M6.30, M6.34 · [solo](solo-and-my-films.md#4-a-room-with-one-seat-or-a-separate-flow), [game-modes](game-modes.md#the-modes)
+  Done when: each rule of the solo mode in "The modes" is tested, the 30-minute end and a pick included.
+- [ ] **M6.41** My films in `user_titles`: the `solo` source, `liked_at`, `super_liked`, `picked_at` and `seen_at`, likes written by `api.cast_vote` and taken back by undo, a group's pick marked for every seated player, `api.my_films`, `api.my_film_card`, `api.set_film_seen`, `api.remove_my_film`, and the export · backend · L · needs M6.40, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [data-model](../architecture/data-model.md#4-film-history-and-taste)
+  Done when: undo, both sources, a pick, the reads and edits, deletion and retention are tested, and nothing in a room reads a like.
+- [ ] **M6.42** The solo daily cap, and solo in the metric views: 100 solo cards a day per player (`app_config.solo_daily_cards`, Paris day), the deal stops at the cap, `daily_limit` from `api.start_solo` and `api.request_cards`; solo rooms left out of the group metrics, with solo sessions, cards per session and solo picks · backend · M · needs M6.40, M9.3 · [solo](solo-and-my-films.md#8-the-cap), [analytics](analytics.md#game)
+  Done when: the cap, undo giving nothing back, group rooms never counted, and the metric views are tested.
 
 **App**
 
@@ -475,13 +482,23 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on simulators against staging with the bots plays each beat, fills the top bar to the Final Cut, and reads the shortlist back after a cold start.
 - [x] **M6.38** The Final Cut with 2 films and its intro line: the 2-film vote without a veto, its reveal, and the fixed line on how the films were chosen · app · M · needs M6.33, M6.35, M6.15, M6.31 · [the finalists](game-modes.md#the-finalists), [final-cut](../design/screens/final-cut.md#layout)
   Done when: a touch run against staging reaches a 2-film vote and its reveal, and every Final Cut shows the intro line in French and English.
+- [ ] **M6.39** Solo and My films, the specs and beats: the tab bar, Play, Play alone setup, the solo swipe variant (top bar, checkpoint card, cap card, pick sheet), the solo pick, My films and the film sheet; the checkpoint and solo pick beats; the frames on the Figma's First release page · design · L · [solo](solo-and-my-films.md#the-screens-to-spec), [moments](../design/moments.md)
+  Done when: every screen has a spec with its states and its copy in French and English, both beats are in moments.md, and the frames are on the First release page.
+- [ ] **M6.43** The tab bar: Play (today's Home) and My films as Expo Router tabs; host setup, join, rooms and Settings over the tabs with no tab bar; deep links and the redirects from `/` still work · app · M · needs M6.39 · [solo](solo-and-my-films.md#2-the-tab-bar), [app-structure](../architecture/app-structure.md#screens-and-navigation)
+  Done when: a touch run on the simulator moves between the tabs, opens host setup, a join link, a room and Settings with no tab bar, and comes back to Play.
+- [ ] **M6.44** Play alone: the Play alone card, Play alone setup, the solo swipe variant, the checkpoint card every 20 cards, the pick sheet and the solo pick, the cap card · app · L · needs M6.39, M6.40, M6.42, M6.43 · [solo](solo-and-my-films.md#3-what-solo-ends-with), [game-modes](game-modes.md#the-modes)
+  Done when: a touch run on the simulator against staging plays alone past two checkpoints, picks a film and sees where to watch, leaves a session, and meets the cap card, in French and English.
+- [ ] **M6.45** My films and the film sheet: the grid, Liked and Seen, the chips, the badges, the empty, loading and offline states; the film sheet with the card back, where to watch, Mark as seen and Remove · app · L · needs M6.39, M6.41, M6.43 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles)
+  Done when: a touch run on the simulator against staging shows likes, a group's pick with its badge and a seen film, removes a film and undoes it, and marks one as seen, in French and English.
+- [ ] **M6.46** Analytics for solo and My films: `solo:session_start`, `solo:checkpoint_view`, `solo:pick_submit`, `solo:cap_show` and `my_films:grid_view`, with no film ids · app · S · needs M9.2, M6.44, M6.45 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [analytics](analytics.md#events)
+  Done when: each event shows in PostHog from a test device, and none leaves a phone in a solo session with an age cap under 13.
 
 **Tests**
 
 - [x] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
   Done when: bots can fill a room on staging.
 - [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, every way to a pick (a single match, a vote between matches, the Final Cut from swipes), leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12, M6.29, M6.30, M6.31, M6.37, M6.38 · [game-modes](game-modes.md#a-game-at-a-glance)
-  Done when: every run ends with a pick within the limits; the swiping after the first match is timed, and every player is asked "was there a film for you in the vote?"; bugs become tasks.
+  Done when: every run ends with a pick within the limits; the swiping after the first match is timed, and every player is asked "was there a film for you in the vote?" and "would you use it on your own?"; bugs become tasks.
 
 **Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
 
@@ -546,7 +563,7 @@ Knowing that the app works and how it's used, from the first outside game.
 
 Done when: the headline metrics, alerts and backups work, and the load test passes.
 
-- [ ] **M9.1** PostHog by region: anonymous in the EU, the UK and Switzerland unless the player opts in, identified elsewhere; the opt-out; no events from rooms with an age cap under 13 · app · L · needs M3.6, M8.7 · [analytics](analytics.md#consent-and-kids)
+- [x] **M9.1** PostHog by region: anonymous in the EU, the UK and Switzerland unless the player opts in, identified elsewhere; the opt-out; no events from rooms with an age cap under 13 · app · L · needs M3.6, M8.7 · [analytics](analytics.md#consent-and-kids)
   Done when: tested with a French and a US device region.
 - [ ] **M9.2** The first release's events, through the typed wrapper · app · M · needs M9.1 · [analytics](analytics.md#events-sent-to-posthog)
   Done when: each event shows in PostHog from a test device.
@@ -554,7 +571,7 @@ Done when: the headline metrics, alerts and backups work, and the load test pass
   Done when: the views return sensible numbers on staging test games.
 - [x] **M9.4** Server logging without personal data, and Sentry on the server with no user id · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
   Done when: a server error shows in Sentry with no personal data.
-- [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load, new reports · backend · M · needs M2.11, M6.6, M9.4, M2.12, M7.1, M8.9 · [operations](../architecture/operations.md#monitoring-and-alerts)
+- [x] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load, new reports · backend · M · needs M2.11, M6.6, M9.4, M2.12, M7.1, M8.9 · [operations](../architecture/operations.md#monitoring-and-alerts)
   Done when: a stopped worker raises an alert, and a new report alerts within 5 minutes.
 - [x] **M9.6** Backups: the weekly logical dump and the restore script · ops · M · needs M1.1 · [operations](../architecture/operations.md#backups-and-restore)
   Done when: the weekly dump runs, and a local drill restores it.
@@ -576,7 +593,7 @@ Done when: five real movie nights end with a pick.
 - [ ] **M10.2** First production-signed builds to TestFlight internal and Play internal testing · ops · M · needs M10.1, M3.2, M3.9, M6.20, M4.18 · [store-listing](store-listing.md#the-closed-beta)
   Done when: the testers install from TestFlight and Play.
 - [ ] **M10.3** A week of real movie nights with Harry and two or three friends, on the production catalog · product · M · needs M10.2, M2.13 · [store-listing](store-listing.md#the-closed-beta)
-  Done when: five nights played; issues filed as tasks.
+  Done when: five nights played, Play alone and My films tried on real phones; issues filed as tasks.
 - [ ] **M10.4** Fix what blocks the alpha · app · L · needs M10.3
   Done when: no open issue stops a night from ending with a pick.
 
@@ -584,7 +601,9 @@ Done when: five real movie nights end with a pick.
 
 Everything the stores ask before outside testers and reviewers.
 
-Done when: listings, ratings, privacy forms and the reviewers' demo room are ready on both stores.
+Done when: listings, ratings, privacy forms and the review notes are ready on both stores, and Play alone reaches a pick on one device.
+
+M11.7 (the reviewers' demo room: a reserved code that `api.create_room` never draws and `api.join_room` recognises, where two server bots join and swipe) is in reserve since 5 November 2026: Play alone lets a reviewer reach a pick on one device. It comes back as a task, with its old needs (M6.19, M2.12), only if a store review is rejected ([decisions](../decisions.md)).
 
 - [ ] **M11.1** Listing copy in French and English: subtitle, descriptions, keywords, within limits, no "for kids", the TMDB and JustWatch credits · content · M · needs M0.1 · [store-listing](store-listing.md#the-listing-in-english-and-french)
   Done when: entered in both consoles.
@@ -598,9 +617,7 @@ Done when: listings, ratings, privacy forms and the reviewers' demo room are rea
   Done when: both ratings issued.
 - [ ] **M11.6** App Privacy labels and Play's Data safety form for the first release · publishing · M · needs M8.1, M9.1, M10.1 · [privacy](privacy.md#store-privacy-forms)
   Done when: both submitted.
-- [ ] **M11.7** The reviewers' demo room: a reserved code that `api.create_room` never draws and `api.join_room` recognises, where two server bots join and swipe · server · L · needs M6.19, M2.12 · [store-listing](store-listing.md#passing-review)
-  Done when: one phone alone reaches a pick with the demo code.
-- [ ] **M11.8** Review notes: how to play alone with the demo room, no account needed, deletion in Settings · publishing · S · needs M11.7 · [store-listing](store-listing.md#passing-review)
+- [ ] **M11.8** Review notes: Play alone on one device, a group game on two devices, no account needed, deletion in Settings · publishing · S · needs M6.44 · [store-listing](store-listing.md#passing-review)
   Done when: entered in both consoles.
 - [ ] **M11.9** Support, privacy and deletion URLs; content rights; the encryption exemption; Android target API 36 · publishing · S · needs M8.3, M10.1 · [store-listing](store-listing.md#release-checklist)
   Done when: both consoles show no missing item.
@@ -844,6 +861,8 @@ Done when: Host Pro, the Night Pass and packs are on sale.
   Done when: published.
 - [ ] **M21.9** "Rent it" affiliate links on the host's phone (optional) · app · needs M21.1 · [monetization](monetization.md#affiliate-payouts)
   Done when: built, or dropped in decisions.md.
+- [ ] **M21.10** Unlimited solo cards with Pro: `api.start_solo` and the deal skip the daily cap for a player with Pro; the cap card's quiet line about Pro comes with M21.6 · backend · needs M21.4, M6.42 · [monetization](monetization.md#free-vs-host-pro)
+  Done when: tested with and without Pro.
 
 ## M22 Learning engine
 
@@ -910,7 +929,7 @@ This roadmap assumes answers to some open questions. Each has a task to confirm 
 | --- | --- |
 | The finale is one 60-second round, and every rule has a 6-minute limit | M0.7 (decided on 30 October 2026) |
 | No browser version: guests download the app | M0.8 (decided on 30 October 2026) |
-| The first release has no accounts, no Letterboxd, no taste check, no moods and no other modes | This roadmap, at Harry's request |
+| The first release has no accounts, no Letterboxd, no taste check, no moods and no other group modes | This roadmap, at Harry's request |
 | France only at launch; Belgium and Switzerland follow in M24 | M24.1 |
 | No lawyer's review is scheduled unless M8.11 says so | M8.11 |
 | The first release stays within TMDB's free licence because it uses no machine learning and earns nothing | M0.5 |

@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { UpdateGate } from '@/components/screens/update/update-gate';
 import { ToastHost } from '@/components/ui/toast';
+import { useAnalyticsSetup, useScreenTracking } from '@/features/analytics';
 import { registerDevMenu } from '@/features/dev/dev-menu';
 import { watchNetwork } from '@/features/network';
 import { useDeviceProfileSync } from '@/features/profile';
@@ -34,6 +35,14 @@ function DeviceProfileSync() {
   useDeviceProfileSync(session?.status === 'ok');
   // An analytics choice the server has not confirmed yet is sent once per launch (settings.md).
   useAnalyticsSyncOnLaunch(session?.status === 'ok');
+  return null;
+}
+
+// After the stack in the tree, so a room's layout has reported its cap before the screen event.
+function AnalyticsBridge() {
+  const session = useSession();
+  useAnalyticsSetup(session?.status === 'ok');
+  useScreenTracking();
   return null;
 }
 
@@ -92,6 +101,7 @@ function RootLayout() {
             </Stack>
             <ToastHost />
           </UpdateGate>
+          <AnalyticsBridge />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

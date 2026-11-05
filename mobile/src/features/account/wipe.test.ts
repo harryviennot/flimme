@@ -31,6 +31,32 @@ describe('the wipe', () => {
     expect(order).toEqual(['signOut', 'a', 'b', 'queries', 'guest']);
   });
 
+  it('resets analytics before it signs out', async () => {
+    const order: string[] = [];
+    await wipeWith({
+      forgetAnalytics: () => void order.push('analytics'),
+      signOut: async () => void order.push('signOut'),
+      clearLocal: [() => order.push('a')],
+      clearQueries: () => order.push('queries'),
+      startGuest: async () => void order.push('guest'),
+    });
+    expect(order).toEqual(['analytics', 'signOut', 'a', 'queries', 'guest']);
+  });
+
+  it('still wipes when analytics throws', async () => {
+    const guest = jest.fn(async () => undefined);
+    await wipeWith({
+      forgetAnalytics: () => {
+        throw new Error('x');
+      },
+      signOut: async () => undefined,
+      clearLocal: [],
+      clearQueries: () => undefined,
+      startGuest: guest,
+    });
+    expect(guest).toHaveBeenCalled();
+  });
+
   it('still clears the rest when one store or the sign-out fails', async () => {
     const later = jest.fn();
     const guest = jest.fn(async () => undefined);

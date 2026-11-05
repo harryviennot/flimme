@@ -83,6 +83,19 @@ export function resolveConfig(env: Env, options: { dev: boolean; backend: Backen
   return parseConfig(env);
 }
 
+/**
+ * The PostHog project key, set in EAS production only (decisions.md, row 41). Empty or missing is
+ * normal and turns analytics off: it is never a start-up error like the other values.
+ */
+export function analyticsKey(env: Env): string | null {
+  return env.EXPO_PUBLIC_POSTHOG_KEY?.trim() || null;
+}
+
+export function getAnalyticsKey(): string | null {
+  // Expo inlines `process.env.EXPO_PUBLIC_*` only when written out in full.
+  return analyticsKey({ EXPO_PUBLIC_POSTHOG_KEY: process.env.EXPO_PUBLIC_POSTHOG_KEY });
+}
+
 function readEnv(): Env {
   // Expo inlines `process.env.EXPO_PUBLIC_*` only when written out in full.
   return {
