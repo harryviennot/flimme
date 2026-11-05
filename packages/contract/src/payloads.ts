@@ -217,6 +217,34 @@ export const startGameResult = z.discriminatedUnion('status', [
 ]);
 export type StartGameResult = z.infer<typeof startGameResult>;
 
+/**
+ * `api.start_solo` (M6.40). `ok` is swiping already; `dealing` waits for the deck worker. The room
+ * of a `too_few_films` answer is abandoned and not returned. `field` names the refused setting.
+ */
+export const startSoloResult = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('ok'),
+    room_id: z.string(),
+    member_id: z.string(),
+    state: z.literal('swiping'),
+  }),
+  z.object({ status: z.literal('dealing'), room_id: z.string(), member_id: z.string() }),
+  z.object({ status: z.literal('invalid_settings'), field: z.string() }),
+  z.object({ status: z.literal('too_few_films'), eligible: z.number() }),
+  z.object({
+    status: z.enum(['name_required', 'country_required', 'rate_limited', 'daily_limit']),
+  }),
+]);
+export type StartSoloResult = z.infer<typeof startSoloResult>;
+
+/** `api.solo_pick` (M6.40). */
+export const soloPickResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), title_id: z.number() }),
+  z.object({ status: z.literal('not_liked') }),
+  z.object({ status: z.literal('closed'), state: roomState }),
+]);
+export type SoloPickResult = z.infer<typeof soloPickResult>;
+
 // --- Swiping ---------------------------------------------------------------------------
 
 const matchKind = z.enum(['unanimous', 'majority', 'finale']);
@@ -279,6 +307,7 @@ export const requestCardsResult = z.discriminatedUnion('status', [
   z.object({ status: z.literal('enough'), remaining: z.number() }),
   z.object({ status: z.literal('closed'), state: roomState }),
   z.object({ status: z.literal('done'), liked: z.number() }),
+  z.object({ status: z.literal('daily_limit') }),
 ]);
 export type RequestCardsResult = z.infer<typeof requestCardsResult>;
 

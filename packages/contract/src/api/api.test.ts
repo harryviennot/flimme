@@ -19,6 +19,8 @@ import {
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
+  START_SOLO_ANSWERS,
+  SOLO_PICK_ANSWERS,
   TITLE_CARDS_ANSWERS,
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
@@ -213,6 +215,23 @@ const cases = [
       not_enough_players: { need: 2 },
       too_few_films: { eligible: 12 },
     },
+  },
+  {
+    name: 'start_solo',
+    answers: START_SOLO_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.startSolo({ settings: { quality: 'standard' } }),
+    full: {
+      ok: { room_id: ROOM, member_id: MEMBER, state: 'swiping' },
+      dealing: { room_id: ROOM, member_id: MEMBER },
+      invalid_settings: { field: 'seen_rule' },
+      too_few_films: { eligible: 12 },
+    },
+  },
+  {
+    name: 'solo_pick',
+    answers: SOLO_PICK_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.soloPick({ room_id: ROOM, title_id: 7 }),
+    full: { ok: { title_id: 7 }, closed: { state: 'done' } },
   },
   {
     name: 'title_cards',
