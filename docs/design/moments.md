@@ -1,6 +1,6 @@
 # Signature moments
 
-The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match. The winner was added on 4 November 2026, before M6.16, and the Final Cut the same day, before M6.15 (with Harry's answers Q5.1, Q5.2, Q5.5 and Q15.1 to Q15.5). The reveal was added the same day, before M6.31 (with Q15.1, Q15.4 and Q31.1).
+The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match. The winner was added on 4 November 2026, before M6.16, and the Final Cut the same day, before M6.15 (with Harry's answers Q5.1, Q5.2, Q5.5 and Q15.1 to Q15.5). The reveal was added the same day, before M6.31 (with Q15.1, Q15.4 and Q31.1). The shortlisted beat was added on 5 November 2026, before M6.37, from the rules Harry decided that day ([up to 3 matches](../product/three-matches-and-fair-finalists.md#decided)): a match joins the room's shortlist and swiping goes on, the third match starts the finale, and the match overlay now plays only for the night's pick.
 
 It builds on [the answers](../product/game-modes.md#the-answers), [when it's a match](../product/game-modes.md#when-its-a-match) and [what players see](../product/game-modes.md#what-players-see-party-and-blind) in the game modes, [the card stack](../architecture/app-structure.md#the-card-stack), [the vote queue](../architecture/app-structure.md#the-vote-queue) and [realtime](../architecture/app-structure.md#realtime) in the app structure, [the first game](../product/onboarding.md#the-first-game) in onboarding, [the signature moments](../agent-workflow.md#the-signature-moments) in the agent workflow, and the `motion` skill (tokens, the haptic vocabulary, the two sounds). The backend facts come from the merged migrations of 3 November 2026: a deal is 25 cards per seat with a shared opening of 10, a vote counts on any active card in the room's pool, "Seen it" saves to the profile, and `api.cast_vote` checks matches (M1.13) while the match rules and their values are M6.1, not yet built.
 
@@ -16,9 +16,10 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 6. [The winner](#the-winner)
 7. [The Final Cut](#the-final-cut)
 8. [The reveal](#the-reveal)
-9. [Starting values](#starting-values)
-10. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
-11. [Questions for Harry](#questions-for-harry)
+9. [The shortlisted beat](#the-shortlisted-beat) (it plays before the match in a game; it comes last here so the links into the other moments keep working)
+10. [Starting values](#starting-values)
+11. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
+12. [Questions for Harry](#questions-for-harry)
 
 ## What every moment keeps
 
@@ -29,7 +30,8 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 | A swipe | Nothing about the answer. The player's swipe count, in presence, every 5 swipes (the player pills) | Every 5 swipes |
 | A flip | Nothing. Whether the card was flipped goes to the server's `swipe_log` with the vote, never to a phone | Never |
 | A near miss | A count of likes on one film, `near_miss` with `likes` and `of` | After the like that makes it a near miss |
-| A match | The film, the kind, the count (`3 of 3`, `7 of 9`) and whether it decides the night, `match` | At once, on every phone |
+| A match that joins the shortlist | The film, the kind, the count (`3 of 3`, `7 of 9`), the shortlist's count (`shortlisted` of `shortlist_size`) and `decided: false`, `match` | At once, on every phone |
+| A match that is the pick | The film, the kind, the count and `decided: true`, `match` (with `reason: 'only_match'` when the finale found a single match) | At once, on every phone |
 | The Final Cut | Which seats have locked in, `round_progress` with `locked` (seat ids) and `of`. Never a ballot, a veto or points | After each lock-in |
 | The reveal | The winner, the reason, and each finalist's seed, points and whether it was knocked out, `match` of kind `finale`. Never who vetoed or how anyone ranked | At the close, on every phone |
 
@@ -37,13 +39,13 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 
 **Couch rule.** Most groups sit together and can see each other's faces and sometimes screens. A beat must not let a player work out someone's nope from timing: nothing appears on everyone's phone at the moment one person swipes, except the match itself (which only ever says yes). This is why [the near miss](#the-near-miss) shows on the cards still waiting for an answer, not on every phone.
 
-**Haptics** use the vocabulary in `@/lib/haptics`, one meaning each: `commit`, `throw` and `match` here, `veto` and `countdown` in the Final Cut, `veto` and `match` again in the reveal; `press` comes with every `Pressable`. No moment adds a new haptic. The haptics setting turns all of them off.
+**Haptics** use the vocabulary in `@/lib/haptics`, one meaning each: `commit`, `throw` and `match` here, `shortlist` for the shortlisted beat, `veto` and `countdown` in the Final Cut, `veto` and `match` again in the reveal; `press` comes with every `Pressable`. The shortlisted beat is the only moment that adds a haptic (`haptics.shortlist()`, M6.37): a shortlisted match needs a buzz that says "yes, together", and `match` must keep meaning "this is the night's film". The haptics setting turns all of them off.
 
 **Sound** is only for the match (`playSound('match')`) and the Final Cut's reveal (`playSound('reveal')`), decided on 29 October 2026. Every other moment is silent.
 
 **Reduce Motion.** Reanimated skips animations by default when the system setting is on, which would make things jump. Each beat says what replaces its movement: flights become short slides or fades, scales become fades, chases and pulses become still. Fades use opacity only. Haptics and sound don't change with Reduce Motion; they follow their own settings.
 
-**The next card never waits.** No moment blocks the stack except the match, which ends the game. A new touch cancels any animation still running on the top card (the `motion` skill's rule 1); a card already thrown finishes its flight on its own.
+**The next card never waits.** No moment blocks the stack except the match, which ends the game, and the shortlisted beat, which holds it for under 2 seconds so the whole couch looks up at the same film. A new touch cancels any animation still running on the top card (the `motion` skill's rule 1); a card already thrown finishes its flight on its own.
 
 ## The swipe
 
@@ -223,15 +225,20 @@ The toast fades in and out (`layout.fadeIn`, `layout.fadeOut`) instead of slidin
 
 ### The beat
 
-**"It's a match": every phone at once, the same celebration everywhere, and the night has its film.** This is the payoff of the whole game and the one moment that's allowed to be loud: the marquee bulbs chase, the poster takes the whole screen, everyone's avatars pop in, every phone in the room buzzes together and plays the match sound. On a couch, the room should react out loud at the same second.
+**"It's a match": every phone at once, the same celebration everywhere, and the night has its film.** It plays only when a match is the night's pick; a match that joins the shortlist gets [the shortlisted beat](#the-shortlisted-beat) instead. This is the payoff of the whole game and the one moment that's allowed to be loud: the marquee bulbs chase, the poster takes the whole screen, everyone's avatars pop in, every phone in the room buzzes together and plays the match sound. On a couch, the room should react out loud at the same second.
 
 It celebrates the group, not a person: no phone shows who liked it last, or who didn't.
 
 ### When it happens
 
-`api.cast_vote` makes the match after a like (M1.13, with the rules of M6.1), and the leave and remove re-check can make one too (M4.2); the sweeper will after a long silence (M6.6). In Quick Match, the only mode in the first release, the first match is the night's pick: the room goes to `done` and the `match` event says `decided`. (Keep swiping is M18.4, after the first release, so the overlay has no Keep swiping button yet.)
+Only for the night's pick, which the `match` event marks `decided: true` (decided on 5 November 2026, [when it's a match](../product/game-modes.md#when-its-a-match)). That happens two ways:
 
-Each phone starts the overlay at the first of two signals: the `ok` answer to its own vote with `match: true`, or the `match` event. The phone that completed the match usually knows a few hundred milliseconds early from its own answer; starting on the first signal keeps that phone in step with the others rather than ahead of them. The overlay is identical on that phone, so it doesn't single out the last like.
+- **A single match when the finale starts** (`only_match`), in Quick Match and Date Night: the card count, the time limit or everyone running out of cards ends swiping with exactly one film on the shortlist, so that film is the pick with no vote. The event carries `reason: 'only_match'` and the match's own kind and counts. Nobody just swiped: the room was already looking at that film in its shortlist.
+- **Any match in a mode with `matches_to_end` 1** (a later fast mode; none at launch). `api.cast_vote` makes it after a like, or the re-check after a leave, a removal or a silence does, and the room goes to `done`.
+
+Every other match joins the shortlist and plays [the shortlisted beat](#the-shortlisted-beat). When a vote picks between matches, the reveal is the celebration, not this overlay (Q15.1). There is no Keep swiping button: swiping already goes on after a shortlisted match (Keep swiping, M18.4, was dropped on 5 November 2026).
+
+Each phone starts the overlay at the first of two signals: the `ok` answer to its own vote with `match: true` and `decided: true` (only in a mode with 1), or the `match` event. The phone that completed the match usually knows a few hundred milliseconds early from its own answer; starting on the first signal keeps that phone in step with the others rather than ahead of them. The overlay is identical on that phone, so it doesn't single out the last like.
 
 ### The sequence
 
@@ -267,13 +274,15 @@ Every phone in the room shows the same overlay on the `match` event, within netw
 
 ### Edge cases
 
-- **Two matches at once.** In Quick Match it can't happen: votes in a room run one after another under the room's lock, the first match ends the room, and any later vote gets `closed`. The re-check after someone leaves walks the liked films and stops at the first that decides the night; which film goes first when two would match at once is [question 5](#questions-for-harry). The phone shows one overlay per room and ignores a second `match` event for a room that's already decided. (Final Cut mode, after the first release, shortlists several matches in a row; each gets a short "Shortlisted" notice, not this overlay.)
+- **Two matches at once.** In the launch modes they both join the shortlist, one [shortlisted beat](#edge-cases-7) after the other, and the overlay doesn't play for either; the shortlist stops at `matches_to_end`, most liked first. In a mode with 1, votes in a room run one after another under the room's lock, the first match ends the room, and any later vote gets `closed`; the re-check after someone leaves stops at the first film that decides the night ([question 5](#questions-for-harry)). Either way the phone shows one overlay per room and ignores a second decided `match` for a room it already showed.
+- **A shortlisted beat is playing** when the pick arrives (a match on the vote that also reached the card count, then `only_match`). The overlay takes over at once.
 - **A card mid-flip or on its back.** The overlay covers it; the card's side doesn't matter. If it's the matched film, the poster is the same film.
 - **The "Watch it again tonight?" question is open.** It closes without a vote; the overlay takes over.
+- **`only_match`.** The overlay plays over the swipe screen or the done card, from the event (no phone's own answer carries it). The count is the match's own ("3 of 3"), from when it matched. The film is already in the top bar's shortlist; the poster still scales from a card-size frame centred on the stack.
 - **A near-miss toast is showing.** It leaves with `layout.fadeOut` as the scrim comes in.
 - **The phone was offline or in the background.** It didn't get the event. When the connection comes back or the app returns to the foreground, it re-reads the room ([missed messages are normal](../architecture/app-structure.md#realtime)); its queued votes come back `closed` and are dropped quietly. It then plays the overlay once, in full, because a player who missed the moment still deserves it, and goes on to the winner screen. A phone that already showed the overlay for this room goes straight to the winner screen.
 - **The match comes from someone leaving.** Nobody just swiped; the overlay is the same.
-- **The finale started at the same moment.** The room's lock orders them: if the like came first, the match wins and no finale starts; if the finale started first, the like gets `closed` and the Final Cut screen takes over.
+- **The finale started at the same moment.** The room's lock orders them: if the like came first, its match is counted when the finale starts (and may be the pick, `only_match`, or one of the films in the vote); if the finale started first, the like gets `closed` and the Final Cut screen takes over.
 - **The phone is locked.** No notification in the first release; the overlay plays when the player comes back, as above.
 
 ## The winner
@@ -290,7 +299,7 @@ Every phone gets there on its own, from the same room state (`done` with a `pick
 
 | From | How the arrival feels |
 | --- | --- |
-| The match overlay ([the match](#the-match)) | A settling, not a new moment. The winner screen is already under the overlay; the overlay fades out (`layout.fadeOut`) and the same film's poster is there, still. Nothing on the winner screen animates in |
+| The match overlay ([the match](#the-match): a single match when the finale starts, or a mode with 1) | A settling, not a new moment. The winner screen is already under the overlay; the overlay fades out (`layout.fadeOut`) and the same film's poster is there, still. Nothing on the winner screen animates in |
 | The Final Cut (until M6.31, Q15.4) | The news itself, told quietly. "Counting the votes" gives way to the winner screen with a fade (`layout.fadeIn`, `duration.base`). This is the one arrival where the players learn the winner here, so the title is what the screen reader reads first. When M6.31 ships, [the reveal](#the-reveal) plays the celebration first and the winner screen fades in after it, with nothing else animating in |
 | A single-film pick (Q4.4) | No overlay (Q4.5) and no vote. The stack stops taking input as it does for a match (a card mid-drag springs back, `spring.card`), and the winner screen fades in (`layout.fadeIn`, `duration.base`). One line above the title says why: "The only film anyone liked". The reveal beat (M6.31) may give it more |
 | A cold start or a return to a `done` room | Straight to the screen, no transition, once the overlay rule has played or skipped (match-shown) |
@@ -323,15 +332,17 @@ Runners-up, with who liked them in Party mode, are M6.32, after this beat.
 
 ### The beat
 
-**"Pick one. Veto one.": 60 seconds to agree out loud.** Nobody matched, so the room votes on 3 or 4 finalists. This is the one moment where talking is the game: people lobby, laugh and bargain on the couch while each phone keeps its own secret ballot. It should feel short, a little tense and fair. Each player ranks by tapping posters in order, may veto one film (Final Cut only), and locks in. The only thing the room learns while it runs is who has locked in.
+**"Pick one. Veto one.": 60 seconds to agree out loud.** The shortlist filled up (3 matches), or swiping ended with 2 matches or none, so the room votes: on its 3 matches, on its 2 matches, or on 3 or 4 finalists from the swipes ([the finalists](../product/game-modes.md#the-finalists)). This is the one moment where talking is the game: people lobby, laugh and bargain on the couch while each phone keeps its own secret ballot. It should feel short, a little tense and fair. Each player ranks by tapping posters in order, may veto one film (Final Cut only), and locks in. The only thing the room learns while it runs is who has locked in.
 
-In a ranked vote (Quick Match with 5 to 10 players) it's the same screen without the veto, so one person can't block a film most of the group wants.
+In a ranked vote (Quick Match with 5 to 10 players) it's the same screen without the veto, so one person can't block a film most of the group wants. With 2 films it's "Pick one" with no veto, at any room size: a veto between two films is a second vote for the other.
+
+Every round says once, the same in every room, where the films came from: "From your likes, with one for each of you when we can." No phone marks a film as anyone's, its own player's included (decided on 5 November 2026): on a couch a neighbour sees your screen, and the films you didn't mark would be the ones you noped.
 
 ### How it arrives
 
 The server sends `finale_started {round_id, title_ids, kind, closes_at}`, then `state_changed {state: 'finale'}` (Q0.5). Every phone moves on `state_changed`: the room re-read maps `finale` to the Final Cut screen. `finale_started` on its own may start loading the posters, but never moves the screen, so all phones move on the same signal. A phone that missed both gets there on its next re-read (back in the foreground, a reconnect, or a vote answered `closed`).
 
-On the swipe screen, the stack stops taking input and a card mid-drag springs back (`spring.card`). A near-miss toast leaves, an open "Watch it again tonight?" question closes without a vote, and votes still queued come back `closed` and are dropped quietly ([the swipe](#edge-cases)). A player on the done card moves the same way. No overlay, no haptic, no sound: it isn't a match, and `haptics.match()` keeps its one meaning.
+On the swipe screen, the stack stops taking input and a card mid-drag springs back (`spring.card`). A near-miss toast leaves, an open "Watch it again tonight?" question closes without a vote, and votes still queued come back `closed` and are dropped quietly ([the swipe](#edge-cases)). A player on the done card moves the same way. No overlay, no haptic, no sound: it isn't a match, and `haptics.match()` keeps its one meaning. When the third match starts the finale, [the shortlisted beat](#the-sequence-6) plays first and the layout holds the route until it ends (about 1.75 s); then the Final Cut arrives the same way.
 
 ### The sequence
 
@@ -353,10 +364,11 @@ Times on this phone's clock (Q15.2). The deadline is `closes_at` (`stage_closes_
 
 ### What moves
 
-- **The finalists.** 3 or 4 posters in seed order, each with its title and year under it. No details sheet during the round: the 60 seconds are for talking (decided on 4 November 2026, [question 10](#questions-for-harry)).
+- **The finalists.** 2, 3 or 4 posters in seed order, each with its title and year under it. No details sheet during the round: the 60 seconds are for talking (decided on 4 November 2026, [question 10](#questions-for-harry)).
 - **Ranking.** A tap on a poster gives it the next number: a badge pops onto its corner (`spring.snappy`). A tap on a ranked poster takes its number off, and the numbers after it close the gap. The posters never move: only the badges change, so nothing slides out from under a finger. The untapped posters keep their faint numbers, which always show the order that will be sent: the tapped films in tap order, then the rest in seed order (Q15.5).
 - **The veto.** A long press (the system's long-press time) sinks the poster slightly while held (`timing.press`). At the threshold a "Veto" stamp slams onto it (`easing.arcade`, as the swipe's stamps) and the poster greys out: knocked out, on this phone only. If it was ranked, it leaves the ranking and the gap closes. A vetoed poster can't be tapped into the order. Until lock-in, a long press on the vetoed poster lifts the veto, and on another poster moves it; the veto is spent at lock-in (decided on 4 November 2026, [question 9](#questions-for-harry)). The stamp stays on the poster; nothing flashes across the screen, so a neighbour's glance learns little.
 - **No veto** in a ranked vote or with `vetoes_left` at 0: no stamp, no hint, and a long press does nothing.
+- **Two films.** A tap picks one: it gets the solid 1, the other keeps a faint 2. A tap on the other film moves the pick; a tap on the picked one lifts it, and both go back to faint numbers in seed order. The ballot is the same ranking as ever, so nothing changes on the server.
 - **Lock in.** Always enabled: locking in untouched sends the seed order. On the tap, the ballot freezes at once (badges and stamp stay, taps stop) and the button reads "Sending". On `ok` (or `already_voted`) it reads "Locked in" with a check, and this player's avatar lights up in the row. One tap sends one ballot; a double tap sends one.
 - **Who has locked in.** Every seat that hasn't left, in seat order, never in lock-in order. A lock-in turns its avatar from dim to lit, with a small check popping on (`spring.snappy`), on every phone at once. A count beside it: "2 of 4 locked in", the locked seats in the row over `of`, never more than `of`.
 - **"Counting the votes"** fades in and stays still. It usually lasts 1 to 3 seconds.
@@ -383,7 +395,7 @@ Only lock-ins: the `round_progress` event `{round_id, locked, of}` lists seat id
 
 ### The screen reader
 
-- On arrival, focus goes to the heading: "The Final Cut. Pick one. Veto one.", then the time left. A ranked vote reads its own heading.
+- On arrival, focus goes to the heading: "The Final Cut. Pick one. Veto one.", then the time left. A ranked vote and a 2-film vote read their own heading. The line on where the films came from is read after the intro.
 - Each poster is one element: its title and year, then "Ranked 2", "Not ranked, counts as 3" or "Vetoed". Its actions are the ones that apply: "Rank next", "Remove from ranking", "Veto", "Lift veto". A double tap does what a tap does. Ranking needs no gesture.
 - The countdown isn't read every second. It's announced at 30 seconds, at 10 seconds, and at zero ("Counting the votes").
 - The lock-in row is one element: "Locked in: Sam, Léa. 2 of 4." A change is announced politely with the count only.
@@ -445,8 +457,9 @@ The whole sequence takes about 4.3 s. Without knock-outs (a ranked vote, or nobo
 | `only_unvetoed` | Knock-outs, then the winner. No points: with one film in, they say nothing | "The only film nobody vetoed" ([counting](../product/game-modes.md#counting)) |
 | `no_ballots` | The winner only: no vetoes, no points | "Top of your swipes". It never says nobody voted ([the Final Cut](#edge-cases-5)) |
 | `only_film` | No round, so no reveal (Q4.4): the winner screen fades in with "The only film anyone liked" ([the winner](#how-it-arrives)) | |
+| `only_match` | No round, so no reveal: [the match](#the-match) overlay plays, then the winner screen | |
 
-A ranked vote has no vetoes, so it is always `points` without knock-outs. The French lines are for the screen spec (final-cut.md, the reveal section), proposed: « En tête des votes », « Égalité, départagée par vos swipes », « Le seul film que personne n'a éliminé », « Le préféré de vos swipes », and the heading « Le film du soir » (as the winner screen). No exclamation marks: the winner screen says it calmly too.
+A ranked vote has no vetoes, so it is always `points` without knock-outs. That includes every 2-film vote: in a room of 2 it never shows points (fewer than 3 ballots), only the winner and "Top of the votes". The French lines are for the screen spec (final-cut.md, the reveal section), proposed: « En tête des votes », « Égalité, départagée par vos swipes », « Le seul film que personne n'a éliminé », « Le préféré de vos swipes », and the heading « Le film du soir » (as the winner screen). No exclamation marks: the winner screen says it calmly too.
 
 ### Haptics and sound
 
@@ -495,6 +508,91 @@ The room is marked shown when the winner lifts, or when the reveal leaves, which
 - **A poster that hasn't loaded.** Its placeholder takes the stamp, the points and the spotlight; the poster fades in over it if it arrives.
 - **The largest text.** The line wraps to two lines; each film's points stay on one line under its poster.
 
+## The shortlisted beat
+
+### The beat
+
+**"It's a match: 1 of 3": you all said yes to this one, it's on the shortlist, keep going.** Every phone in the room stops for under 2 seconds, shows the same film with "It's a match: 1 of 3" and how many said yes, and sends its poster up into the shortlist in the top bar. Then everyone is back on their own next card. It's a small cheer, not the finale: the room learns it has a film everyone (or most) wants, and the game goes on.
+
+The full celebration (the overlay, the bulbs, the match sound) stays for the night's pick ([the match](#the-match)). This beat is shorter, quieter and has no avatars, so a shortlisted film never feels like the end, and the pick still feels bigger when it comes.
+
+It's the room's shortlist, not anyone's: Party and Blind show it the same way ([what players see](../product/game-modes.md#what-players-see-party-and-blind)).
+
+### When it happens
+
+A match that doesn't decide the night: the `match` event with `decided: false` ([when it's a match](../product/game-modes.md#when-its-a-match)). In every launch mode (Quick Match, Date Night, Final Cut) the first, second and third matches all play it. `api.cast_vote` makes most matches after a like; the re-check after a leave or a removal, and the sweeper after a silence, can make one too.
+
+The event carries `{title_id, kind, likes, of, decided, shortlisted, shortlist_size}`. `likes` of `of` is the vote count ("3 of 3", "7 of 9"); `shortlisted` of `shortlist_size` is the shortlist's ("1 of 3"). `of` keeps meaning the voters.
+
+Each phone starts the beat at the first of two signals, as for the match: the `ok` answer to its own vote with `match: true` and `decided: false`, or the event. The phone's own answer has no counts, so it starts with its own shortlist plus one and no vote count; the event corrects both in place when it lands (Q37.1, approved by Harry on 5 November 2026, [decisions.md](../decisions.md)). The phone that completed the match plays exactly the same beat as the others.
+
+A mode with `matches_to_end` 1 (none at launch) never plays this beat: its first match is the pick and gets the overlay.
+
+### The sequence
+
+Times from the first signal. Every phone shows the same thing.
+
+| Time | What every phone shows |
+| --- | --- |
+| 0 | The stack stops taking input (the buttons row too). A card mid-drag springs back (`spring.card`); a card already thrown finishes its flight. A scrim fades in over the stack only (`duration.fast`), so the top bar stays bright. The matched film's poster pops in over the middle of the stack (`layout.popIn`), half the card's width. `haptics.shortlist()` |
+| 150 ms | "It's a match: 1 of 3" pops in above the poster (`layout.popIn`). The vote count ("Unanimous: 3 of 3", "7 of 9 said yes") fades in under it (`layout.fadeIn`) |
+| Hold | The poster and the two lines stay still. Long enough to read the title and see the poster from across the couch |
+| 1.2 s (`duration.shortlist-hold`) | The two lines fade out (`layout.fadeOut`). The poster flies into its slot in the top bar's shortlist, shrinking to the slot's size on the way (`duration.slow`, `easing.standard`) |
+| 1.6 s | It lands: the slot shows the poster with a small pop (`spring.snappy`), and the shortlist's count changes in place ("1/3"). The scrim fades out (`duration.fast`) |
+| 1.75 s | The stack takes input again. The next card was there all along |
+
+**The film leaves the stack.** If the matched film is still waiting on this phone (under the 70% rule, 5 or more players, a player who hasn't reached it), it goes quietly: as the top card, the poster lifts off that card (the card fades out under it) and the next card is on top when the scrim leaves; as the second or third card, it fades out under the scrim and the cards behind move up; further back, it's dropped from the phone's held cards with nothing to see. A vote on it already in the queue still goes to the server, and counts.
+
+**The third match** (`shortlisted` equals `shortlist_size`). The beat plays the same, the third slot fills, and then the Final Cut arrives as it always does ([the Final Cut](#how-it-arrives-1)), at 1.75 s instead of the stack waking up. The room layout holds the route while the beat plays: `finale_started` and `state_changed {state: 'finale'}` come right after the `match` event, and moving at once would cut the beat in half. The phone's own answer for that vote says `state: 'finale'`; it changes nothing here.
+
+### Haptics and sound
+
+- `haptics.shortlist()` once at 0: a light double tap, lighter than the match's success burst (M6.37 adds it to `lib/haptics`; the starting point is two `Light` impacts 100 ms apart, tuned in the feel check). It says "we agree on this one" without saying "this is the night's film", which stays `match`'s meaning.
+- No sound. The two sounds belong to the pick (`match`) and the reveal (decided on 29 October 2026); a sound here twice a game would wear them out.
+- Nothing on the landing: the pop is enough.
+
+### What every other phone sees, and when
+
+The same beat, on the `match` event, within network latency of the others: on a couch, every phone stops at once and every poster flies up together. Nothing in the event says who liked the film, and no phone shows any avatar during the beat. Phones that left the room don't get it.
+
+### Reduce Motion
+
+- The poster fades in at its size (`layout.fadeIn`) instead of popping; the title fades in.
+- The flight becomes a crossfade: the poster over the stack fades out while the slot's poster fades in. Nothing travels.
+- The slot doesn't pop; the count changes in place.
+- The times stay the same, so phones keep in step. The haptic follows its own setting.
+
+### The screen reader
+
+- At 0 the beat is announced once, assertively: "It's a match: Heat. 1 of 3 on the shortlist. Unanimous: 3 of 3." The vote count is left out if the event hasn't arrived yet.
+- Focus doesn't move: the player is mid-game, and the beat is over before a reading would end. The top bar's shortlist reads the new film from then on.
+- On the third match, the Final Cut takes focus on its heading when it arrives, as usual.
+
+### Edge cases
+
+- **The phone's own answer comes first** (it completed the match). The title says its own shortlist plus one; when the event lands, the number changes in place if it differs (a match from a leave landed first, say), without a second pop. The vote count fades in when the event lands; if it hasn't by 1.2 s, it isn't shown this time.
+- **Mid-drag.** The card springs back (`spring.card`). A touch during the beat does nothing and isn't kept for later; a drag that started before the beat doesn't continue after it.
+- **A flipped card.** It stays flipped under the scrim and is still flipped after.
+- **The near-miss toast.** It fades out at 0 (`layout.fadeOut`) and the glow goes with it. If its card is still on top after the beat, the toast fades back in (`layout.fadeIn`), with the new count if one came. If the near miss was on the matched film itself, it doesn't come back: that card left.
+- **An undo's return.** The card coming back finishes its flight under the scrim; nothing is cut.
+- **Undo right after the match.** The Undo button is disabled while the last card this phone answered is on the shortlist ("A card that matched or became a finalist can't be undone", [the answers](../product/game-modes.md#the-answers)). If the player tapped Undo before the phone knew (the card already came back, the vote was in flight), the beat takes that card with it as above, and the phone doesn't call the server. If the server answers `locked` anyway, the card that came back leaves again (`layout.fadeOut`), with no message.
+- **The rewatch question is open.** It stays, and its two buttons ignore taps until the beat ends. If the lifted card is the matched film, the question closes with no vote and the card leaves with the beat.
+- **The seat sheet, the report sheet or the leave alert is open.** It stays open and the beat plays under it, haptic included; the shortlist shows the film when the sheet closes. A host halfway through removing someone shouldn't lose that to a cheer. On the third match the sheet closes as the room leaves `swiping` (the layout's `SHEETS` rule), after the beat.
+- **The done card** (this player is out of cards). The beat plays over it the same way.
+- **Two matches at once** (a leave, a removal or the sweeper can make several films match together; the server sends them most liked first). One beat per match, back to back: the second starts as the first poster lands (at 1.6 s), the scrim stays, and the shortlist's count steps up ("1/3", then "2/3"). The stack wakes up after the last. If the second is the third match, the Final Cut follows it.
+- **A beat, then the pick at once.** The vote that makes a match can also reach the card count; if the finale then finds that single match, the pick follows right away (`match` with `decided: true` and `reason: 'only_match'`). The match overlay takes over at once and the beat stops where it is: a phone that missed the first event starts the overlay straight away, and the others should be in step with it.
+- **A phone that missed it** (the channel dropped, the background, a cold start). No replay (Q37.2, approved the same day): a beat is a moment, the top bar is the state. On its next re-read the phone reads the shortlist back from `api.room_matches` and the slots fill without animation. A phone that missed the third match goes straight to the Final Cut on `state_changed`, a little ahead of the others.
+- **Offline.** No events, so no beat; the phone's own like can't come back with `match: true`. The shortlist catches up on the re-read after the connection returns.
+- **The match comes from someone leaving or going silent.** Nobody just swiped; the beat is the same.
+- **The phone is locked.** No notification; the shortlist is there when the player comes back.
+
+### Never shown
+
+- Who liked the film, who super liked it, or whose like completed the match. The phone that completed it gets the same beat, at the same moment.
+- Any avatar. The match overlay shows every seat with no marks; this beat shows none, so there is nothing to mark.
+- "2 to go", "One more match and you vote", a progress bar toward the vote, or a countdown. The shortlist's count says how many films the room has, not how many it still needs, and nothing hurries anyone.
+- Which slot came from which player, or the order in which people answered. Slots fill in the order the matches happened.
+
 ## Starting values
 
 Placeholders for the feel check (the `feel-check` skill) and the first playtests. The ones marked "token?" are new numbers the designer should either map to an existing token or add to `tokens.json` first.
@@ -512,6 +610,10 @@ Placeholders for the feel check (the `feel-check` skill) and the first playtests
 | Near miss | One like short of the match rule, at least 2 likes (question 1) | The near miss |
 | Avatar stagger | `duration.instant` (80 ms) | The match |
 | Overlay before the winner screen | 4 s, a tap goes on earlier (question 3) | The match |
+| The poster over the stack | Half the card's width, shrunk to fit the stack's height with the two lines | The shortlisted beat |
+| Hold before the flight | 1.2 s (token: `duration.shortlist-hold`) | The shortlisted beat |
+| The whole beat | About 1.75 s: the hold, the flight (`duration.slow`), the scrim (`duration.fast`) | The shortlisted beat |
+| `haptics.shortlist()` | Two `Light` impacts 100 ms apart | The shortlisted beat |
 | Poster stagger on arrival | `duration.instant` (80 ms) | The Final Cut |
 | Long press for a veto | The system's long-press time | The Final Cut |
 | Countdown red | The last 10 s (`Countdown`) | The Final Cut |
@@ -538,6 +640,9 @@ None of these is decided; each follows from a question below or is a gap found w
 | `mobile/src/theme/tokens.json`, M6.31 | `duration.reveal-hold`, 2500ms, "The reveal before the winner screen (a starting value)" | The reveal's hand-over, as `duration.match-hold` for the overlay |
 | [final-cut.md](screens/final-cut.md#the-reveal), M6.31 | The reveal section: the lines above in both languages, the points label (`_one`, `_other`), the announcement and the button | The section waits for this beat |
 | [game-modes.md](../product/game-modes.md#what-players-see-party-and-blind), the finale row | Done in this pull request (question 12): the points after the close, only from 3 ballots and never on a knocked-out film | The points are new on phones, and the row only listed the knock-outs |
+| `mobile/src/theme/tokens.json`, M6.37 | `duration.shortlist-hold`, 1200ms, "The shortlisted beat: the poster over the stack before it flies to the shortlist (a starting value)" | The beat's one new number |
+| `lib/haptics.ts` and the `motion` skill's haptics table, M6.37 | `haptics.shortlist()`: "A match joins the shortlist" | The beat needs a buzz lighter than `match`, which keeps meaning "the night's film" |
+| The `copy` skill's glossary | Done in this pull request: "the shortlist", « la sélection » (proposed) | A new word players see |
 | The winner screen spec (screens/winner.md, to be written), M6.16 | The single-film pick's line, "The only film anyone liked" (Q4.4), above the title. The phone knows it from the `match` event's `reason: 'only_film'`, or on a cold start from a `finale` pick with no row in `api.rounds` | Q4.4's default puts this line on the winner screen, and M6.16's brief doesn't list it yet |
 
 ## Questions for Harry
@@ -563,3 +668,5 @@ Questions 11 to 13 come from the reveal beat. Harry took all three defaults on 4
 11. **Knock-outs in a 2-player room.** Decided on 4 November 2026: show them (the default), with no points. With 2 players, a knocked-out film you didn't veto is the other player's veto, and "The only film nobody vetoed" says the same. Default: show the knock-outs at every size, as [what players see](../product/game-modes.md#what-players-see-party-and-blind) says, with no points on top. The round already tells players their veto "stays secret until the end", and couples are a main Final Cut group: the vetoes landing is their moment. Alternative: at 2 players, show only the winner, without the line or the stamps. That hides less than it seems, since the winner alone still says a lot.
 12. **Points only from 3 ballots.** Decided on 4 November 2026: yes (the default). With 2 ballots, your own taken from the totals gives the other person's ranking exactly. Default: points show only when 3 or more ballots were counted (the phone works it out from the points, no extra read), and never on a knocked-out film. Alternative: never show numbers, only the winner.
 13. **The reveal's timings** (the steps, 2.5 s on the winner, 3 s for a missed reveal's reads) in [Starting values](#starting-values). Decided on 4 November 2026: they are placeholders (the default), tuned in Harry's feel check and the first playtest.
+
+The shortlisted beat (5 November 2026) raises no new question: it follows Harry's rules of that day and his answers Q37.1 (the beat starts from the phone's own answer) and Q37.2 (a missed beat isn't replayed), in [decisions.md](../decisions.md). Its numbers are starting values for the feel check.

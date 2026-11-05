@@ -128,7 +128,7 @@ Settings outside the SQL that the security above depends on. Checked against Sup
 - **Remove player** (`api.remove_member(room, member)`, host only): sets `removed_at`. The seat stops being a member (gap 3), its presence disappears, and `api.join_room` answers `removed` if it tries to come back. Its votes stay in the log but no longer count, because the seat is no longer present. One limit: Supabase evaluates Realtime policies when a channel is joined and caches them until a new token is sent, so a removed phone can keep receiving room events for up to the token's lifetime. It sees counts and matches, never votes, and the other phones ignore anything it sends on `:live`.
 - **Lock room** (`rooms.locked`, host only): no new seats, by code or by link; players who already have a seat can still rejoin. Late joining stays the default, as decided.
 
-**The host's powers**, all checked in the database: change settings (lobby only), start, the game-modes controls (Vote now, Keep swiping, Play again), remove a player, lock the room. The host never sees anyone's votes. When the host leaves, the role goes to a present player ([game modes](../product/game-modes.md#who-counts-presence-joining-and-leaving)).
+**The host's powers**, all checked in the database: change settings (lobby only), start, the game-modes controls (Vote now, Play again), remove a player, lock the room. The host never sees anyone's votes. When the host leaves, the role goes to a present player ([game modes](../product/game-modes.md#who-counts-presence-joining-and-leaving)).
 
 **Abuse from inside the room**, and what covers it:
 
