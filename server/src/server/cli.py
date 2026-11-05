@@ -179,8 +179,9 @@ def run_api(host: str, port: int) -> int:
     settings = load_settings("api", Process.API)
     if settings is None:
         return 1
-    if settings.supabase_url is None:
-        print("server api: SUPABASE_URL is not set.", file=sys.stderr)
+    missing = settings.missing_for_api()
+    if missing is not None:
+        print(f"server api: {missing} is not set.", file=sys.stderr)
         print("Copy .env.example to .env.local, or set the variable.", file=sys.stderr)
         return 1
 
