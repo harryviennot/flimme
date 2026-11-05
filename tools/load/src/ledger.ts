@@ -20,6 +20,12 @@ export function createLedger() {
     undone(seat: string, titleId: number) {
       titles.get(seat)?.delete(titleId);
     },
+    /** Films answered ok twice for one seat: saved in the ledger file, counted by `check`. */
+    answeredTwiceTotal(): number {
+      let total = 0;
+      for (const n of answeredTwice.values()) total += n;
+      return total;
+    },
     /** Rows `votes` should hold for each seat. */
     expected(): Record<string, number> {
       const out: Record<string, number> = {};

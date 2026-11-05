@@ -271,9 +271,9 @@ If a target is missed: find the slow queries in Supabase's query performance rep
 
 **How to run it** (M9.7 built the runner in `tools/load/`; the full run is M9.9, Harry's).
 
-- Bot accounts: email and password accounts on staging, kept in a git-ignored JSON file, a list of `{ "email": ..., "password": ... }` (about 230 for the full run). `LOAD_ACCOUNTS_FILE` points to it. Staging's anonymous sign-in limit would stop one machine, so the local stack is the only place bots sign in as guests.
+- Bot accounts: email and password accounts on staging, kept in a git-ignored JSON file (name it `load-accounts.json`, or keep it outside the repository), a list of `{ "email": ..., "password": ... }` (about 230 for the full run). `LOAD_ACCOUNTS_FILE` points to it. Staging's anonymous sign-in limit would stop one machine, so the local stack is the only place bots sign in as guests.
 - Staging's public values in the environment: `FLIMME_STAGING_URL` and `FLIMME_STAGING_KEY` (the publishable key).
-- A small dry run: `mise run load -- --target staging --rooms4 3 --rooms10 1 --ramp 30s --duration 5m`. The scenario above is the default: `mise run load -- --target staging --full`. More than 20 bots needs `--full`, and the runner refuses any URL that is not staging's (or, for `--target local`, this machine's).
+- A small dry run: `mise run load -- --target staging --rooms4 2 --rooms10 1 --ramp 30s --duration 5m`. The scenario above is the default: `mise run load -- --target staging --full`. More than 20 bots needs `--full` (the dry run above is 18 bots), and the runner refuses any URL that is not staging's (or, for `--target local`, this machine's).
 - Ctrl-C or the end of the time stops new games, gives running rooms 60 seconds (`--grace`) to finish, makes every bot leave its room and writes the report.
 - The report (`load-report-<date>-<time>.md`) and the vote ledger (`load-ledger-<date>-<time>.json`, seat ids inside) are git-ignored. The report has no account, id or room code and goes into the pull request as it is.
 - The runner measures the `cast_vote` round trip, a match reaching the other bots and the fallback deals it sees. A match is timed from the matching vote's answer to each other bot's Realtime event.

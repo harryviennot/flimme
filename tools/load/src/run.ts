@@ -1,5 +1,5 @@
 // The load runner: plays the load test's scenario with bots and writes a report.
-//   pnpm --filter @flimme/load start -- --target staging --rooms4 3 --rooms10 1 --ramp 30s --duration 5m
+//   pnpm --filter @flimme/load start -- --target staging --rooms4 2 --rooms10 1 --ramp 30s --duration 5m
 //   pnpm --filter @flimme/load start -- check --ledger <file> --counts <file>
 // See docs/architecture/operations.md#load-test. Staging (or the local stack) only: the URL is
 // checked before a single bot signs in. Accounts come from LOAD_ACCOUNTS_FILE (a git-ignored JSON
@@ -87,17 +87,26 @@ async function runLoad(config: LoadConfig) {
   let stopping = false;
   let stopNow: () => void = () => {};
   const stopSignal = new Promise<void>((resolve) => (stopNow = resolve));
+  let forceNow: () => void = () => {};
+  const forceSignal = new Promise<void>((resolve) => (forceNow = resolve));
   const stop = () => {
-    if (stopping) {
-      console.log('Second signal: leaving now.');
-      process.exit(1);
-    }
+    if (stopping) return;
     stopping = true;
     console.log('Stopping: no new games; running rooms get a short time to finish.');
     stopNow();
   };
-  process.on('SIGINT', stop);
-  process.on('SIGTERM', stop);
+  let signals = 0;
+  const onSignal = () => {
+    signals += 1;
+    // A second Ctrl-C gives up on the grace period, not on the report: rooms still leave.
+    if (signals > 1) {
+      console.log('Second signal: not waiting for rooms to finish.');
+      forceNow();
+    }
+    stop();
+  };
+  process.on('SIGINT', onSignal);
+  process.on('SIGTERM', onSignal);
   setTimeout(stop, config.durationMs + 1).unref();
 
   let accountIndex = 0;
@@ -105,7 +114,7 @@ async function runLoad(config: LoadConfig) {
   let activeSlots = 0;
 
   const slot = async (size: number, startAtMs: number) => {
-    await sleep(startAtMs);
+    await Promise.race([sleep(startAtMs), stopSignal]);
     if (stopping) return;
     activeSlots += 1;
     const members: RunBot[] = [];
@@ -113,6 +122,7 @@ async function runLoad(config: LoadConfig) {
       for (let i = 0; i < size; i += 1) {
         botIndex += 1;
         const account = accounts ? accounts[accountIndex++]! : null;
+        if (stopping) return;
         members.push(await signInBot(botIndex, backend, account));
         await sleep(250);
       }
@@ -125,6 +135,7 @@ async function runLoad(config: LoadConfig) {
           swipeMs: config.swipeMs,
           likeRate: config.likeRate,
           stopping: stopSignal,
+          force: forceSignal,
           graceMs: config.graceMs,
           cycleTimeoutMs: config.cycleTimeoutMs,
         });
@@ -171,6 +182,7 @@ async function runLoad(config: LoadConfig) {
       castVoteMs: rec.castVoteMs,
       matchMs: rec.tracker.samples(),
       fallbackDeals: rec.fallbackDeals,
+      deals: rec.startGameMs.length,
       lost: null,
       duplicated: null,
       castVoteErrors: rec.castVoteErrors,
@@ -179,7 +191,14 @@ async function runLoad(config: LoadConfig) {
     since,
   });
   writeFileSync(reportPath, text);
-  writeFileSync(ledgerPath, JSON.stringify({ since, expected: rec.ledger.expected() }));
+  writeFileSync(
+    ledgerPath,
+    JSON.stringify({
+      since,
+      expected: rec.ledger.expected(),
+      answeredTwice: rec.ledger.answeredTwiceTotal(),
+    }),
+  );
   console.log(`Report: ${reportPath}`);
   console.log(`Vote ledger (seat ids inside, keep it private): ${ledgerPath}`);
   console.log(text);
@@ -197,9 +216,11 @@ function runCheck(argv: string[]) {
   };
   const ledger = JSON.parse(readFileSync(get('ledger'), 'utf8')) as {
     expected: Record<string, number>;
+    answeredTwice?: number;
   };
   const counts = JSON.parse(readFileSync(get('counts'), 'utf8')) as Record<string, number>;
   const result = compareCounts(ledger.expected, counts);
+  result.duplicated += ledger.answeredTwice ?? 0;
   const verdict = result.lost === 0 && result.duplicated === 0 ? 'PASS' : 'FAIL';
   console.log(
     `Votes over ${result.seats} seats: ${result.lost} lost, ${result.duplicated} duplicated: ${verdict}`,

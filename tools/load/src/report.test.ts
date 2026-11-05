@@ -6,6 +6,7 @@ const good: Measures = {
   castVoteMs: [100, 120, 200],
   matchMs: [200, 400, 800],
   fallbackDeals: 0,
+  deals: 5,
   lost: null,
   duplicated: null,
   castVoteErrors: 0,
@@ -28,8 +29,12 @@ describe('evaluateTargets', () => {
     expect(statusOf({ ...good, castVoteMs: [300] }, 'cast_vote')).toBe('fail');
     expect(statusOf({ ...good, matchMs: [1000] }, 'A match reaching')).toBe('fail');
   });
-  it('fails on a fallback deal and on a vote error', () => {
+  it('fails on a fallback deal, and says no data when nothing was dealt', () => {
     expect(statusOf({ ...good, fallbackDeals: 1 }, 'Fallback deals')).toBe('fail');
+    expect(statusOf({ ...good, deals: 0 }, 'Fallback deals')).toBe('no data');
+  });
+  it('fails the cast_vote line when a call threw, even with a fast p95', () => {
+    expect(statusOf({ ...good, castVoteErrors: 2 }, 'cast_vote')).toBe('fail');
   });
   it('says no data when nothing was measured, never pass', () => {
     expect(statusOf({ ...good, castVoteMs: [] }, 'cast_vote')).toBe('no data');

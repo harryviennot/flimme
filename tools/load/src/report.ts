@@ -7,6 +7,8 @@ export type Measures = {
   matchMs: number[];
   /** Fallback deals the bots saw in `start_game` and `request_cards` answers. */
   fallbackDeals: number;
+  /** Deals the bots saw (`start_game` answers): none means nothing was observed. */
+  deals: number;
   /** From the ledger compared with the database counts; null until `check` has run. */
   lost: number | null;
   duplicated: number | null;
@@ -59,15 +61,15 @@ export function evaluateTargets(measures: Measures, since = '<start of the run>'
       name: '`cast_vote` round trip, p95',
       target: 'under 300 ms',
       value: ms(vote.p95),
-      status: judge(vote.p95, 300),
-      how: `Measured by the bots over ${vote.count} votes.`,
+      status: measures.castVoteErrors > 0 && vote.p95 !== null ? 'fail' : judge(vote.p95, 300),
+      how: `Measured by the bots over ${vote.count} votes. ${measures.castVoteErrors} calls threw instead of answering (any is a fail).`,
     },
     {
       name: 'A match reaching the other phones, p95',
       target: 'under 1 second',
       value: ms(match.p95),
       status: judge(match.p95, 1000),
-      how: `Measured from the matching vote's answer to each other bot's Realtime event, over ${match.count} receptions.`,
+      how: `Measured from the matching vote's answer to each other bot's Realtime event (an event that arrives first counts as 0 ms), over ${match.count} receptions.`,
     },
     {
       name: '`internal.deck_candidates`, p95',
@@ -87,7 +89,7 @@ export function evaluateTargets(measures: Measures, since = '<start of the run>'
       name: 'Fallback deals',
       target: 'none',
       value: `${measures.fallbackDeals} seen by the bots`,
-      status: measures.fallbackDeals === 0 ? 'pass' : 'fail',
+      status: measures.deals === 0 ? 'no data' : measures.fallbackDeals === 0 ? 'pass' : 'fail',
       how: `The bots only see the ones in their own answers. Confirm: ${queries.fallback}`,
     },
     { name: 'Lost or duplicated votes', target: 'none', ...lostLine },

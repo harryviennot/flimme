@@ -108,6 +108,8 @@ export type CycleOptions = {
   likeRate: number;
   /** Resolves when the run is ending: running rooms then get `graceMs` to finish. */
   stopping: Promise<void>;
+  /** A second Ctrl-C: stop waiting for the grace period. */
+  force: Promise<void>;
   graceMs: number;
   cycleTimeoutMs: number;
 };
@@ -183,9 +185,10 @@ export async function playCycle(options: CycleOptions): Promise<CycleEnd> {
     const timeout = new Promise<'timeout'>((resolve) =>
       setTimeout(() => resolve('timeout'), options.cycleTimeoutMs),
     );
-    const stopped = options.stopping
-      .then(() => sleep(options.graceMs))
-      .then(() => 'timeout' as const);
+    const stopped = Promise.race([
+      options.stopping.then(() => sleep(options.graceMs)),
+      options.force,
+    ]).then(() => 'timeout' as const);
     const end = await Promise.race([done, timeout, stopped]);
     if (end === 'timeout') {
       rec.rooms.abandoned += 1;
