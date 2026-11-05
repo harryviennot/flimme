@@ -123,12 +123,16 @@ def test_httpx_and_httpcore_log_at_warning_so_a_full_load_does_not_print_every_r
 ) -> None:
     import logging
 
-    from server.cli import configure_logging
+    from server.observability import configure_logging
 
     # Under pytest the root logger is already set up, so check the loggers' own levels and put
     # them back afterwards.
     for name in ("httpx", "httpcore"):
         monkeypatch.setattr(logging.getLogger(name), "level", logging.NOTSET)
+
+    root = logging.getLogger()
+    monkeypatch.setattr(root, "handlers", root.handlers[:])
+    monkeypatch.setattr(root, "level", root.level)
 
     configure_logging()
 

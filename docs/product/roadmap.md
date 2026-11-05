@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 129 of 270 tasks done.
+Progress: 131 of 270 tasks done.
 
 ```mermaid
 flowchart LR
@@ -550,9 +550,9 @@ Done when: the headline metrics, alerts and backups work, and the load test pass
   Done when: tested with a French and a US device region.
 - [ ] **M9.2** The first release's events, through the typed wrapper · app · M · needs M9.1 · [analytics](analytics.md#events-sent-to-posthog)
   Done when: each event shows in PostHog from a test device.
-- [ ] **M9.3** SQL views for the headline metrics: time to a pick, rooms ending with a pick, time to finish onboarding, link to first swipe, second game · backend · M · needs M6.8, M4.1 · [analytics](analytics.md#every-metric)
+- [x] **M9.3** SQL views for the headline metrics: time to a pick, rooms ending with a pick, time to finish onboarding, link to first swipe, second game · backend · M · needs M6.8, M4.1 · [analytics](analytics.md#every-metric)
   Done when: the views return sensible numbers on staging test games.
-- [ ] **M9.4** Server logging without personal data, and Sentry on the server with no user id · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
+- [x] **M9.4** Server logging without personal data, and Sentry on the server with no user id · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
   Done when: a server error shows in Sentry with no personal data.
 - [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load, new reports · backend · M · needs M2.11, M6.6, M9.4, M2.12, M7.1, M8.9 · [operations](../architecture/operations.md#monitoring-and-alerts)
   Done when: a stopped worker raises an alert, and a new report alerts within 5 minutes.

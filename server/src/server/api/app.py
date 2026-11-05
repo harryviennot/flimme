@@ -12,6 +12,7 @@ import httpx
 from fastapi import FastAPI
 
 from server.api import account, errors, health
+from server.api.access import AccessLogMiddleware
 from server.api.auth import JwksCache
 from server.api.limits import BodyLimitMiddleware
 from server.config import Environment, Process, Settings
@@ -73,6 +74,7 @@ def create_app(
     app.state.settings = settings
     errors.install(app)
     app.add_middleware(BodyLimitMiddleware)
+    app.add_middleware(AccessLogMiddleware)  # outermost: it sees the 413s too
     app.include_router(health.router)
     app.include_router(account.router)
     return app
