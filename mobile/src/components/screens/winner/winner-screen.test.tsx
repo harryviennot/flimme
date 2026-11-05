@@ -12,6 +12,14 @@ import { track } from '@/lib/analytics';
 import { WinnerScreen } from './winner-screen';
 
 jest.mock('@/lib/analytics', () => ({ track: jest.fn() }));
+// The runners-up have their own tests (runners-up.test.tsx); here the section only has to mount.
+let mockRunnersUp: unknown = null;
+jest.mock('@/features/winner/use-runners-up', () => ({
+  useRunnersUp: () => ({ data: mockRunnersUp, ids: [], answered: false }),
+}));
+jest.mock('@/features/app-config/use-app-config', () => ({
+  useAppConfig: () => ({ data: undefined }),
+}));
 
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => ({
@@ -178,6 +186,61 @@ describe('Share recap (winner.md#share-recap)', () => {
   ])('has no Share recap on %s', async (_name, view, solo) => {
     await showWith(view, { solo, onShareRecap: jest.fn() });
     expect(screen.queryByText('Share recap')).toBeNull();
+  });
+});
+
+describe('the runners-up (winner.md#the-runners-up)', () => {
+  const party = {
+    source: 'finalists',
+    items: [
+      {
+        card: { title_id: 9, title: 'Aftersun', poster_path: null, poster_placeholder: null },
+        likers: [{ memberId: 'm1', name: 'Ana', color: 'teal' }],
+        likes: null,
+      },
+    ],
+  };
+  const showRoom = (view: WinnerView, solo = false) =>
+    render(
+      <WinnerScreen
+        view={view}
+        language="en"
+        online
+        onHome={jest.fn()}
+        solo={solo}
+        roomId="r1"
+        onOpenRunnerUp={jest.fn()}
+      />,
+    );
+  afterEach(() => {
+    mockRunnersUp = null;
+  });
+
+  it('keeps the pick free of names and faces, and puts them under the section', async () => {
+    mockRunnersUp = party;
+    await showRoom(ready());
+    expect(screen.getByTestId('runners-up')).toBeTruthy();
+    // The only name on the screen is inside the section.
+    const names = screen.queryAllByText('Ana');
+    expect(names).toHaveLength(1);
+    expect(screen.getByTestId('runner-up-9')).toHaveTextContent(/Ana/);
+    expect(screen.getByTestId('winner-poster')).not.toHaveTextContent(/Ana/);
+  });
+
+  it('shows nothing while the read has nothing, and the pick is unaffected', async () => {
+    await showRoom(ready());
+    expect(screen.queryByTestId('runners-up')).toBeNull();
+    expect(screen.getByText('Past Lives')).toBeTruthy();
+  });
+
+  it.each([
+    ['a solo pick', ready(), true],
+    ['a room with no pick', { status: 'no_pick' } as WinnerView, false],
+    ['a card still loading', { status: 'loading' } as WinnerView, false],
+  ])('has no section on %s', async (_name, view, solo) => {
+    mockRunnersUp = party;
+    await showRoom(view, solo);
+    expect(screen.queryByTestId('runners-up')).toBeNull();
   });
 });
 
