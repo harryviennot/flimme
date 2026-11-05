@@ -20,6 +20,20 @@
   },
   "credits": {
     "tmdb": "Ce produit utilise l'API TMDB mais n'est ni approuvé ni certifié par TMDB.",
-    "justwatch": "Disponibilités fournies par JustWatch."
+    "justwatch": "Disponibilités fournies par JustWatch.",
+    "privacy": "Politique de confidentialité"
+  },
+  "legal": {
+    "updated": "Mis à jour le {{date}}",
+    "switch": "English",
+    "switchLabel": "Read this page in English",
+    "navLabel": "Autres pages",
+    "pages": {
+      "privacy": "Confidentialité",
+      "terms": "Conditions",
+      "support": "Assistance",
+      "deletion": "Supprimer mon compte"
+    },
+    "metaDescription": "Flimme : confidentialité, conditions d'utilisation, assistance et suppression de compte."
   }
 }
