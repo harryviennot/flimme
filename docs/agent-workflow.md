@@ -239,6 +239,7 @@ The first release's tasks, grouped into features. Each slice gets one brief; the
 | 14 | Settings and privacy | M8.4 to M8.9, M8.12 | Screen 22 |
 | 15 | Analytics and operations | M9.1 to M9.9 | None |
 | 16 | The group test | M6.19, M6.20 | The playtest protocol |
+| 17 | The shortlist | M6.33 to M6.38 | The shortlisted beat, the swipe screen's top bar and the Final Cut with 2 films (M6.33) |
 
 ## Design and game feel
 
