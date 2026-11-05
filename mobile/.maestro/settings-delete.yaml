@@ -1,0 +1,33 @@
+# Slice 14, Delete my data (M8.7): a fresh guest confirms the deletion, the server deletes the
+# user, the phone wipes itself and lands on Welcome as a new guest with the "deleted" toast.
+# Needs the HTTP API reachable from the simulator (EXPO_PUBLIC_SERVER_URL) on the same backend
+# as the app. Afterwards, check with curl that the old token is refused (the PR notes do).
+# Run: `maestro test mobile/.maestro/settings-delete.yaml -e METRO_URL=http://localhost:<port>`.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/settle-dev-menu.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Maestro'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- tapOn: 'Settings'
+- scrollUntilVisible:
+    element: 'Delete my data'
+- tapOn: 'Delete my data'
+- extendedWaitUntil:
+    visible: 'Delete your data\?'
+    timeout: 10000
+- tapOn: 'Delete everything'
+
+# Back on the splash, then Welcome as a brand new guest, with the toast.
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- takeScreenshot: settings-delete-1-welcome
+- assertNotVisible: '.*Maestro.*'

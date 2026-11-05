@@ -1,0 +1,77 @@
+# Slice 14, Settings (M8.7): from Home, open Settings and walk every row: the preferences, the
+# analytics switch (it survives a cold start), the legal links, About's attribution, the
+# delete sheet opening and cancelling. Download my data and the share sheet are covered by
+# hand (the sheet is system UI). Run: `maestro test mobile/.maestro/settings.yaml
+# -e METRO_URL=http://localhost:<port>` on a simulator with the development build installed.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/settle-dev-menu.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Maestro'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+
+# Home's settings button opens Settings.
+- tapOn: 'Settings'
+- extendedWaitUntil:
+    visible: 'Preferences'
+    timeout: 10000
+- assertVisible: 'Language, English'
+- assertVisible: 'Vibration'
+- assertVisible: 'Sound'
+- assertVisible: 'Help improve the app'
+- assertVisible: 'Download my data'
+- takeScreenshot: settings-1-top
+
+# The haptics and sound switches flip.
+- tapOn: 'Vibration'
+- tapOn: 'Vibration'
+
+# The analytics switch turns off and stays off across a cold start.
+- tapOn: 'Help improve the app'
+- stopApp
+- runFlow: subflows/open-app.yaml
+- runFlow: subflows/settle-dev-menu.yaml
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 30000
+- tapOn: 'Settings'
+- extendedWaitUntil:
+    visible: 'Preferences'
+    timeout: 10000
+- takeScreenshot: settings-2-analytics-off-after-restart
+- tapOn: 'Help improve the app'
+
+# Privacy policy opens the in-app browser sheet; Done closes it.
+- scrollUntilVisible:
+    element: 'Privacy policy'
+- tapOn: 'Privacy policy'
+- extendedWaitUntil:
+    visible: 'Done'
+    timeout: 10000
+- takeScreenshot: settings-3-policy-browser
+- tapOn: 'Done'
+
+# About carries TMDB's exact notice and the JustWatch credit.
+- scrollUntilVisible:
+    element: 'TMDB logo. This app uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.'
+- assertVisible: 'Streaming availability by JustWatch.'
+- assertVisible: 'Version.*'
+- takeScreenshot: settings-4-about
+
+# The delete sheet opens and Cancel closes it without deleting anything.
+- scrollUntilVisible:
+    element: 'Delete my data'
+- tapOn: 'Delete my data'
+- extendedWaitUntil:
+    visible: 'Delete your data\?'
+    timeout: 10000
+- takeScreenshot: settings-5-delete-sheet
+- tapOn: 'Cancel'
+- assertVisible: 'Delete my data'
