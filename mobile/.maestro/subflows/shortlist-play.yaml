@@ -1,0 +1,67 @@
+# The phone likes cards in a room whose bots like everything (`--like-rate 1`): a like is a match
+# once every bot has answered the film, so the phone keeps liking until the shortlist grows.
+# Plays the three shortlisted beats, a cold start between the second and the third, and the Final
+# Cut that follows. Starts on the swipe screen. A beat is about 1.75 seconds: each like waits for
+# the shortlist to say its count, then the next like goes. The beat's own look is in the screen
+# recording of the run (`xcrun simctl io <sim> recordVideo`), since a screenshot can miss it.
+appId: com.harryviennot.flimme.dev
+---
+- assertVisible: 'Shortlist empty.*'
+
+# First match: the beat, then the poster is in the top bar.
+- repeat:
+    while:
+      notVisible: 'Shortlist, 1 of 3.*'
+    times: 30
+    commands:
+      - tapOn:
+          text: 'Like'
+          optional: true
+      - extendedWaitUntil:
+          visible: 'Shortlist, 1 of 3.*'
+          timeout: 4000
+          optional: true
+- takeScreenshot: shortlist-1-landed
+
+# Second match. The last card answered is on the shortlist, so Undo is off.
+- repeat:
+    while:
+      notVisible: 'Shortlist, 2 of 3.*'
+    times: 30
+    commands:
+      - tapOn:
+          text: 'Like'
+          optional: true
+      - extendedWaitUntil:
+          visible: 'Shortlist, 2 of 3.*'
+          timeout: 4000
+          optional: true
+- assertVisible:
+    text: 'Undo'
+    enabled: false
+- takeScreenshot: shortlist-2-landed
+
+# A cold start in the middle of the game reads the shortlist back: both posters, no beat.
+- stopApp
+- launchApp
+- runFlow: connect-metro.yaml
+- extendedWaitUntil:
+    visible: 'Shortlist, 2 of 3.*'
+    timeout: 120000
+- assertNotVisible: '(?i)it.s a match.*'
+- takeScreenshot: shortlist-cold-start
+
+# Third match: the beat plays on the swipe screen, then the Final Cut arrives.
+- repeat:
+    while:
+      notVisible: '.*Pick one. Veto one..*|.*Rank them..*'
+    times: 30
+    commands:
+      - tapOn:
+          text: 'Like'
+          optional: true
+      - extendedWaitUntil:
+          visible: '.*Pick one. Veto one..*|.*Rank them..*'
+          timeout: 4000
+          optional: true
+- takeScreenshot: shortlist-3-final-cut

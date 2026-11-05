@@ -34,7 +34,18 @@
     "superLikes_other": "{{count}} coups de cœur par partie. Ils comptent double s'il faut un vote final.",
     "dismiss": "Masquer l'astuce"
   },
+  "shortlist": {
+    "count": "{{count}}/{{of}}",
+    "a11y": "Sélection, {{count}} sur {{of}} : {{titles}}",
+    "a11yEmpty": "Sélection vide. Le vote commence à {{of}} matchs."
+  },
+  "shortlisted": {
+    "title": "C'est un match : {{count}} sur {{of}}",
+    "a11y": "C'est un match : {{title}}. {{count}} sur {{of}} dans la sélection. {{votes}}",
+    "a11yNoTitle": "C'est un match. {{count}} sur {{of}} dans la sélection. {{votes}}"
+  },
   "a11y": {
+    "undoShortlisted": "Ce film est dans la sélection",
     "card": "{{title}}, {{meta}}. Sur {{services}}.",
     "cardBare": "{{title}}, {{meta}}",
     "cardBack": "{{title}}. Note TMDB {{rating}}. {{synopsis}}",

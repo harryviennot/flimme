@@ -1,0 +1,32 @@
+# M6.37, the shortlist on the swipe screen: one phone hosts a room on staging, three bots
+# (tools/bots, `--personality agreeable --like-rate 1`) fill it and like everything. The phone
+# likes every card: each match plays the shortlisted beat ("It's a match: 1 of 3", the poster flies
+# into the top bar), a cold start after the second reads the shortlist back with no beat, and the
+# third match starts the Final Cut after its beat (subflows/shortlist-play.yaml).
+# Needs Metro started with the staging environment (see the expo-app skill). Start the flow, and
+# once the lobby shows read the room code on the phone and run
+#   FLIMME_STAGING_URL=... FLIMME_STAGING_KEY=... \
+#     mise run bots -- --code <code> --count 3 --target staging --personality agreeable --like-rate 1
+# Run: `maestro --device <sim> test mobile/.maestro/shortlist.yaml -e METRO_URL=http://localhost:<port>`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Continue|Staging'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: 'Continue'
+    commands:
+      - tapOn: 'Continue'
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/host-room.yaml
+- extendedWaitUntil:
+    visible: 'Bot 3.*'
+    timeout: 240000
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- runFlow: subflows/shortlist-play.yaml

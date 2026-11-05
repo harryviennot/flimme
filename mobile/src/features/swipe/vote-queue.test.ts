@@ -541,6 +541,23 @@ describe('undo', () => {
     expect(queue.store.getState().votes).toEqual([]);
   });
 
+  it('a vote that turns out to be a match drops the undo queued behind it (a match cannot be undone)', async () => {
+    let resolveVote: (result: CastVoteResult) => void = () => undefined;
+    const { queue, log, events } = setup(
+      () => new Promise<CastVoteResult>((resolve) => (resolveVote = resolve)),
+    );
+    queue.enqueue(vote(1));
+    await jest.advanceTimersByTimeAsync(0);
+    queue.enqueueUndo(undoItem(1));
+    resolveVote({ status: 'ok', match: true, kind: 'unanimous', decided: false });
+    await jest.advanceTimersByTimeAsync(0);
+    expect(log).toEqual(['vote 1']);
+    expect(events).toEqual([
+      { type: 'match', room_id: ROOM, title_id: 1, kind: 'unanimous', decided: false },
+    ]);
+    expect(queue.store.getState().votes).toEqual([]);
+  });
+
   it('reports nothing_to_undo and drops it', async () => {
     const { queue, reported } = setup(undefined, { undo: () => ({ status: 'nothing_to_undo' }) });
     queue.enqueueUndo(undoItem(1));
@@ -557,7 +574,8 @@ describe('undo', () => {
     await jest.advanceTimersByTimeAsync(0);
     expect(invalidated).toEqual([ROOM]);
     expect(reported).toEqual([]);
-    expect(events).toEqual([]);
+    // While swiping the card leaves again: the screen hears which one.
+    expect(events).toEqual([{ type: 'undo_locked', room_id: ROOM, title_id: 1 }]);
     expect(queue.store.getState().votes).toEqual([]);
   });
 
