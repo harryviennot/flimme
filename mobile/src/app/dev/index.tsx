@@ -11,6 +11,7 @@ import { useDevStore } from '@/features/dev';
 import { switchBackend } from '@/features/dev/switch-backend';
 import { useHintsStore } from '@/features/swipe/hints';
 import { useSettingsStore } from '@/features/settings';
+import { soloCapStore } from '@/features/solo/cap';
 import { getConfig, getStagingStatus } from '@/lib/config';
 
 // Development builds only. Later tasks add their entries here (reset the hints and the
@@ -114,6 +115,11 @@ export default function DevScreen() {
             onPress={() => router.push('/dev/final-cut')}
           />
           <ListRow label="Solo cap card" icon="user" onPress={() => router.push('/dev/solo-cap')} />
+          <ListRow
+            label="Forget today's solo cap"
+            icon="refresh"
+            onPress={() => soloCapStore.getState().forget()}
+          />
           <ListRow label="Analytics log" icon="eye" onPress={() => router.push('/dev/analytics')} />
           <ListRow
             label="Realtime spike"
