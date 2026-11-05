@@ -53,7 +53,7 @@ The sheet, `px-5 pt-5 pb-4 gap-4`, a column filling the detent:
 
 Every `Text` on the card has `allowFontScaling={false}`: the card is an image of a fixed size, so the phone's text size must not reflow it. Its words are in the preview's label for screen readers. The card is in the app's language.
 
-**Measured:** the tallest case (a 2-line title) uses about 630 of the 640 points. Nothing else fits on the card; anything new means taking something out.
+**Measured:** the tallest case (a 2-line title) uses about 630 of the 640 points. Nothing else fits on the card; anything new means taking something out. M6.21 checks a 2-line French title in the gallery or on the simulator.
 
 **Never on the card:** a player's name or avatar, the room code (codes are reused once a room ends), the services or their logos (no JustWatch data, so no credit needed), the date, the mode, Party or Blind, who liked anything, the runners-up, a like count, a rating. The TMDB notice stays in Settings, About.
 

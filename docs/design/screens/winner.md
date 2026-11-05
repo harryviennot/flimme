@@ -166,7 +166,7 @@ M6.32, on the read M6.48 adds (`api.room_runners_up`). For when the stream turns
 4. **A runner-up:** a `Pressable` column, `w-24 items-center gap-1.5`, from the top:
    - `PosterThumb` size `m` (72 by 108), the card's `poster_path` at `w185` and its `poster_placeholder`. A missing poster shows the thumb's `bg-bg-raised` with `Icon` `film`, size 24, `text-muted`.
    - The title in `body-s`, tone `primary`, centred, at most 2 lines, then an ellipsis.
-   - **Party** (`reveal` is `party`, `likers` present): the likers' `Avatar`s, size `s`, `overlap` after the first, in the read's order (seat order), at most 3, then `winner:runnersUp.more` in `mono-data`, tone `muted`, for the rest. Under them, the likers' `display_name`s joined with `formatList` (`features/lobby/names.ts`), in `body-s`, tone `secondary`, centred, at most 2 lines. A liker's color comes from `avatar_key` (`toAvatarColor`). A seat that left is named like any other (Q48.5).
+   - **Party** (`reveal` is `party`, `likers` present): the likers' `Avatar`s, size `s`, `overlap` after the first, in the read's order (seat order), at most 3 (the names below list everyone; no "+2", so Party shows no count). Under them, the likers' `display_name`s joined with `formatList` (`features/lobby/names.ts`), in `body-s`, tone `secondary`, centred, at most 2 lines. A liker's color comes from `avatar_key` (`toAvatarColor`). A seat that left is named like any other (Q48.5).
    - **Blind** (no `likers` key): `winner:runnersUp.likes` with `likes` as the count, in `mono-data`, tone `secondary`.
    - **No likes** (`likes` 0 or `likers` empty, possible for a finalist in a Final Cut mode room): nothing under the title. Never "0 likes", never "nobody".
    - The tap opens [the runner-up sheet](#the-runner-up-sheet). `press` haptic.
@@ -180,7 +180,7 @@ M6.32, on the read M6.48 adds (`api.room_runners_up`). For when the stream turns
 | `ok` with an empty list (`source` null: no pick, a single-film pick, a solo room) | No section |
 | `not_finished` (a race: the screen only shows for `done`) | No section; the read is made again on the next `state_changed` |
 | Party, a runner-up with likers | Avatars and names |
-| Party, more than 3 likers | 3 avatars, then `+2`, and every name (2 lines, then an ellipsis; all of them in the label) |
+| Party, more than 3 likers | The first 3 avatars and every name (2 lines, then an ellipsis; all of them in the label) |
 | Blind | The like count only, no avatar, no name |
 | A runner-up with no likes | Its poster and title only |
 | A card missing from `title_cards` | That runner-up is left out; if none is left, no section |
@@ -297,7 +297,6 @@ A new file pair, `i18n/locales/fr/winner.json` and `en/winner.json`, registered 
 | `runnersUp.hint` | Plan B, si le film du soir ne passe pas. | Plan B, if tonight's pick won't play. |
 | `runnersUp.likes_one` | {{count}} j'aime | {{count}} like |
 | `runnersUp.likes_other` | {{count}} j'aime | {{count}} likes |
-| `runnersUp.more` | +{{count}} | +{{count}} |
 | `a11y.runnerUp` | {{title}}. {{detail}} | {{title}}. {{detail}} |
 | `a11y.likedBy` | Aimé par {{names}} | Liked by {{names}} |
 | `a11y.runnerUpHint` | Affiche où le regarder | Shows where to watch it |
