@@ -197,13 +197,18 @@ jobs:
     if: needs.changes.outputs.server == 'true' || needs.changes.outputs.database == 'true'
     runs-on: ubuntu-latest
     steps:
+      # First, before any download: see the database job.
+      - name: Keep the stack's ports away from outgoing connections
+        run: |
+          current=$(sysctl -n net.ipv4.ip_local_reserved_ports)
+          sudo sysctl -w net.ipv4.ip_local_reserved_ports="${current:+$current,}54320-54329"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
           # Pinned with mise.toml: the same version as the database job.
           version: 2.122.0
-      - name: Start only the services the tests need
-        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
+      - name: Start only the services the tests need (up to three tries)
+        run: bash tools/ci-supabase-start.sh -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
       - run: supabase db reset
       - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - run: uv sync --frozen
@@ -243,6 +248,14 @@ jobs:
     if: needs.changes.outputs.database == 'true'
     runs-on: ubuntu-latest
     steps:
+      # Linux picks local ports for outgoing connections from 32768 to 60999, so one of the
+      # image downloads can hold 54322 just as the database binds it ("address already in use",
+      # PRs #191 and #195). Reserved ports are never picked for that, and binding them on
+      # purpose still works. It runs first, before any download.
+      - name: Keep the stack's ports away from outgoing connections
+        run: |
+          current=$(sysctl -n net.ipv4.ip_local_reserved_ports)
+          sudo sysctl -w net.ipv4.ip_local_reserved_ports="${current:+$current,}54320-54329"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
@@ -250,8 +263,8 @@ jobs:
         with:
           # Pinned with mise.toml: the generated api types depend on the CLI version.
           version: 2.122.0
-      - name: Start only the services the tests need
-        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
+      - name: Start only the services the tests need (up to three tries)
+        run: bash tools/ci-supabase-start.sh -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
       - run: supabase db reset
       - run: supabase test db
       - name: New migrations are safe (Squawk)
