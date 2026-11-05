@@ -40,7 +40,7 @@ Order: **database, then server, then app.** Each must work with the one before a
 - `mobile/eas.json`: each profile's `channel` and `environment` equal its name (a test checks it); `appVersionSource` is `remote` and only production auto-increments. The marketing version stays in `app.config.ts`.
 - `APP_VARIANT` is an EAS environment variable per environment (`development`, `preview`, `production`). `app.config.ts` throws on any other value. A build and its updates must see the same value, because the app config counts in the fingerprint: always `eas update --channel <name> --environment <name>`.
 - Preview delivery: `staging.yml`'s `app` job runs `tools/preview-update-plan.mjs` (`eas fingerprint:generate --environment preview`, then `eas build:list --fingerprint-hash`): a matching finished preview build means `eas update`, then `pnpm exec sentry-expo-upload-sourcemaps dist` with `APP_VARIANT=preview`; no match means no build, only a job summary. Builds start by hand from `preview-build.yml` (`eas build --no-wait`). Both call EAS through `EXPO_TOKEN`; the source maps need the `SENTRY_AUTH_TOKEN` GitHub secret (skipped with a warning without it).
-- Variant icons (`icon-dev.png`, `icon-preview.png` and the Android foregrounds) are placeholders drawn by `mobile/scripts/make-variant-icons.swift` until M11.2.
+- Variant icons (`icon-dev.png`, `icon-preview.png` and the Android foregrounds) are drawn by `mobile/scripts/make-app-icons.swift` from `assets/images/flimme-icon-1024.png` and `flimme-mascot.png`; production iOS uses `assets/flimme.icon` (Icon Composer). A new icon needs a new EAS build.
 - `min_app_version` in `api.app_config` blocks builds below it.
 
 ## Secrets
