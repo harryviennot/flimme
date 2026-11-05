@@ -83,8 +83,20 @@ Copies of the Release screens frames, changed on 30 October 2026 (M0.9) to match
 | | | | 17 Recap card | `99:4268` | `22:1578` | No spec yet |
 | 05-06 Settings and edge states | `114:2022` | `114:2026` | 22 Settings | `99:4309` | `26:2113` | [settings](screens/settings.md) (with screen 23's delete confirm as a sheet) |
 | | | | 25 Room closed | `99:4337` | `30:1950` | [closed](screens/closed.md) |
+| 07 Solo and My films | `119:2016` | `119:2020` | S1 Play | `119:2069` | `99:3648` | [home](screens/home.md), [tab-bar](screens/tab-bar.md) |
+| | | | S2 Play alone setup | `120:2043` | `99:3779` | [solo-setup](screens/solo-setup.md) |
+| | | | S3 Solo swipe | `120:2105` | `99:4065` | [swipe](screens/swipe.md#solo) |
+| | | | S4 Checkpoint | `121:2246` | S3 | [swipe](screens/swipe.md#the-checkpoint-card) |
+| | | | S5 Pick sheet | `121:2578` | S4 | [swipe](screens/swipe.md#the-pick-sheet) |
+| | | | S6 Solo pick | `121:3229` | `99:4232` | [winner](screens/winner.md#the-solo-pick) |
+| | | | S7 Cap card | `121:2784` | S3 | [swipe](screens/swipe.md#the-cap-card), [solo-setup](screens/solo-setup.md#at-the-cap) |
+| | | | S8 My films | `122:2992` | New | [my-films](screens/my-films.md) |
+| | | | S9 My films, empty | `122:3280` | S8 | [my-films](screens/my-films.md#states) |
+| | | | S10 Film sheet | `123:3209` | S8 | [film-sheet](screens/film-sheet.md) |
 
 Not copied, because the first release doesn't have them: 06 Game mode and 07 Set the vibe as separate steps (merged into Host setup), 10 Taste check (M19), 18 Profile, 19 Connect Letterboxd, 20 Import history and 21 Save account (M15, M20), 23 Delete account (its first-release sheet, without the typed word, is in [settings](screens/settings.md#the-delete-sheet)), and section 07. Not copied because nothing changed for the first release: 24 Reconnecting (the banner is in [reconnecting](screens/reconnecting.md), and the swipe screen's offline note in [swipe](screens/swipe.md#states)) and 26 Nothing left (its Vote on our likes and Change filters wait for M18.5 and M18.6; the first release's done card is specced from the original `30:2000` in [swipe](screens/swipe.md#the-done-card-nothing-left), Q17.1). "Nothing fits tonight" has no frame; it is in [winner](screens/winner.md#nothing-fits-tonight).
+
+Section 07 was drawn on 5 November 2026 (M6.39), after reading 18 Profile (`26:1214`) once for the poster row's look. Its tab bar, segmented control, film tiles, star badge and status cards are plain frames built from the tokens' variables and the library's instances (`Tag`, `Chip`, `Button`, `Icon button`, `Movie card`, the posters): the `TabBar`, `SegmentedControl` and `FilmTile` components exist in code first (M6.43, M6.45), and the library catches up later. S10's card back is the library's `Movie card` back with its flip badge, flip hint, friend rating and trailer hidden; it still shows the service tags, which the app leaves out ([film-sheet](screens/film-sheet.md#layout)).
 
 Drawn as overrides until the components catch up: the `PinBox` error border on 05b (the component has no `Error` variant yet) and the host `Tag` without the `crown` icon (the icon set has none yet). Service logos on 16 Winner are placeholder tiles: the app shows TMDB's provider logos. The invite domain is flimme.com (decided 4 November 2026); `flimme.app` was a placeholder.
 
