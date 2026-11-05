@@ -23,6 +23,8 @@ export type WinnerView =
       services: ServiceLogo[];
       watchLink: string | null;
       onlyFilm: boolean;
+      /** How the pick was made: all liked it, or the Final Cut (analytics only). */
+      outcome: 'match' | 'finale';
     };
 
 /** Everything the winner screen shows, from the room's pick (winner.md). */
@@ -60,5 +62,6 @@ export function useWinner(roomId: string, language: string): WinnerView {
     services: serviceLogos(card.providers, imageBase),
     watchLink: card.watch_link,
     onlyFilm: isOnlyFilmPick(pick, rounds.data),
+    outcome: pick.kind === 'finale' ? 'finale' : 'match',
   };
 }

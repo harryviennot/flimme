@@ -40,6 +40,7 @@ function ready(over: Partial<Extract<WinnerView, { status: 'ready' }>> = {}): Wi
     ),
     watchLink: 'https://www.themoviedb.org/movie/1/watch?locale=FR',
     onlyFilm: false,
+    outcome: 'match',
     ...over,
   };
 }

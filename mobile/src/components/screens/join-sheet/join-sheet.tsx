@@ -31,7 +31,7 @@ export type JoinSheetProps = {
   onClearNameError: () => void;
   onRetry: () => void;
   onJoin: () => void;
-  onSubmit: (name: string, color: AvatarColor) => Promise<SubmitOutcome>;
+  onSubmit: (name: string, color: AvatarColor, hasAvatar: boolean) => Promise<SubmitOutcome>;
 };
 
 /** The join sheet's layouts: loading, joining, confirm, first time, refused (join-sheet.md#layout). */
@@ -145,6 +145,7 @@ function FirstTime({
   const [color, setColor] = useState<AvatarColor>(() =>
     initialColor(false, 'default', Math.random),
   );
+  const [pickedColor, setPickedColor] = useState(false);
   const [autoFocus, setAutoFocus] = useState(false);
 
   // Focused on open, unless a screen reader is on, so the title is read first.
@@ -161,7 +162,7 @@ function FirstTime({
   const valid = isNameValid(name);
   const join = async () => {
     if (!valid || saving) return;
-    const outcome = await onSubmit(name, color);
+    const outcome = await onSubmit(name, color, pickedColor);
     if (outcome.kind === 'offline') showToast({ tone: 'warn', title: tn('name.errors.offline') });
     else if (outcome.kind === 'failed')
       showToast({ tone: 'warn', title: tc('errors.generic.title') });
@@ -184,7 +185,10 @@ function FirstTime({
           setName(next);
           onClearNameError();
         }}
-        onChangeColor={setColor}
+        onChangeColor={(next) => {
+          setPickedColor(true);
+          setColor(next);
+        }}
         autoFocus={autoFocus}
       />
       <Button

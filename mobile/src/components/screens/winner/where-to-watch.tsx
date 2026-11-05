@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { track } from '@/lib/analytics';
 import { servicesLabel, type ServiceLogo } from '@/features/winner/services';
 import { duration } from '@/theme/motion';
 
@@ -76,7 +77,10 @@ export function WhereToWatch({ services, watchLink, language }: WhereToWatchProp
             variant="ghost"
             size="s"
             icon="external-link"
-            onPress={() => void WebBrowser.openBrowserAsync(watchLink)}
+            onPress={() => {
+              track('winner:watch_page_open');
+              void WebBrowser.openBrowserAsync(watchLink);
+            }}
           />
         </View>
       ) : null}

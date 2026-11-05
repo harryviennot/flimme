@@ -23,12 +23,20 @@ import {
   type HintId,
   type HintSignalsStore,
 } from '@/features/swipe/hints';
+import { track } from '@/lib/analytics';
 import { useTopCard } from '@/features/swipe/top-card';
 import { duration, easing, layout, spring } from '@/theme/motion';
 
 // The first-game hint line between the stack and the buttons (swipe.md#first-game-hints): one
 // hint at a time, never over the card or the buttons. Card 1 also leans the top card right and
 // then left once, through the registered top card's values (the stamps follow from its x).
+
+const HINT_EVENT = {
+  swipe: 'swipe',
+  seen: 'seen_it',
+  flip: 'flip',
+  superLikes: 'super_like',
+} as const satisfies Record<HintId, string>;
 
 export type SwipeHintsProps = {
   /** The room hides seen films. */
@@ -57,6 +65,14 @@ export function SwipeHints({ hideSeen, stack, signals, superLikes }: SwipeHintsP
     gone.forEach((id) => finish(id));
     previous.current = visible;
   }, [done, g, visible, finish]);
+
+  // Each hint is reported the first time it appears in this game.
+  const reported = useRef(new Set<HintId>());
+  useEffect(() => {
+    if (!visible || reported.current.has(visible)) return;
+    reported.current.add(visible);
+    track('game:hint_show', { hint: HINT_EVENT[visible] });
+  }, [visible]);
 
   useLean(visible === 'swipe');
 
