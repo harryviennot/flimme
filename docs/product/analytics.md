@@ -170,6 +170,7 @@ Estimated volume: about 20 events per player per game, plus a few per app open. 
 
 - **In identified mode, one person is one profile id**, as in [app structure](../architecture/app-structure.md#analytics-and-crash-reports). A guest is already a Supabase user with a profile from their first launch, so the phone calls `identify` with that id and there's no anonymous history to merge. **In anonymous mode** (the default in the EU, the UK and Switzerland) there is no `identify`: events carry a random install id, never joined to the database. A player who opts in to detailed stats switches to identified mode from then on, with no merge of the anonymous history.
 - **Saving an account keeps the same id**, since linking Apple or Google keeps the Supabase user: nothing to do in PostHog.
+- **Guests deleted after 90 days** (M8.8) are not deleted from PostHog in the first release: France first means players are anonymous there and have no person to delete. Revisit before the US launch, where the profile id is the person.
 - **Signing into an existing account** (no merge, per [Sign-in](../architecture/app-structure.md#sign-in)) calls `reset`, then `identify` with the other profile id. The two are never aliased, as they're never merged in the database.
 - **Deleting an account** also deletes the person in PostHog, from the server's deletion flow (see [Changes](#changes-this-asks-elsewhere)).
 - **No seat or room ids in PostHog.** Room-level numbers come from the database. PostHog's group analytics add-on isn't used.
