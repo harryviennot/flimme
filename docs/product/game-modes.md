@@ -461,6 +461,7 @@ All placeholders until playtests.
 | Solo room without a vote | 30 minutes, then done |
 | Solo super likes | 32767 (no limit) |
 | Solo starts | 20 per 10 minutes per profile |
+| Solo cards a day | 100 per player, counted per Paris day on answered solo cards (`app_config.solo_daily_cards`); group play is never capped; undo gives nothing back |
 | Lobby expiry | 3 hours |
 | Game limit | 1 hour after the start |
 | Server silence before the phone deals the SQL baseline | 8 seconds (already in the data model) |
