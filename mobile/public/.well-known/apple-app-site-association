@@ -3,8 +3,8 @@
     "details": [
       {
         "appIDs": [
-          "REPLACE_WITH_TEAM_ID.com.harryviennot.flimme",
-          "REPLACE_WITH_TEAM_ID.com.harryviennot.flimme.preview"
+          "QQJF5895MC.com.harryviennot.flimme",
+          "QQJF5895MC.com.harryviennot.flimme.preview"
         ],
         "components": [{ "/": "/join/*" }]
       }

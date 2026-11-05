@@ -10,6 +10,11 @@ type Variant = 'development' | 'preview' | 'production';
 const BUNDLE_ID = 'com.harryviennot.flimme';
 const DISPLAY_NAME = 'Flimme';
 
+// The invite domain (decided 4 November 2026). Invite links are https://flimme.com/join/<code>,
+// the same path as the route, so Expo Router opens them as universal links and App Links. The
+// domain serves the files that prove the claim (mobile/public/.well-known/, roadmap M4.18).
+const INVITE_HOST = 'flimme.com';
+
 // Development and preview wear a badge so the builds can't be confused with each other or with the
 // store app. They are placeholders until the designer exports the real ones (roadmap M11.2).
 const variants = {
@@ -51,6 +56,9 @@ function readVariant(): Variant {
 export default ({ config }: ConfigContext): ExpoConfig => {
   const variant = readVariant();
   const current = variants[variant];
+  // Universal links and App Links are for preview and production builds; development builds use
+  // their own scheme (decisions.md, Q14.5), so a link on the domain never opens one by surprise.
+  const appLinks = variant !== 'development';
 
   return {
     ...config,
@@ -77,6 +85,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
       // Tablets get the phone layout until tablets are decided (decisions.md).
       supportsTablet: false,
+      // No https:// here. EAS Build turns on the Associated Domains capability for the bundle id.
+      ...(appLinks ? { associatedDomains: [`applinks:${INVITE_HOST}`] } : {}),
     },
     android: {
       package: BUNDLE_ID + current.idSuffix,
@@ -87,6 +97,20 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         monochromeImage: './assets/images/android-icon-monochrome.png',
       },
       predictiveBackGestureEnabled: false,
+      // Android checks assetlinks.json on the domain at install (autoVerify) and then opens these
+      // links in the app without asking.
+      ...(appLinks
+        ? {
+            intentFilters: [
+              {
+                action: 'VIEW',
+                autoVerify: true,
+                data: [{ scheme: 'https', host: INVITE_HOST, pathPrefix: '/join/' }],
+                category: ['BROWSABLE', 'DEFAULT'],
+              },
+            ],
+          }
+        : {}),
       // expo-secure-store's biometric library declares these; the app never uses biometrics.
       blockedPermissions: [
         'android.permission.USE_BIOMETRIC',

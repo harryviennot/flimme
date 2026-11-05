@@ -68,6 +68,38 @@ describe('app config', () => {
     expect(config.ios?.privacyManifests?.NSPrivacyTrackingDomains).toEqual([]);
   });
 
+  // Universal links and App Links (M4.18): preview and production claim flimme.com/join/*;
+  // development builds keep their own scheme (decisions.md, Q14.5).
+  it.each(['preview', 'production'])('%s claims flimme.com for universal links', (variant) => {
+    expect(load(variant).ios?.associatedDomains).toEqual(['applinks:flimme.com']);
+  });
+
+  it.each(['preview', 'production'])(
+    '%s has one verified https intent filter for /join/ on flimme.com',
+    (variant) => {
+      const filters = (load(variant).android?.intentFilters ?? []).filter((filter) =>
+        [filter.data ?? []].flat().some((data) => data.scheme === 'https'),
+      );
+      expect(filters).toEqual([
+        {
+          action: 'VIEW',
+          autoVerify: true,
+          data: [{ scheme: 'https', host: 'flimme.com', pathPrefix: '/join/' }],
+          category: ['BROWSABLE', 'DEFAULT'],
+        },
+      ]);
+    },
+  );
+
+  it('development claims no domain and has no https intent filter', () => {
+    const config = load('development');
+    expect(config.ios?.associatedDomains).toBeUndefined();
+    const https = (config.android?.intentFilters ?? []).filter((filter) =>
+      [filter.data ?? []].flat().some((data) => data.scheme === 'https'),
+    );
+    expect(https).toEqual([]);
+  });
+
   it.each(variants)('%s never asks for the microphone', (variant) => {
     const config = load(variant);
     expect(config.android?.permissions ?? []).not.toContain('android.permission.RECORD_AUDIO');

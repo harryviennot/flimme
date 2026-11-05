@@ -11,9 +11,9 @@ const ID = '0b9a7c3e-6a1d-4f6e-9a55-2b6f1e0c8d41';
 
 describe('inviteLink', () => {
   it('uses the invite base, with or without a trailing slash', () => {
-    for (const base of ['https://flimme.app', 'https://flimme.app/']) {
+    for (const base of ['https://flimme.com', 'https://flimme.com/']) {
       expect(inviteLink({ base, scheme: 'flimme-dev', code: '482913', id: ID })).toBe(
-        `https://flimme.app/join/482913?r=${ID}`,
+        `https://flimme.com/join/482913?r=${ID}`,
       );
     }
   });
@@ -27,7 +27,7 @@ describe('inviteLink', () => {
 
 describe('displayLink', () => {
   it('drops https:// and keeps a scheme link whole', () => {
-    expect(displayLink('https://flimme.app/join/482913')).toBe('flimme.app/join/482913');
+    expect(displayLink('https://flimme.com/join/482913')).toBe('flimme.com/join/482913');
     expect(displayLink('flimme-dev://join/482913')).toBe('flimme-dev://join/482913');
   });
 });

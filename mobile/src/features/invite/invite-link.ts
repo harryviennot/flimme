@@ -9,10 +9,12 @@ import { showToast } from '@/components/ui/toast';
 import { useAppConfig } from '@/features/app-config/use-app-config';
 import { useRoom } from '@/features/room/queries';
 import { track } from '@/lib/analytics';
+import { variant } from '@/lib/variant';
 
 /**
- * The invite link. With an `invite_base_url` (from M4.18) it is `<base>/join/<code>?r=<id>`;
- * without one, the build's own scheme (`flimme-dev://join/<code>?r=<id>`). Never logged.
+ * The invite link. With an `invite_base_url` (`https://flimme.com`, M4.18) it is
+ * `<base>/join/<code>?r=<id>`; without one, the build's own scheme
+ * (`flimme-dev://join/<code>?r=<id>`). Never logged.
  */
 export function inviteLink({
   base,
@@ -81,9 +83,12 @@ export function useInvite(roomId: string | undefined): Invite {
 
   const code = room.data?.code;
   const id = room.data?.id ?? roomId;
+  // Only preview and production builds claim the domain's links (app.config.ts), so a
+  // development build shares its own scheme even when its database has the base (Q14.5).
+  const base = variant() === 'development' ? undefined : config.data?.invite_base_url;
   const link =
     code && id && config.isSuccess
-      ? inviteLink({ base: config.data.invite_base_url, scheme: buildScheme(), code, id })
+      ? inviteLink({ base, scheme: buildScheme(), code, id })
       : undefined;
 
   const state: Invite['state'] = link ? 'ready' : config.isError ? 'error' : 'loading';
