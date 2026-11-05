@@ -76,7 +76,7 @@ install_mise() {
 echo "cloud-setup: Postgres extensions"
 apt-get update -qq
 apt-get install -y -qq postgresql-16-pgtap postgresql-16-pgvector libtap-parser-sourcehandler-pgtap-perl >/dev/null
-pg_ctlcluster 16 main start 2>/dev/null || true
+pg_ctlcluster 16 main start >/dev/null 2>&1 || true
 su postgres -c "psql -Atc \"select 1 from pg_roles where rolname = '$(whoami)'\"" | grep -q 1 \
   || su postgres -c "createuser --superuser $(whoami)"
 
