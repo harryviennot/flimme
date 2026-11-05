@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 134 of 278 tasks done.
+Progress: 135 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -482,7 +482,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on simulators against staging with the bots plays each beat, fills the top bar to the Final Cut, and reads the shortlist back after a cold start.
 - [x] **M6.38** The Final Cut with 2 films and its intro line: the 2-film vote without a veto, its reveal, and the fixed line on how the films were chosen · app · M · needs M6.33, M6.35, M6.15, M6.31 · [the finalists](game-modes.md#the-finalists), [final-cut](../design/screens/final-cut.md#layout)
   Done when: a touch run against staging reaches a 2-film vote and its reveal, and every Final Cut shows the intro line in French and English.
-- [ ] **M6.39** Solo and My films, the specs and beats: the tab bar, Play, Play alone setup, the solo swipe variant (top bar, checkpoint card, cap card, pick sheet), the solo pick, My films and the film sheet; the checkpoint and solo pick beats; the frames on the Figma's First release page · design · L · [solo](solo-and-my-films.md#the-screens-to-spec), [moments](../design/moments.md)
+- [x] **M6.39** Solo and My films, the specs and beats: the tab bar, Play, Play alone setup, the solo swipe variant (top bar, checkpoint card, cap card, pick sheet), the solo pick, My films and the film sheet; the checkpoint and solo pick beats; the frames on the Figma's First release page · design · L · [solo](solo-and-my-films.md#the-screens-to-spec), [moments](../design/moments.md)
   Done when: every screen has a spec with its states and its copy in French and English, both beats are in moments.md, and the frames are on the First release page.
 - [ ] **M6.43** The tab bar: Play (today's Home) and My films as Expo Router tabs; host setup, join, rooms and Settings over the tabs with no tab bar; deep links and the redirects from `/` still work · app · M · needs M6.39 · [solo](solo-and-my-films.md#2-the-tab-bar), [app-structure](../architecture/app-structure.md#screens-and-navigation)
   Done when: a touch run on the simulator moves between the tabs, opens host setup, a join link, a room and Settings with no tab bar, and comes back to Play.
