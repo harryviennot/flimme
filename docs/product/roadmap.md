@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 118 of 265 tasks done.
+Progress: 119 of 265 tasks done.
 
 ```mermaid
 flowchart LR
@@ -519,7 +519,7 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: every item works on both platforms.
 - [ ] **M8.8** Guest cleanup: guests inactive for 90 days are deleted from `auth.users` · backend · M · needs M1.5, M8.9 · [security](../architecture/security.md#guest-accounts)
   Done when: a scheduled run deletes a test guest on staging.
-- [ ] **M8.9** The daily retention job (`internal.run_retention`) · backend · M · needs M1.5 · [operations](../architecture/operations.md#retention-jobs)
+- [x] **M8.9** The daily retention job (`internal.run_retention`) · backend · M · needs M1.5 · [operations](../architecture/operations.md#retention-jobs)
   Done when: each retention rule is tested.
 - [ ] **M8.10** Record of processing for the first release · legal · S · needs M8.1 · [privacy](privacy.md#who-is-responsible)
   Done when: written from the data map.
