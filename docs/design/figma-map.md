@@ -79,8 +79,8 @@ Copies of the Release screens frames, changed on 30 October 2026 (M0.9) to match
 | | | | 13 Card flipped | `99:4122` | `19:1332` | [swipe](screens/swipe.md) (the back) |
 | | | | 14 It's a match | `99:4149` | `22:921` | [match](screens/match.md) |
 | | | | 15 Final cut | `99:4187` | `22:1051` | [final-cut](screens/final-cut.md) (the reveal comes with M6.31) |
-| | | | 16 Winner | `99:4232` | `22:1304` | [winner](screens/winner.md) |
-| | | | 17 Recap card | `99:4268` | `22:1578` | No spec yet |
+| | | | 16 Winner | `99:4232` | `22:1304` | [winner](screens/winner.md) (runners-up as a poster row, not `ResultRow`; Play again in the footer) |
+| | | | 17 Recap card | `99:4268` | `22:1578` | [recap](screens/recap.md) (no date; the time as a line) |
 | 05-06 Settings and edge states | `114:2022` | `114:2026` | 22 Settings | `99:4309` | `26:2113` | [settings](screens/settings.md) (with screen 23's delete confirm as a sheet) |
 | | | | 25 Room closed | `99:4337` | `30:1950` | [closed](screens/closed.md) |
 | 07 Solo and My films | `119:2016` | `119:2020` | S1 Play | `119:2069` | `99:3648` | [home](screens/home.md), [tab-bar](screens/tab-bar.md) |

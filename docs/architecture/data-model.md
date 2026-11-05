@@ -439,7 +439,7 @@ erDiagram
 | include_free_services | boolean | Default true: the country's `free_for_all` services count for the room. The host's switch comes with M4.4 |
 | rule | jsonb | The mode's match_rules rows, frozen at start |
 | seed | integer | Random seed for reproducible openings and wildcards |
-| stats | jsonb | Written by the server when the room ends: duration, swipes, players. Feeds the recap card |
+| stats | jsonb | Written by the server when the room ends: duration, swipes, players. For analytics and the end-of-room work; the recap card computes its own numbers on the phone from `api.rooms` and `api.room_seats`, since `stats` is written late and has no total swipe count ([recap](../design/screens/recap.md#the-numbers)) |
 | created_at, dealing_at, started_at, finale_at, decided_at, ended_at | timestamptz | The funnel |
 | expires_at | timestamptz | Lobbies that never start are abandoned after 3 hours |
 

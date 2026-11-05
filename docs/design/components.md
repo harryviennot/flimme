@@ -108,7 +108,7 @@ An invisible input that owns a value and draws nothing: it fills its `relative` 
 
 ## Result row (`shared/result-row`)
 
-"Ranked runner-up on the winner screen." `bg.surface`, `border.default` hairline, `radius.lg`, padding 12 then 16, gap 14. Rank `display-m` `marquee.default`, a 54 by 81 thumb, title `title-m`, meta `mono-data` `text.muted`, overlapping avatars and "2 of 3 liked" in `body-s`.
+"Ranked runner-up on the winner screen." `bg.surface`, `border.default` hairline, `radius.lg`, padding 12 then 16, gap 14. Rank `display-m` `marquee.default`, a 54 by 81 thumb, title `title-m`, meta `mono-data` `text.muted`, overlapping avatars and "2 of 3 liked" in `body-s`. The first release's winner screen doesn't use it: its runners-up are a poster row with no rank and no "of 3" ([winner](screens/winner.md#the-runners-up)).
 
 ## Rating logos (`shared/rating-logo`)
 
