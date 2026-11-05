@@ -41,6 +41,7 @@ function model(
   };
   return {
     kind: 'final_cut',
+    pickOne: false,
     phase: 'voting' as Phase,
     loadFailed: false,
     postersFailed: false,
@@ -143,6 +144,61 @@ describe('the Final Cut screen', () => {
     expect(actions.map((a: { name: string }) => a.name)).toEqual(['rankNext']);
     expect(screen.getByText('Rank them.')).toBeTruthy();
     expect(screen.getByText(/The rest follow in the order shown/)).toBeTruthy();
+  });
+
+  it('plays 2 films as Pick one, with no veto and the intro line once', async () => {
+    const two = model(
+      { kind: 'ranked_vote', pickOne: true, vetoAllowed: false, slots: 2 },
+      { 10: { kind: 'ranked', rank: 1 }, 20: { kind: 'faint', rank: 2 } },
+    );
+    two.finalists.splice(2);
+    await show(two);
+    expect(screen.getByText('Final vote')).toBeTruthy();
+    expect(screen.getByText('Pick one.')).toBeTruthy();
+    expect(screen.getByText(/Tap the one you'd rather watch/)).toBeTruthy();
+    expect(
+      screen.getAllByText('From your likes, with one for each of you when we can.'),
+    ).toHaveLength(1);
+    expect(screen.getByLabelText('Alpha, 2020. Your pick')).toBeTruthy();
+    expect(screen.getByLabelText('Beta, 2020. Not picked, counts as 2')).toBeTruthy();
+    const names = (label: RegExp) =>
+      screen.getByLabelText(label).props.accessibilityActions.map((a: { name: string }) => a.name);
+    expect(names(/Alpha/)).toEqual(['removeRank']);
+    expect(names(/Beta/)).toEqual(['rankNext']);
+    expect(screen.queryByLabelText(/Vetoed/)).toBeNull();
+    expect(screen.queryByText(/Long-press/)).toBeNull();
+    expect(screen.getByLabelText('The final vote. Pick one.')).toBeTruthy();
+    // a long press changes nothing on the screen: the labels stay, and the model is not told of a veto stamp
+    await fireEvent(screen.getByLabelText(/Beta/), 'longPress');
+    expect(screen.getByLabelText('Beta, 2020. Not picked, counts as 2')).toBeTruthy();
+    expect(screen.getByLabelText('Alpha, 2020. Your pick')).toBeTruthy();
+    // the two posters share the row, each capped at 144 points and centred
+    for (const id of [10, 20]) {
+      expect(screen.getByTestId(`finalist-${id}`).props.className).toMatch(/max-w-36/);
+    }
+    expect(screen.queryByTestId('finalist-30')).toBeNull();
+  });
+
+  it('shows the intro line once on a Final Cut', async () => {
+    await show(model());
+    expect(
+      screen.getAllByText('From your likes, with one for each of you when we can.'),
+    ).toHaveLength(1);
+  });
+
+  it('shows the same intro line on a ranked vote of 4', async () => {
+    await show(model({ kind: 'ranked_vote', vetoAllowed: false }));
+    expect(
+      screen.getAllByText('From your likes, with one for each of you when we can.'),
+    ).toHaveLength(1);
+  });
+
+  it("marks no finalist as anyone's", async () => {
+    await show(model());
+    for (const name of ['Alpha', 'Beta', 'Gamma']) {
+      const label = screen.getByLabelText(new RegExp(name)).props.accessibilityLabel as string;
+      expect(label).not.toMatch(/Léa|Sam|chosen by|from/i);
+    }
   });
 
   it('picks the intro by kind and veto', async () => {

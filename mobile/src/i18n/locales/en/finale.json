@@ -5,12 +5,15 @@
   },
   "heading": {
     "finalCut": "Pick one. Veto one.",
-    "ranked": "Rank them."
+    "ranked": "Rank them.",
+    "pickOne": "Pick one."
   },
   "intro": {
     "veto": "Tap the posters in your order, favourite first. Long-press one to veto it: it stays secret until the end.",
     "noVeto": "You've used your veto this game. Tap the posters in your order, favourite first.",
-    "rank": "Tap the posters in your order, favourite first. The rest follow in the order shown."
+    "rank": "Tap the posters in your order, favourite first. The rest follow in the order shown.",
+    "pickOne": "Tap the one you'd rather watch. If you tap nothing, your vote goes to number 1.",
+    "source": "From your likes, with one for each of you when we can."
   },
   "lockIn": "Lock in my vote",
   "sending": "Sending",
@@ -36,20 +39,25 @@
   "a11y": {
     "heading": {
       "finalCut": "The Final Cut. Pick one. Veto one.",
-      "ranked": "The final vote. Rank them."
+      "ranked": "The final vote. Rank them.",
+      "pickOne": "The final vote. Pick one."
     },
     "film": "{{title}}, {{year}}",
     "filmNoYear": "{{title}}",
     "state": {
       "ranked": "Ranked {{rank}}",
       "unranked": "Not ranked, counts as {{rank}}",
-      "vetoed": "Vetoed"
+      "vetoed": "Vetoed",
+      "picked": "Your pick",
+      "notPicked": "Not picked, counts as {{rank}}"
     },
     "actions": {
       "rankNext": "Rank next",
       "removeRank": "Remove from ranking",
       "veto": "Veto",
-      "liftVeto": "Lift veto"
+      "liftVeto": "Lift veto",
+      "pick": "Pick",
+      "unpick": "Remove my pick"
     },
     "vetoLifted": "Veto lifted",
     "timeLeft_one": "{{count}} second left",

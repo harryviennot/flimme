@@ -389,7 +389,7 @@ Runs every minute. Each room is handled in its own short transaction, skipping r
 | `internal.start_finale` | Finalists as in [The finalists](#the-finalists); one combined round of 60 seconds; a single qualifying film is the pick |
 | `internal.maybe_start_finale` | Card count over seats seated at the start only; every rule's time limit; also starts when every present seat is done |
 | `internal.check_card_match` | Counts "Watch it again tonight? Yes" as a like; no more abstentions. A match joins the shortlist; at the mode's `matches_to_end` it calls `internal.start_finale` with reason `shortlist_full`; several matches at once go most liked first (5 Nov 2026) |
-| `internal.start_finale` (again) | A vote between 2 or 3 matches; a single match is the pick in Quick Match and Date Night (`only_match`); Final Cut mode fills; the one-seat-each rule (5 Nov 2026) |
+| `internal.start_finale` (again) | A vote between 2 or 3 matches; a single match is the pick in Quick Match and Date Night (`only_match`); Final Cut mode fills; the one-seat-each rule (5 Nov 2026). Done in M6.35 (M6.36 for the one-seat-each rule) |
 | `api.cast_vote` | Accepts the rewatch answer in rooms that allow rewatches |
 | `api.undo_last_vote` | Last swipe only, once; undoing a "Seen it" brings a dropped film back |
 | `api.leave_room` | Host role to the longest-seated present player |
@@ -407,8 +407,8 @@ Not yet in [data-model.md](../architecture/data-model.md) or [schema.sql](../arc
 | `round_stage` | One open stage, `vote`, then `closed`. `veto` and `rank` stay in the type, unused, since migrations only add (decided on 4 Nov 2026). Done in M6.4: `vote` is added |
 | `rooms.finale_reason` | Why the finale started: `cards`, `time`, `all_done`, `vote_now` or `shortlist_full` (`cards` when the count and the time limit hold together). Done in M6.4; written for a round, a single-film pick and a no pick alike |
 | `match_rules` | `finale_after_seconds` on every row (see [Time to a pick](#time-to-a-pick)); 40 cards for Quick Match with 2 to 4 players and Date Night, 30 for Quick Match with 5 to 10 and for Final Cut |
-| `rooms.stats` | Adds `outcome`: `match`, `finale`, `no_pick` or `abandoned`, and the number of matches (5 Nov 2026) |
-| `game_modes.defaults` | Adds `matches_to_end`: 3 for `quick_match`, `final_cut` and `date_night`; a missing value means 3. `ends_on_first_match` stays in the table, false for every launch mode, since migrations only add (5 Nov 2026) |
+| `rooms.stats` | Adds `outcome`: `match`, `finale`, `no_pick` or `abandoned`, and the number of matches (5 Nov 2026). Done in M6.34; M6.35 checked it for `only_match` and a vote between 2 matches |
+| `game_modes.defaults` | Adds `matches_to_end`: 3 for `quick_match`, `final_cut` and `date_night`; a missing value means 3. `ends_on_first_match` stays in the table, false for every launch mode, since migrations only add (5 Nov 2026). Done in M6.34, M6.35 |
 | New functions | `api.cast_ballot` (whole ballot, done in M6.5), `api.close_round_stage` and `api.round_progress` (done in M6.5), `api.start_finale_now`, `api.play_again`, `internal.close_round_stage` (done in M6.5), `internal.sweep_rooms` |
 | Realtime | New `next_room` (code of the new room) and `host_changed`. `round_progress` carries which seats have locked in. `match` for a finale carries the points and vetoes |
 | Card payload | A `super_liked` flag in Party mode |

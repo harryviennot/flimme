@@ -56,6 +56,7 @@ const f = (titleId: number, seed: number, points: number, vetoed = false) => ({
 const model = (): FinalCutModel =>
   ({
     kind: 'final_cut',
+    pickOne: false,
     phase: 'counting',
     loadFailed: false,
     postersFailed: false,

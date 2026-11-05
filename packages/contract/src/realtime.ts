@@ -68,7 +68,9 @@ export type RoomEventPayloads = {
   near_miss: { title_id: number; likes: number; of: number; needed: number };
   /**
    * The finale's result has `kind: 'finale'`. With a single qualifying film it carries
-   * `reason: 'only_film'` and no finalists (M6.4).
+   * `reason: 'only_film'` and no finalists (M6.4). A lone match in Quick Match or Date Night is
+   * decided with `reason: 'only_match'` and no finalists (M6.35); its `kind` is the match's own
+   * (`unanimous` or `majority`), not `finale`, and `likes` and `of` are the match's counts.
    */
   match: {
     title_id: number;
@@ -80,8 +82,8 @@ export type RoomEventPayloads = {
     shortlisted?: number;
     /** The mode's matches_to_end: the shortlist's size; absent on a finale's result (M6.34). */
     shortlist_size?: number;
-    /** `only_film` (M6.4, no finalists), or how a Final Cut was decided (M6.5). */
-    reason?: 'only_film' | 'only_unvetoed' | 'points' | 'no_ballots';
+    /** `only_film` (M6.4) or `only_match` (M6.35), both with no finalists, or how a Final Cut was decided (M6.5). */
+    reason?: 'only_film' | 'only_match' | 'only_unvetoed' | 'points' | 'no_ballots';
     finalists?: FinalistResult[];
   };
   /** Who has locked in, never what they voted (M6.5). */

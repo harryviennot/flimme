@@ -133,6 +133,22 @@ describe('a phone that missed the event', () => {
     expect(mockApi.rounds).toHaveBeenCalledTimes(1);
   });
 
+  it('plays a 2-film ranked vote once, from the candidates', async () => {
+    mockApi.rounds.mockResolvedValue([{ ...closed, kind: 'ranked_vote' }]);
+    mockApi.roundCandidates.mockResolvedValue([
+      { round_id: 'rd1', title_id: 1, seed: 1, points: 6, vetoed: false },
+      { round_id: 'rd1', title_id: 2, seed: 2, points: 3, vetoed: false },
+    ]);
+    const { result } = await hold('done', 'swipe');
+    expect(result.current).toBe(true);
+    await waitFor(() => expect(revealStore.getState().phase).toBe('playing'));
+    const data = revealStore.getState().data;
+    expect(data?.finalists).toHaveLength(2);
+    expect(data?.reason).toBe('points');
+    expect(data?.finalists.some((x) => x.vetoed)).toBe(false);
+    expect(mockApi.rounds).toHaveBeenCalledTimes(1);
+  });
+
   it('goes straight on when the room was already shown', async () => {
     matchShownStore.getState().mark('r1');
     const { result } = await hold('done', 'swipe');
