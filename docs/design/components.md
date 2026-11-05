@@ -133,5 +133,11 @@ Specified in the screen specs (`docs/design/screens/`) from 30 October 2026 on, 
 | `Icon` | ui | Gains `crown` (24 points, 2-point stroke) for the host's tag | [Lobby](screens/lobby.md#design-system-change) |
 | `ListRow` | ui | Gains `tone="danger"`, `loading`, `disabled`, a minimum height with a two-line label for large text, and a label hidden from screen readers when `trailing` is set | [Settings](screens/settings.md#design-system-changes) |
 | `Icon` | ui | Gains `volume` (24 points, 2-point stroke) for the Sound row | [Settings](screens/settings.md#design-system-changes) |
+| `TabBar` | ui | New: two tabs (icon and label), the selected one in `marquee` | [The tab bar](screens/tab-bar.md#new-component) |
+| `SegmentedControl` | ui | New: two or three segments in one track, a sliding thumb (My films' Liked and Seen) | [My films](screens/my-films.md#new-components) |
+| `FilmTile` | shared | New: a film's poster as a grid tile, its placeholder, one badge (Picked or the star), used by My films and the pick sheet | [My films](screens/my-films.md#new-components) |
+| `MovieCard` | shared | Gains `still`: the back with no flip badge and no flip-back line (the film sheet) | [The film sheet](screens/film-sheet.md#design-system-changes) |
+| `WhereToWatch` | shared | Moves from `screens/winner/` to `shared/`, and takes the "not listed" line as a prop | [The film sheet](screens/film-sheet.md#design-system-changes) |
+| `Toast` | ui | Gains an optional `action` (Undo) and `duration` | [The film sheet](screens/film-sheet.md#design-system-changes) |
 
-Single-use pieces, in `components/screens/`: `splash/splash-view`, `welcome/hero`, `home/host-card`, `home/join-card`, `join/code-field`, `lobby/seat-row`, `lobby/shuffling-overlay`, `invite/qr-panel`. The QR panel adds the `react-native-qrcode-svg` dependency named in [app structure](../architecture/app-structure.md#invites-and-deep-links).
+Single-use pieces, in `components/screens/`: `splash/splash-view`, `welcome/hero`, `home/host-card`, `home/join-card`, `home/solo-card`, `swipe/status-cards` (the checkpoint, out of films and cap cards), `solo/pick-sheet`, `my-films/films-grid`, `join/code-field`, `lobby/seat-row`, `lobby/shuffling-overlay`, `invite/qr-panel`. The QR panel adds the `react-native-qrcode-svg` dependency named in [app structure](../architecture/app-structure.md#invites-and-deep-links).

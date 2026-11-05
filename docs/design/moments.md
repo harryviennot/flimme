@@ -1,6 +1,6 @@
 # Signature moments
 
-The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match. The winner was added on 4 November 2026, before M6.16, and the Final Cut the same day, before M6.15 (with Harry's answers Q5.1, Q5.2, Q5.5 and Q15.1 to Q15.5). The reveal was added the same day, before M6.31 (with Q15.1, Q15.4 and Q31.1). The shortlisted beat was added on 5 November 2026, before M6.37, from the rules Harry decided that day ([up to 3 matches](../product/three-matches-and-fair-finalists.md#decided)): a match joins the room's shortlist and swiping goes on, the third match starts the finale, and the match overlay now plays only for the night's pick.
+The beats of the game's signature moments: when each one happens, what it tells the players, how long it lasts, what every phone in the room sees and when, and what must never be revealed. Written on 3 November 2026 by the game designer agent, before slices 10 (Swiping) and 11 (The match) are planned. This first version covers the swipe, the flip, the near miss and the match. The winner was added on 4 November 2026, before M6.16, and the Final Cut the same day, before M6.15 (with Harry's answers Q5.1, Q5.2, Q5.5 and Q15.1 to Q15.5). The reveal was added the same day, before M6.31 (with Q15.1, Q15.4 and Q31.1). The shortlisted beat was added on 5 November 2026, before M6.37, from the rules Harry decided that day ([up to 3 matches](../product/three-matches-and-fair-finalists.md#decided)): a match joins the room's shortlist and swiping goes on, the third match starts the finale, and the match overlay now plays only for the night's pick. The checkpoint and the solo pick were added the same day (M6.39), from the drafts in [solo mode and My films](../product/solo-and-my-films.md#3-what-solo-ends-with), which Harry decided that day: a player alone swipes with no end, and picks tonight's film from their own likes when they want one.
 
 It builds on [the answers](../product/game-modes.md#the-answers), [when it's a match](../product/game-modes.md#when-its-a-match) and [what players see](../product/game-modes.md#what-players-see-party-and-blind) in the game modes, [the card stack](../architecture/app-structure.md#the-card-stack), [the vote queue](../architecture/app-structure.md#the-vote-queue) and [realtime](../architecture/app-structure.md#realtime) in the app structure, [the first game](../product/onboarding.md#the-first-game) in onboarding, [the signature moments](../agent-workflow.md#the-signature-moments) in the agent workflow, and the `motion` skill (tokens, the haptic vocabulary, the two sounds). The backend facts come from the merged migrations of 3 November 2026: a deal is 25 cards per seat with a shared opening of 10, a vote counts on any active card in the room's pool, "Seen it" saves to the profile, and `api.cast_vote` checks matches (M1.13) while the match rules and their values are M6.1, not yet built.
 
@@ -17,9 +17,11 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 7. [The Final Cut](#the-final-cut)
 8. [The reveal](#the-reveal)
 9. [The shortlisted beat](#the-shortlisted-beat) (it plays before the match in a game; it comes last here so the links into the other moments keep working)
-10. [Starting values](#starting-values)
-11. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
-12. [Questions for Harry](#questions-for-harry)
+10. [The checkpoint](#the-checkpoint) (solo)
+11. [The solo pick](#the-solo-pick)
+12. [Starting values](#starting-values)
+13. [Changes this asks elsewhere](#changes-this-asks-elsewhere)
+14. [Questions for Harry](#questions-for-harry)
 
 ## What every moment keeps
 
@@ -593,6 +595,93 @@ The same beat, on the `match` event, within network latency of the others: on a 
 - "2 to go", "One more match and you vote", a progress bar toward the vote, or a countdown. The shortlist's count says how many films the room has, not how many it still needs, and nothing hurries anyone.
 - Which slot came from which player, or the order in which people answered. Slots fill in the order the matches happened.
 
+## The checkpoint
+
+### The beat
+
+**"Here's what you've got. Pick one for tonight, or keep going."** A player alone swipes with no end. Every 20 cards a card in the stack takes stock: up to five of the films they liked, fanned, how many there are, and two ways on. It's a pause the player can take or skip, never a finish line. Nothing on it counts what's left, what they noped or how fast they went.
+
+Only one phone plays solo, so nothing here reaches anyone else.
+
+### When it happens
+
+- After the 20th card the player answered in this solo session, then after the 40th, the 60th, and so on. The count is the session's answered cards after undos; each multiple of 20 shows once per session (Q44.1).
+- It comes from the phone's own stack (rule 5): the card is placed behind the 20th card as soon as that card is on top, so it is already there when the 20th card leaves.
+- At the cap or when the films run out on the same card, the [cap card](screens/swipe.md#the-cap-card) or the [out of films card](screens/swipe.md#out-of-films) shows instead: each already says how many films were liked.
+
+### The sequence
+
+| Time | What the phone shows |
+| --- | --- |
+| The 20th card leaves | The checkpoint rises from behind like any next card (scale from 95% to full). Its posters are stacked in the middle |
+| It is on top | The posters fan out (`spring.snappy`, each `duration.instant` after the one before) and `haptics.checkpoint()` plays once |
+| Then | It stays until the player answers. It never moves on by itself |
+| Keep going, or a swipe in any direction | The card is thrown like an answered card, with no stamp, and the next film is there |
+| Pick one | [The pick sheet](screens/swipe.md#the-pick-sheet) opens over the stack; the checkpoint stays under it |
+
+### Haptics and sound
+
+- `haptics.checkpoint()` once, when the card is on top: one `Light` impact (new in `lib/haptics`, M6.44). It means "a checkpoint", softer than `throw`, which the 20th card fired just before.
+- No sound: the two sounds belong to a group's match and the reveal.
+
+### Reduce Motion
+
+The posters are fanned from the start, with no spread. The card still rises as any card does (Reanimated keeps opacity and scale changes short). The haptic follows its own setting.
+
+### The screen reader
+
+When the checkpoint is on top, focus moves to its line ("You liked 5 films. They're in My films."), then Pick one, then Keep going. The posters are hidden from the screen reader. A swipe is not needed: Keep going does the same.
+
+### Edge cases
+
+- **No like yet.** "Nothing yet. Keep going?" with Keep going only, and no posters.
+- **One like.** One poster, straight, and the singular line.
+- **Undo while it's on top.** The checkpoint leaves (as Keep going) and the 20th card comes back. It doesn't come back for 20 again.
+- **Likes still in the queue.** They count: the number is the phone's own answers, not the server's.
+- **Offline.** The same card. Pick one still opens the sheet; the sheet says a pick needs a connection.
+
+### Never shown
+
+Nopes or their count, a streak, "you're on a roll", a timer, a target ("5 more to go"), how many cards are left today, or any nudge to keep swiping. Keep going is a secondary button, not the bright one.
+
+## The solo pick
+
+### The beat
+
+**"This one, tonight."** The player taps a film in the pick sheet. Its poster lifts out of the sheet and settles where the winner screen shows it, the bulbs come on, and one success buzz says it's done. Calmer than a group's reveal: there's no suspense when you chose it yourself, so there's no overlay, no chase and no sound.
+
+### How it arrives
+
+| Time | What the phone shows |
+| --- | --- |
+| Tap | The tile lifts at once (scale 1.05, `spring.snappy`) and `api.solo_pick` is sent, after any votes still in the queue |
+| `ok` | The sheet slides down (`duration.slow`). The lifted poster flies from the tile to the winner screen's poster frame, growing to 144 by 216 (`duration.slow`, `easing.standard`). The winner screen is mounted under it with the poster frame empty |
+| It lands | It settles with a small overshoot (`spring.snappy`); `haptics.match()`. The bulbs and the spotlight fade in (`layout.fadeIn`, `duration.base`), then the title, the meta and where to watch (`layout.fadeIn`) |
+
+If `ok` takes more than a second, the tile stays lifted and nothing else moves. If the call fails, the tile settles back (`spring.snappy`) and the sheet says why ([the pick sheet](screens/swipe.md#the-pick-sheet)).
+
+### Haptics and sound
+
+`haptics.match()` once, on landing: "the winner is revealed", here by the player. No sound: `playSound('reveal')` and `playSound('match')` stay a group's.
+
+### Reduce Motion
+
+No flight: the sheet closes and the winner screen fades in whole (`layout.fadeIn`), bulbs lit. The haptic stays.
+
+### The screen reader
+
+On arrival, focus goes to the title, read as "Tonight's pick: Heat", as on the group winner screen.
+
+### Edge cases
+
+- **A cold start or a return to the room** after the pick: the winner screen straight away, no flight.
+- **`not_liked`** (the like was undone in a race): the tile leaves the sheet and a toast says so.
+- **`closed`** (the sweeper ended the session): Play, with the session-ended toast ([solo swipe](screens/swipe.md#solo)).
+
+### Never shown
+
+No count of likes, no "out of 23", no runners-up, no recap and no Play again (out of scope at launch).
+
 ## Starting values
 
 Placeholders for the feel check (the `feel-check` skill) and the first playtests. The ones marked "token?" are new numbers the designer should either map to an existing token or add to `tokens.json` first.
@@ -624,6 +713,10 @@ Placeholders for the feel check (the `feel-check` skill) and the first playtests
 | Winner before the hand-over | 2.5 s, a tap goes on earlier (token? `duration.reveal-hold`) | The reveal |
 | Points shown | From 3 ballots (decided, question 12) | The reveal |
 | A missed reveal's reads | 3 s, then the winner screen | The reveal |
+| Checkpoint interval | Every 20 answered cards in a solo session | The checkpoint |
+| Posters on the checkpoint | Up to 5, super likes first, then newest | The checkpoint |
+| `haptics.checkpoint()` | One `Light` impact | The checkpoint |
+| The tile's lift on a tap | Scale 1.05, `spring.snappy` | The solo pick |
 
 ## Changes this asks elsewhere
 
@@ -644,6 +737,7 @@ None of these is decided; each follows from a question below or is a gap found w
 | `lib/haptics.ts` and the `motion` skill's haptics table, M6.37 | `haptics.shortlist()`: "A match joins the shortlist" | The beat needs a buzz lighter than `match`, which keeps meaning "the night's film" |
 | The `copy` skill's glossary | Done in this pull request: "the shortlist", « la sélection » (proposed) | A new word players see |
 | The winner screen spec (screens/winner.md, to be written), M6.16 | The single-film pick's line, "The only film anyone liked" (Q4.4), above the title. The phone knows it from the `match` event's `reason: 'only_film'`, or on a cold start from a `finale` pick with no row in `api.rounds` | Q4.4's default puts this line on the winner screen, and M6.16's brief doesn't list it yet |
+| `lib/haptics.ts` and the `motion` skill's haptics table, M6.44 | `haptics.checkpoint()`: "A solo checkpoint card is on top", one `Light` impact | The checkpoint needs its own meaning, softer than `throw`, and `press` means a button |
 
 ## Questions for Harry
 

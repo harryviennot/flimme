@@ -55,6 +55,10 @@ The words players see, used the same way everywhere. French terms marked "propos
 | Who has locked in | 2 of 4 locked in | 2 sur 4 ont validé (proposed) |
 | The result | tonight's pick | le film du soir (decided on 4 November 2026) |
 | No pick | Nothing fits tonight | Rien à l'affiche ce soir (decided on 4 November 2026) |
+| Playing on your own | Play alone | Jouer seul (proposed) |
+| A solo session's pick | tonight's pick | ton film du soir (proposed; « le film du soir » stays the room's) |
+| Your list of films | My films; its segments Liked and Seen | Mes films; Aimés et Vus (proposed) |
+| A group's pick, on a tile | Picked | Choisi (proposed) |
 | The share image | recap card | récap (proposed) |
 | Streaming services | services | plateformes |
 | Time budget | time budget, "Under 2 h" | durée, « Moins de 2 h » (proposed) |

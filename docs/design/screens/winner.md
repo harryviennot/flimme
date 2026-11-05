@@ -1,6 +1,6 @@
 # Winner
 
-Screen 16 Winner (`99:4232`) on the Figma's First release page. Route `/room/[id]/winner`, under the room layout (`/room/[id]/_layout.tsx`), shown while the room is `done`. Built in M6.16. Written on 4 November 2026 from [the winner](../moments.md#the-winner) (the beat, its arrivals and what it never shows), [after the pick](../../product/game-modes.md#after-the-pick), [the watch link](../../integrations/tmdb.md#the-watch-link) and its [attribution rule](../../integrations/tmdb.md#terms-licence-and-attribution), [the match](match.md) (the hand-over) and slices 12 and 13's plan. Harry took every default on 4 November 2026 (Q4.4, Q4.5, Q15.4, Q16.1 to Q16.4, Q17.2; [decisions.md](../../decisions.md)), and the spec's own three the same day ([Decided](#decided)).
+Screen 16 Winner (`99:4232`) on the Figma's First release page. Route `/room/[id]/winner`, under the room layout (`/room/[id]/_layout.tsx`), shown while the room is `done`. Built in M6.16; [the solo pick](#the-solo-pick) is M6.44. Written on 4 November 2026 from [the winner](../moments.md#the-winner) (the beat, its arrivals and what it never shows), [after the pick](../../product/game-modes.md#after-the-pick), [the watch link](../../integrations/tmdb.md#the-watch-link) and its [attribution rule](../../integrations/tmdb.md#terms-licence-and-attribution), [the match](match.md) (the hand-over) and slices 12 and 13's plan. Harry took every default on 4 November 2026 (Q4.4, Q4.5, Q15.4, Q16.1 to Q16.4, Q17.2; [decisions.md](../../decisions.md)), and the spec's own three the same day ([Decided](#decided)).
 
 ## Purpose
 
@@ -30,7 +30,7 @@ The calm after the celebration. Every phone shows the same film and answers the 
    - **No service:** when `providers` is empty, `winner:notListed` in `body-m`, tone `secondary`, in place of the logos (Q16.2).
    - **The credit:** `winner:justwatch` in `body-s`, tone `muted`. Always shown with this block, with or without logos (the "not listed" line is JustWatch's data too).
    - **More details:** `Button` `ghost` S, icon `external-link`, `winner:moreDetails`. It opens `watch_link` with `WebBrowser.openBrowserAsync` (`expo-web-browser`), an in-app browser. Hidden when `watch_link` is null (Q16.1).
-9. **The footer:** `Button` `secondary` L, `block`, `winner:home`. It releases the room guards (`releaseRoomGuards`) and goes Home through `useExitRoomToHome` (Q16.4). The edge swipe and Android's back do the same, with no leave alert ([Decided](#decided) 1). Play again (M6.23) takes this place later.
+9. **The footer:** `Button` `secondary` L, `block`, `winner:home`. It releases the room guards (`releaseRoomGuards`) and goes Home (the Play tab, `/play`) through `useExitRoomToHome` (Q16.4). The edge swipe and Android's back do the same, with no leave alert ([Decided](#decided) 1). Play again (M6.23) takes this place later.
 
 Measured at 375 by 667 (the smallest iPhone), a one-line title and the whole block fit above the footer; a longer title scrolls a little, with Home always pinned.
 
@@ -103,6 +103,34 @@ The `NoPick` slot (`components/screens/winner/no-pick.tsx`), filled by M6.17 (Q1
 | `noPick.body` | Aucun film n'a trouvé preneur ce soir. La prochaine fois, ajoute des plateformes ou relâche un filtre. | No film got a like tonight. Next time, add services or loosen a filter. |
 
 The French title borrows the marquee ("nothing on the bill tonight") rather than translating "fits". Harry decided it on 4 November 2026 ([closed.md, Decided](closed.md#decided) 2).
+
+## The solo pick
+
+M6.44. The winner screen in a solo room that ended with a pick (`api.solo_pick`), S6 on the Figma's First release page ([the Figma map](../figma-map.md#first-release-page-993537)). Written on 5 November 2026 (M6.39) from [what solo ends with](../../product/solo-and-my-films.md#3-what-solo-ends-with) and [the solo pick](../moments.md#the-solo-pick). The layout above holds, with these changes (`WinnerScreen` takes a `solo` flag from the room's mode; M6.44 may split a `solo-pick.tsx` beside it if the flag grows):
+
+- **The eyebrow** is `solo:pick.eyebrow`; the title reads `solo:pick.a11yTitle`.
+- **No single-film line** (the player chose).
+- **Where to watch** lists the player's own services that have the film (the solo room's services are the player's). When none does, `solo:pick.notListed` (it says "tes", not "vos"). The JustWatch credit and More details as above.
+- **The footer:** `Button` secondary L, `block`, `solo:pick.done`, to Play through `useExitRoomToHome`. The edge swipe and Android's back do the same.
+- **No** recap share, Play again or runners-up (out of scope at launch).
+
+**How it arrives.** From the pick sheet: [the solo pick](../moments.md#the-solo-pick) beat, the poster flying into this screen's empty poster frame, then the bulbs and the spotlight fading in, then the title, meta and where to watch. `haptics.match()` on landing, no sound. A cold start or a return to the room: straight to the screen, no beat.
+
+**States.** As the winner screen's table, with the footer's Done in place of Home. A `done` solo room with no pick never shows this screen: the room layout sends the phone to Play ([solo states](swipe.md#solo-states-and-answers)).
+
+**Copy** (`solo` namespace):
+
+| Key | French | English |
+| --- | --- | --- |
+| `pick.eyebrow` | Ton film du soir | Tonight's pick |
+| `pick.a11yTitle` | Ton film du soir : {{title}} | Tonight's pick: {{title}} |
+| `pick.notListed` | Aucune de tes plateformes ne le propose plus. | None of your services has it any more. |
+| `pick.done` | Terminé | Done |
+| `pick.a11yDone` | Retour à Jouer | Back to Play |
+
+**Accessibility.** On arrival focus goes to the title. Order as above, ending with Done (`solo:pick.a11yDone`). Reduce Motion: the whole screen fades in, with no flight.
+
+**Never shown.** How many films were liked, "out of 23", or anything about the nopes.
 
 ## Copy (`winner` namespace)
 
