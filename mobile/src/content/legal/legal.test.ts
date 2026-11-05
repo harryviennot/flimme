@@ -35,7 +35,7 @@ function lineProblems(line: string, index: number): string[] {
   if (line.startsWith('|') !== line.endsWith('|')) problems.push('a table row not closed by |');
 
   if (line.includes('![')) problems.push('an image');
-  for (const [, , url] of line.matchAll(LINK)) {
+  for (const [, , url = ''] of line.matchAll(LINK)) {
     if (!/^(https:\/\/|mailto:)\S+$/.test(url))
       problems.push(`a link that is not https or mailto: ${url}`);
   }
@@ -108,8 +108,9 @@ describe.each(DOCS)('the $name text', ({ texts }) => {
       expect(found.length).toBeGreaterThan(0);
       for (const table of found) {
         expect(table.length).toBeGreaterThanOrEqual(3);
-        expect(table[1]).toMatch(/^\|( *:?-{3,}:? *\|)+$/);
-        const width = cells(table[0]);
+        const [header = '', separator = ''] = table;
+        expect(separator).toMatch(/^\|( *:?-{3,}:? *\|)+$/);
+        const width = cells(header);
         for (const row of table) expect(cells(row)).toBe(width);
       }
     });
@@ -128,6 +129,7 @@ describe.each(DOCS)('the $name text', ({ texts }) => {
 
   it('has the same sections and date in both languages', () => {
     const [first, ...others] = texts;
+    if (!first) throw new Error('no text');
     for (const other of others) {
       expect(other.updated).toBe(first.updated);
       expect(headings(other.body).map((line) => line.match(/^#+/)?.[0])).toEqual(
