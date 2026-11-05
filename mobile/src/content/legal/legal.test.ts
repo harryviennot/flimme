@@ -174,15 +174,19 @@ describe.each(documents)('$name', ({ markdown, updated, mustLink }) => {
 describe.each(pairs)('%s and %s', (first, second) => {
   const a = byName(first);
   const b = byName(second);
-  const headings = (markdown: string, level: string) =>
-    markdown.split('\n').filter((line) => line.startsWith(`${level} `)).length;
+  // The heading levels in order, such as ['##', '##', '###', '###', '##'].
+  const outline = (markdown: string) =>
+    markdown
+      .split('\n')
+      .filter((line) => /^#{2,3} /.test(line))
+      .map((line) => line.split(' ')[0]);
 
   it('share the same date', () => {
     expect(a.updated).toBe(b.updated);
   });
 
-  it('share the same outline', () => {
-    expect(headings(a.markdown, '##')).toBe(headings(b.markdown, '##'));
-    expect(headings(a.markdown, '###')).toBe(headings(b.markdown, '###'));
+  it('share the same outline, section by section', () => {
+    expect(outline(a.markdown).length).toBeGreaterThan(0);
+    expect(outline(a.markdown)).toEqual(outline(b.markdown));
   });
 });

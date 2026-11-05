@@ -133,7 +133,7 @@ If we shut Flimme down, we'll tell you at least 30 days in advance, in the app a
 
 We're responsible to you for harm caused by our failure to meet these terms, as the law provides. We aren't when the harm comes from you (for example, using Flimme against these terms), from a third party's act we couldn't foresee or prevent, or from an event beyond our control (force majeure).
 
-What streaming services and other linked services show is their own responsibility. For what other players type, we act as soon as a name is reported to us, as the law requires.
+What streaming services and other linked services show is their own responsibility. What other players type is their own responsibility. We review every name reported to us, and change it promptly if it breaks these rules or the law.
 
 Nothing in these terms reduces the rights the law gives you as a consumer, including the legal guarantee of conformity for digital content and services where it applies.
 

@@ -133,7 +133,7 @@ Si nous arrêtons Flimme, nous te prévenons au moins 30 jours à l'avance, dans
 
 Nous sommes responsables envers toi des dommages causés par un manquement de notre part à ces conditions, comme le prévoit la loi. Nous ne le sommes pas quand le dommage vient de toi (par exemple d'un usage contraire à ces conditions), du fait imprévisible et insurmontable d'un tiers, ou d'un cas de force majeure.
 
-Le contenu des plateformes et des autres services vers lesquels Flimme renvoie relève de ces services. Pour ce qu'écrivent les autres joueurs, nous agissons dès qu'un prénom nous est signalé, comme le prévoit la loi.
+Le contenu des plateformes et des autres services vers lesquels Flimme renvoie relève de ces services. Ce qu'écrivent les autres joueurs relève de leur responsabilité. Nous examinons chaque prénom qui nous est signalé, et le changeons rapidement s'il enfreint ces règles ou la loi.
 
 Rien dans ces conditions ne réduit les droits que la loi te donne en tant que consommateur, notamment la garantie légale de conformité des contenus et services numériques quand elle s'applique.
 
