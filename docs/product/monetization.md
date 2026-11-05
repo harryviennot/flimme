@@ -17,7 +17,7 @@ Four facts from the revival plan decide which options are safe.
 
   > Since: TMDB staff confirmed the $149 a month commercial plan for under $1 million revenue (forum, 31 March 2026). TMDB's terms may also require the commercial agreement for the recommendation engine itself, before any revenue: see [integrations/tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution).
 - **Letterboxd features stay free and must not copy Letterboxd Pro.** Its terms (section 6.4) forbid recreating paid-only features "through our API or another means". Letterboxd Pro includes stats pages, filtering by your services and alerts when watchlist films reach them. So no paid stats or alerts built on imported Letterboxd data.
-- **Guests drive growth.** Each movie night brings 2 to 9 people who did not choose the app. Never charge them to join or swipe, which rules out a paid app and a swipe cap.
+- **Guests drive growth.** Each movie night brings 2 to 9 people who did not choose the app. Never charge them to join or swipe, which rules out a paid app and a swipe cap in group games. The solo mode's daily cap (below) applies to solo only.
 - **The host is the buyer.** One person per group creates the room, usually once or twice a week. Pricing should target that person.
 
 ## The family bet
@@ -40,7 +40,7 @@ Parents host and pay; kids join free as guests on a tablet, an old phone or the 
 | Tournament bracket | 8 or 16 films face off two at a time until one wins. |
 | Double feature | Picks 2 or 3 films that fit a weekend time budget. |
 
-The revival plan's later modes join them: Pick for me and the era and language filters. Watchlist Showdown stays free because it runs on Letterboxd data.
+The revival plan's later modes join them: the era and language filters, and unlimited solo cards (Pick for me became the free solo mode at launch, with a daily cap). Watchlist Showdown stays free because it runs on Letterboxd data.
 
 ### Family packs
 
@@ -92,7 +92,8 @@ Anyone can host 3 games a month for free, and everything a guest touches and eve
 | --- | --- | --- |
 | Host up to 3 games a month | Free | Covers groups that meet every week or two; weekly groups reach the cap in week 4 |
 | Join by code, link or QR, in the app or on the web | Free | Guests are the growth loop |
-| Unlimited swiping, the four answers, undo | Free | No swipe cap is the edge over ReelMatch |
+| Unlimited swiping in group games, the four answers, undo | Free | No swipe cap is the edge over ReelMatch |
+| Solo mode, up to 100 solo cards a day, and My films | Free | Something to play alone, and a list of your likes and seen films. The cap applies to solo cards only, never to group rooms (decided on 5 November 2026, [solo and My films](solo-and-my-films.md#decided)) |
 | Quick Match, Final Cut, Date Night | Free | The launch modes that end a night with a pick |
 | Mood chips and time budget | Free | Part of getting to a match fast |
 | Basic age filter (a rating cap) | Free | Safety is never paywalled; it lets parents try the app with kids |
@@ -101,7 +102,7 @@ Anyone can host 3 games a month for free, and everything a guest touches and eve
 | Unlimited hosting | Pro | The main reason a weekly group pays |
 | Crews and history: saved groups, what you watched, how often you agree | Pro | Built from in-app votes only, never imported Letterboxd data |
 | Family modes: profiles, pass and play, parent veto, kid's choice, bracket, double feature | Pro | The main reason parents pay (see The family bet) |
-| Pick for me (solo) | Pro | Useful between group nights |
+| Unlimited solo cards | Pro | Lifts the solo mode's daily cap (M21). Replaces "Pick for me", which became the free solo mode |
 | Era, language, hidden gems and guilty pleasures filters | Pro | Depth for film fans |
 | Custom decks: the host pastes a shortlist and the group swipes it | Pro | Settles "we already have five ideas" |
 | Bigger rooms: free up to 6 players, Pro up to 20 | Pro | Big parties; a full room asks the host, never a guest, to upgrade |

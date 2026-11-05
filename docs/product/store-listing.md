@@ -205,7 +205,7 @@ Google's content rating comes from the IARC questionnaire in Play Console; each 
 
 | Risk | Rule | How we pass |
 | --- | --- | --- |
-| **A reviewer alone can't play a group game** | 2.1, app completeness | A **demo room**: a reserved room code, listed in the review notes, where two server-run bot players join and swipe, so one device can reach a match and a Final Cut. Works for Apple's and Google's reviewers alike |
+| **A reviewer alone can't play a group game** | 2.1, app completeness | **Solo mode** (decided on 5 November 2026, [solo and My films](solo-and-my-films.md#decided)): Play alone reaches a pick on one device through Pick one. The notes say a group game needs two devices. The **demo room** (a reserved code where two server-run bot players join and swipe, M11.7) is in reserve, built only if a review is rejected |
 | No login to test | 2.1 | None needed: the app signs in anonymously. Say so in the notes |
 | Account deletion | 5.1.1(v); Google Play's account deletion policy | Settings > Delete account, in the app. A web page to request deletion for Google. On deletion, the server revokes the player's Sign in with Apple tokens through Apple's REST API, as Apple's guideline page recommends |
 | Sign in with Apple | 4.8 | Offered next to Google on iOS ([onboarding](onboarding.md#accounts)). Android offers Google only, which Apple's rule doesn't cover |
@@ -221,7 +221,7 @@ Google's content rating comes from the IARC questionnaire in Play Console; each 
 
 > [Name] is a group movie picker: everyone in a room swipes on films, and the app finds the one everybody likes. No account is needed; the app signs in anonymously.
 >
-> To play a full game on one device: open the app, tap "I have a room code" and enter [demo code]. Two demo players join and swipe. Like a few films to get a match; if none comes, the Final Cut opens after a few minutes.
+> To play on one device: open the app, tap "Play alone", like a few films, then tap "Pick one" when the app offers it after 20 cards. Your likes are in the My films tab.
 >
 > To play with two devices: create a room on one, then join it from the other with the code or the invite link.
 >
@@ -273,7 +273,7 @@ The order matters more than the dates; durations are what the stores' pages say,
 | First internal builds | Accounts, the app | Play internal testing: minutes |
 | First external TestFlight build | TestFlight review | |
 | Closed beta | 12 Android testers opted in | **At least 14 days** on a personal Google account |
-| Ratings, listing, privacy forms, review notes, demo room | This doc, privacy.md | |
+| Ratings, listing, privacy forms, review notes | This doc, privacy.md | |
 | Production access (Google, personal account) | The 14-day test | |
 | App Review and Play review | Everything above | |
 | EU trader status verified (Apple) | Documents | Forum reports describe weeks; start early |
@@ -297,7 +297,7 @@ Replaces the Store section of the revival plan's [publishing checklist](revival-
 - [ ] Account deletion in the app, with Sign in with Apple token revocation on the server
 - [ ] Verification files live on the invite domain; universal links and App Links tested from a cold install
 - [ ] Name filter, Report and Remove player in place
-- [ ] Demo room and bot players running, demo code working
+- [ ] Play alone reaches a pick on one device (the demo room only if a review was rejected)
 - [ ] About screen with the TMDB logo and notice, JustWatch credit
 
 **Listing**
@@ -328,7 +328,7 @@ Replaces the Store section of the revival plan's [publishing checklist](revival-
 | --- | --- | --- |
 | Game functions ([game-modes.md](game-modes.md)) | The host can remove a player; a removed player can't rejoin that room. `api.report_player(room, seat, reason)` | App Store guideline 1.2 asks for blocking and reporting |
 | `api.update_profile` | A name filter (a word list in French and English) | 1.2's filtering |
-| Server ([server-structure.md](../architecture/server-structure.md)) | A demo room: a reserved code that's never handed to a real room, and two bot players that join and swipe | Reviewers testing on one device |
+| Server ([server-structure.md](../architecture/server-structure.md)) | In reserve (M11.7), only if a review is rejected: a demo room, a reserved code that's never handed to a real room, and two bot players that join and swipe. Solo mode covers reviewers on one device | Reviewers testing on one device |
 | Server HTTP API, account deletion | Revoke Sign in with Apple tokens with Apple's REST API | Apple's account deletion guidance |
 | Web ([app structure](../architecture/app-structure.md#invites-and-deep-links)) | Smart App Banner and store badges on the invite page; an account deletion request page | Store requirements |
 | [operations.md](../architecture/operations.md) | A demo Letterboxd account and its export, kept current | Review notes |
@@ -341,7 +341,7 @@ Replaces the Store section of the revival plan's [publishing checklist](revival-
 | Preview video length | 25 seconds |
 | Closed beta length | At least 14 days, 12 or more Android testers opted in throughout |
 | Beta size | 5 to 10 friend groups, 3 to 5 families |
-| Bot players in the demo room | 2 |
+| Bot players in the demo room (if it's built) | 2 |
 
 ## Open questions
 
@@ -349,7 +349,7 @@ Replaces the Store section of the revival plan's [publishing checklist](revival-
 2. **Store assets with fictional posters** (as in the Figma) instead of real studio posters and service logos? Recommended: yes.
 3. **Google Play target audience of 13 and over**, and an honest 13+ on Apple, with kids joining on a parent's device or the web? Recommended: yes, until family profiles exist.
 4. **Stores listed only where hosting works** (France for the beta; France, Belgium and Switzerland at launch)? Recommended: yes.
-5. **A demo room with bot players** for reviewers? Recommended: yes. A "try it with bots" option for new players could reuse it later.
+5. **A demo room with bot players** for reviewers? Answered on 5 November 2026: solo mode replaces it, and the demo room is in reserve ([solo and My films](solo-and-my-films.md#decided)).
 6. **French as the primary store language**, with English (U.S. and U.K.) localizations? Recommended: yes.
 
 ## Sources checked

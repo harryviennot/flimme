@@ -1,14 +1,13 @@
 # Solo mode and My films
 
-Harry asked on 5 November 2026 for a way to play alone at launch, a list of every film you liked, and the films you've seen. This doc turns that into options with a recommended default for each, so he can answer in one go. Written by the game designer agent on 5 November 2026, with the designer's skills for the screens. It builds on [the modes](game-modes.md#the-modes), "Pick for me" in [later modes](game-modes.md#later-modes), [free vs Host Pro](monetization.md#free-vs-host-pro), the film history row in [what we store](privacy.md#what-we-store-and-why), [film history and taste](../architecture/data-model.md#4-film-history-and-taste), [retention](../architecture/data-model.md#retention), the deck engine's [signals](../architecture/deck-engine.md#signals) and [labels](../architecture/deck-engine.md#reason-labels), [passing review](store-listing.md#passing-review) and the [Home spec](../design/screens/home.md). Nothing here is decided: every answer below is a proposal until Harry says yes, and then it goes in [decisions.md](../decisions.md).
+Harry asked on 5 November 2026 for a way to play alone at launch, a list of every film you liked, and the films you've seen. This doc turns that into options with a recommended default for each, so he can answer in one go. Written by the game designer agent on 5 November 2026, with the designer's skills for the screens. It builds on [the modes](game-modes.md#the-modes), "Pick for me" in [later modes](game-modes.md#later-modes), [free vs Host Pro](monetization.md#free-vs-host-pro), the film history row in [what we store](privacy.md#what-we-store-and-why), [film history and taste](../architecture/data-model.md#4-film-history-and-taste), [retention](../architecture/data-model.md#retention), the deck engine's [signals](../architecture/deck-engine.md#signals) and [labels](../architecture/deck-engine.md#reason-labels), [passing review](store-listing.md#passing-review) and the [Home spec](../design/screens/home.md). Harry answered the same day and took every default: see [Decided](#decided). The options below are the reasoning behind the answers.
 
 Every number below comes from one bot with made-up tastes ([tools/sim/solo.mjs](../../tools/sim/solo.mjs), in the spirit of the model in [simulations.md](simulations.md#the-model)). It tests mechanics, not fun.
 
 ## Contents
 
 - [What Harry asked](#what-harry-asked)
-- [Questions for Harry](#questions-for-harry)
-- [New tasks](#new-tasks)
+- [Decided](#decided)
 - [1. Solo at launch](#1-solo-at-launch)
 - [2. The tab bar](#2-the-tab-bar)
 - [3. What solo ends with](#3-what-solo-ends-with)
@@ -33,26 +32,26 @@ Two things this has to respect:
 - **The promise.** A group agrees on a film within about 5 minutes. Solo must not slow group play, and a person alone should also reach a film fast if they want one.
 - **The limits.** Nobody ever sees who liked or noped what (repo rule 6, and the deck engine's [label rule](../architecture/deck-engine.md#reason-labels)). No streaks, no guilt, no pressure: families and kids use this app.
 
-## Questions for Harry
+## Decided
 
-Each question has a recommended default. The reasoning and the other options are in the numbered sections.
+Harry answered on 5 November 2026: every question takes the recommended default. All twelve are in [decisions.md](../decisions.md#decided). game-modes.md, monetization.md, privacy.md and store-listing.md follow them now; the screen specs wait for the design task (M6.39), and data-model.md changes with M6.41, when the columns exist. The other options in the numbered sections are kept for the record.
 
-| # | Question | Default |
+| # | Question | Answer |
 | --- | --- | --- |
-| 1 | Do solo mode and My films ship in the first release? | Yes, as below. They give a lone first-time player something to do, a reason to open the app between nights, and a way for a lone reviewer to reach a film |
-| 2 | Is the home screen two bottom tabs, Play and My films, with Settings still behind its button? | Yes. No third tab until there's a profile to put in it (M15, M20). Rooms cover the tab bar |
-| 3 | Does solo never end on its own, with a card every 20 cards that says how many films you liked and offers "Pick one" or "Keep going"? | Yes. "Pick one" shows that session's likes; tapping one gives tonight's pick with where to watch. The player can stop at any time; their likes are already saved |
-| 4 | Is a solo session a room with one seat (a `solo` game mode), reusing the deck, votes, undo and the swipe screen? | Yes. No lobby, no code anyone can join, no shortlist, no finale, no card count or time limit |
-| 5 | Do solo decks skip films you already answered in solo, and do solo likes leave group decks alone at launch? | Yes to both. From M19, solo swipes count as taste at a game swipe's weight; a silent "My films bonus" is tested there. Never a label, never a watchlist |
-| 6 | Is My films a 3-column poster grid with two segments, Liked and Seen, and chips All, With friends and Solo under Liked? | Yes. Newest first, poster only, a "Picked" badge on a group's pick, a star on a super like. A group pick you sat for shows under With friends even if you didn't like it |
-| 7 | Does Seen list only marks made in the app (Seen it in any game, Mark as seen, later the after-game yes), and does removing one bring the film back to your decks? | Yes. Letterboxd's seen films keep filtering decks but aren't listed until M20 decides |
-| 8 | Is there a solo cap of 100 cards a day at launch, with group play never capped? | Yes. At the cap a calm card: "That's today's solo deck. New cards tomorrow." No counter on screen, no Pro mention until M21. The number lives in `app_config` |
-| 9 | Does solo replace the reviewers' demo room? | Yes. M11.7 moves into reserve, built only if a review is rejected. M11.8's notes say "Play alone" for one device and two devices for a group |
-| 10 | Does My films live in `user_titles` (the film history table that exists), with new columns and a `solo` source, exported and deleted with the rest? | Yes. Retention keeps it while the account exists, as today. privacy.md says your likes are never shown to anyone |
-| 11 | Does the first release stay without accounts, with My films saying plainly that it's kept with this phone? | Yes. Saving an account stays in M15 |
-| 12 | Do the new tasks land before the first store builds (M10.2), without blocking the M6.20 playtest? | Yes. M6.20 asks one question about playing alone; the alpha nights (M10.3) test solo and My films. The closed beta date doesn't move |
+| 1 | Do solo mode and My films ship in the first release? | **Yes (Harry),** as below. They give a lone first-time player something to do, a reason to open the app between nights, and a way for a lone reviewer to reach a film |
+| 2 | Is the home screen two bottom tabs, Play and My films, with Settings still behind its button? | **Yes (Harry).** No third tab until there's a profile to put in it (M15, M20). Rooms cover the tab bar |
+| 3 | Does solo never end on its own, with a card every 20 cards that says how many films you liked and offers "Pick one" or "Keep going"? | **Yes (Harry).** "Pick one" shows that session's likes; tapping one gives tonight's pick with where to watch. The player can stop at any time; their likes are already saved |
+| 4 | Is a solo session a room with one seat (a `solo` game mode), reusing the deck, votes, undo and the swipe screen? | **Yes (Harry).** No lobby, no code anyone can join, no shortlist, no finale, no card count or time limit |
+| 5 | Do solo decks skip films you already answered in solo, and do solo likes leave group decks alone at launch? | **Yes to both (Harry).** From M19, solo swipes count as taste at a game swipe's weight; a silent "My films bonus" is tested there. Never a label, never a watchlist |
+| 6 | Is My films a 3-column poster grid with two segments, Liked and Seen, and chips All, With friends and Solo under Liked? | **Yes (Harry).** Newest first, poster only, a "Picked" badge on a group's pick, a star on a super like. A group pick you sat for shows under With friends even if you didn't like it |
+| 7 | Does Seen list only marks made in the app (Seen it in any game, Mark as seen, later the after-game yes), and does removing one bring the film back to your decks? | **Yes (Harry).** Letterboxd's seen films keep filtering decks but aren't listed until M20 decides |
+| 8 | Is there a solo cap of 100 cards a day at launch, with group play never capped? | **Yes (Harry).** At the cap a calm card: "That's today's solo deck. New cards tomorrow." No counter on screen, no Pro mention until M21. The number lives in `app_config` |
+| 9 | Does solo replace the reviewers' demo room? | **Yes (Harry).** M11.7 moves into reserve, built only if a review is rejected. M11.8's notes say "Play alone" for one device and two devices for a group |
+| 10 | Does My films live in `user_titles` (the film history table that exists), with new columns and a `solo` source, exported and deleted with the rest? | **Yes (Harry).** Retention keeps it while the account exists, as today. privacy.md says your likes are never shown to anyone |
+| 11 | Does the first release stay without accounts, with My films saying plainly that it's kept with this phone? | **Yes (Harry).** Saving an account stays in M15 |
+| 12 | Do the new tasks land before the first store builds (M10.2), without blocking the M6.20 playtest? | **Yes (Harry).** M6.20 asks one question about playing alone; the alpha nights (M10.3) test solo and My films. The closed beta date doesn't move |
 
-## New tasks
+### New tasks
 
 For the planner to write briefs. Numbers follow the last M6 task (M6.38); the planner may renumber.
 
@@ -73,8 +72,10 @@ Roadmap changes that go with them:
 - **M11.7** (the demo room) moves out of M11 into reserve: built only if a store review is rejected.
 - **M11.8** (review notes) needs M6.44 instead of M11.7, and says how to play alone.
 - **M6.20** (the playtest) asks every player "would you use it on your own?". Its needs don't change.
-- **monetization.md**: "Pick for me (solo)" becomes the free solo mode with a daily cap, and Pro lifts the cap (M21).
-- **game-modes.md**: "At least 2 voters" stays for group modes; solo has no match check at all.
+- **monetization.md**: "Pick for me (solo)" becomes the free solo mode with a daily cap, and Pro lifts the cap (M21). Applied with the decision.
+- **game-modes.md**: "At least 2 voters" stays for group modes; solo has no match check at all. Applied with the decision.
+- **store-listing.md**: solo replaces the demo room in the review notes. Applied with the decision.
+- **privacy.md**: the film history row and what rooms reveal. Applied with the decision; data-model.md's `user_titles` table follows with M6.41.
 
 ## 1. Solo at launch
 
