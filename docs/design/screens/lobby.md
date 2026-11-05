@@ -107,7 +107,7 @@ The alert is the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`,
 
 | Leave, then | What happens |
 | --- | --- |
-| `ok` or `not_in_room` | The phone forgets the kept room, goes Home with `useExitRoomToHome()` (`features/room/exit-home.ts`), and Home shows. The helper goes back to the Home already in the root stack (`router.dismissTo('/home')`) and only replaces the room with Home when no Home is open (a cold start from a link, or the splash rejoining the kept room); a second call while already on Home does nothing. The room layout uses the same helper when the phone is not seated, so Leave and that exit never leave two Homes |
+| `ok` or `not_in_room` | The phone forgets the kept room, goes Home with `useExitRoomToHome()` (`features/room/exit-home.ts`), and Home shows. The helper goes back to the Home already in the root stack (`router.dismissTo('/play')`, the Play tab since M6.43; `/home` is a redirect to it) and only replaces the room with Home when no Home is open (a cold start from a link, or the splash rejoining the kept room); a second call while already on Home does nothing. The room layout uses the same helper when the phone is not seated, so Leave and that exit never leave two Homes |
 | Offline | `showToast` warn `common:states.offlineRoom`; nothing else, the player stays |
 | The call failed (online) | `showToast` warn `common:errors.generic.title`; the player stays, the kept room too, and can leave again |
 

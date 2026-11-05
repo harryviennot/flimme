@@ -1,6 +1,6 @@
 # Swipe
 
-Screens 11 Swipe (`99:4065`), 12 Mid-swipe (`99:4093`) and 13 Card flipped (`99:4122`) on the Figma's First release page. Route `/room/[id]/swipe`, under the room layout (`/room/[id]/_layout.tsx`), shown while the room is `swiping`. Written on 4 November 2026 from [the signature moments](../moments.md) (the swipe, the flip, the near miss), slices 10 and 11's plan (Harry accepted every default on 4 November 2026; the answers are in [decisions.md](../../decisions.md)), [the card stack](../../architecture/app-structure.md#the-card-stack), [the vote queue](../../architecture/app-structure.md#the-vote-queue), [the answers](../../product/game-modes.md#the-answers) and [the first game](../../product/onboarding.md#the-first-game). Connection states follow [Reconnecting](reconnecting.md); the seat sheet is the [host menu](host-menu.md); the match is [its own spec](match.md). Updated on 5 November 2026 (M6.33) for the shortlist, from [the shortlisted beat](../moments.md#the-shortlisted-beat) and Harry's rules of that day ([when it's a match](../../product/game-modes.md#when-its-a-match)): a match joins the room's shortlist, swiping goes on, and the third match starts the finale.
+Screens 11 Swipe (`99:4065`), 12 Mid-swipe (`99:4093`) and 13 Card flipped (`99:4122`) on the Figma's First release page. Route `/room/[id]/swipe`, under the room layout (`/room/[id]/_layout.tsx`), shown while the room is `swiping`. Written on 4 November 2026 from [the signature moments](../moments.md) (the swipe, the flip, the near miss), slices 10 and 11's plan (Harry accepted every default on 4 November 2026; the answers are in [decisions.md](../../decisions.md)), [the card stack](../../architecture/app-structure.md#the-card-stack), [the vote queue](../../architecture/app-structure.md#the-vote-queue), [the answers](../../product/game-modes.md#the-answers) and [the first game](../../product/onboarding.md#the-first-game). Connection states follow [Reconnecting](reconnecting.md); the seat sheet is the [host menu](host-menu.md); the match is [its own spec](match.md). The solo variant (M6.39, 5 November 2026) is [its own section](#solo). Updated on 5 November 2026 (M6.33) for the shortlist, from [the shortlisted beat](../moments.md#the-shortlisted-beat) and Harry's rules of that day ([when it's a match](../../product/game-modes.md#when-its-a-match)): a match joins the room's shortlist, swiping goes on, and the third match starts the finale.
 
 Built in parts, each with its own section here:
 
@@ -15,6 +15,7 @@ Built in parts, each with its own section here:
 | M6.27 | The top bar: pills, done, Leave, the host menu | [The top bar](#the-top-bar) |
 | M6.17 | The done card's filters and liked count ("Nothing left", screen 26) | [The done card](#the-done-card-nothing-left) |
 | M6.37 | The shortlist in the top bar, the shortlisted beat over the stack, the route held on the third match, Undo after a shortlisted match | [The top bar](#the-top-bar), [The shortlisted beat](#the-shortlisted-beat), [Undo](#undo) |
+| M6.44 | The solo variant: the solo top bar, the checkpoint card, the pick sheet, out of films, the cap card | [Solo](#solo) |
 
 ## Purpose
 
@@ -444,6 +445,130 @@ No new component: the new pieces are single-use screen pieces in `components/scr
 - Nothing left (26, `30:2000`): no top-row avatars or sliders, and no Vote on our likes or Change filters until M18.5 and M18.6 (Q17.1). The title and body stay M6.9's ("That's all your cards"), not "You've seen the whole lineup", because the body has to say what happens next while there is no button. The filters are `Tag`s, not selected `Chip`s: a chip looks pressable, and nothing here can be pressed yet. The icon is `EmptyState`'s, without the Figma's marquee glow: a glow is for the shared moments. The count says "liked so far", not "liked by at least one player".
 - Copy on the Figma's game screens is English only; this spec is the copy.
 - The shortlist and the shortlisted beat have no Figma frame; this spec is their source (M6.33). The draft's visible "Shortlist" label isn't in the bar: at 375 points it would leave the pills under 100 points. The word is in the shortlist's screen-reader label and the beat's announcement.
+
+## Solo
+
+M6.44. The same screen in a solo room (mode `solo`, one seat): S3 Solo swipe, S4 Checkpoint, S5 Pick sheet and S7 Cap card on the Figma's First release page ([the Figma map](../figma-map.md#first-release-page-993537)). Written on 5 November 2026 (M6.39) from [what solo ends with](../../product/solo-and-my-films.md#3-what-solo-ends-with), [the cap](../../product/solo-and-my-films.md#8-the-cap), [the checkpoint](../moments.md#the-checkpoint) and [the solo pick](../moments.md#the-solo-pick). Everything above holds unless this section says otherwise. The phone knows it's solo from the room's `mode` (`solo`).
+
+### What solo leaves out
+
+No player pills, no shortlist, no near miss, no shortlisted beat, no match overlay, no host menu, no rewatch question (solo rooms use `hide_seen`, so Seen it throws the card up), and no presence track (nobody else reads it). The super like's badge isn't shown (`SwipeAction` without `left`) and never runs out (Q40.4). First-game hints show as in a group game, on a phone that hasn't seen them. The age cap's rules hold as in any room: in a solo room capped under 13 there is no Trailer button and no PostHog event (the `privacy-and-kids` skill).
+
+### The solo top bar
+
+`screens/swipe/top-bar.tsx` in its solo form, 56 high, `px-5`, a row `items-center gap-3`:
+
+- **Leave:** `IconButton` filled, icon `x`, label `solo:a11y.leave`. **No alert:** every like is already saved. The phone goes to Play at once (`useExitRoomToHome`); in the background the queue sends this room's waiting votes, then `api.leave_room` (the room ends `done`). Offline: Play at once; the votes and the leave wait in the queue and go when the phone is back. M6.44 makes the queue send a solo room's votes on the next launch too, since a solo room is never reopened. The edge swipe and Android's back do the same as Leave (the room layout's `RoomLeaveGuard` asks nothing in a solo room).
+- **The label:** `Tag` neutral, icon `user`, `solo:topBar.label`.
+- **The likes count**, last, `ml-auto`: a row `gap-1.5` of `Icon` `heart` 20 filled `like-default` and the number in `mono-data` tone `primary` (`Intl`, `maxFontSizeMultiplier` 1.2). It counts this session's likes and super likes from the phone's own answers (the queue included), and goes down on an undo. It changes in place with no animation, and it opens nothing (a `View`, not a `Pressable`).
+
+### The checkpoint card
+
+`CheckpointCard` in `screens/swipe/status-cards.tsx`, from [the checkpoint](../moments.md#the-checkpoint). After the 20th answered card of the session, then every 20 more (after undos; each multiple once per session, Q44.1). It is a card in the phone's stack, placed behind the 20th card, so it never waits on the network.
+
+**Layout.** The card's frame and size (`bg-bg-surface`, `rounded-xl`, `border border-marquee-strong`), a `ScrollView` centred when it fits, `p-6`, `gap-4`, centred:
+
+1. **The fan:** up to 5 `PosterThumb` (72 by 108) of this session's likes, super likes first, then newest. They overlap by 32 points (`-ml-8`); each turns by `rotation.poster-fan` times its distance from the middle (minus 16, minus 8, 0, 8 and 16 degrees for five), the middle one on top. Hidden from screen readers.
+2. **The count:** the number of likes in `display-xl`, tone `marquee`. Hidden from screen readers (the line says it).
+3. **The line:** `solo:checkpoint.liked_one` or `liked_other` in `title-m`, tone `primary`, centred.
+4. **The buttons**, `self-stretch gap-3`: `Button` marquee L, `block`, icon `ticket`, `solo:checkpoint.pick`, opening [the pick sheet](#the-pick-sheet); `Button` secondary L, `block`, `solo:checkpoint.continue`.
+
+**No like yet:** no fan and no count; `Icon` `popcorn` 32 `text-muted`, the line `solo:checkpoint.none`, and `Button` secondary L `solo:checkpoint.continue` only.
+
+**Answering it.** Keep going, or a drag past the commit line in any direction, throws it like a card: no stamp, the `commit` tick and `haptics.throw()` as usual. A tap does nothing (it has no back). While it's on top, Nope, Super, Like and Seen it are disabled; Undo is not (it takes the checkpoint away and brings the 20th card back). Pick one leaves it in place under the sheet.
+
+Measured at 375 by 667 (a card about 324 by 487): the fan, the count, a two-line line and both buttons fit without scrolling.
+
+### The pick sheet
+
+`/room/[id]/pick`, a `formSheet` over the swipe screen (M6.44 adds `pick` to the solo `swiping` row of `SHEETS`), `screens/solo/pick-sheet.tsx`. S5 on the Figma.
+
+- **Header**, `px-5 pt-5`, a row: the title `solo:pickSheet.title` in `display-s` (role `header`), and `IconButton` plain `x` (`common:actions.close`) on the right. Under it, `solo:pickSheet.helper` in `body-s` muted.
+- **The grid:** this session's likes as [`FilmTile`](my-films.md#new-components) in 3 columns, `px-5`, gap 8, super likes first (each with its star), then newest first. No "Picked" badge here. It scrolls; there is no paging (a session holds at most the day's cap). The list is the phone's own answers, the same one the checkpoint counts; posters come from the cards the phone held this session, else one `api.title_cards` read (a cold start reads the likes from `api.my_votes`).
+- **Tapping a tile** is tonight's pick: [the solo pick](../moments.md#the-solo-pick) beat starts (the tile lifts) and `api.solo_pick(room, title)` goes after any votes still in the queue.
+
+| Answer or state | What the player sees |
+| --- | --- |
+| `ok` `{title_id}` | The beat: the sheet slides down, the poster flies to [the solo pick](winner.md#the-solo-pick). The room is `done` with the pick |
+| `not_liked` (the like was undone in a race) | The tile leaves the grid (`layout.fadeOut`); `showToast` warn `solo:pickSheet.notLiked` |
+| `closed` `{state}` (the sweeper ended the session) | Play, with `showToast` info `solo:ended.title` and `solo:ended.body` |
+| The call failed, or `rate_limited` | The tile settles back; `showToast` warn `solo:pickSheet.error`; `haptics.error()` |
+| Offline | `Banner` warn `solo:pickSheet.offline` under the helper; tiles at `opacity-disabled` and not pressable |
+| One like | One tile, at the left |
+| Many likes | The grid scrolls; the header stays |
+| A missing poster or a long title | The tile's placeholder: the title on 3 lines, then an ellipsis, and the year |
+
+Closing the sheet (the cross, a swipe down) goes back to the checkpoint, the out of films card or the cap card, whichever opened it.
+
+### Out of films
+
+`request_cards` answers `done` `{liked}` in a solo room before the cap (Q39.1): `OutOfFilmsCard` in `status-cards.tsx`, in place of the group [done card](#the-done-card-nothing-left). The checkpoint's frame and layout: the title `solo:outOfFilms.title` in `display-s`, then the fan and the line `solo:checkpoint.liked_*` when there is at least one like, then `Button` marquee L `solo:checkpoint.pick` (only with a like) and `Button` secondary L `solo:actions.myFilms`. With no like: `solo:outOfFilms.body` under the title, and My films only. My films leaves the room as Leave does and opens the My films tab. No haptic; `layout.fadeIn`.
+
+### The cap card
+
+`request_cards` answers `daily_limit` in a solo room (M6.42, Q42.3: 5 or fewer cards left and the cap reached). The phone stores today's Paris date (for [setup](solo-setup.md#at-the-cap)) and keeps swiping its last cards; after the last one, `CapCard` in `status-cards.tsx`, S7 on the Figma. The same frame: `Icon` `ticket` 32 `text-muted`, `solo:cap.title` in `display-s`, `solo:cap.body` in `body-m` secondary, the line `solo:checkpoint.liked_*` when there is a like, then `Button` marquee L `solo:checkpoint.pick` (only with a like), `Button` secondary L `solo:actions.myFilms` and `Button` secondary L `solo:actions.host` (leaves the room, then [host setup](host-setup.md)). It never shows mid-gesture: the deal stops at the cap, so the card comes when the held cards run out. When the 100th card is also a checkpoint, the cap card shows instead. No countdown, no "3 left", no Pro mention. No haptic; `layout.fadeIn`.
+
+### Solo states and answers
+
+| State or answer | What the player sees |
+| --- | --- |
+| `dealing` (from `start_solo`) | The loading card; after 8 seconds the phone calls `api.start_game(room_id)` once ([lobby](lobby.md#starting)) |
+| `cast_vote` `ok`, `duplicate` | Nothing (`match` never comes in solo) |
+| `cast_vote` `closed` | The queued votes are dropped; the room is re-read (it ended: Play and `solo:ended.*`) |
+| `request_cards` `done` `{liked}` | [Out of films](#out-of-films) once the stack is empty |
+| `request_cards` `daily_limit` | [The cap card](#the-cap-card) once the stack is empty |
+| `state_changed` `done` with a pick | [The solo pick](winner.md#the-solo-pick) |
+| `state_changed` `done` without a pick, not from this phone's Leave (the sweeper, 30 minutes without a vote, or a Start on another screen) | Play, with `showToast` info `solo:ended.title` and `solo:ended.body` (Q39.2) |
+| Offline, cards left | Swiping carries on; `RoomBanner`'s offline note as in a group game |
+| The largest text | The status cards scroll inside their frame; the top bar's count is capped at 1.2 |
+
+### Solo copy (`solo` namespace)
+
+| Key | French | English |
+| --- | --- | --- |
+| `topBar.label` | Solo | Solo |
+| `a11y.leave` | Arrêter de jouer seul | Stop playing alone |
+| `a11y.likes_one` | {{count}} film aimé | {{count}} film liked |
+| `a11y.likes_other` | {{count}} films aimés | {{count}} films liked |
+| `checkpoint.liked_one` | Tu as aimé 1 film. Il est dans Mes films. | You liked 1 film. It's in My films. |
+| `checkpoint.liked_other` | Tu as aimé {{count}} films. Ils sont dans Mes films. | You liked {{count}} films. They're in My films. |
+| `checkpoint.none` | Rien pour l'instant. On continue ? | Nothing yet. Keep going? |
+| `checkpoint.pick` | Choisir | Pick one |
+| `checkpoint.continue` | Continuer | Keep going |
+| `pickSheet.title` | Lequel ce soir ? | Which one tonight? |
+| `pickSheet.helper` | Touche un film pour le choisir. | Tap a film to pick it. |
+| `pickSheet.offline` | Tu es hors ligne. Reconnecte-toi pour choisir. | You're offline. Connect to pick. |
+| `pickSheet.notLiked` | Ce film n'est plus dans tes j'aime. | That film isn't in your likes any more. |
+| `pickSheet.error` | Impossible de choisir ce film. Réessaie. | We couldn't pick that film. Try again. |
+| `pickSheet.a11yHint` | Le choisir pour ce soir | Pick it for tonight |
+| `outOfFilms.title` | Tu as vu tous les films de ces filtres. | That's every film for these filters. |
+| `outOfFilms.body` | La prochaine fois, ajoute une plateforme ou relâche un filtre. | Next time, add a service or loosen a filter. |
+| `cap.title` | C'est tout pour le solo aujourd'hui. | That's today's solo deck. |
+| `cap.body` | Nouvelles cartes demain. | New cards tomorrow. |
+| `actions.myFilms` | Mes films | My films |
+| `actions.host` | Organiser une soirée | Host a movie night |
+| `ended.title` | Ta partie solo est terminée. | Your solo session ended. |
+| `ended.body` | Tes j'aime sont dans Mes films. | Your likes are in My films. |
+
+French counts 0 and 1 as singular; the zero case has its own line (`checkpoint.none`) and the likes count reads "0 film aimé". Every count goes through `Intl`.
+
+### Solo motion, haptics, sound
+
+- The checkpoint: [its beat](../moments.md#the-checkpoint) (the fan with `spring.snappy`, `haptics.checkpoint()` once when it's on top, new in `lib/haptics`).
+- The pick: [the solo pick](../moments.md#the-solo-pick) (`haptics.match()` on landing, no sound).
+- Out of films and the cap card: `layout.fadeIn`, no haptic, no sound.
+- Swipes, flips and undo as in a group game. No other sound.
+
+### Solo accessibility
+
+- Top bar order: Leave (`solo:a11y.leave`), the label, the count as one element (`solo:a11y.likes_*`), then the card and the buttons row.
+- When a status card replaces the top card, focus moves to its line or title (the checkpoint's line, the out of films title, the cap title); then its buttons in order.
+- The pick sheet: focus on its title when it opens; then the helper, the tiles row by row (each `FilmTile`'s label, with the hint `solo:pickSheet.a11yHint`), then Close.
+- Reduce Motion: the fan starts fanned; the pick has no flight (the sheet closes, the winner fades in).
+
+### Solo, never shown
+
+Nopes or their count, a streak, "you're on a roll", a timer, cards left today, a target, a nudge to keep swiping, or anything about Pro. Nothing in a solo room reaches another phone.
 
 ## Questions
 

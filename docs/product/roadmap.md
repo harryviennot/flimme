@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 133 of 278 tasks done.
+Progress: 136 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -437,7 +437,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: the vote between matches, the single-match pick, and rounds of 2 and 3 films closing are tested.
 - [x] **M6.36** One seat each among the finalists: after the matches, the liked film that gives a seat to the most present players without one · backend · M · needs M6.4 · [game-modes](game-modes.md#the-finalists)
   Done when: rule 2 of "The finalists" is tested, ties and a player who left included.
-- [ ] **M6.40** The solo game mode: a `solo` mode with one seat, `api.start_solo` and `api.solo_pick`, no join, no match and no finale, an idle solo room ended after 30 minutes, solo decks without films answered in earlier solo rooms · backend · L · needs M6.29, M6.30, M6.34 · [solo](solo-and-my-films.md#4-a-room-with-one-seat-or-a-separate-flow), [game-modes](game-modes.md#the-modes)
+- [x] **M6.40** The solo game mode: a `solo` mode with one seat, `api.start_solo` and `api.solo_pick`, no join, no match and no finale, an idle solo room ended after 30 minutes, solo decks without films answered in earlier solo rooms · backend · L · needs M6.29, M6.30, M6.34 · [solo](solo-and-my-films.md#4-a-room-with-one-seat-or-a-separate-flow), [game-modes](game-modes.md#the-modes)
   Done when: each rule of the solo mode in "The modes" is tested, the 30-minute end and a pick included.
 - [ ] **M6.41** My films in `user_titles`: the `solo` source, `liked_at`, `super_liked`, `picked_at` and `seen_at`, likes written by `api.cast_vote` and taken back by undo, a group's pick marked for every seated player, `api.my_films`, `api.my_film_card`, `api.set_film_seen`, `api.remove_my_film`, and the export · backend · L · needs M6.40, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [data-model](../architecture/data-model.md#4-film-history-and-taste)
   Done when: undo, both sources, a pick, the reads and edits, deletion and retention are tested, and nothing in a room reads a like.
@@ -482,7 +482,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on simulators against staging with the bots plays each beat, fills the top bar to the Final Cut, and reads the shortlist back after a cold start.
 - [x] **M6.38** The Final Cut with 2 films and its intro line: the 2-film vote without a veto, its reveal, and the fixed line on how the films were chosen · app · M · needs M6.33, M6.35, M6.15, M6.31 · [the finalists](game-modes.md#the-finalists), [final-cut](../design/screens/final-cut.md#layout)
   Done when: a touch run against staging reaches a 2-film vote and its reveal, and every Final Cut shows the intro line in French and English.
-- [ ] **M6.39** Solo and My films, the specs and beats: the tab bar, Play, Play alone setup, the solo swipe variant (top bar, checkpoint card, cap card, pick sheet), the solo pick, My films and the film sheet; the checkpoint and solo pick beats; the frames on the Figma's First release page · design · L · [solo](solo-and-my-films.md#the-screens-to-spec), [moments](../design/moments.md)
+- [x] **M6.39** Solo and My films, the specs and beats: the tab bar, Play, Play alone setup, the solo swipe variant (top bar, checkpoint card, cap card, pick sheet), the solo pick, My films and the film sheet; the checkpoint and solo pick beats; the frames on the Figma's First release page · design · L · [solo](solo-and-my-films.md#the-screens-to-spec), [moments](../design/moments.md)
   Done when: every screen has a spec with its states and its copy in French and English, both beats are in moments.md, and the frames are on the First release page.
 - [ ] **M6.43** The tab bar: Play (today's Home) and My films as Expo Router tabs; host setup, join, rooms and Settings over the tabs with no tab bar; deep links and the redirects from `/` still work · app · M · needs M6.39 · [solo](solo-and-my-films.md#2-the-tab-bar), [app-structure](../architecture/app-structure.md#screens-and-navigation)
   Done when: a touch run on the simulator moves between the tabs, opens host setup, a join link, a room and Settings with no tab bar, and comes back to Play.
@@ -575,7 +575,7 @@ Done when: the headline metrics, alerts and backups work, and the load test pass
   Done when: a stopped worker raises an alert, and a new report alerts within 5 minutes.
 - [x] **M9.6** Backups: the weekly logical dump and the restore script · ops · M · needs M1.1 · [operations](../architecture/operations.md#backups-and-restore)
   Done when: the weekly dump runs, and a local drill restores it.
-- [ ] **M9.7** The load runner (narrowed): 230 bots in 50 rooms, measures for each target, a report · test · L · needs M6.19 · [operations](../architecture/operations.md#load-test)
+- [x] **M9.7** The load runner (narrowed): 230 bots in 50 rooms, measures for each target, a report · test · L · needs M6.19 · [operations](../architecture/operations.md#load-test)
   Done when: a local run produces the report for each target.
 - [ ] **M9.8** The restore drill on Supabase · ops · M · needs M9.6, M2.15 · [operations](../architecture/operations.md#backups-and-restore)
   Done when: a dump restores into a new Supabase project and the copy works.

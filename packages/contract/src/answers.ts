@@ -96,8 +96,37 @@ export type StartGameAnswer = (typeof START_GAME_ANSWERS)[number];
  * `sql` (M1.13), or the 8-second fallback (with `fallback`). `done` (M6.29): the seat has no card
  * left and the baseline dealt it nothing; `liked` counts the room's films with a like.
  */
-export const REQUEST_CARDS_ANSWERS = ['ok', 'queued', 'enough', 'closed', 'done'] as const;
+export const REQUEST_CARDS_ANSWERS = [
+  'ok',
+  'queued',
+  'enough',
+  'closed',
+  'done',
+  // M6.42: a solo seat used its cards for the day. Declared here so M6.42 edits no contract file.
+  'daily_limit',
+] as const;
 export type RequestCardsAnswer = (typeof REQUEST_CARDS_ANSWERS)[number];
+
+/**
+ * `api.start_solo` answers (M6.40). `ok` is a room already swiping; `dealing` waits for the deck
+ * worker (`deck_engine` `server`) and the phone follows `state_changed`. `too_few_films` carries
+ * `eligible`; the room it made is abandoned. `daily_limit` comes with M6.42's cap.
+ */
+export const START_SOLO_ANSWERS = [
+  'ok',
+  'dealing',
+  'name_required',
+  'country_required',
+  'invalid_settings',
+  'too_few_films',
+  'rate_limited',
+  'daily_limit',
+] as const;
+export type StartSoloAnswer = (typeof START_SOLO_ANSWERS)[number];
+
+/** `api.solo_pick` answers (M6.40). `not_liked`: the seat has no like on that film in this room. */
+export const SOLO_PICK_ANSWERS = ['ok', 'not_liked', 'closed'] as const;
+export type SoloPickAnswer = (typeof SOLO_PICK_ANSWERS)[number];
 
 /** `api.cast_vote` answers. */
 export const CAST_VOTE_ANSWERS = [
