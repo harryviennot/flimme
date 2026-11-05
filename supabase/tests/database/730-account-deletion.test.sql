@@ -7,7 +7,7 @@ select plan(29);
 
 select tests.create_catalog(40);
 
--- Room A: d1 hosts with d2. Room B: another game, d1 plays with d3.
+-- One room: d1 hosts with d2.
 select tests.deal_game(2, 'd', 'swiping');
 select set_config('tests.room_a', tests.room_id()::text, true);
 select tests.vote('d1', 1, 'like');

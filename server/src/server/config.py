@@ -133,11 +133,12 @@ class Settings(BaseSettings):
             return "SUPABASE_URL"
         if self.environment is not Environment.LOCAL and self.supabase_secret_key is None:
             return "SUPABASE_SECRET_KEY"
-        if self.environment is Environment.PRODUCTION:
-            if self.posthog_personal_api_key is None:
-                return "POSTHOG_PERSONAL_API_KEY"
-            if self.posthog_project_id is None:
-                return "POSTHOG_PROJECT_ID"
+        if self.environment is Environment.PRODUCTION and self.posthog_personal_api_key is None:
+            return "POSTHOG_PERSONAL_API_KEY"
+        if self.posthog_personal_api_key is not None and self.posthog_project_id is None:
+            return "POSTHOG_PROJECT_ID"
+        if self.environment is Environment.PRODUCTION and self.posthog_project_id is None:
+            return "POSTHOG_PROJECT_ID"
         return None
 
     @model_validator(mode="after")
