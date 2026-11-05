@@ -28,6 +28,8 @@ export function useMyFilms(segment: MyFilmsSegment, filter: MyFilmsFilter, langu
 }
 
 /** Reads every My films list again (after a remove, a seen mark, or a sheet that closed). */
-export function refreshMyFilms(): Promise<void> {
-  return queryClient.invalidateQueries({ queryKey: MY_FILMS_KEY });
+export async function refreshMyFilms(): Promise<void> {
+  // The film sheet's cached cards go too: a removed film is no longer liked.
+  void queryClient.invalidateQueries({ queryKey: ['my-film-card'] });
+  await queryClient.invalidateQueries({ queryKey: MY_FILMS_KEY });
 }

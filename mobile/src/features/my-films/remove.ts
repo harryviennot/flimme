@@ -25,10 +25,14 @@ const pending = new Map<number, () => Promise<void>>();
 export function startRemove(titleId: number, deps: RemoveDeps): void {
   deps.hide(titleId);
   let sent = false;
+  let closedByToast = false;
   const send = async () => {
     if (sent) return;
     sent = true;
     pending.delete(titleId);
+    // The call is on its way: an Undo that can no longer undo must not stay on screen. Hiding
+    // the toast re-enters here through onDismiss, which `sent` makes a no-op.
+    if (!closedByToast) deps.hideToast();
     let answer: RemoveAnswer | 'failed';
     try {
       answer = await deps.remove(titleId);
@@ -57,7 +61,10 @@ export function startRemove(titleId: number, deps: RemoveDeps): void {
         deps.unhide(titleId);
       },
     },
-    onDismiss: () => void send(),
+    onDismiss: () => {
+      closedByToast = true;
+      void send();
+    },
   });
 }
 

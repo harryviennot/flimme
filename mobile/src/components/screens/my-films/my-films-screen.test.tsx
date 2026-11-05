@@ -1,9 +1,8 @@
-import '@/i18n';
-
 import type { MyFilmTile } from '@flimme/contract';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
+import { FlatList } from 'react-native';
 
 import { api } from '@/api';
 import i18n from '@/i18n';
@@ -98,6 +97,23 @@ describe('My films', () => {
     expect(screen.getAllByRole('button', { name: /Film 2,/ })).toHaveLength(1);
     await act(async () => fireEvent(list, 'endReached'));
     expect(myFilms).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps each segment and chip at its own scroll position', async () => {
+    myFilms.mockImplementation(async ({ filter }: { filter: string }) =>
+      page([film(filter === 'solo' ? 20 : 10)]),
+    );
+    await showScreen();
+    await screen.findByRole('button', { name: /Film 10,/ });
+    const list = screen.getByTestId('films-grid');
+    const scrollToOffset = jest.spyOn(FlatList.prototype, 'scrollToOffset').mockImplementation();
+    await act(async () => fireEvent.scroll(list, { nativeEvent: { contentOffset: { y: 480 } } }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Solo' }));
+    await screen.findByRole('button', { name: /Film 20,/ });
+    expect(scrollToOffset).toHaveBeenLastCalledWith({ offset: 0, animated: false });
+    await fireEvent.press(screen.getByRole('radio', { name: 'All' }));
+    await screen.findByRole('button', { name: /Film 10,/ });
+    expect(scrollToOffset).toHaveBeenLastCalledWith({ offset: 480, animated: false });
   });
 
   it('shows Picked over the star, and reads title, year and badge', async () => {

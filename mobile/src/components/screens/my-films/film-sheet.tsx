@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, useWindowDimensions, View } from 'react-native';
 // Gesture Handler's ScrollView: a plain one paints nothing inside this formSheet (the nested
 // stack's sheet), while this one does.
-import { ScrollView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/api';
@@ -144,7 +144,7 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
     );
 
   return (
-    <View className="flex-1 bg-bg-canvas">
+    <GestureHandlerRootView className="flex-1 bg-bg-canvas">
       <ScrollView
         className="flex-1"
         contentContainerClassName="grow"
@@ -193,6 +193,6 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
           />
         ) : null}
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 }

@@ -9,6 +9,7 @@ function deps(answer: 'ok' | 'not_found' | 'rate_limited' | 'throws' = 'ok') {
     toasts: [] as { title: string; tone?: string }[],
     removes: [] as number[],
     refreshes: 0,
+    hideToasts: 0,
   };
   const d: RemoveDeps = {
     hide: (id) => calls.hidden.push(id),
@@ -24,7 +25,10 @@ function deps(answer: 'ok' | 'not_found' | 'rate_limited' | 'throws' = 'ok') {
       onDismiss = toast.onDismiss;
       undo = toast.action?.onPress;
     },
-    hideToast: () => onDismiss?.(),
+    hideToast: () => {
+      calls.hideToasts++;
+      onDismiss?.();
+    },
     copy: { removed: 'Removed', undo: 'Undo', failed: 'Failed' },
   };
   return { d, calls, close: () => onDismiss?.(), undo: () => undo?.() };
@@ -90,10 +94,19 @@ describe('startRemove', () => {
     },
   );
 
-  it('flushRemovals sends a pending removal now', async () => {
+  it('flushRemovals sends a pending removal now and takes its Undo toast down', async () => {
     const { d, calls } = deps();
     startRemove(9, d);
     await flushRemovals();
     expect(calls.removes).toEqual([9]);
+    expect(calls.hideToasts).toBe(1);
+  });
+
+  it('does not hide a toast it did not outlive when the toast closed itself', async () => {
+    const { d, calls, close } = deps();
+    startRemove(7, d);
+    close();
+    await flushRemovals();
+    expect(calls.hideToasts).toBe(0);
   });
 });

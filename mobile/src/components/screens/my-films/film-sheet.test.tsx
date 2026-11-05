@@ -1,5 +1,3 @@
-import '@/i18n';
-
 import type { Card } from '@flimme/contract';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
