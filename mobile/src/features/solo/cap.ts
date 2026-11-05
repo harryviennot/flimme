@@ -22,6 +22,8 @@ type Saved = { day: string | null };
 export type SoloCapState = Saved & {
   /** A `daily_limit` answer came back now. */
   reached: (now?: Date) => void;
+  /** Forgets the day, so Play alone asks `api.start_solo` again (Dev menu, after raising the cap). */
+  forget: () => void;
 };
 
 export const SOLO_CAP_VERSION = 1;
@@ -37,6 +39,7 @@ export function createSoloCapStore(kv?: KeyValueStore) {
       (set) => ({
         day: null,
         reached: (now = new Date()) => set({ day: parisDay(now) }),
+        forget: () => set({ day: null }),
       }),
       persistOptions<SoloCapState, Saved>({
         name: 'solo-cap',

@@ -12,6 +12,7 @@ import { createStore } from 'zustand/vanilla';
 import { useHintsStore } from '@/features/swipe/hints';
 import { track } from '@/lib/analytics';
 import { clearNearMisses, recordNearMiss } from '@/features/swipe/near-miss';
+import { duration } from '@/theme/motion';
 import { createAnswerer, type Answerer } from '@/features/swipe/answer';
 import { createCardStack, type CardStack } from '@/features/swipe/card-stack';
 import { createShortlistController } from '@/features/shortlist/controller';
@@ -278,6 +279,9 @@ afterEach(() => {
   });
   stacks.splice(0).forEach((stack) => stack.getState().stop());
   mockSwipe.current = null;
+  // Near miss counts live in memory for the game: none may reach the next test.
+  clearNearMisses();
+  mockRoom.data = { reveal: 'party', max_age: null };
 });
 
 describe('the buttons', () => {
@@ -912,6 +916,9 @@ describe('a solo room', () => {
   it('leaves out the shortlist, the near miss, the match overlay and the host menu', async () => {
     await setup({ solo: true, cards: 45 });
     await layoutStack();
+    // A count kept for the top card stays hidden, once the card has settled.
+    await act(async () => recordNearMiss(ROOM, { title_id: 1, likes: 2, of: 3, needed: 3 }));
+    await act(() => new Promise((resolve) => setTimeout(resolve, duration.base + 100)));
     expect(screen.queryByTestId('shortlist')).toBeNull();
     expect(screen.queryByTestId('shortlisted-catcher')).toBeNull();
     expect(screen.queryByText(/of you liked/i)).toBeNull();

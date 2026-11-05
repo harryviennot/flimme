@@ -144,7 +144,7 @@ When the finale starts is in [The finale](#the-finale); the card counts and time
 | **Joining in the lobby** | Any time, up to the room's maximum (10; 2 for Date Night) |
 | **Joining while the deck is dealt** | "Starting" for a second; the phone retries |
 | **Joining while swiping** | A late joiner gets the shared opening cards still in play, then their own deck. **Default to confirm:** late joiners don't hold up the finale: the card count applies to players seated when swiping started; the time limit applies to everyone |
-| **Joining during the finale** | Refused with "They're voting on the final films". The new player is offered the next game if the host taps Play again |
+| **Joining during the finale** | Refused with "They're voting on the final films". A player who arrives during the finale is refused; they can join the next game with its new code if the host taps Play again (offering it to them in the refusal waits for a later task) |
 | **Reconnecting** | Same code, same seat. Votes made offline are queued and retried: a retry the server already has returns "duplicate", a vote after the room was decided returns "closed" and the phone shows the result. The deck continues where it was |
 | **Leaving** (the leave button) | The seat stops counting at once. Liked films are re-checked: if everyone still here liked one, that's a match now |
 | **Going silent** (phone locked, app killed, no network) | The seat stops counting after 90 seconds for presence and the finale's card count. A silence alone never creates a match until it has lasted 3 minutes, so someone answering a message doesn't come back to a decided room |
@@ -364,7 +364,7 @@ Host only. The room is `done` through an instant match decided less than 60 seco
 
 ### `api.play_again(room)`
 
-Host of a `done` or `abandoned` room. Creates a room with the same mode, country and settings (services rule, time budget, seen rule, quality, age cap, reveal, moods), with the caller as host. Broadcasts `next_room` with the new code on the old room's topic, so the other phones can offer "Join".
+Host of a `done` or `abandoned` room. Creates a room with the same mode, country and settings (services rule, offered kinds, time budget, seen rule, quality, age cap, reveal, player limit), unlocked, with the caller as host and the moods of the caller's old seat (other players choose again). Broadcasts `next_room` (`room_id`, `code`, `host_member_id`: the host's seat in the old room, never a name) on the old room's topic, so the other phones can offer "Join". Answers `ok` with `room_id` and `code`, `not_finished` (the room is still in play), `unknown_mode` (a solo room) or `name_required`; anyone but the host raises 42501. A repeat call while the next room is open returns it and sends the event again; an ended next room is replaced. The old room keeps `next_room_id`, and `api.rooms` shows it with `next_room_code` (the code while that room is open) for phones that missed the event. Players join with `api.join_room(code, room_id, 'play_again')`.
 
 ### `api.start_solo(settings)`
 
@@ -432,7 +432,7 @@ Not yet in [data-model.md](../architecture/data-model.md) or [schema.sql](../arc
 | New functions | `api.cast_ballot` (whole ballot, done in M6.5), `api.close_round_stage` and `api.round_progress` (done in M6.5), `api.start_finale_now`, `api.play_again`, `internal.close_round_stage` (done in M6.5), `internal.sweep_rooms` |
 | Realtime | New `next_room` (code of the new room) and `host_changed`. `round_progress` carries which seats have locked in. `match` for a finale carries the points and vetoes |
 | Card payload | A `super_liked` flag in Party mode |
-| Who sees what | In Party mode, the winner screen may show who liked each runner-up, after the pick. Swipes still never reach phones while the game runs |
+| Who sees what | In Party mode, the winner screen may show who liked each runner-up, after the pick. Swipes still never reach phones while the game runs. Done in M6.48: `api.room_runners_up` names only the likers, in Party; Blind gets counts |
 | `rooms.expires_at` | Moved to 1 hour after the start when swiping begins |
 
 ## Starting values

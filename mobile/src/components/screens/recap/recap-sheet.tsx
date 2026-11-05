@@ -97,6 +97,8 @@ export function RecapSheet({ roomId }: { roomId: string }) {
             {card()}
           </View>
         </View>
+        {/* The capture copy: full size, off screen, never merged with the scaled preview (a scaled view
+            would be captured at the wrong size). Its poster is the one the capture waits for. */}
         <View
           ref={cardRef}
           collapsable={false}

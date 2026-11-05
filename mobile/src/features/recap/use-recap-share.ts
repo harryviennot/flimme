@@ -59,6 +59,8 @@ export function useRecapShare(
       onShared: () => track('winner:recap_share', { method: 'share_sheet' }),
     })
       .then((outcome) => {
+        // iOS and Android both resolve a cancelled share like a real one (no toast, tracked); a
+        // rejection means the system sheet failed.
         if (outcome === 'capture_failed' || outcome === 'share_failed') {
           reportError(new Error(`recap: ${outcome}`));
           showToast({

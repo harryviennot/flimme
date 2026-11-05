@@ -172,6 +172,36 @@ export const setRoomLockedResult = z.discriminatedUnion('status', [
 ]);
 export type SetRoomLockedResult = z.infer<typeof setRoomLockedResult>;
 
+// ok carries the next room: the new one, or the open one on a repeat call (M6.22).
+export const playAgainResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), room_id: z.string(), code: z.string() }),
+  z.object({ status: z.literal('not_finished') }),
+  z.object({ status: z.literal('unknown_mode') }),
+  z.object({ status: z.literal('name_required') }),
+]);
+export type PlayAgainResult = z.infer<typeof playAgainResult>;
+
+// After the pick (M6.48). `likers` is present only in Party and never holds a seat that did not like
+// the film; Blind carries `likes` only. Nothing about nopes, seens or a total of seats.
+export const runnerUp = z.object({
+  title_id: z.number(),
+  likes: z.number(),
+  likers: z.optional(
+    z.array(z.object({ member_id: z.string(), display_name: z.string(), avatar_key: z.string() })),
+  ),
+});
+export type RunnerUp = z.infer<typeof runnerUp>;
+export const runnersUpResult = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('ok'),
+    reveal: z.enum(['party', 'blind']),
+    source: z.nullable(z.enum(['finalists', 'most_liked'])),
+    runners_up: z.array(runnerUp),
+  }),
+  z.object({ status: z.literal('not_finished') }),
+]);
+export type RunnersUpResult = z.infer<typeof runnersUpResult>;
+
 /** The host's settings: any subset; `runtime_max` and `max_age` take null to clear. */
 export type RoomSettings = {
   service_rule?: 'any_member' | 'every_member';
@@ -425,6 +455,9 @@ export const roomRow = z.object({
   decided_at: z.nullable(z.string()),
   ended_at: z.nullable(z.string()),
   locked: z.boolean(),
+  // Play again (M6.22): the next room's id once the host opened it; its code while that room is open.
+  next_room_id: z.nullable(z.string()),
+  next_room_code: z.nullable(z.string()),
 });
 export type RoomRow = Omit<z.infer<typeof roomRow>, 'stats'> & { stats: Json | null };
 

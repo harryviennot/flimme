@@ -18,7 +18,11 @@ afterEach(() => {
 });
 
 type Profile = { [key: string]: unknown };
-const easJson = eas as { cli: Profile; build: Record<(typeof variants)[number], Profile> };
+const easJson = eas as {
+  cli: Profile;
+  build: Record<(typeof variants)[number], Profile>;
+  submit: { production: { ios: Profile } };
+};
 
 function pluginOptions(config: ExpoConfig, name: string): unknown {
   const entry = config.plugins?.find((plugin) =>
@@ -138,5 +142,16 @@ describe('eas.json', () => {
   it('keeps preview and development builds internal', () => {
     expect(easJson.build.development.distribution).toBe('internal');
     expect(easJson.build.preview.distribution).toBe('internal');
+  });
+
+  // store-listing.md#setting-up-the-store-records: French (France) is the primary language.
+  it('submits production builds to App Store Connect, creating the app in French', () => {
+    expect(Object.keys(easJson.submit)).toEqual(['production']);
+    expect(easJson.submit.production.ios).toEqual({
+      appleTeamId: 'QQJF5895MC',
+      appName: 'Flimme',
+      language: 'fr-FR',
+      sku: 'flimme-ios',
+    });
   });
 });

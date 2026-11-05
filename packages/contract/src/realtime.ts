@@ -35,7 +35,7 @@ export type RoomState = (typeof ROOM_STATES)[number];
 
 /**
  * Payloads of the events the SQL sends today, as `internal.broadcast_room` builds them.
- * Events not listed here carry no payload the phone reads yet (`next_room` is planned: roadmap M7). `match` has no `result`.
+ * Events not listed here carry no payload the phone reads yet. `match` has no `result`.
  */
 export type RoomEventPayloads = {
   member_joined: { member_id: string; display_name: string; avatar_key: string };
@@ -45,6 +45,11 @@ export type RoomEventPayloads = {
   /** The saved value; only sent when it changed (api.set_room_locked, M4.23). */
   room_locked: { locked: boolean };
   seat_updated: { member_id: string };
+  /**
+   * The host opened the next room (api.play_again, M6.22). `host_member_id` is the host's seat in
+   * this room, so phones name them from their seat list; the payload carries no name.
+   */
+  next_room: { room_id: string; code: string; host_member_id: string };
   /** The seat that now holds the host role; the sweeper sends it for a silent host (M6.6). */
   host_changed: { member_id: string };
   /** The six settings as saved, read back from the room (api.update_room_settings, M1.10). */

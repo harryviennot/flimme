@@ -20,5 +20,15 @@
       "channel": "production",
       "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleTeamId": "QQJF5895MC",
+        "appName": "Flimme",
+        "language": "fr-FR",
+        "sku": "flimme-ios"
+      }
+    }
   }
 }

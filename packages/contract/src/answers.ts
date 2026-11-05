@@ -68,6 +68,20 @@ export type RemoveMemberAnswer = (typeof REMOVE_MEMBER_ANSWERS)[number];
 export const SET_ROOM_LOCKED_ANSWERS = ['ok', 'closed'] as const;
 export type SetRoomLockedAnswer = (typeof SET_ROOM_LOCKED_ANSWERS)[number];
 
+/**
+ * `api.play_again` answers (M6.22): the host of a finished room opens the next one.
+ * `unknown_mode` is a solo room. A caller who is not the host raises 42501.
+ */
+export const PLAY_AGAIN_ANSWERS = ['ok', 'not_finished', 'unknown_mode', 'name_required'] as const;
+export type PlayAgainAnswer = (typeof PLAY_AGAIN_ANSWERS)[number];
+
+/**
+ * `api.room_runners_up` answers. `not_finished` is every state but done and abandoned and carries
+ * nothing. A caller who is not a member (a removed seat included) raises 42501 (M6.48).
+ */
+export const ROOM_RUNNERS_UP_ANSWERS = ['ok', 'not_finished'] as const;
+export type RoomRunnersUpAnswer = (typeof ROOM_RUNNERS_UP_ANSWERS)[number];
+
 /** `api.update_room_settings` answers. */
 export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed', 'invalid_settings'] as const;
 export type UpdateRoomSettingsAnswer = (typeof UPDATE_ROOM_SETTINGS_ANSWERS)[number];

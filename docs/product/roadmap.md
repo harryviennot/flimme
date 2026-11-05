@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 145 of 280 tasks done.
+Progress: 148 of 280 tasks done.
 
 ```mermaid
 flowchart LR
@@ -443,7 +443,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: undo, both sources, a pick, the reads and edits, deletion and retention are tested, and nothing in a room reads a like.
 - [x] **M6.42** The solo daily cap, and solo in the metric views: 100 solo cards a day per player (`app_config.solo_daily_cards`, Paris day), the deal stops at the cap, `daily_limit` from `api.start_solo` and `api.request_cards`; solo rooms left out of the group metrics, with solo sessions, cards per session and solo picks · backend · M · needs M6.40, M9.3 · [solo](solo-and-my-films.md#8-the-cap), [analytics](analytics.md#game)
   Done when: the cap, undo giving nothing back, group rooms never counted, and the metric views are tested.
-- [ ] **M6.48** `api.room_runners_up`: after the pick, the other finalists or the most liked films, with who liked each in Party mode and how many in Blind · backend · M · needs M6.16 · [game-modes](game-modes.md#what-players-see-party-and-blind)
+- [x] **M6.48** `api.room_runners_up`: after the pick, the other finalists or the most liked films, with who liked each in Party mode and how many in Blind · backend · M · needs M6.16 · [game-modes](game-modes.md#what-players-see-party-and-blind)
   Done when: each rule of "Runners-up" and the Party and Blind rows is tested, a room still playing included.
 
 **App**
@@ -508,7 +508,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
 
 - [ ] **M6.21** The recap share card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes") with the app link · app · L · needs M6.8, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
   Done when: shareable from the winner screen.
-- [ ] **M6.22** `api.play_again` and the `next_room` event · backend · M · needs M6.6 · [game-modes](game-modes.md#functions-still-to-write)
+- [x] **M6.22** `api.play_again` and the `next_room` event · backend · M · needs M6.6 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tested.
 - [ ] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · M · needs M6.22, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
   Done when: a group starts a second room in two taps.
@@ -538,7 +538,7 @@ Done when: the policy and terms are online, and players can download and delete 
 
 - [ ] **M8.1** Privacy policy in French and English, for the first release's data only · legal · M · needs M0.1 · [privacy](privacy.md#privacy-policy-outline)
   Done when: written from the outline and the data map.
-- [ ] **M8.2** Terms of use in French and English · legal · M · needs M0.1 · [privacy](privacy.md#terms-of-use-outline)
+- [x] **M8.2** Terms of use in French and English · legal · M · needs M0.1 · [privacy](privacy.md#terms-of-use-outline)
   Done when: written from the outline.
 - [ ] **M8.3** Host the policy, the terms, a support page and an account deletion request page on the domain · ops · M · needs M8.1, M8.2, M0.2 · [store-listing](store-listing.md#release-checklist)
   Done when: all four URLs are live.
