@@ -98,7 +98,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
-| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
+| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | Done |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 46 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 140 of 278 tasks done.
+Progress: 141 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -367,7 +367,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: `mise run bots` fills a local room with three present players.
 - [x] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
   Done when: Home is three taps from a fresh install.
-- [ ] **M4.18** The domain hookup: Associated Domains, Android intent filters, `invite_base_url`, and hosting the invite page and verification files on the domain · ops · S · needs M0.2, M4.14 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
+- [x] **M4.18** The domain hookup: Associated Domains, Android intent filters, `invite_base_url`, and hosting the invite page and verification files on the domain · ops · S · needs M0.2, M4.14 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
   Done when: a link opens the app when installed and the invite page when not, checked on a device.
 - [x] **M4.19** `api.room_preview(code, ref)`: who invited you, before joining · backend · M · needs M4.1 · [security](../architecture/security.md#room-codes-joining-and-the-host), [data-model](../architecture/data-model.md#the-apps-api)
   Done when: `api.room_preview` answers a link's code and reference with the host's name and avatar, the seated count and whether the room can be joined; a wrong or missing reference reveals nothing; pgTAP covers every rule.
