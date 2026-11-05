@@ -8,6 +8,7 @@ import { LinkText } from '@/components/ui/link-text';
 
 /** Under this width a table's rows stack, each cell under its column name. */
 const TABLE_WIDE = 640;
+const BULLET = '•';
 
 export type MarkdownViewProps = { markdown: string };
 
@@ -49,7 +50,7 @@ function List({ items }: { items: Span[][] }) {
       {items.map((item, index) => (
         <View key={index} role="listitem" className="flex-row gap-3">
           <Text variant="body-m" tone="marquee" aria-hidden>
-            •
+            {BULLET}
           </Text>
           <Text variant="body-m" tone="secondary" className="flex-1">
             <Spans spans={item} variant="body-m" tone="secondary" />

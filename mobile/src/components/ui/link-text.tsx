@@ -7,6 +7,8 @@ export type LinkTextProps = Omit<TextProps, 'onPress' | 'role' | 'tone'> & {
   href: string;
   /** What a screen reader says when the text alone is not enough. */
   label?: string;
+  /** The language of the linked page, when it differs from this one. */
+  lang?: string;
 };
 
 /**
@@ -14,9 +16,11 @@ export type LinkTextProps = Omit<TextProps, 'onPress' | 'role' | 'tone'> & {
  * anywhere else it opens through Linking. The legal pages only run in a browser, so the second
  * branch is for the tests and for safety.
  */
-export function LinkText({ href, label, children, ...props }: LinkTextProps) {
+export function LinkText({ href, label, lang, children, ...props }: LinkTextProps) {
   const link =
-    Platform.OS === 'web' ? ({ href } as object) : { onPress: () => void Linking.openURL(href) };
+    Platform.OS === 'web'
+      ? ({ href, lang } as object)
+      : { onPress: () => void Linking.openURL(href) };
   return (
     <Text
       {...props}
