@@ -17,6 +17,17 @@
     "moreDetails": "More details on TMDB",
     "moreDetailsHint": "Opens in a browser",
     "home": "Back to Home",
-    "loading": "Loading the film"
+    "loading": "Loading the film",
+    "runnerUp": "{{title}}. {{detail}}",
+    "runnerUpTitle": "{{title}}",
+    "likedBy": "Liked by {{names}}",
+    "runnerUpHint": "Shows where to watch it"
+  },
+  "runnersUp": {
+    "finalists": "The other finalists",
+    "mostLiked": "Most liked",
+    "hint": "Plan B, if tonight's pick won't play.",
+    "likes_one": "{{count}} like",
+    "likes_other": "{{count}} likes"
   }
 }

@@ -48,6 +48,8 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
       solo={solo}
       lands={lands}
       onShareRecap={() => router.push(`/room/${roomId}/recap`)}
+      roomId={roomId}
+      onOpenRunnerUp={(titleId) => router.push(`/room/${roomId}/film/${titleId}`)}
       onHome={() => {
         releaseRoomGuards();
         exitToHome();

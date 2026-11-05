@@ -71,7 +71,7 @@ Two sources, merged:
 
 A candidate is fetched once and kept if it passes the **floor**: released (TMDB status "Released" and a past release date), at least 40 minutes long, at least 30 votes, not adult. That's the lowest floor any deck uses (Hidden gems); the room's quality preset sets the real one.
 
-Expected size: 40,000 to 60,000 films (starting estimate). Films are never deleted, because votes point at them. They're deactivated (`is_active` false) when TMDB removes them or flags them adult. The taste check films and the moods' example films are well-known, so always well inside the top 60,000.
+Measured size: 28,162 films on production after the first full load (5 November 2026): about 22,600 of the top 60,000 pass the floor, and the sweep adds the watchable films outside the top ([the first full load](#the-first-full-load) has the numbers). The starting estimate of 40,000 to 60,000 was wrong. Films are never deleted, because votes point at them. They're deactivated (`is_active` false) when TMDB removes them or flags them adult. The taste check films and the moods' example films are well-known, so always well inside the top 60,000.
 
 ## One request per film
 
@@ -184,6 +184,16 @@ The same worker code, run once from a laptop or CI, as the data model plans:
 4. **The floor, tiers and quality score.** C is computed once every film is in.
 5. **Embeddings, mood scores and thumbhashes.**
 
+**Measured on production, 5 November 2026** (Harry ran it from a one-off machine):
+
+- Before: 22,620 films from an earlier load, 1 watchable in France. The 02:00 UTC sweep that morning touched 0 titles, because it ran before the French services were flagged as listed.
+- Backfill (run 12, 21:27 to 22:04 UTC, 2,197 s): 60,000 candidates, 28,025 quality scores set, 39,577 films fetched at 18.0 films a second. Time per film: TMDB 91%, poster 0%, waiting for a connection 5%, reads 4%, write 0%. One placeholder failed. It wrote no new films, because it re-fetched only the candidates below the floor, which are never stored.
+- Sweeps (runs 13 and 14, 32 steps each, 0 errors): 28,087 and 34,451 titles touched. Run 14 was a duplicate, enqueued twice. They queued fetches for the watchable films the catalog lacked.
+- End state at about 22:30 UTC: 28,162 films, 14,043 distinct films watchable in France, queue empty.
+- So: about 22,600 of the top 60,000 pass the floor (about 37,000 do not), and the sweep adds the watchable films outside the top. The catalog is 28,162 films, not 40,000 to 60,000. Staging's numbers come from the check queries in the M2.13 pull request.
+
+**Running it again.** A backfill rerun on a loaded catalog only re-judges the films below the floor: it fetches about 37,000 films to store none. After the services are flagged as listed, or when availability is empty, run the availability sweep (wait for 02:00 UTC, or enqueue one at once with `select internal.enqueue('catalog_refresh', '{"kind":"job","job":"availability_sweep"}')` in the SQL editor, once), which queues the watchable films the catalog lacks. Do not run two sweeps at once.
+
 ## Images
 
 Only paths are stored. Phones build `https://image.tmdb.org/t/p/{size}{path}` and cache with expo-image. The sizes TMDB's configuration offers: posters w92, w154, w185, w342, w500, w780 and original; backdrops w300, w780, w1280 and original; logos w45 to w500 and original.
@@ -253,7 +263,7 @@ Starting estimates for France alone:
 | Changes | 100 to 200 pages, plus 500 to 2,000 fetches a day |
 | Weekly fetch | 15,000 to 25,000 a week |
 | Monthly fetch | About 30,000 a month |
-| First load | About 60,000, once |
+| First load | About 60,000 candidates fetched (about 40,000 of them for the backfill run, the rest from the sweep), once |
 
 That's about 10,000 requests a day, roughly 10 minutes at 20 a second. The money is TMDB's licence: $0 while non-commercial, or $149 a month on the commercial plan (see [Terms](#terms-licence-and-attribution)).
 
