@@ -9,5 +9,6 @@ export {
   submitName,
   type SubmitOutcome,
 } from './name';
+export { useDeviceProfileSync } from './use-device-profile-sync';
 export { useDeviceSync } from './use-device-sync';
 export { MY_PROFILE_KEY, useMyProfile } from './use-my-profile';

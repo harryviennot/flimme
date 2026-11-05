@@ -29,7 +29,7 @@ Both come from `mobile/scripts/make-logo.swift` (colours read from tokens.json);
 
 1. Wait for the session (`useSession()` from `@/features/session`: the root layout restores it, or signs in anonymously).
 2. Read `api.my_profile` (`useMyProfile()`, `@/features/profile`). Every profile read or saved is kept in the key-value store (`lib/storage.ts`) and seeds the query, so an offline launch still knows the player.
-3. Sync the device, silently and without waiting: `api.update_profile` with the language whenever `profile.language` differs from the app's language (`deviceLanguage()`), and with the country (`regionCode` from expo-localization) only while `profile.country` is empty and the region is two capital letters, so a later choice is never overwritten. One call carries both when both are due. A failure waits for the next launch.
+3. Sync the device, silently and without waiting (from the root layout, so it still runs when the splash is already gone): `api.update_profile` with the language whenever `profile.language` differs from the app's language (`deviceLanguage()`), and with the country (`regionCode` from expo-localization) only while `profile.country` is empty and the region is two capital letters, so a later choice is never overwritten. One call carries both when both are due. A failure waits for the next launch.
 4. Go to the first match in this table (always `replace`, so back never returns here):
 
 | Condition | Goes to |
