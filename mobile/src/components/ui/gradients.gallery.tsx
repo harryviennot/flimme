@@ -21,6 +21,10 @@ export const gallery: GalleryEntry = {
         <GradientFill gradient="card-scrim" />
         <Text variant="title-l">Card scrim</Text>
       </View>
+      <View className="h-28 justify-end overflow-hidden rounded-md bg-neon-default p-3">
+        <GradientFill gradient="card-front-scrim" />
+        <Text variant="title-l">Card front scrim</Text>
+      </View>
       <View className="h-3 overflow-hidden rounded-pill">
         <GradientFill gradient="marquee-sunset" />
       </View>
