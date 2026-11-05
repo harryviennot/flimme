@@ -139,6 +139,7 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
           watchLink={view.watchLink}
           servicesLabel={servicesLabel(view.services, i18n.language)}
           notListed={t('sheet.notListed')}
+          isGroupWinner={false}
         />
       </>
     );

@@ -20,6 +20,17 @@ const STATE_KEY = 'analytics.state';
 
 type Rule = readonly string[] | 'number' | 'boolean' | 'route' | 'country';
 
+/** How many, in buckets (solo checkpoints and My films): never an exact count. */
+export const COUNT_BUCKETS = ['0', '1_4', '5_9', '10_19', '20_plus'] as const;
+export type CountBucket = (typeof COUNT_BUCKETS)[number];
+
+export function countBucket(count: number): CountBucket {
+  if (count <= 0) return '0';
+  if (count < 5) return '1_4';
+  if (count < 10) return '5_9';
+  return count < 20 ? '10_19' : '20_plus';
+}
+
 /**
  * The events and the only values their properties may take (analytics.md#events). A string
  * property is a closed list (never a name, a code or a title); a number or a boolean is checked by
@@ -70,6 +81,15 @@ export const ANALYTICS_EVENTS = {
   'game:nothing_left_view': { is_host: 'boolean' },
   'winner:view': { outcome: ['match', 'finale'], room_size: ['2', '3_4', '5_10'] },
   'winner:watch_page_open': {},
+  'solo:session_start': { service_count: 'number', has_time_budget: 'boolean' },
+  'solo:checkpoint_view': { card_count: 'number', like_count: COUNT_BUCKETS },
+  'solo:pick_submit': { card_count: 'number' },
+  'solo:cap_show': { placement: ['deck', 'play'] },
+  'my_films:grid_view': {
+    segment: ['liked', 'seen'],
+    filter: ['all', 'friends', 'solo', 'none'],
+    film_count: COUNT_BUCKETS,
+  },
   'error:view': {
     code: ['room_closed', 'offline', 'reconnecting', 'update_required', 'unexpected'],
     screen: 'route',

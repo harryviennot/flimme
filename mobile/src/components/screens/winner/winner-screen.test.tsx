@@ -7,7 +7,11 @@ import * as WebBrowser from 'expo-web-browser';
 import type { WinnerView } from '@/features/winner/use-winner';
 import { serviceLogos } from '@/features/winner/services';
 
+import { track } from '@/lib/analytics';
+
 import { WinnerScreen } from './winner-screen';
+
+jest.mock('@/lib/analytics', () => ({ track: jest.fn() }));
 
 jest.mock('expo-web-browser', () => ({ openBrowserAsync: jest.fn() }));
 jest.mock('react-native-safe-area-context', () => ({
@@ -143,5 +147,20 @@ describe('the winner screen', () => {
     expect(screen.getByText(/No film got a like tonight/)).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: 'Back to Home' }));
     expect(onHome).toHaveBeenCalled();
+  });
+});
+
+describe('the watch page event', () => {
+  it('counts a group winner and not a solo pick', async () => {
+    const group = await render(
+      <WinnerScreen view={ready()} language="en" online onHome={jest.fn()} />,
+    );
+    fireEvent.press(screen.getByRole('button', { name: /details/i }));
+    expect(track).toHaveBeenCalledWith('winner:watch_page_open');
+    group.unmount();
+    jest.mocked(track).mockClear();
+    await render(<WinnerScreen view={ready()} language="en" online solo onHome={jest.fn()} />);
+    fireEvent.press(screen.getByRole('button', { name: /details/i }));
+    expect(track).not.toHaveBeenCalled();
   });
 });

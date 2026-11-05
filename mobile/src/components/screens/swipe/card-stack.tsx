@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
@@ -15,6 +15,7 @@ import { formatList } from '@/features/lobby/names';
 
 import { CheckpointCard } from '@/components/screens/solo/checkpoint-card';
 import { CapCard, OutOfFilmsCard } from '@/components/screens/solo/end-cards';
+import { trackCheckpointView, trackDeckCap } from '@/features/analytics/solo-events';
 import { useLeaveSoloTo } from '@/features/solo/leave';
 import { likesOf } from '@/features/solo/session';
 
@@ -93,6 +94,12 @@ export function CardStack({
   const likes = likesOf(entries);
   const checkpointOn = swipe.solo && checkpoint !== null && mounted.length > 0;
   const leaveTo = useLeaveSoloTo(roomId);
+  // Each checkpoint shows once per session (the session store), so this fires once per multiple of 20.
+  const checkpointShown = checkpointOn ? checkpoint : null;
+  useEffect(() => {
+    if (checkpointShown !== null) trackCheckpointView(roomId, checkpointShown, likes.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkpointShown]);
   const openPick = () => router.push(`/room/${roomId}/pick`);
 
   const onLayout = (event: LayoutChangeEvent) => {
@@ -189,6 +196,7 @@ export function CardStack({
             ) : status === 'empty' && swipe.solo ? (
               <SoloEnd
                 capped={capped}
+                roomId={roomId}
                 size={size}
                 screenWidth={screen.width}
                 likes={likes}
@@ -253,6 +261,13 @@ export function CardStack({
 }
 
 /** No card left in a solo session: the day's cap, or every film of the filters. */
-function SoloEnd({ capped, ...props }: { capped: boolean } & React.ComponentProps<typeof CapCard>) {
+function SoloEnd({
+  capped,
+  roomId,
+  ...props
+}: { capped: boolean; roomId: string } & React.ComponentProps<typeof CapCard>) {
+  useEffect(() => {
+    if (capped) trackDeckCap(roomId);
+  }, [capped, roomId]);
   return capped ? <CapCard {...props} /> : <OutOfFilmsCard {...props} onHost={undefined} />;
 }

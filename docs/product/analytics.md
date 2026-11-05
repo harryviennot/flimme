@@ -149,9 +149,14 @@ Besides PostHog's own app lifecycle events (`Application Installed`, `Applicatio
 | `game:hint_show` | A first-game hint appears | `hint` (`swipe`, `seen_it`, `flip`, `super_like`; once per hint per game) |
 | `game:nothing_left_view` | The "Nothing left" screen shows | `is_host` |
 | `winner:view` | The winner screen shows | `outcome` (`match`, `finale`), `room_size` |
-| `winner:watch_page_open` | "More details" opens TMDB's watch page | |
+| `winner:watch_page_open` | "More details" opens TMDB's watch page on a group's winner (not a solo pick or the film sheet) | |
 | `winner:letterboxd_log_tap` | "Log on Letterboxd" | |
 | `winner:recap_share` | The recap card is shared | `method` |
+| `solo:session_start` | `api.start_solo` answers `ok` or `dealing` | `service_count`, `has_time_budget` |
+| `solo:checkpoint_view` | A solo checkpoint card shows | `card_count` (20, 40...), `like_count` (bucket) |
+| `solo:pick_submit` | `api.solo_pick` answers `ok` | `card_count` (the session's answered cards) |
+| `solo:cap_show` | The daily cap card shows | `placement` (`deck`, `play`) |
+| `my_films:grid_view` | The first page of a segment or chip shows | `segment` (`liked`, `seen`), `filter` (`all`, `friends`, `solo`; `none` on Seen), `film_count` (bucket) |
 | `followup:view` | "Did you watch it?" shows | `from` (`notification`, `app_open`, `home_card`) |
 | `prompt:show`, `prompt:accept`, `prompt:dismiss` | One of the asks from [onboarding](onboarding.md#after-the-first-game) | `prompt` (`notifications`, `letterboxd`, `save_account`), `placement` (`winner`, `home`, `profile`, `settings`) |
 | `notifications:permission_answer` | The system prompt returns | `is_granted`, `is_os_prompt_shown` |
@@ -164,6 +169,8 @@ Besides PostHog's own app lifecycle events (`Application Installed`, `Applicatio
 | `error:view` | An error screen or banner shows | `code` (`room_closed`, `offline`, `reconnecting`, `update_required`, `unexpected`), `screen` (the route pattern) |
 
 Registered on every event, and set on the person: `language`, `country`, `has_account`, `has_letterboxd`, `games_played` (`0`, `1`, `2_4`, `5_plus`). PostHog adds the app version and platform itself.
+
+Buckets for counts are `0`, `1_4`, `5_9`, `10_19`, `20_plus`. The solo events inside a room follow the kids' rule like any other; `my_films:grid_view` follows the player's choice alone. Solo games do not count in `games_played` or `game:first_card_view`.
 
 What happens in a game (votes, matches, the finale, host controls, Play again) is read from the database, not sent as events.
 
