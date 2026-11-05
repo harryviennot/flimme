@@ -171,7 +171,7 @@ flowchart LR
 
 ## Monitoring and alerts
 
-**Where alerts arrive:** Sentry, by email and the Sentry phone app. A health check job in the pipeline worker runs every 5 minutes, reads `internal.ops_health()` (a new function, see [Changes this asks elsewhere](#changes-this-asks-elsewhere)) and sends one Sentry event per threshold crossed; Sentry groups repeats. One Sentry uptime monitor watches the server's HTTP API health endpoint (Sentry's uptime page says one monitor comes with every plan).
+**Where alerts arrive:** Sentry, by email and the Sentry phone app. A health check in the pipeline worker runs every 5 minutes on its own timer (first run 30 seconds after start; not a queued message, so a broken `pg_cron` or a backed-up `catalog_refresh` cannot hide it), reads `internal.ops_health()` (M9.5) and sends one Sentry event per threshold crossed; Sentry groups repeats by the fingerprint `["ops-health", <signal>]`. The thresholds live in the SQL function. Latency and size signals are warnings, the rest errors. Each loop ends with a Sentry cron check-in (monitor `ops-health`, every 5 minutes, margin 5, max runtime 2), so a stopped worker shows as a missed check-in; if `ops_health()` fails or takes over 10 seconds, the loop sends one error event and checks in as `error`. The worker only runs the check when `SENTRY_DSN` is set. Events carry the signal's numbers only; a report event says how many reports and their ids cut to 8 characters (tag `report_ids`: find them with `id::text like 'a1b2c3d4%'`), and the worker sets `alerted_at` once Sentry has the event, so a failed send is retried. **Not wired yet:** anonymous sign-ins answered 429 and database CPU (both need Supabase's API and an access token), Letterboxd and "Not there anymore?" (until those features). The deal signals are quiet while `deck_engine` is `sql` now, since a deal does not record which engine dealt it. Database load is measured by size (percent of 8 GB) and connections (percent of `max_connections`). One Sentry uptime monitor watches the server's HTTP API health endpoint (Sentry's uptime page says one monitor comes with every plan).
 
 | Signal | Measured from | Alert when (starting values) | First move |
 | --- | --- | --- | --- |
@@ -315,7 +315,7 @@ A short checklist for when something is wrong:
 
 | Where | Change |
 | --- | --- |
-| `internal.ops_health()` | New: returns the numbers the health check watches (deal latency and fallback share over the last hour, queue metrics, the last runs of `sweep_rooms` and retention, unfinished `ingest_runs`, Letterboxd failures, the share of winners reported). Callable by `app_server` only |
+| `internal.ops_health()` | New (M9.5): returns each signal as `{name, value, threshold, crossed}` (queue ages, `sweep_rooms` runs, retention, catalog runs, the sweep guard, 429 rate and agreement, new reports with their ids, deal latency and fallback share, database size and connections), and `internal.mark_reports_alerted(ids)` sets `alerted_at`. Callable by `app_server` only |
 | `internal.run_retention()` | New: the daily retention job, writing its counts to `ingest_runs` |
 | `ingest_runs.kind` | Add `retention` and `guest_cleanup` |
 | Baseline migration | Drops `pg_graphql`; enables `vector`, `pg_trgm`, `pgmq`, `pg_cron` |
