@@ -50,6 +50,8 @@ export type Client = {
   capture(event: string, properties?: AnalyticsProps): unknown;
   screen(name: string, properties?: AnalyticsProps): unknown;
   shutdown(): unknown;
+  /** PostHog's own storage; used to empty the unsent queue after a deletion. */
+  setPersistedProperty?(key: string, value: null): unknown;
 };
 
 type Store = {
@@ -181,7 +183,9 @@ export function createAnalytics(deps: AnalyticsDeps) {
 
     ensureClient(next === 'identified' ? 'identified_only' : 'never');
     let since = saved?.since ?? now;
-    if (before === 'off') {
+    if (before === 'off' || before === null) {
+      // The opt-out is kept by PostHog across launches and clients, and only `optIn` lifts it. A
+      // first run, or a new guest after a deletion, has nothing saved here but may still hold it.
       call('optIn', (c) => c.optIn());
     } else if (before !== null && before !== next) {
       // Anonymous to identified or back starts a new identity, with no merge (analytics.md#identity).
@@ -234,6 +238,10 @@ export function createAnalytics(deps: AnalyticsDeps) {
   }
 
   return {
+    /**
+     * M9.2: an event fired from a room screen relies on the room layout having reported its cap
+     * first (effects run child first); `track` has no route to check, unlike `screen`.
+     */
     /** Sends an event, unless the player opted out or the phone is in a room capped under 13. */
     track(event: AnalyticsEvent, props?: AnalyticsProps): void {
       if (!guard(event, props)) return;
@@ -296,6 +304,9 @@ export function createAnalytics(deps: AnalyticsDeps) {
     forget(): void {
       forgottenFor = { id: profileId };
       waitingScreen = null;
+      ensureClient(clientProfiles ?? 'never');
+      // Events queued offline carry the deleted person's id: they must never be sent.
+      call('clearQueue', (c) => c.setPersistedProperty?.('queue', null));
       call('reset', (c) => c.reset());
       call('optOut', (c) => c.optOut());
       if (client) void Promise.resolve(client.shutdown()).catch(() => undefined);

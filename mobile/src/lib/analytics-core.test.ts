@@ -5,20 +5,34 @@ function setup(options: { key?: string | null; dev?: boolean; saved?: string } =
   const created: ('never' | 'identified_only')[] = [];
   const clients: Client[] = [];
   const make = (): Client => {
-    const record = (name: string) =>
+    const record = (name: string, effect?: (arg?: unknown) => void) =>
       jest.fn((arg?: unknown) => {
         calls.push(arg === undefined ? name : `${name}:${String(arg)}`);
+        effect?.(arg);
       });
     return {
       identify: record('identify'),
-      reset: record('reset'),
-      optOut: record('optOut'),
-      optIn: record('optIn'),
+      reset: record('reset', () => {
+        stored.optedOut = false;
+      }),
+      optOut: record('optOut', () => {
+        stored.optedOut = true;
+      }),
+      optIn: record('optIn', () => {
+        stored.optedOut = false;
+      }),
       capture: record('capture'),
-      screen: record('screen'),
+      screen: record('screen', (name) => {
+        if (!stored.optedOut) stored.delivered.push(String(name));
+      }),
       shutdown: record('shutdown'),
+      setPersistedProperty: record('setPersistedProperty', () => {
+        stored.queue = null;
+      }),
     };
   };
+  // What PostHog keeps in its own storage, across clients and launches.
+  const stored = { optedOut: false, queue: ['old'] as string[] | null, delivered: [] as string[] };
   const kv = new Map<string, string>();
   if (options.saved) kv.set('analytics.state', options.saved);
   let now = Date.UTC(2026, 10, 5);
@@ -43,6 +57,7 @@ function setup(options: { key?: string | null; dev?: boolean; saved?: string } =
     calls,
     created,
     kv,
+    stored,
     advance: (ms: number) => {
       now += ms;
     },
@@ -290,7 +305,13 @@ describe('forget, after a deletion', () => {
     t.analytics.setRegion({ deviceRegion: 'US', profileCountry: 'US' });
     t.analytics.setProfileId('p1');
     t.analytics.forget();
-    expect(t.calls.slice(-3)).toEqual(['reset', 'optOut', 'shutdown']);
+    expect(t.calls.slice(-4)).toEqual([
+      'setPersistedProperty:queue',
+      'reset',
+      'optOut',
+      'shutdown',
+    ]);
+    expect(t.stored.queue).toBeNull();
 
     t.analytics.applyChoice('on');
     t.analytics.setProfileId('p1');
@@ -310,5 +331,17 @@ describe('forget, after a deletion', () => {
     expect(t.created).toHaveLength(2);
     expect(t.calls).toContain('identify:p2');
     expect(sent(t.calls)).toEqual(['screen:/home']);
+  });
+
+  it('reaches PostHog again for the new guest, though the opt-out is kept by PostHog itself', () => {
+    const t = setup();
+    t.analytics.setRegion({ deviceRegion: 'US', profileCountry: 'US' });
+    t.analytics.setProfileId('p1');
+    t.analytics.forget();
+    expect(t.stored.optedOut).toBe(true);
+    t.analytics.setProfileId('p2');
+    t.analytics.screen('/home');
+    expect(t.stored.optedOut).toBe(false);
+    expect(t.stored.delivered).toEqual(['/home']);
   });
 });
