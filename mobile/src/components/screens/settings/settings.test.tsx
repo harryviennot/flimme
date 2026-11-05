@@ -66,6 +66,9 @@ jest.mock('expo-file-system', () => ({
   },
 }));
 
+let mockStrict = true;
+jest.mock('@/features/analytics', () => ({ useAnalyticsStrict: () => mockStrict }));
+
 let mockOnline = true;
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline }));
 let mockConfig: { data?: { legal_urls?: unknown }; isPending: boolean } = { isPending: false };
@@ -90,6 +93,7 @@ beforeEach(async () => {
   jest.clearAllMocks();
   mockFiles.clear();
   mockOnline = true;
+  mockStrict = true;
   mockConfig = { data: { legal_urls: legal }, isPending: false };
   useSettingsStore.setState({ analyticsChoice: 'on', analyticsSynced: 'on' });
   await i18n.changeLanguage('en');
@@ -158,6 +162,34 @@ describe('the Settings rows', () => {
         version: ANALYTICS_WORDING_VERSION,
       }),
     );
+  });
+
+  describe('detailed stats', () => {
+    it('is hidden outside strict regions', async () => {
+      mockStrict = false;
+      await renderScreen(<SettingsScreen />);
+      expect(screen.queryByRole('switch', { name: 'Detailed stats' })).toBeNull();
+    });
+
+    it('is shown in strict regions: on moves to detailed, off moves back to on', async () => {
+      await renderScreen(<SettingsScreen />);
+      const row = () => screen.getByRole('switch', { name: 'Detailed stats' });
+      await fireEvent.press(row());
+      expect(useSettingsStore.getState().analyticsChoice).toBe('detailed');
+      await fireEvent.press(row());
+      expect(useSettingsStore.getState().analyticsChoice).toBe('on');
+    });
+
+    it('is disabled while analytics are off, and turning analytics off takes detailed with it', async () => {
+      useSettingsStore.setState({ analyticsChoice: 'detailed' });
+      await renderScreen(<SettingsScreen />);
+      await fireEvent.press(screen.getByRole('switch', { name: 'Help improve the app' }));
+      expect(useSettingsStore.getState().analyticsChoice).toBe('off');
+      const row = screen.getByRole('switch', { name: 'Detailed stats' });
+      expect(row).toBeDisabled();
+      await fireEvent.press(row);
+      expect(useSettingsStore.getState().analyticsChoice).toBe('off');
+    });
   });
 
   it('shows the exact TMDB notice, the JustWatch credit and the version', async () => {
