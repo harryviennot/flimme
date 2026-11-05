@@ -1,38 +1,15 @@
-# M4.16, the early bot player: one phone hosts a room and three bots (tools/bots) fill it. The
-# lobby shows the three present players and Start swiping works. Needs the local stack.
+# M4.16, the early bot player: one phone hosts a room on staging and three bots (tools/bots)
+# fill it. The lobby shows the three present players and Start swiping works.
+# Needs Metro started with the staging environment (see the expo-app skill).
 # The flow waits up to 3 minutes in the lobby for the bots, so start them once the room is open:
 #   1. maestro test mobile/.maestro/bots-lobby.yaml -e METRO_URL=http://localhost:<port>
-#   2. when the lobby shows, read the room code on the phone (or from the database) and run
-#      `mise run bots -- --code <code> --count 3`
+#   2. when the lobby shows, read the room code on the phone and run
+#      FLIMME_STAGING_URL=... FLIMME_STAGING_KEY=... mise run bots -- --code <code> --target staging
 appId: com.harryviennot.flimme.dev
 ---
 - runFlow: subflows/open-app-fresh.yaml
-- extendedWaitUntil:
-    visible: '(?i)get started'
-    timeout: 30000
-- tapOn: '(?i)get started'
-- inputText: 'Maestro'
-- tapOn: '(?i)continue'
-- extendedWaitUntil:
-    visible: '(?i)open a room'
-    timeout: 15000
-- tapOn: '(?i)open a room'
-- extendedWaitUntil:
-    visible: 'Lumo'
-    timeout: 15000
-- tapOn: 'Lumo'
-- tapOn: '(?i)open the room'
-- extendedWaitUntil:
-    visible: '(?i)invite friends'
-    timeout: 20000
-# The dev tools button sits over the sheet's Close button: drag it out of the way first.
-- swipe:
-    start: 91%,10%
-    end: 50%,70%
-- tapOn: '(?i)close'
-- extendedWaitUntil:
-    visible: '(?i)in the room'
-    timeout: 15000
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/host-room.yaml
 - takeScreenshot: bots-lobby-1-alone
 
 # The bots join and stay present.
