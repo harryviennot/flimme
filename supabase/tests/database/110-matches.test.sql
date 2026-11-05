@@ -9,6 +9,9 @@
 begin;
 select plan(56);
 
+-- M6.34: this file is about a match that ends the game, so every mode picks at its first match.
+update public.game_modes set defaults = defaults || '{"matches_to_end": 1}';
+
 select tests.create_catalog(40);
 
 -- G1, G2, G1b, G1c: a unanimous match ends Quick Match (3 players, Party mode).
