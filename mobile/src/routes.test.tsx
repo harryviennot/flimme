@@ -109,6 +109,9 @@ const routes = {
   welcome: require('@/app/welcome').default,
   name: require('@/app/name').default,
   home: require('@/app/home').default,
+  '(tabs)/_layout': require('@/app/(tabs)/_layout').default,
+  '(tabs)/play': require('@/app/(tabs)/play').default,
+  '(tabs)/my-films': require('@/app/(tabs)/my-films').default,
   join: require('@/app/join/index').default,
   'join/[code]': require('@/app/join/[code]').default,
   host: require('@/app/host/index').default,
@@ -142,7 +145,7 @@ function roomScreens(app: { getRouterState: () => unknown }): number {
 const paths = [
   '/welcome',
   '/name',
-  '/home',
+  '/play',
   '/join',
   '/join/123456',
   '/host',
@@ -181,6 +184,38 @@ describe('routes', () => {
     await waitFor(() => expect(screen).toHavePathname('/welcome'));
   });
 
+  describe('the tab bar', () => {
+    it('shows on Play, and My films opens its placeholder with the tab selected', async () => {
+      await renderRouter(routes, { initialUrl: '/play', wrapper: Providers });
+      expect(screen.getByRole('tab', { name: 'Play' }).props.accessibilityState).toMatchObject({
+        selected: true,
+      });
+      await fireEvent.press(screen.getByRole('tab', { name: 'My films' }));
+      await waitFor(() => expect(screen).toHavePathname('/my-films'));
+      expect(screen.getByText('Nothing here yet')).toBeTruthy();
+      expect(screen.getByRole('tab', { name: 'My films' }).props.accessibilityState).toMatchObject({
+        selected: true,
+      });
+      await fireEvent.press(screen.getByRole('tab', { name: 'Play' }));
+      await waitFor(() => expect(screen).toHavePathname('/play'));
+    });
+
+    it.each(['/welcome', '/host', '/join', '/settings', '/room/abc/lobby'])(
+      'is not rendered at %s',
+      async (path) => {
+        mockRoomState.current = 'lobby';
+        await renderRouter(routes, { initialUrl: path, wrapper: Providers });
+        expect(screen).toHavePathname(path);
+        expect(screen.queryAllByRole('tab')).toHaveLength(0);
+      },
+    );
+
+    it('sends the old /home to Play', async () => {
+      await renderRouter(routes, { initialUrl: '/home', wrapper: Providers });
+      await waitFor(() => expect(screen).toHavePathname('/play'));
+    });
+  });
+
   it('a second link to the room you are in leaves one room screen', async () => {
     const { api } = jest.requireMock('@/api');
     api.joinRoom.mockResolvedValueOnce({
@@ -213,7 +248,7 @@ describe('routes', () => {
 
     it.each([
       ['an unnamed profile', '', '/welcome'],
-      ['a named profile', 'Léa', '/home'],
+      ['a named profile', 'Léa', '/play'],
     ])('lands on the right screen for %s', async (_label, name, path) => {
       const { api } = jest.requireMock('@/api');
       api.myProfile.mockResolvedValueOnce({
@@ -244,7 +279,12 @@ describe('routes', () => {
     function rootNames(app: { getRouterState: () => unknown }): string[] {
       type S = { routes?: { name: string; state?: S }[] };
       let state = app.getRouterState() as S;
-      while (state.routes?.length === 1 && state.routes[0]?.state) state = state.routes[0].state;
+      while (
+        state.routes?.length === 1 &&
+        state.routes[0]?.state &&
+        state.routes[0].name !== '(tabs)'
+      )
+        state = state.routes[0].state;
       return (state.routes ?? []).map((route) => route.name);
     }
 
@@ -259,14 +299,14 @@ describe('routes', () => {
       await act(async () => {
         buttons.find((b) => b.text === 'Leave')?.onPress?.();
       });
-      await waitFor(() => expect(screen).toHavePathname('/home'));
+      await waitFor(() => expect(screen).toHavePathname('/play'));
     }
 
     /** One Home, and nothing under it except the index route. */
     function expectOneHome(app: { getRouterState: () => unknown }) {
       const names = rootNames(app);
-      expect(names.filter((name) => name === 'home')).toHaveLength(1);
-      expect(names.at(-1)).toBe('home');
+      expect(names.filter((name) => name === '(tabs)')).toHaveLength(1);
+      expect(names.at(-1)).toBe('(tabs)');
       expect(names.slice(0, -1).filter((name) => name !== 'index')).toEqual([]);
     }
 
@@ -278,7 +318,7 @@ describe('routes', () => {
     it('a back action asks first and leaves only once confirmed', async () => {
       const { leaveRoom } = jest.requireMock('@/features/room/leave');
       leaveRoom.mockClear();
-      const app = await open('/home');
+      const app = await open('/play');
       await act(async () => {
         router.push('/host');
       });
@@ -309,13 +349,13 @@ describe('routes', () => {
       await act(async () => {
         again.find((b) => b.text === 'Leave')?.onPress?.();
       });
-      await waitFor(() => expect(screen).toHavePathname('/home'));
+      await waitFor(() => expect(screen).toHavePathname('/play'));
       expect(leaveRoom).toHaveBeenCalledWith('abc');
       expectOneHome(app);
     });
 
     it('after Home, host setup and the room', async () => {
-      const app = await open('/home');
+      const app = await open('/play');
       await act(async () => {
         router.push('/host');
       });
@@ -329,7 +369,7 @@ describe('routes', () => {
     });
 
     it('after Home, the code screen and the room', async () => {
-      const app = await open('/home');
+      const app = await open('/play');
       await act(async () => {
         router.push('/join');
       });
@@ -348,7 +388,7 @@ describe('routes', () => {
         state: 'lobby',
         rejoined: false,
       });
-      const app = await open('/home');
+      const app = await open('/play');
       await act(async () => {
         router.push('/join/123456');
       });
@@ -375,7 +415,7 @@ describe('routes', () => {
       const app = await open('/room/abc/lobby', { default: rootLayout.default });
       await leave();
       expectOneHome(app);
-      expect(rootNames(app)).toEqual(['home']);
+      expect(rootNames(app)).toEqual(['(tabs)']);
     });
   });
 });

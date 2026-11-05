@@ -128,14 +128,14 @@ describe('the splash routing', () => {
   it('replaces with Home when the profile has a name', async () => {
     myProfile.mockResolvedValue(named);
     await renderSplash();
-    expect(screen.getByText('redirect:/home')).toBeTruthy();
+    expect(screen.getByText('redirect:/play')).toBeTruthy();
   });
 
   it('goes to Home offline from the cached named profile', async () => {
     saveCachedProfile(named);
     myProfile.mockRejectedValue(new ApiError('network', 'my_profile', 'offline'));
     await renderSplash();
-    expect(screen.getByText('redirect:/home')).toBeTruthy();
+    expect(screen.getByText('redirect:/play')).toBeTruthy();
   });
 });
 
@@ -164,7 +164,7 @@ describe('the kept room', () => {
   it('goes Home with the removed message and forgets the room on removed', async () => {
     joinRoom.mockResolvedValue({ status: 'removed' } as never);
     await renderSplash();
-    expect(screen.getByText('redirect:/home')).toBeTruthy();
+    expect(screen.getByText('redirect:/play')).toBeTruthy();
     expect(room()).toBeNull();
     expect(showToast).toHaveBeenCalledTimes(1);
     expect(showToast).toHaveBeenCalledWith({
@@ -178,7 +178,7 @@ describe('the kept room', () => {
     async (status) => {
       joinRoom.mockResolvedValue({ status } as never);
       await renderSplash();
-      expect(screen.getByText('redirect:/home')).toBeTruthy();
+      expect(screen.getByText('redirect:/play')).toBeTruthy();
       expect(room()).toBeNull();
       expect(showToast).not.toHaveBeenCalled();
     },
@@ -190,14 +190,14 @@ describe('the kept room', () => {
   ])('goes Home and keeps the room on %s', async (_n, arrange) => {
     arrange();
     await renderSplash();
-    expect(screen.getByText('redirect:/home')).toBeTruthy();
+    expect(screen.getByText('redirect:/play')).toBeTruthy();
     expect(room()).toEqual(kept);
   });
 
   it('goes Home and keeps the room offline, with no call', async () => {
     mockOnline = false;
     await renderSplash();
-    expect(screen.getByText('redirect:/home')).toBeTruthy();
+    expect(screen.getByText('redirect:/play')).toBeTruthy();
     expect(joinRoom).not.toHaveBeenCalled();
     expect(room()).toEqual(kept);
   });

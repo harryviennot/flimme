@@ -12,12 +12,21 @@ export type ScreenProps = {
   footer?: ReactNode;
   /** Scrolls when the content is taller than the screen. */
   scroll?: boolean;
+  /** Reserve the home indicator space at the bottom. Off under the tab bar, which does it. */
+  insetBottom?: boolean;
   /** Content padding: the standard 20-point gutter, or none for full-bleed screens. */
   padded?: boolean;
 };
 
 /** Every screen's frame: the canvas, safe areas, an optional header and footer. */
-export function Screen({ children, header, footer, scroll = false, padded = true }: ScreenProps) {
+export function Screen({
+  children,
+  header,
+  footer,
+  scroll = false,
+  padded = true,
+  insetBottom = true,
+}: ScreenProps) {
   const insets = useSafeAreaInsets();
   const content = <View className={cn('flex-1', padded && 'px-5')}>{children}</View>;
   return (
@@ -37,9 +46,9 @@ export function Screen({ children, header, footer, scroll = false, padded = true
         >
           {footer}
         </View>
-      ) : (
+      ) : insetBottom ? (
         <View style={{ height: insets.bottom }} />
-      )}
+      ) : null}
     </View>
   );
 }

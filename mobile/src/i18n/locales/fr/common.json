@@ -1,4 +1,8 @@
 {
+  "tabs": {
+    "play": "Jouer",
+    "myFilms": "Mes films"
+  },
   "actions": {
     "retry": "Réessayer",
     "close": "Fermer",

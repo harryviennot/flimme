@@ -81,7 +81,7 @@ export default function NameScreen() {
         } else {
           // Home becomes the only screen: back from Home never returns to Welcome or here.
           if (router.canDismiss()) router.dismissAll();
-          router.replace('/home');
+          router.replace('/play');
         }
         return;
       case 'invalid':
