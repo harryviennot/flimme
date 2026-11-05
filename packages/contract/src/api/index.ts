@@ -27,6 +27,12 @@ import {
   START_SOLO_ANSWERS,
   SOLO_PICK_ANSWERS,
   TITLE_CARDS_ANSWERS,
+  MY_FILMS_ANSWERS,
+  MY_FILM_CARD_ANSWERS,
+  SET_FILM_SEEN_ANSWERS,
+  REMOVE_MY_FILM_ANSWERS,
+  type MyFilmsFilter,
+  type MyFilmsSegment,
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
   type JoinVia,
@@ -71,6 +77,12 @@ import {
   gameModesSchema,
   myNextCardsResult,
   titleCardsResult,
+  myFilmsResult,
+  myFilmCardResult,
+  myFilmEditResult,
+  type MyFilmsResult,
+  type MyFilmCardResult,
+  type MyFilmEditResult,
   type NextCard,
   type TitleCardsResult,
   type CountryProvider,
@@ -390,6 +402,73 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id, p_title_ids: args.title_ids, p_language: args.language },
         TITLE_CARDS_ANSWERS,
         titleCardsResult,
+      );
+    },
+
+    // --- My films (M6.41): the caller's own film history, outside any room ---------------
+    /**
+     * A page of Liked or Seen films, newest first, 60 a page. `filter` (all, friends, solo) only
+     * applies to `liked`. Pass the last `next_cursor` back for the next page. Opening it counts as
+     * activity. A bad segment, filter or cursor rejects.
+     */
+    myFilms(args: {
+      segment: MyFilmsSegment;
+      filter?: MyFilmsFilter;
+      cursor?: string | null;
+      language?: string;
+    }): Promise<MyFilmsResult> {
+      return callAnswer(
+        client,
+        options,
+        'my_films',
+        {
+          p_segment: args.segment,
+          p_filter: args.filter ?? 'all',
+          p_cursor: args.cursor ?? undefined,
+          p_language: args.language,
+        },
+        MY_FILMS_ANSWERS,
+        myFilmsResult,
+      );
+    },
+
+    /**
+     * The film sheet's card for a film in the caller's own rows, with `seen` and `liked` so the sheet
+     * can offer Mark as seen or Not seen, and Remove only for liked films. `not_found` for any other
+     * film. 60 calls per 10 minutes.
+     */
+    myFilmCard(args: { title_id: number; language?: string }): Promise<MyFilmCardResult> {
+      return callAnswer(
+        client,
+        options,
+        'my_film_card',
+        { p_title_id: args.title_id, p_language: args.language },
+        MY_FILM_CARD_ANSWERS,
+        myFilmCardResult,
+      );
+    },
+
+    /** Mark a film seen (only one already in the caller's rows) or not seen. `not_found` is an answer. */
+    setFilmSeen(args: { title_id: number; seen: boolean }): Promise<MyFilmEditResult> {
+      return callAnswer(
+        client,
+        options,
+        'set_film_seen',
+        { p_title_id: args.title_id, p_seen: args.seen },
+        SET_FILM_SEEN_ANSWERS,
+        myFilmEditResult,
+      );
+    },
+
+    /** Take a film out of Liked (the like, the star and the pick); the seen mark stays. */
+    removeMyFilm(args: { title_id: number }): Promise<MyFilmEditResult> {
+      return callAnswer(
+        client,
+        options,
+        'remove_my_film',
+        { p_title_id: args.title_id },
+        REMOVE_MY_FILM_ANSWERS,
+        myFilmEditResult,
       );
     },
 

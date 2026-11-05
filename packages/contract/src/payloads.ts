@@ -102,6 +102,7 @@ const exportBallot = z.object({
 });
 export const exportGame = z.object({
   room_id: z.string(),
+  mode: z.string(),
   joined_at: z.string(),
   left_at: z.nullable(z.string()),
   display_name: z.string(),
@@ -134,6 +135,10 @@ export const exportMyData = z.object({
       on_watchlist: z.boolean(),
       reaction: z.nullable(z.string()),
       last_watched_on: z.nullable(z.string()),
+      liked_at: z.nullable(z.string()),
+      super_liked: z.boolean(),
+      picked_at: z.nullable(z.string()),
+      seen_at: z.nullable(z.string()),
     }),
   ),
   taste: z.nullable(z.unknown()),
@@ -508,6 +513,42 @@ export type NextCard = z.infer<typeof nextCardRow>;
 
 /** `api.my_next_cards` answers an array of cards, with no status. */
 export const myNextCardsResult = z.array(nextCardRow);
+
+/** One tile of My films: `at` is the film's latest time under the segment. */
+export const myFilmTile = z.object({
+  title_id: z.number(),
+  title: z.string(),
+  year: z.nullable(z.number()),
+  poster_path: z.nullable(z.string()),
+  is_picked: z.boolean(),
+  is_super_liked: z.boolean(),
+  at: z.string(),
+});
+export type MyFilmTile = z.infer<typeof myFilmTile>;
+
+/** `api.my_films`: a page of 60 films, newest first; `next_cursor` is opaque, null on the last page. */
+export const myFilmsResult = z.object({
+  status: z.literal('ok'),
+  films: z.array(myFilmTile),
+  next_cursor: z.nullable(z.string()),
+});
+export type MyFilmsResult = z.infer<typeof myFilmsResult>;
+
+/** `api.my_film_card`: the film sheet's card, and whether the caller marked it seen and liked it. */
+export const myFilmCardResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), card: cardRow, seen: z.boolean(), liked: z.boolean() }),
+  z.object({ status: z.literal('not_found') }),
+  z.object({ status: z.literal('rate_limited') }),
+]);
+export type MyFilmCardResult = z.infer<typeof myFilmCardResult>;
+
+/** `api.set_film_seen` and `api.remove_my_film`. */
+export const myFilmEditResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok') }),
+  z.object({ status: z.literal('not_found') }),
+  z.object({ status: z.literal('rate_limited') }),
+]);
+export type MyFilmEditResult = z.infer<typeof myFilmEditResult>;
 
 /** `api.title_cards`: the room's films as cards, in the order asked; other films are left out. */
 export const titleCardsResult = z.discriminatedUnion('status', [

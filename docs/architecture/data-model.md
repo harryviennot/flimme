@@ -332,13 +332,19 @@ An export row and a feed item for the same film and watched date are the same en
 
 | Column | Type | Notes |
 | --- | --- | --- |
-| profile_id, title_id, source | PK | source is `letterboxd`, `calibration` or `app` |
+| profile_id, title_id, source | PK | source is `letterboxd`, `calibration`, `app` (group rooms) or `solo` (solo rooms) |
 | linked_account_id | uuid | Set exactly when source is `letterboxd`; cascade deletes on disconnect |
 | seen | boolean | Feeds the seen filter |
 | rating | numeric(2,1) | 0.5 to 5 in half stars. For Letterboxd, the rating on the most recently logged rated diary entry |
 | on_watchlist | boolean | Feeds watchlist overlap |
 | reaction | reaction | `love`, `fine` or `nope`: calibration answers and the after-game question |
 | rewatch_count, last_watched_on | | Recency weighting |
+| liked_at | timestamptz | My films (M6.41). Set by a like, a super like or "watch it again" in a room, on the `app` row for a group room and the `solo` row for a solo room. The first time of a row stays; undo clears only what its own vote set |
+| super_liked | boolean | A super like. Cleared by undo unless another room of the same source gave the star |
+| picked_at | timestamptz | A group's pick: set on the `app` row of every seat still in the room (not left, not removed) when a `matches` row becomes pick 1, by the trigger `matches_mark_pick`. A solo pick sets nothing |
+| seen_at | timestamptz | When the seen mark was made in the app (Seen it, Mark as seen). Seen in My films sorts by `coalesce(seen_at, updated_at)` |
+
+My films reads these columns, only for the caller, through `api.my_films`, `api.my_film_card`, `api.set_film_seen` and `api.remove_my_film`. Nothing in a room, a label, a card back, a deck score or a broadcast reads `liked_at`, `super_liked` or `picked_at`, and no write sets `on_watchlist`. A solo deck leaves out films with `liked_at` or `picked_at`. The rows go with the account (cascade) and are in the export; retention never deletes them.
 
 The `letterboxd` rows are the per-film summary the deck query reads. An export replaces them with its own state; then the diary entries are folded in (seen, the latest rating, number of watches, last watch). A film logged after the export leaves the watchlist; one re-added to the watchlist after an older watch stays on it. Each feed sync folds in only the films it touched.
 

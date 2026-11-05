@@ -95,9 +95,10 @@ select is(
   'P3 precondition: room A is done after both like film 1'
 );
 select is(
-  (select count(*) from public.user_titles ut where ut.profile_id = tests.uid('w1') and ut.title_id = tests.film(1)),
+  (select count(*) from public.user_titles ut where ut.profile_id = tests.uid('w1') and ut.title_id = tests.film(1)
+     and (ut.seen or ut.reaction is not null)),   -- M6.41: the like itself is a row (liked_at)
   0::bigint,
-  'P3 positive control: w1 has no film history for film 1 before answering'
+  'P3 positive control: w1 has no seen mark or reaction for film 1 before answering'
 );
 select tests.authenticate_as('w1');
 create temp table p3_answer as select api.answer_followup(current_setting('tests.room_a')::uuid, 'yes', 'love') as a;
@@ -127,9 +128,10 @@ create temp table p3b_answer as select api.answer_followup(current_setting('test
 select tests.clear_authentication();
 select is((select a->>'status' from p3b_answer), 'ok', 'P3b answer_followup no answers ok (beyond the 120)');
 select is(
-  (select count(*) from public.user_titles ut where ut.profile_id = tests.uid('w2') and ut.title_id = tests.film(1)),
+  (select count(*) from public.user_titles ut where ut.profile_id = tests.uid('w2') and ut.title_id = tests.film(1)
+     and (ut.seen or ut.reaction is not null)),
   0::bigint,
-  'P3b w2 has no film history for film 1 (beyond the 120)'
+  'P3b w2 has no seen mark or reaction for film 1 (beyond the 120)'
 );
 select is(
   (select m.watched_answer::text from public.room_members m
