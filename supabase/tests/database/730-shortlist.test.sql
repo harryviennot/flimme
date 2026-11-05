@@ -164,7 +164,7 @@ select is(
   'M6.34 the filling vote answers match true, decided false, state finale'
 );
 select ok(
-  (select m.inserted_at <= f.inserted_at
+  (select m.ctid < f.ctid
    from realtime.messages m, realtime.messages f
    where m.topic = 'room:' || tests.room_id()::text and m.event = 'match' and m.payload->>'title_id' = tests.film(3)::text
      and f.topic = m.topic and f.event = 'finale_started'),
@@ -245,13 +245,13 @@ select tests.authenticate_as('s1');
 select is(api.remove_member(tests.room_id(), tests.member_id('s4'))->>'status', 'ok', 'M6.34 the host removes the seat');
 select tests.clear_authentication();
 select is(pg_temp.joined(), pg_temp.films(1, 3, 2), 'M6.34 a removal: the same two films join');
-select is(pg_temp.state() || '/' || (pg_temp.card(4) <> 'matched')::text, 'finale/true', 'M6.34 a removal: the finale starts and the third film stays active');
+select is(pg_temp.state() || '/' || (pg_temp.card(4) <> 'matched')::text, 'finale/true', 'M6.34 a removal: the finale starts and the third film is not matched');
 
 select pg_temp.setup_rank('t');
 select pg_temp.silent('t4', interval '3 minutes 1 second');
 select is(internal.sweep_room(tests.room_id()), 'rechecked', 'M6.34 the sweeper re-checks after the silence');
 select is(pg_temp.joined(), pg_temp.films(1, 3, 2), 'M6.34 the sweeper: the same two films join');
-select is(pg_temp.state() || '/' || (pg_temp.card(4) <> 'matched')::text, 'finale/true', 'M6.34 the sweeper: the finale starts and the third film stays active');
+select is(pg_temp.state() || '/' || (pg_temp.card(4) <> 'matched')::text, 'finale/true', 'M6.34 the sweeper: the finale starts and the third film is not matched');
 
 -- 11. Outside swiping, nothing matches.
 select pg_temp.game(3, 'x');
