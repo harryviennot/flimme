@@ -75,6 +75,8 @@ A typical three-player Quick Match:
 - **Matches that end the game** is a setting of each mode, `matches_to_end` in `game_modes.defaults`: 3 for every launch mode (decided on 5 November 2026). A later fast mode (a Blitz) can set 1, and then its first whole-room match is the pick and the room is done, as Quick Match was before.
 - **Date Night** is Quick Match for a couple: films neither has seen, a shorter warm-up and a bigger watchlist bonus (see its [recipe](../architecture/deck-engine.md#recipes)).
 
+**Solo** (decided on 5 November 2026, [solo and My films](solo-and-my-films.md#decided)) is a room with one seat, the mode `solo`: one voter, no lobby and no code anyone can join (`api.join_room` answers `not_found`), no match check, no shortlist, no finale, no card count and no time limit. It uses the `hide_seen` rule and super likes have no limit. A card every 20 cards says how many films the player liked and offers Pick one (a film they liked this session becomes the room's pick) or Keep going; leaving ends the room, and so do 30 minutes without a vote. The deal skips films the player answered in an earlier solo room and films in their My films. Solo cards are capped at 100 a day per player (`app_config.solo_daily_cards`); group rooms never count and are never capped. Solo rooms are left out of the group metrics.
+
 Later modes are in [Later modes](#later-modes).
 
 ## The answers
@@ -122,7 +124,7 @@ A like (or super like, or "Watch it again tonight? Yes") makes a match when the 
 
 When the finale starts is in [The finale](#the-finale); the card counts and time limits are in [Time to a pick](#time-to-a-pick).
 
-- **At least 2 voters.** A room with one voter can't match (solo play is a later mode).
+- **At least 2 voters.** A group room with one voter can't match. Solo rooms have no match check at all ([the modes](#the-modes)).
 - **The rule follows the voters.** It's chosen for the current number of voters, so the 70% rule applies only while 5 or more are voting.
 - **A match is checked** after every like, when a player leaves (the players still here may all have liked a film), and by the minute sweeper after a player times out (below).
 - **Kinds.** `unanimous` when every voter liked it, `majority` otherwise. Shown as "3 of 3" or "7 of 9".
@@ -283,7 +285,7 @@ Each one changes a recipe, a rule or a seed row, as the data model's [Later](../
 | Mode | Source | Rules that differ |
 | --- | --- | --- |
 | Watchlist Showdown | Revival plan, free | Quick Match rules, but cards come only from films on 2 or more players' watchlists. When those run out, the finale starts early instead of "Nothing left" |
-| Pick for me (solo) | Revival plan, Pro | One player. A super like is the pick; otherwise after 20 cards, a vote between their likes. The match check takes the mode's minimum of 1 voter instead of 2 |
+| Pick for me (solo) | Revival plan, Pro | Replaced by the free solo mode at launch ([the modes](#the-modes)), decided on 5 November 2026. Pro lifts its daily cap (M21) |
 | Family profiles and Parent veto | Monetization, Pro | Kids' seats have no veto; each parent has 1. The youngest player sets the age cap |
 | Kid's choice night | Monetization, Pro | One seat's likes count double in the match rule and in the finale's points |
 | Tournament bracket | Monetization, Pro | The finale is 8 or 16 films, two at a time, each heat a round of the same vote |
