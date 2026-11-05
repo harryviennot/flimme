@@ -3,14 +3,27 @@ import { describe, expect, it } from 'vitest';
 import { localBackend, parseArgs, parseStatusEnv, stagingBackend, UsageError } from './config';
 
 describe('parseArgs', () => {
-  it('defaults to three bots on the local stack that only stay present', () => {
-    expect(parseArgs(['--code', '482913'])).toEqual({
+  it('defaults to three mixed bots on the local stack that swipe at their own pace', () => {
+    expect(parseArgs(['--code', '482913', '--seed', '5'])).toEqual({
       code: '482913',
       count: 3,
       target: 'local',
       swipeMs: null,
-      likeRate: 0.5,
+      likeRate: null,
+      seed: 5,
+      personality: 'mixed',
     });
+  });
+
+  it('draws a seed when none is given, and takes off, picky and agreeable', () => {
+    const a = parseArgs(['--code', '482913']);
+    expect(Number.isInteger(a.seed)).toBe(true);
+    expect(parseArgs(['--code', '482913', '--swipe-ms', 'off']).swipeMs).toBe('off');
+    expect(parseArgs(['--code', '482913', '--swipe-ms', 'auto']).swipeMs).toBeNull();
+    expect(parseArgs(['--code', '482913', '--personality', 'picky']).personality).toBe('picky');
+    expect(parseArgs(['--code', '482913', '--personality', 'agreeable']).personality).toBe(
+      'agreeable',
+    );
   });
 
   it('accepts the separator mise passes and every option', () => {
@@ -26,6 +39,8 @@ describe('parseArgs', () => {
       '1500',
       '--like-rate',
       '0.2',
+      '--seed',
+      '9',
     ]);
     expect(config).toEqual({
       code: 'ABC123',
@@ -33,6 +48,8 @@ describe('parseArgs', () => {
       target: 'staging',
       swipeMs: 1500,
       likeRate: 0.2,
+      seed: 9,
+      personality: 'mixed',
     });
   });
 
@@ -45,6 +62,9 @@ describe('parseArgs', () => {
     [['--code', '482913', '--swipe-ms', '10'], 'swipe-ms'],
     [['--code', '482913', '--like-rate', '2'], 'like-rate'],
     [['--code', '482913', '--nope', '1'], 'nope'],
+    [['--code', '482913', '--seed', '-1'], 'seed'],
+    [['--code', '482913', '--seed', 'abc'], 'seed'],
+    [['--code', '482913', '--personality', 'grumpy'], 'personality'],
     [['--code'], 'code'],
   ])('refuses %j', (argv, word) => {
     expect(() => parseArgs(argv)).toThrow(UsageError);

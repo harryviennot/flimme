@@ -94,7 +94,7 @@ Pinned in `mise.toml` unless noted, so the Mac, CI and cloud sessions run the sa
 
 - **Phones can't reach `127.0.0.1`.** The dev script writes the Mac's network address into the app's local settings, so a phone on the same Wi-Fi reaches the local Supabase, Realtime included.
 - **Real posters locally:** `mise run seed:catalog` with your own TMDB key loads about 2,000 films. Never committed, because of TMDB's 6-month rule.
-- **Playing alone:** `mise run bots -- --code 482913 --count 3` fills a room. A first bot that only joins and stays present is worth building in M4, not M6.19, so the lobby can be tested with one phone.
+- **Playing alone:** `mise run bots -- --code 482913 --count 3` fills a room. A first bot that only joins and stays present is worth building in M4, not M6.19, so the lobby can be tested with one phone. Since M6.19 the bots also play: each draws a personality (like rate, pace, pauses, super likes, "Seen it", Undo), shares a hidden taste with the room so the group sometimes agrees, keeps swiping until the room leaves `swiping` and locks in a Final Cut ballot at a random moment (or never). `--seed` replays a game and `--personality mixed|agreeable|picky` shapes the group; `--swipe-ms off` keeps them present only. What is left for M6.20 and M9.7: many rooms, timing profiles and checking that a pick is reached.
 - **Switching backends:** the dev menu switches between local and staging.
 
 ## Cloud sessions
