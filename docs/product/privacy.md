@@ -153,7 +153,7 @@ Sentry in its EU data region (Frankfurt), with personal data off: no IP, no name
 
 | Right | How | Guests |
 | --- | --- | --- |
-| Access and portability | Settings, then My data, then Export: `api.export_my_data` returns JSON with the profile, services, consents, Letterboxd link and diary, film history, taste leanings, card memory and the player's own votes | Same button |
+| Access and portability | Settings, then My data, then Export: `api.export_my_data` returns JSON with the profile, services, consents, Letterboxd link and diary, film history, taste leanings, card memory and, for each game, the player's own seat, votes, swipes, Final Cut ballots, the room's pick and after-game answers (never other players' data or reports) | Same button |
 | Erasure | Settings, then Delete my data: the server deletes the auth user and everything cascades; seats in past rooms become anonymous ([data model](../architecture/data-model.md#deleting-an-account-exporting-data)). For accounts made with Sign in with Apple, the server also revokes the Apple tokens, as Apple asks. A web page lets anyone request deletion without the app (Google Play requires one) | Same button, with no account needed |
 | Rectification | Edit name, avatar and services; a new Letterboxd export; disconnect | Same |
 | Objection | The training and analytics switches | Same |
