@@ -792,6 +792,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 
 - Nobody can list rooms. A room is found only by its code, through `join_room`, or by its code and its id together, through `room_preview` (which shows the host's name and the count, never another player).
 - Other players' answers never reach a phone as rows. In Party mode they arrive as counts; in Blind mode not at all.
+- The one exception, after the pick: `api.room_runners_up` (M6.48) answers only for a room that is done or abandoned, and only to a seat that is not removed. In Party mode it names who liked each runner-up (a like, a super like or a "watch it again" yes), in Blind mode it gives the count. It never returns the other seats, a total, a nope or a seen. Before the pick it answers `not_finished` and nothing else.
 - Phones can't send on `room:<id>`, so a fake `match` event can't appear there.
 
 > Reviewed in [security.md](security.md): what holds, the gaps found (players who left keep room access, for one) and the Supabase settings this table depends on.

@@ -181,6 +181,27 @@ export const playAgainResult = z.discriminatedUnion('status', [
 ]);
 export type PlayAgainResult = z.infer<typeof playAgainResult>;
 
+// After the pick (M6.48). `likers` is present only in Party and never holds a seat that did not like
+// the film; Blind carries `likes` only. Nothing about nopes, seens or a total of seats.
+export const runnerUp = z.object({
+  title_id: z.number(),
+  likes: z.number(),
+  likers: z.optional(
+    z.array(z.object({ member_id: z.string(), display_name: z.string(), avatar_key: z.string() })),
+  ),
+});
+export type RunnerUp = z.infer<typeof runnerUp>;
+export const runnersUpResult = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('ok'),
+    reveal: z.enum(['party', 'blind']),
+    source: z.nullable(z.enum(['finalists', 'most_liked'])),
+    runners_up: z.array(runnerUp),
+  }),
+  z.object({ status: z.literal('not_finished') }),
+]);
+export type RunnersUpResult = z.infer<typeof runnersUpResult>;
+
 /** The host's settings: any subset; `runtime_max` and `max_age` take null to clear. */
 export type RoomSettings = {
   service_rule?: 'any_member' | 'every_member';
