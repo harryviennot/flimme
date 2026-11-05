@@ -29,7 +29,7 @@ It prints every table in [Results](#results) as Markdown, in about 5 minutes (2,
 | `--seed 7` | Another seed (default 1). Numbers should move by a point or two, no more |
 | `--only finale` | One section: `headline`, `cards`, `limits`, `finale`, `majority`, `suggested`, `sensitivity`, `nearmiss` |
 
-The rules and the bots are in [tools/sim/game.mjs](../../tools/sim/game.mjs); the rule sets and tables in [tools/sim/run.mjs](../../tools/sim/run.mjs). To try another value, add a rule set to `RULES` in `run.mjs`, or change a made-up number in `WORLD` in `game.mjs`. Every rule set plays the same groups and decks, so differences between rows come from the rules, not from luck.
+A second script, [tools/sim/shortlist.mjs](../../tools/sim/shortlist.mjs), plays a shortlist of up to 3 matches and fairer finalists for [a proposal](three-matches-and-fair-finalists.md#the-simulation). The rules and the bots are in [tools/sim/game.mjs](../../tools/sim/game.mjs); the rule sets and tables in [tools/sim/run.mjs](../../tools/sim/run.mjs). To try another value, add a rule set to `RULES` in `run.mjs`, or change a made-up number in `WORLD` in `game.mjs`. Every rule set plays the same groups and decks, so differences between rows come from the rules, not from luck.
 
 ## The model
 
