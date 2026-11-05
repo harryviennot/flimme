@@ -1,0 +1,61 @@
+# Slice 12, the Final Cut's reveal on fixture data (the dev menu's "Reveal: ..." entries): the
+# knock-outs together, the points, the winner and the hand-over, the tap that goes on early, and the
+# lines of each reason. No room needed. The reveal in a real room is in final-cut-room.yaml's run.
+# Run: `maestro --device <sim> test mobile/.maestro/final-cut-reveal.yaml -e METRO_URL=http://localhost:<port>`
+# with the development build installed and Metro running.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app.yaml
+- openLink: flimme-dev://dev/final-cut
+
+# Knock-out, points, 4 films: the full sequence.
+- scrollUntilVisible:
+    element: 'Reveal: knock-out, points, 4 films'
+- tapOn: 'Reveal: knock-out, points, 4 films'
+- extendedWaitUntil:
+    visible: '.*Vetoed.*'
+    timeout: 4000
+- takeScreenshot: final-cut-reveal-1-knocked-out
+- extendedWaitUntil:
+    visible: '.*Tonight.s pick, 40 points.*'
+    timeout: 4000
+- assertVisible: 'Top of the votes'
+- takeScreenshot: final-cut-reveal-2-winner
+# A tap anywhere goes on, back to the menu (the fixture's hand-over).
+- tapOn:
+    point: '50%,60%'
+- extendedWaitUntil:
+    visible: 'Final Cut, 3 finalists'
+    timeout: 4000
+
+# Only unvetoed: its line, and no points.
+- scrollUntilVisible:
+    element: 'Reveal: only unvetoed'
+- tapOn: 'Reveal: only unvetoed'
+- extendedWaitUntil:
+    visible: 'The only film nobody vetoed'
+    timeout: 6000
+- extendedWaitUntil:
+    visible: 'Final Cut, 3 finalists'
+    timeout: 8000
+
+# Nobody voted: the winner alone.
+- scrollUntilVisible:
+    element: 'Reveal: nobody voted'
+- tapOn: 'Reveal: nobody voted'
+- extendedWaitUntil:
+    visible: 'Top of your swipes'
+    timeout: 4000
+- takeScreenshot: final-cut-reveal-3-no-ballots
+- extendedWaitUntil:
+    visible: 'Final Cut, 3 finalists'
+    timeout: 8000
+
+# Two players: knock-out, no points.
+- scrollUntilVisible:
+    element: 'Reveal: 2 players, no points'
+- tapOn: 'Reveal: 2 players, no points'
+- extendedWaitUntil:
+    visible: "Tonight's pick"
+    timeout: 4000
+- assertNotVisible: '.* pts'

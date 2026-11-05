@@ -85,13 +85,21 @@ export default function RoomLayout() {
     if (id && current) rememberRoomScreen(id, current);
   }, [id, current]);
 
-  // The reveal (M6.31) may keep the Final Cut screen up after the round closes; until then the
-  // close goes straight to the winner screen. The finalists' posters load on `finale_started`.
-  const revealHold = useRevealHold(id, state);
+  // The reveal may keep the Final Cut screen up after the round closes (final-cut.md#the-reveal).
+  // The finalists' posters load on `finale_started`.
+  const revealHold = useRevealHold(id, state, current, realtime);
   useFinalePreload(id, realtime);
 
   useEffect(() => {
-    if (match.holdRoute || revealHold) return;
+    if (match.holdRoute) return;
+    if (revealHold) {
+      // A phone still on the swipe screen when the round closed shows the reveal on the Final Cut.
+      if (id && state === 'done' && current && current !== 'final-cut') {
+        if (isSheet(current)) router.dismiss();
+        router.replace(`/room/${id}/final-cut`);
+      }
+      return;
+    }
     if (!id || !state || !current || isAllowed(state, current)) return;
     // A sheet goes first, so the state's screen replaces the room screen under it.
     if (isSheet(current)) router.dismiss();

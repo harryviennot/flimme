@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, View, type AccessibilityActionEvent } from 'react-native';
 import Animated, {
@@ -13,11 +13,14 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Poster } from '@/components/shared/poster';
+import { GradientFill } from '@/components/ui/gradients';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import type { Place } from '@/features/finale/ballot';
+import { COUNT_MS, COUNT_STEP_MS, countUpValue, reached } from '@/features/finale/reveal';
 import type { FinalistView } from '@/features/finale/rounds';
+import type { FinalistReveal } from '@/features/finale/use-reveal';
 import { cn } from '@/lib/cn';
 import { tokens } from '@/theme/generated/tokens';
 import { duration, easing, layout, spring, timing } from '@/theme/motion';
@@ -48,6 +51,10 @@ export type FinalistProps = {
   hideNumber?: boolean;
   /** The pop-in delay when the screen opens, in the seed order. Zero for none. */
   popDelay?: number;
+  /** The reveal's look (final-cut.md#the-reveal). While set, `place` and taps are ignored. */
+  reveal?: FinalistReveal;
+  /** Where the poster frame sits in its row, for the winner's spotlight. */
+  onFrame?: (frame: { x: number; y: number; width: number }) => void;
   onTap: () => void;
   onLongPress: () => void;
 };
@@ -60,33 +67,90 @@ export function Finalist({
   counting,
   hideNumber = false,
   popDelay = 0,
+  reveal,
+  onFrame,
   onTap,
   onLongPress,
 }: FinalistProps) {
   const { t } = useTranslation('finale');
   const reduce = useReducedMotion();
-  const vetoed = place.kind === 'vetoed';
+  const revealing = !!reveal;
+  const out = !!reveal?.out;
+  const winner = !!reveal?.winner;
+  const vetoed = revealing ? out : place.kind === 'vetoed';
 
   const sink = useSharedValue(0);
-  const sinkStyle = useAnimatedStyle(() => ({ transform: [{ translateY: sink.value }] }));
+  const fall = useSharedValue(0);
+  const lift = useSharedValue(0);
+  const sinkStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sink.get() + fall.get() + lift.get() }],
+  }));
   const dim = useSharedValue(1);
   const dimStyle = useAnimatedStyle(() => ({ opacity: dim.value }));
+  // The others dim from the winner step on, never the winner itself.
+  const backed = revealing && !!reveal && reached(reveal.stage, 'winner') && !winner && !out;
   useEffect(() => {
+    if (revealing) {
+      // Fades keep fading under Reduce Motion, on the same times.
+      dim.set(
+        withTiming(
+          out ? tokens.opacity.disabled : backed ? tokens.opacity['stack-near'] : 1,
+          out
+            ? { ...timing.exit, reduceMotion: ReduceMotion.Never }
+            : { ...timing.base, reduceMotion: ReduceMotion.Never },
+        ),
+      );
+      return;
+    }
     dim.set(
       withTiming(
         vetoed ? tokens.opacity.disabled : counting ? tokens.opacity['stack-near'] : 1,
         counting && !vetoed ? timing.base : { duration: duration.fast, easing: easing.standard },
       ),
     );
-  }, [vetoed, counting, dim]);
+  }, [revealing, out, backed, vetoed, counting, dim]);
+  // A knocked-out poster sinks the lip's travel; the winner rises. Neither moves under Reduce Motion.
+  useEffect(() => {
+    fall.set(reduce ? 0 : withTiming(out ? SINK : 0, timing.exit));
+  }, [out, reduce, fall]);
+  useEffect(() => {
+    lift.set(reduce ? 0 : withTiming(winner ? -tokens.space['8'] : 0, timing.celebrate));
+  }, [winner, reduce, lift]);
+
+  // The points count up on the JS thread, stepping every `duration.instant`.
+  const total = reveal?.points ?? null;
+  const [counted, setCounted] = useState(0);
+  useEffect(() => {
+    if (total === null || reduce) return;
+    const start = Date.now();
+    const timer = setInterval(() => {
+      const progress = (Date.now() - start) / COUNT_MS;
+      setCounted(countUpValue(progress, total));
+      if (progress >= 1) clearInterval(timer);
+    }, COUNT_STEP_MS);
+    return () => clearInterval(timer);
+  }, [total, reduce]);
+  const pointsNow = total === null ? null : reduce ? total : counted;
 
   const label = view.title
     ? view.year
       ? t('a11y.film', { title: view.title, year: view.year })
       : t('a11y.filmNoYear', { title: view.title })
     : '';
-  const stateText =
-    place.kind === 'ranked'
+  const revealText = !reveal
+    ? ''
+    : out
+      ? t('a11y.state.vetoed')
+      : winner
+        ? total !== null
+          ? t('reveal.a11y.winnerPoints', { count: total })
+          : t('reveal.a11y.winner')
+        : total !== null
+          ? t('reveal.a11y.points', { count: total })
+          : '';
+  const stateText = revealing
+    ? revealText
+    : place.kind === 'ranked'
       ? t('a11y.state.ranked', { rank: place.rank })
       : place.kind === 'faint' && hideNumber
         ? ''
@@ -94,16 +158,17 @@ export function Finalist({
           ? t('a11y.state.unranked', { rank: place.rank })
           : t('a11y.state.vetoed');
 
-  const actions = !interactive
-    ? []
-    : [
-        place.kind === 'faint' ? { name: 'rankNext', label: t('a11y.actions.rankNext') } : null,
-        place.kind === 'ranked'
-          ? { name: 'removeRank', label: t('a11y.actions.removeRank') }
-          : null,
-        vetoEnabled && !vetoed ? { name: 'veto', label: t('a11y.actions.veto') } : null,
-        vetoed ? { name: 'liftVeto', label: t('a11y.actions.liftVeto') } : null,
-      ].filter((action) => action !== null);
+  const actions =
+    !interactive || revealing
+      ? []
+      : [
+          place.kind === 'faint' ? { name: 'rankNext', label: t('a11y.actions.rankNext') } : null,
+          place.kind === 'ranked'
+            ? { name: 'removeRank', label: t('a11y.actions.removeRank') }
+            : null,
+          vetoEnabled && !vetoed ? { name: 'veto', label: t('a11y.actions.veto') } : null,
+          vetoed ? { name: 'liftVeto', label: t('a11y.actions.liftVeto') } : null,
+        ].filter((action) => action !== null);
 
   // After a screen reader action the new state is announced politely and focus stays here.
   const acted = useRef<string | null>(null);
@@ -128,15 +193,23 @@ export function Finalist({
   const entering = reduce ? fadeIn : layout.popIn.delay(popDelay);
 
   return (
-    <Animated.View entering={entering} className="max-w-36 flex-1">
+    <Animated.View
+      entering={entering}
+      className="max-w-36 flex-1"
+      onLayout={(event) => {
+        // The poster is the root's first child, so its frame starts where the root does.
+        const { x, y, width } = event.nativeEvent.layout;
+        onFrame?.({ x, y, width });
+      }}
+    >
       <Pressable
         accessibilityLabel={[label, stateText].filter(Boolean).join('. ')}
         accessibilityActions={actions}
         onAccessibilityAction={onAction}
-        accessibilityState={{ disabled: !interactive }}
+        accessibilityState={{ disabled: !interactive || revealing }}
         haptic={false}
         hitSlop={0}
-        disabled={!interactive}
+        disabled={!interactive || revealing}
         delayLongPress={500}
         onPress={onTap}
         // A long press never counts as a tap, even where it does nothing.
@@ -166,15 +239,30 @@ export function Finalist({
               pointerEvents="none"
               className={cn(
                 'absolute inset-0 rounded-sm',
-                place.kind === 'ranked' &&
+                revealing && !out && !winner && 'border border-border-strong',
+                revealing && out && 'border-2 border-nope-default',
+                revealing && winner && 'border-2 border-marquee-default glow-marquee',
+                !revealing &&
+                  place.kind === 'ranked' &&
                   (place.rank === 1
                     ? 'border-2 border-accent-default glow-accent'
                     : 'border-2 border-accent-default'),
-                place.kind === 'faint' && 'border border-border-strong',
-                place.kind === 'vetoed' && 'border-2 border-nope-default',
+                !revealing && place.kind === 'faint' && 'border border-border-strong',
+                !revealing && place.kind === 'vetoed' && 'border-2 border-nope-default',
               )}
             />
-            {place.kind === 'vetoed' ? (
+            {revealing ? (
+              out ? (
+                <Animated.View
+                  entering={reduce ? fadeIn : layout.popIn}
+                  exiting={fadeOut}
+                  pointerEvents="none"
+                  className="absolute inset-0 items-center justify-center"
+                >
+                  <Icon name="ban" size={44} color="nope-default" />
+                </Animated.View>
+              ) : null
+            ) : place.kind === 'vetoed' ? (
               <Animated.View
                 entering={reduce ? fadeIn : layout.popIn}
                 exiting={fadeOut}
@@ -187,6 +275,7 @@ export function Finalist({
               <Animated.View
                 key={place.kind}
                 entering={place.kind === 'ranked' ? (reduce ? fadeIn : badgePop) : undefined}
+                exiting={fadeOut}
                 pointerEvents="none"
                 className={cn(
                   'absolute top-1.5 left-1.5 size-7.5 items-center justify-center rounded-pill',
@@ -203,6 +292,23 @@ export function Finalist({
                 </Text>
               </Animated.View>
             )}
+            {pointsNow !== null ? (
+              <Animated.View
+                entering={fadeIn}
+                pointerEvents="none"
+                className="absolute inset-x-0 bottom-0 items-center pt-4 pb-1.5"
+              >
+                <GradientFill gradient="card-scrim" />
+                <Text
+                  variant="mono-data"
+                  tone={winner ? 'marquee' : 'primary'}
+                  numberOfLines={1}
+                  accessible={false}
+                >
+                  {t('reveal.points', { count: pointsNow })}
+                </Text>
+              </Animated.View>
+            ) : null}
           </View>
         </Animated.View>
         {view.title ? (

@@ -375,6 +375,10 @@ export const tokens = {
     "slow": 400,
     "celebrate": 800,
     "match-hold": 4000,
+    "reveal-lead": 300,
+    "reveal-vetoes": 500,
+    "reveal-points": 1000,
+    "reveal-hold": 2500,
     "hint-delay": 600
   },
   "easing": {
