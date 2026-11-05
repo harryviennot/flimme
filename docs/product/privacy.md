@@ -32,9 +32,9 @@ It builds on the data model's [retention](../architecture/data-model.md#retentio
 
 ## The short version
 
-- **Data lives in the EU**: the database in Supabase's Frankfurt region (Ireland for staging, which holds test accounts and playtesters), the recommendation server with an EU host. The one exception is Expo's update service, in the US under the EU-US Data Privacy Framework.
+- **Data lives in the EU**: the database in Supabase's Frankfurt region (Ireland for staging, which holds test accounts and playtesters), the recommendation server on Fly.io in Frankfurt (London for staging). The exceptions are Expo's update service, in the US under the EU-US Data Privacy Framework, and the GitHub runner that makes and encrypts the weekly backup.
 - **No ads, no tracking, nothing sold.** No SDK in the app builds profiles across apps.
-- **Only one consent at launch**: the Letterboxd import. Analytics are set up as anonymous audience measurement, which the CNIL exempts from consent, so nothing is asked before the first game, as [onboarding](onboarding.md#goals) requires.
+- **Only one consent at launch**: the Letterboxd import. In the first release, which has no Letterboxd, the one consent is the "Detailed stats" opt-in in Settings (EU, UK and Switzerland). Analytics are set up as anonymous audience measurement, which the CNIL exempts from consent, so nothing is asked before the first game, as [onboarding](onboarding.md#goals) requires.
 - **Every player, guest or account, can export and delete their data from the app**, and can switch off analytics and the use of their games for training.
 - **Kids:** the France launch is a general-audience app in which no consent-based processing touches guests. Family profiles and the US launch need a lawyer first.
 - **Four things need a lawyer before launch**: the analytics exemption, crash reports without consent, Letterboxd ratings in models trained across players, and the kids' design for later markets.
@@ -56,10 +56,10 @@ Guests and accounts store the same things; a guest simply has no email. Retentio
 
 | Data | What it holds | Why | Basis | Who else sees it | Kept |
 | --- | --- | --- | --- | --- | --- |
-| Sign-in (Supabase Auth) | User id; for saved accounts, the email and name Apple or Google pass on (Apple can give a relay email); sign-in times | Keep the same player across devices | Contract | Nobody | While the account exists. Guests inactive for 90 days are deleted |
+| Sign-in (Supabase Auth) | User id; for saved accounts, the email and name Apple or Google pass on (Apple can give a relay email); sign-in times; for each session, the IP address and user agent Supabase Auth records in `auth.sessions` (deleted with the session or the user) | Keep the same player across devices | Contract | Nobody | While the account exists. Guests inactive for 90 days are deleted |
 | Profile | Display name, preset avatar, country, language | Show you in rooms, pick the catalog country and card language | Contract | Name and avatar: people in your rooms | While the account exists |
 | Services | Streaming services you have | Only deal films you can watch | Contract | People in your rooms (the lobby shows each player's services) | While the account exists |
-| Consents | Kind, wording version, dates | Prove consent was given | Legal obligation (GDPR art. 7(1)) | Nobody | While the account exists. **New**: a minimal proof after deletion, see [Starting values](#starting-values) |
+| Consents | Kind, wording version, dates; for analytics, the choice (`on`, `off`, `detailed`) | Prove consent was given | Legal obligation (GDPR art. 7(1)) | Nobody | While the account exists. **New**: a minimal proof after deletion, see [Starting values](#starting-values). Not in the first release: deletion keeps no proof (decisions.md, M8.5 Q5.4) |
 | Letterboxd link and imports | Username, export date, sync times, the feed check result; films waiting to be matched | Connect and keep in sync | Consent | Nobody; "Letterboxd linked" shows in the lobby | While linked. Unmatched films 30 days |
 | Letterboxd diary | Every diary entry: film, watched date, rating, rewatch | Your taste | Consent | Your rating of a film on that film's card back, and watchlist labels ("On Sam's watchlist"), in your rooms | While linked |
 | Film history (`user_titles`) | Per film and source (`app` for group games, `solo` for solo sessions, `calibration`, `letterboxd`): seen, rating, watchlist, your Love it / It's fine / Not for me answers, and (decided on 5 November 2026, [solo and My films](solo-and-my-films.md#decided)) when you liked a film (`liked_at`), whether it was a super like (`super_liked`) and when a group picked it with you (`picked_at`), and when you marked it seen (`seen_at`). This is My films | Your taste, the seen rule, My films | Contract; consent for Letterboxd rows | Letterboxd ratings and watchlists as the diary. Your likes, super likes and picks: nobody. They are never shown in a room, never a label and never on a card back | While the account exists; Letterboxd rows while linked. The retention job never deletes them |
@@ -68,14 +68,15 @@ Guests and accounts store the same things; a guest simply has no email. Retentio
 | Rooms and seats | Room settings, your seat's name snapshot, services, times, your after-game answer. Solo sessions are rooms with one seat | Run the game, your history | Contract | People in that room (nobody, for a solo room) | While the account exists. Seats become anonymous on deletion; lobbies that never start go after 7 days |
 | Votes, matches, finale ballots | Each answer and its time | Run the game | Contract | Counts during the game; after the pick, in Party mode, who liked the runners-up ([game modes](game-modes.md#what-players-see-party-and-blind)) | While the account exists, anonymous after deletion |
 | Swipe log | Every vote and undo, time on screen, whether the card was flipped | Improve the deck, and the solo daily cap | Legitimate interest | Nobody | 13 months |
-| Deal logs (`rec`) | Each card dealt with its score, features, model and experiment | Train and compare models | Legitimate interest | Nobody | Ranked cards 90 days, requests 13 months |
+| Deal logs (`rec`) | Each card dealt with its score, features, model and experiment | Train and compare models | Legitimate interest | Nobody | Ranked cards 90 days, requests 13 months. Until the trainer's export (M22.1), ranked cards stay with their request, so 13 months (decisions.md, M8.9 Q9.1) |
 | Training exports | Deal logs joined to votes, with seat ids only | Train models | Legitimate interest, with an opt-out | Nobody | **New**: 24 months (the data model sets none) |
 | Room taste | The room's live taste and dropped genres | The deck during the game | Contract | Nobody | With the room |
 | Player reports | Who reported which seat in a room, a preset reason (offensive name, spam, other) and the time; no free text and no copy of the name | Let players flag an offensive name, as the app stores require | Legitimate interest (safety of other players, app store rules) | Harry only; the reported player is never told who reported | 12 months, then deleted. Kept when an account is deleted, since the seats are anonymous |
 | Rate limits | Counters keyed by player id, and by a client address stored as a sha256 hash (IPv6 keyed by its /64) | Stop room codes being guessed | Legitimate interest (security) | Nobody | 1 day |
 | Analytics (PostHog) | Anonymous events: screens, taps, timings; device model, OS, app version. No player id, no IP | Measure and fix the app | Exempt audience measurement, with an opt-out | Nobody | 25 months at most |
-| Crash reports (Sentry) | Stack traces, device model, OS, app version. No names, codes, emails or IP | Fix crashes | Legitimate interest (**Lawyer**) | Nobody | Sentry's retention, set in [operations.md](../architecture/operations.md) |
-| Server and database logs | Requests, errors, IP addresses | Security and operations | Legitimate interest | Nobody | Set in [security.md](../architecture/security.md) and [operations.md](../architecture/operations.md) |
+| Crash reports (Sentry) | Stack traces, device model, OS, app version. No names, codes, emails or IP | Fix crashes | Legitimate interest (**Lawyer**) | Nobody | 90 days at most: Sentry keeps 30 days on its free plan, up to 90 on Team (checked 5 Nov 2026) |
+| Server and database logs | Requests, errors; Supabase's logs hold IP addresses, the server's hold ids only ([security.md](../architecture/security.md#logging-without-personal-data)) | Security and operations | Legitimate interest | Nobody | 7 days at most: Supabase keeps 1 day on Free and 7 on Pro ([operations.md](../architecture/operations.md#monitoring-and-alerts)); Fly.io's log search keeps 7 days (checked 5 Nov 2026) |
+| Support emails | What a player writes to support@flimme.com, and the address they write from | Answer them | Legitimate interest | Harry only | As long as it takes to answer, then 12 months at most after the last message. *Default taken for the policy (M8.1, 5 Nov 2026), for Harry to confirm* |
 | On the phone | Sign-in session, vote queue, settings | Keep you signed in, keep offline votes | Strictly necessary | Stays on the phone | Until sign-out or uninstall |
 | "Did you watch it?" reminder | A local notification scheduled on the phone; no push token at launch | The follow-up | OS permission | Stays on the phone | Until it fires |
 
@@ -112,6 +113,8 @@ The analytics choice (`on`, `off`, `detailed`) is stored as an `analytics` conse
 - "Help improve the app": anonymous analytics.
 - "Use my games to improve recommendations for everyone": training (an objection, not a consent).
 - "Show my Letterboxd ratings in my rooms".
+
+The first release has only the first switch (with the "Detailed stats" opt-in); the other two come with training and Letterboxd. Until then the privacy policy offers to object to the swipe and deal logs by email, or by deleting one's data (M8.1).
 
 ## Analytics without a consent prompt
 
@@ -200,21 +203,22 @@ Obligations from [tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution
 - A JustWatch credit wherever we show where a film can be watched.
 - Nothing from TMDB kept longer than 6 months.
 - **The machine-learning clause** (TMDB terms 1.C and 2.A): using TMDB content "in connection with" an ML or AI application needs TMDB's commercial agreement. The deck engine likely counts, so email TMDB before building the catalog.
-- No personal data is ever sent to TMDB.
+- No personal data is ever sent to TMDB. The phone loads posters and service logos straight from TMDB's image servers (`tmdb_image_base` in `app_config`), so those servers see its IP address, as any web server would. The privacy policy says so.
 
 ## Who processes data for us
 
 | Service | Role | Gets | Where | Transfer basis |
 | --- | --- | --- | --- | --- |
 | Supabase | Processor | The database, sign-in, realtime: everything in the data map | EU regions: Frankfurt (`eu-central-1`) for production, Ireland (`eu-west-1`) for staging. Supabase notes a region is "a data-location control, not proof of regulatory compliance" | DPA with the EU standard contractual clauses (Supabase is a US company) |
-| Recommendation server host | Processor | Database access, Letterboxd feeds | EU, chosen in [server-structure.md](../architecture/server-structure.md) | Its DPA |
-| Object storage | Processor | Models and training exports (seat ids) | EU | Its DPA |
+| Recommendation server host (Fly.io) | Processor | Database access, Letterboxd feeds; in the first release, account deletion, the catalog and room stats | Frankfurt (`fra`) for production, London (`lhr`, UK) for staging ([server-structure.md](../architecture/server-structure.md#hosting)) | Its DPA (Fly.io is a US company) |
+| Object storage (Tigris, on Fly) | Processor | The encrypted weekly database dump ([operations.md](../architecture/operations.md#backups-and-restore)); later, models and training exports (seat ids) | Frankfurt | Its DPA (Tigris is a US company) |
+| GitHub (Actions) | Processor | Runs `backup.yml`: the dump exists in plain text on the runner until `age` encrypts it | US | Its DPA, the EU-US Data Privacy Framework |
 | Sentry | Processor | Crash reports | EU data region, Frankfurt. Sentry says some data types may still be stored in the US | Its DPA |
 | PostHog | Processor | Anonymous events | EU Cloud, Frankfurt (AWS `eu-central-1`) | Its DPA |
 | Expo (EAS Update) | Processor | The OS and random tokens when the app checks for an update; no push tokens since we don't use Expo's push service | US | EU-US Data Privacy Framework and standard contractual clauses (Expo's policy of 21 October 2025) |
 | Apple, Google | Independent controllers | The identity when a player saves an account; store data | | Their terms |
 | Letterboxd | Independent controller | Sees our server fetch the member's public feed | | |
-| TMDB | Not a processor | No personal data | | |
+| TMDB | Not a processor | No personal data is sent; its image servers see the phone's IP address when it loads a poster or a logo | | |
 
 Later: RevenueCat with Pro, a push provider if push notifications arrive.
 
@@ -251,7 +255,7 @@ The final answers are filled in with [store-listing.md](store-listing.md).
 
 ## Privacy policy outline
 
-In French and English, on the website, linked from the app's Settings and both store listings. Plain words, short sections:
+In French and English, on the website, linked from the app's Settings and both store listings. Plain words, short sections. The first release's text is in `mobile/src/content/legal/privacy.fr.ts` and `privacy.en.ts` (M8.1), which the website renders (M8.3):
 
 1. **Who we are** and how to reach us: support@flimme.com, until a separate privacy address exists.
 2. **What we collect**: the data map, summarised in one table.

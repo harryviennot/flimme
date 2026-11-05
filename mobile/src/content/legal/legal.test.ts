@@ -2,7 +2,10 @@
 // small renderer, so they keep to a subset: one `#` title, `##` and `###` headings,
 // paragraphs, `-` bullets (not nested), **bold**, https and mailto links, simple pipe tables.
 // Each text joins `documents` below; a text written in both languages also joins `pairs`.
-// The terms: M8.2, docs/product/privacy.md#terms-of-use-outline.
+// The terms: M8.2, docs/product/privacy.md#terms-of-use-outline. The privacy policy: M8.1,
+// docs/product/privacy.md#privacy-policy-outline.
+import privacyEn, { updated as privacyEnUpdated } from './privacy.en';
+import privacyFr, { updated as privacyFrUpdated } from './privacy.fr';
 import termsEn, { updated as termsEnUpdated } from './terms.en';
 import termsFr, { updated as termsFrUpdated } from './terms.fr';
 
@@ -12,6 +15,10 @@ type LegalDocument = {
   updated: string;
   // Links the text must carry, such as the other legal page in the same language.
   mustLink: string[];
+  // Words the text must contain, such as the authority a player can complain to.
+  mustSay?: string[];
+  // A text that states its own date writes `updated` out in this language ("5 novembre 2026").
+  datedIn?: 'fr-FR' | 'en-GB';
 };
 
 const documents: LegalDocument[] = [
@@ -27,10 +34,29 @@ const documents: LegalDocument[] = [
     updated: termsEnUpdated,
     mustLink: ['https://flimme.com/en/privacy'],
   },
+  {
+    name: 'privacy.fr',
+    markdown: privacyFr,
+    updated: privacyFrUpdated,
+    mustLink: ['https://flimme.com/fr/conditions', 'https://flimme.com/fr/suppression'],
+    mustSay: ['CNIL'],
+    datedIn: 'fr-FR',
+  },
+  {
+    name: 'privacy.en',
+    markdown: privacyEn,
+    updated: privacyEnUpdated,
+    mustLink: ['https://flimme.com/en/terms', 'https://flimme.com/en/delete-account'],
+    mustSay: ['CNIL'],
+    datedIn: 'en-GB',
+  },
 ];
 
 // French and English say the same thing, so they share the date and the outline.
-const pairs: [string, string][] = [['terms.fr', 'terms.en']];
+const pairs: [string, string][] = [
+  ['terms.fr', 'terms.en'],
+  ['privacy.fr', 'privacy.en'],
+];
 
 const SUPPORT_EMAIL = 'support@flimme.com';
 const LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
@@ -140,7 +166,7 @@ describe('the subset check', () => {
   });
 });
 
-describe.each(documents)('$name', ({ markdown, updated, mustLink }) => {
+describe.each(documents)('$name', ({ markdown, updated, mustLink, mustSay = [], datedIn }) => {
   it('is a Markdown text with a real date', () => {
     expect(markdown.trim().length).toBeGreaterThan(500);
     expect(updated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -169,17 +195,33 @@ describe.each(documents)('$name', ({ markdown, updated, mustLink }) => {
     const urls = [...markdown.matchAll(LINK)].map(([, , url]) => url);
     for (const url of mustLink) expect(urls).toContain(url);
   });
+
+  it('says what it must', () => {
+    for (const words of mustSay) expect(markdown).toContain(words);
+  });
+
+  it('states the same date as `updated`, when it states one', () => {
+    if (!datedIn) return;
+    const long = new Intl.DateTimeFormat(datedIn, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date(`${updated}T00:00:00Z`));
+    expect(markdown).toContain(long);
+  });
 });
 
 describe.each(pairs)('%s and %s', (first, second) => {
   const a = byName(first);
   const b = byName(second);
-  // The heading levels in order, such as ['##', '##', '###', '###', '##'].
+  // The heading levels in order, with a section's number when it has one, such as
+  // ['##', '## 1.', '### ', '## 2.']: a section dropped or swapped in one language shows.
   const outline = (markdown: string) =>
     markdown
       .split('\n')
       .filter((line) => /^#{2,3} /.test(line))
-      .map((line) => line.split(' ')[0]);
+      .map((line) => line.match(/^#{2,3} (\d+\.)?/)?.[0].trim());
 
   it('share the same date', () => {
     expect(a.updated).toBe(b.updated);
