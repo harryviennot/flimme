@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, findNodeHandle, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 import { Poster } from '@/components/shared/poster';
 import { WhereToWatch } from '@/components/shared/where-to-watch';
@@ -15,9 +20,11 @@ import { Text } from '@/components/ui/text';
 import { matchMeta } from '@/features/match/format';
 import { servicesLabel } from '@/features/winner/services';
 import type { WinnerView } from '@/features/winner/use-winner';
-import { layout } from '@/theme/motion';
+import { haptics } from '@/lib/haptics';
+import { layout, spring } from '@/theme/motion';
 
 import { NoPick } from './no-pick';
+import { SoloNotListed } from '@/components/screens/solo/not-listed';
 
 // Tonight's pick (winner.md): the film and where to watch it, the same on every phone. Never
 // who liked it, never a count. No haptic and no sound: the overlay already had them.
@@ -28,6 +35,10 @@ export type WinnerScreenProps = {
   online: boolean;
   /** The room turned done while this phone was swiping or in the Final Cut: the screen fades in. */
   fadeIn?: boolean;
+  /** A solo pick (winner.md#the-solo-pick): its eyebrow and copy, no single-film line, Done in place of Home. */
+  solo?: boolean;
+  /** The solo pick was just made on this phone: the poster settles with a small overshoot and one buzz. */
+  lands?: boolean;
   onHome: () => void;
 };
 
@@ -36,9 +47,15 @@ export function WinnerScreen({
   language,
   online,
   fadeIn = false,
+  solo = false,
+  lands = false,
   onHome,
 }: WinnerScreenProps) {
   const { t } = useTranslation('winner');
+  const { t: ts } = useTranslation('solo');
+  const reduced = useReducedMotion();
+  const posterScale = useSharedValue(lands && !reduced ? 0.9 : 1);
+  const posterStyle = useAnimatedStyle(() => ({ transform: [{ scale: posterScale.get() }] }));
   const { t: tc } = useTranslation();
   const title = useRef<ComponentRef<typeof View>>(null);
   // The late card fades in, unless the screen was ready when it appeared.
@@ -46,6 +63,12 @@ export function WinnerScreen({
   const lateIn = startedReady ? undefined : layout.fadeIn;
 
   const ready = view.status === 'ready';
+  useEffect(() => {
+    if (!ready || !lands) return;
+    // The pick the player made lands: one success buzz, no sound (moments.md#the-solo-pick).
+    posterScale.set(withSpring(1, spring.snappy));
+    haptics.match();
+  }, [ready, lands, posterScale]);
   useEffect(() => {
     if (!ready) return;
     const node = title.current ? findNodeHandle(title.current) : null;
@@ -63,8 +86,8 @@ export function WinnerScreen({
       scroll
       footer={
         <Button
-          label={t('home')}
-          accessibilityLabel={t('a11y.home')}
+          label={solo ? ts('pick.done') : t('home')}
+          accessibilityLabel={solo ? ts('pick.a11yDone') : t('a11y.home')}
           variant="secondary"
           size="l"
           block
@@ -97,10 +120,11 @@ export function WinnerScreen({
               importantForAccessibility="no"
               accessibilityElementsHidden
             >
-              {t('eyebrow')}
+              {solo ? ts('pick.eyebrow') : t('eyebrow')}
             </Text>
 
-            <View
+            <Animated.View
+              style={posterStyle}
               className="h-54 w-36 items-center justify-center overflow-hidden rounded-sm bg-bg-raised glow-marquee"
               accessible={!!film}
               accessibilityLabel={film ? t('a11y.poster', { title: film.title }) : undefined}
@@ -114,11 +138,11 @@ export function WinnerScreen({
               ) : film && !film.poster_path ? (
                 <Icon name="film" size={32} color="text-muted" />
               ) : null}
-            </View>
+            </Animated.View>
 
             {view.status === 'ready' ? (
               <Animated.View entering={lateIn} className="items-center gap-3">
-                {view.onlyFilm ? (
+                {view.onlyFilm && !solo ? (
                   <Text variant="body-m" tone="secondary" align="center">
                     {t('onlyFilm')}
                   </Text>
@@ -127,7 +151,11 @@ export function WinnerScreen({
                   ref={title}
                   accessible
                   accessibilityRole="header"
-                  accessibilityLabel={t('a11y.title', { title: view.card.title })}
+                  accessibilityLabel={
+                    solo
+                      ? ts('pick.a11yTitle', { title: view.card.title })
+                      : t('a11y.title', { title: view.card.title })
+                  }
                 >
                   <Text variant="display-l" align="center" numberOfLines={3}>
                     {view.card.title}
@@ -138,12 +166,16 @@ export function WinnerScreen({
                     {meta}
                   </Text>
                 ) : null}
-                <WhereToWatch
-                  services={view.services}
-                  watchLink={view.watchLink}
-                  servicesLabel={servicesLabel(view.services, language)}
-                  notListed={t('notListed')}
-                />
+                {solo && view.services.length === 0 ? (
+                  <SoloNotListed />
+                ) : (
+                  <WhereToWatch
+                    services={view.services}
+                    watchLink={view.watchLink}
+                    servicesLabel={servicesLabel(view.services, language)}
+                    notListed={t('notListed')}
+                  />
+                )}
               </Animated.View>
             ) : waiting ? (
               <View className="items-center gap-3 pt-2">

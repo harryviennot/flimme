@@ -139,3 +139,22 @@ describe('undo', () => {
     expect(t.queue.enqueueUndo).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('Undo in a solo room', () => {
+  it('queues its undo with the solo mark, so it is kept without a kept room', async () => {
+    const { stack, queue } = await setup();
+    const solo = createUndoer({
+      stack,
+      queue,
+      roomId: ROOM,
+      memberId: 'm1',
+      solo: () => true,
+      locked: () => false,
+    });
+    const done = stack.getState().answer();
+    if (!done) throw new Error('no card');
+    solo.record(done.card, 'like');
+    solo.undo();
+    expect(queue.enqueueUndo).toHaveBeenCalledWith(expect.objectContaining({ solo: true }));
+  });
+});

@@ -6,6 +6,8 @@ import { useOnline } from '@/features/network';
 import { releaseRoomGuards, useExitRoomToHome, useRoomSeats } from '@/features/room';
 import { useMatchShown } from '@/features/room/match-shown';
 import { arrivedLive } from '@/features/winner/arrival';
+import { takeJustPicked } from '@/features/solo/pick';
+import { useIsSolo } from '@/features/solo/use-solo-room';
 import { useWinner } from '@/features/winner/use-winner';
 
 import { track } from '@/lib/analytics';
@@ -21,7 +23,11 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
   const played = useMatchShown(roomId);
   const seats = useRoomSeats(roomId).data;
   const players = seats ? seats.filter((seat) => seat.left_at === null).length : 0;
-  const outcome = view.status === 'ready' ? view.outcome : null;
+  const solo = useIsSolo(roomId);
+  // Read once, when the screen appears: only a pick made on this phone just now has the landing.
+  const [lands] = useState(() => takeJustPicked(roomId));
+  // A solo pick is not a group win: its analytics belong to the solo events (M6.46).
+  const outcome = view.status === 'ready' && !solo ? view.outcome : null;
   // The pick is on screen: reported once per visit, with how it was made and the room's size.
   const reported = useRef(false);
   useEffect(() => {
@@ -37,7 +43,9 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
       view={view}
       language={i18n.language}
       online={online}
-      fadeIn={fadeIn}
+      fadeIn={fadeIn || lands}
+      solo={solo}
+      lands={lands}
       onHome={() => {
         releaseRoomGuards();
         exitToHome();

@@ -33,6 +33,7 @@ description: How things move, buzz and sound in the app (motion tokens, springs,
 | `haptics.throw()` | A card is thrown off the stack, or a swipe button is pressed |
 | `haptics.match()` | It's a match; the winner is revealed |
 | `haptics.shortlist()` | A match joins the shortlist (two Light impacts 100 ms apart, lighter than `match`) |
+| `haptics.checkpoint()` | A solo checkpoint card is on top (one Light impact) |
 | `haptics.veto()` | A veto lands |
 | `haptics.countdown()` | Each of the countdown's last 5 seconds (Countdown does it) |
 | `haptics.error()` | A refusal: a wrong code, a full room |

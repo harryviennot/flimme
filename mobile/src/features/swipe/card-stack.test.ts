@@ -451,4 +451,44 @@ describe('card stack', () => {
       expect(ids(t.get().mounted)).toEqual([2, 1, 3]);
     });
   });
+
+  describe('the daily cap (solo)', () => {
+    it('keeps the cards it holds, tells the phone once and asks no more', async () => {
+      const t = setup(cards(1, 4), { answers: ['daily_limit'] });
+      t.stack.getState().start();
+      await flush();
+      expect(t.deps.requestCards).toHaveBeenCalledTimes(1);
+      expect(t.get().capped).toBe(true);
+      expect(t.get().status).toBe('ready');
+      expect(ids(t.get().mounted)).toEqual([1, 2, 3]);
+      jest.advanceTimersByTime(REQUEST_RETRY_MS * 3);
+      await flush();
+      t.get().answer();
+      expect(t.deps.requestCards).toHaveBeenCalledTimes(1);
+    });
+
+    it('is empty after the last card, with the cap kept, never loading', async () => {
+      const t = setup(cards(1, 2), { answers: ['daily_limit'] });
+      t.stack.getState().start();
+      await flush();
+      t.get().answer();
+      t.get().answer();
+      expect(t.get().mounted).toEqual([]);
+      expect(t.get().status).toBe('empty');
+      expect(t.get().capped).toBe(true);
+    });
+
+    it('stays empty when a deck update brings nothing, and Undo lifts the cap', async () => {
+      const t = setup(cards(1, 1), { answers: ['daily_limit'] });
+      t.stack.getState().start();
+      await flush();
+      const done = t.get().answer()!;
+      t.setNext([]);
+      t.get().onDeckUpdated();
+      await flush();
+      expect(t.get().status).toBe('empty');
+      t.get().putBack(done.card);
+      expect(t.get().capped).toBe(false);
+    });
+  });
 });

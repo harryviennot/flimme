@@ -18,7 +18,10 @@ jest.mock('@/features/app-config/use-app-config', () => ({
 }));
 jest.mock('@/features/network', () => ({ useOnline: () => true }));
 const mockExit = jest.fn();
+let mockMode = 'quick_match';
+jest.mock('@/features/solo/leave', () => ({ isLeavingSolo: () => false }));
 jest.mock('@/features/room', () => ({
+  useRoom: () => ({ data: { mode: mockMode } }),
   ...jest.requireActual('@/features/room/leave-guard'),
   ROOM_KEY: (id: string) => ['room', id],
   useExitRoomToHome: () => mockExit,
@@ -64,6 +67,7 @@ function wrapper({ children }: { children: ReactNode }) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockMode = 'quick_match';
   mockApi.rounds.mockResolvedValue([{ id: 'x' }]);
   mockApi.titleCards.mockResolvedValue({ status: 'ok', cards: [card] });
 });
@@ -154,5 +158,32 @@ describe('the winner room', () => {
     expect(released).toHaveBeenCalled();
     expect(mockExit).toHaveBeenCalledTimes(1);
     off();
+  });
+});
+
+describe('the solo pick', () => {
+  beforeEach(() => {
+    mockMode = 'solo';
+  });
+
+  it("shows the player's film with its own eyebrow, no single-film line, no analytics and Done", async () => {
+    mockApi.roomMatches.mockResolvedValue([match('finale', 1)]);
+    mockApi.rounds.mockResolvedValue([]);
+    await render(<WinnerRoom roomId="r1" />, { wrapper });
+    await waitFor(() => expect(screen.getByText('Past Lives')).toBeTruthy());
+    expect(screen.getByText("Tonight's pick", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.getByLabelText("Tonight's pick: Past Lives")).toBeTruthy();
+    expect(screen.queryByText('The only film anyone liked')).toBeNull();
+    expect(track).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByLabelText('Back to Play'));
+    expect(mockExit).toHaveBeenCalledTimes(1);
+  });
+
+  it("says none of the player's services has it when the list is empty", async () => {
+    mockApi.roomMatches.mockResolvedValue([match('unanimous', 1)]);
+    await render(<WinnerRoom roomId="r1" />, { wrapper });
+    await waitFor(() => expect(screen.getByText('Past Lives')).toBeTruthy());
+    expect(screen.getByText('None of your services has it any more.')).toBeTruthy();
+    expect(screen.getByText('Streaming availability by JustWatch.')).toBeTruthy();
   });
 });

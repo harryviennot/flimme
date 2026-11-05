@@ -1,6 +1,67 @@
 {
+  "card": {
+    "title": "Tout seul ce soir ?",
+    "body": "Swipe à ton rythme, tes j'aime sont gardés dans Mes films.",
+    "cta": "Jouer seul"
+  },
   "setup": {
     "topBar": "Jouer seul",
-    "title": "Ton film, ton rythme"
+    "title": "Ton film, ton rythme",
+    "services": "Où peux-tu regarder ?",
+    "start": "C'est parti",
+    "tooFew_one": "Seulement {{count}} film convient. Ajoute une plateforme ou relâche un filtre.",
+    "tooFew_other": "Seulement {{count}} films conviennent. Ajoute une plateforme ou relâche un filtre.",
+    "tooFewNone": "Aucun film ne convient. Ajoute une plateforme ou relâche un filtre.",
+    "offline": "Tu es hors ligne. Reconnecte-toi pour jouer seul.",
+    "errors": {
+      "network": "Impossible de lancer la partie. Réessaie.",
+      "rateLimited": "Ça fait beaucoup de parties d'un coup. Réessaie dans quelques minutes."
+    }
+  },
+  "topBar": {
+    "label": "Solo"
+  },
+  "a11y": {
+    "leave": "Arrêter de jouer seul",
+    "likes_one": "{{count}} film aimé",
+    "likes_other": "{{count}} films aimés"
+  },
+  "checkpoint": {
+    "liked_one": "Tu as aimé 1 film. Il est dans Mes films.",
+    "liked_other": "Tu as aimé {{count}} films. Ils sont dans Mes films.",
+    "none": "Rien pour l'instant. On continue ?",
+    "pick": "Choisir",
+    "continue": "Continuer"
+  },
+  "pickSheet": {
+    "title": "Lequel ce soir ?",
+    "helper": "Touche un film pour le choisir.",
+    "offline": "Tu es hors ligne. Reconnecte-toi pour choisir.",
+    "notLiked": "Ce film n'est plus dans tes j'aime.",
+    "error": "Impossible de choisir ce film. Réessaie.",
+    "a11yHint": "Le choisir pour ce soir"
+  },
+  "outOfFilms": {
+    "title": "Tu as vu tous les films de ces filtres.",
+    "body": "La prochaine fois, ajoute une plateforme ou relâche un filtre."
+  },
+  "cap": {
+    "title": "C'est tout pour le solo aujourd'hui.",
+    "body": "Nouvelles cartes demain."
+  },
+  "actions": {
+    "myFilms": "Mes films",
+    "host": "Organiser une soirée"
+  },
+  "ended": {
+    "title": "Ta partie solo est terminée.",
+    "body": "Tes j'aime sont dans Mes films."
+  },
+  "pick": {
+    "eyebrow": "Ton film du soir",
+    "a11yTitle": "Ton film du soir : {{title}}",
+    "notListed": "Aucune de tes plateformes ne le propose plus.",
+    "done": "Terminé",
+    "a11yDone": "Retour à Jouer"
   }
 }

@@ -1,0 +1,90 @@
+# M6.44, Play alone: Play, setup, Start, 40 swipes with likes, both checkpoints, Pick one, the solo
+# pick, Done; then a second session left from the top bar. Run against staging (dev menu switched to
+# Staging) with a named player whose country is France and whose services are picked:
+# `maestro test mobile/.maestro/solo.yaml -e METRO_URL=http://localhost:<port>`.
+# The cap (100 cards) is covered by solo-cap.yaml, which swipes to it.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app.yaml
+- extendedWaitUntil:
+    visible: '(?i)play alone'
+    timeout: 30000
+- takeScreenshot: solo-1-play
+- tapOn: '(?i)play alone'
+- extendedWaitUntil:
+    visible: '(?i)^start$|c.est parti'
+    timeout: 20000
+# A fresh player has no service yet: pick four so the deck is wide.
+- runFlow:
+    when:
+      visible: '(?i)pick at least one service|choisis au moins'
+    commands:
+      - tapOn: 'Netflix'
+      - tapOn: 'Amazon Prime Video'
+      - tapOn: 'Disney Plus'
+      - tapOn: 'Canal\+'
+- takeScreenshot: solo-2-setup
+- tapOn: '(?i)^start$|c.est parti'
+- extendedWaitUntil:
+    visible: 'Solo'
+    timeout: 60000
+- assertVisible: 'Undo'
+- takeScreenshot: solo-3-swipe
+
+# 19 answers, one like among them, then the 20th: the checkpoint.
+- tapOn: 'Like'
+- repeat:
+    times: 19
+    commands:
+      - tapOn: 'Nope'
+- extendedWaitUntil:
+    visible: '(?i)keep going|continuer'
+    timeout: 10000
+- assertVisible: '(?i)pick one|choisir'
+- takeScreenshot: solo-4-checkpoint-20
+
+# Keep going back to the deck, 20 more with one like, the second checkpoint.
+- tapOn: '(?i)keep going|continuer'
+- tapOn: 'Like'
+- repeat:
+    times: 19
+    commands:
+      - tapOn: 'Nope'
+- extendedWaitUntil:
+    visible: '(?i)keep going|continuer'
+    timeout: 10000
+- takeScreenshot: solo-5-checkpoint-40
+
+# Pick one: the sheet lists the likes; a tap is tonight's pick.
+- tapOn: '(?i)pick one|choisir'
+- extendedWaitUntil:
+    visible: '(?i)which one tonight|lequel ce soir'
+    timeout: 10000
+- takeScreenshot: solo-6-pick-sheet
+- tapOn:
+    point: 20%,48%
+- extendedWaitUntil:
+    visible: '(?i)tonight.s pick|ton film du soir'
+    timeout: 20000
+- assertVisible: '(?i)where to watch|o. regarder'
+- takeScreenshot: solo-7-pick
+- tapOn: '(?i)^done$|termin.'
+- extendedWaitUntil:
+    visible: '(?i)play alone'
+    timeout: 15000
+
+# A second session, left from the top bar with no alert.
+- tapOn: '(?i)play alone'
+- tapOn: '(?i)^start$|c.est parti'
+- extendedWaitUntil:
+    visible: 'Solo'
+    timeout: 60000
+- tapOn: 'Like'
+- tapOn:
+    id: 'close'
+    optional: true
+- tapOn: '(?i)stop playing alone|arr.ter de jouer seul'
+- extendedWaitUntil:
+    visible: '(?i)open a room|ouvrir une salle'
+    timeout: 15000
+- takeScreenshot: solo-8-left

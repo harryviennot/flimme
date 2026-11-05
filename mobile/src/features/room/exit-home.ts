@@ -27,7 +27,7 @@ export function homeExit(routes: readonly NavRoute[]): HomeExit {
 }
 
 /** Takes the phone from a room screen to Home, once, with exactly one Home in the stack. */
-export function useExitRoomToHome(): () => void {
+export function useExitRoomToHome(target: '/play' | '/my-films' = '/play'): () => void {
   const state = useRootNavigationState();
   // Read when the call is made: a leave can outlive renders.
   const routes = useRef<readonly NavRoute[]>([]);
@@ -39,14 +39,14 @@ export function useExitRoomToHome(): () => void {
   const pathname = usePathname();
   const onHome = useRef(false);
   useEffect(() => {
-    onHome.current = pathname === '/play';
-  }, [pathname]);
+    onHome.current = pathname === target;
+  }, [pathname, target]);
   return useCallback(() => {
     if (onHome.current) return;
     // Going Home is a way out the player chose (Leave) or was forced into: no confirm.
     releaseRoomGuards();
-    if (homeExit(routes.current) === 'dismissTo') router.dismissTo('/play');
-    else router.replace('/play');
+    if (homeExit(routes.current) === 'dismissTo') router.dismissTo(target);
+    else router.replace(target);
     onHome.current = true;
-  }, []);
+  }, [target]);
 }

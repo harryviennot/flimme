@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { LeaveContext } from '@/features/lobby/leave-context';
 import { useLeaveRoom } from '@/features/lobby/use-leave-room';
+import { useLeaveSolo } from '@/features/solo/leave';
 import { registerRoomGuard, useExitRoomToHome, useMySeat } from '@/features/room';
 
 /**
@@ -15,6 +16,7 @@ export function RoomLeaveGuard({
   roomId,
   active = true,
   finished = false,
+  solo = false,
   children,
 }: {
   roomId: string;
@@ -22,14 +24,17 @@ export function RoomLeaveGuard({
   active?: boolean;
   /** The room is over (`done`): back and the edge swipe go Home with no alert (winner.md). */
   finished?: boolean;
+  /** A solo room: back and the edge swipe leave at once, like the Leave button, with no alert. */
+  solo?: boolean;
   children: ReactNode;
 }) {
   const seated = useMySeat(roomId) !== null;
   const ask = useLeaveRoom(roomId);
   const exitToHome = useExitRoomToHome();
+  const leaveSolo = useLeaveSolo(roomId);
   const askRef = useRef(ask);
   useEffect(() => {
-    askRef.current = finished ? exitToHome : ask;
+    askRef.current = finished ? exitToHome : solo ? leaveSolo : ask;
   });
   // Releasing sets the prop and the hook's own state together, so they stay in sync.
   const [released, setReleased] = useState(false);
@@ -46,5 +51,5 @@ export function RoomLeaveGuard({
       }),
     [],
   );
-  return <LeaveContext value={() => ask()}>{children}</LeaveContext>;
+  return <LeaveContext value={() => (solo ? leaveSolo() : ask())}>{children}</LeaveContext>;
 }
