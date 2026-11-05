@@ -35,39 +35,37 @@ appId: com.harryviennot.flimme.dev
       - tapOn:
           text: 'Like'
           optional: true
+# The room may end in the Final Cut: the bots lock in and the winner screen comes by itself.
+# Maestro matches an element's accessibility label first, so the entry is found by its label.
 - extendedWaitUntil:
-    visible: '(?i)tonight.s pick|(?i)it.s a match.*'
-    timeout: 120000
-# A match overlay may come first: Continue goes on to the winner screen.
-- runFlow:
-    when:
-      visible: '(?i)it.s a match.*'
-    commands:
-      - extendedWaitUntil:
-          visible: '(?i)tonight.s pick'
-          timeout: 60000
-- extendedWaitUntil:
-    visible: 'Share recap'
-    timeout: 40000
+    visible: 'Share an image.*'
+    timeout: 240000
 - takeScreenshot: recap-1-winner
-- tapOn: 'Share recap'
+- tapOn: 'Share an image.*'
 - extendedWaitUntil:
     visible: 'Your recap'
     timeout: 15000
 - assertVisible: 'Made with Flimme.*flimme.com'
 - assertVisible: 'We picked'
-- assertNotVisible: 'Alice'
 - takeScreenshot: recap-2-sheet
-- tapOn: 'Share'
+# A double tap on Share opens one system sheet.
+- doubleTapOn:
+    text: 'Share'
+    index: 0
 - extendedWaitUntil:
     visible: '(?i)copy|save image|airdrop|messages'
-    timeout: 20000
+    timeout: 25000
 - takeScreenshot: recap-3-share-sheet
-# The system sheet closes by tapping above it; the recap sheet is ready to share again.
+# The system sheet closes by tapping above it; the recap sheet is ready again, and swipes down.
 - tapOn:
     point: 50%,8%
 - extendedWaitUntil:
     visible: 'Your recap'
     timeout: 10000
-- tapOn: 'Close'
-- assertVisible: "Tonight's pick"
+- swipe:
+    start: 50%,22%
+    end: 50%,90%
+- extendedWaitUntil:
+    visible: 'Share an image.*'
+    timeout: 10000
+- assertNotVisible: 'Your recap'
