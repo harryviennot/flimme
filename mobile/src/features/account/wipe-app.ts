@@ -1,4 +1,5 @@
 // The wipe wired to the app's real stores (see wipe.ts). A new persisted store joins the list.
+import { gamesStore } from '@/features/analytics/games';
 import { keptRoomStore } from '@/features/room/kept-room';
 import { matchShownStore } from '@/features/room/match-shown';
 import { PROFILE_CACHE_KEY } from '@/features/profile/cache';
@@ -27,6 +28,7 @@ export function wipeLocalData(): Promise<void> {
       () => resetPersistedStore(keptRoomStore as never),
       () => resetPersistedStore(matchShownStore as never),
       () => resetPersistedStore(useHintsStore as never),
+      () => resetPersistedStore(gamesStore as never),
       () => storage.removeItemSync(PROFILE_CACHE_KEY),
     ],
     clearQueries: () => queryClient.clear(),

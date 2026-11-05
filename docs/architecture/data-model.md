@@ -388,7 +388,7 @@ erDiagram
 
 | Column | Type | Notes |
 | --- | --- | --- |
-| slug | text PK | `quick_match`, `final_cut`, `date_night` at launch |
+| slug | text PK | `quick_match`, `final_cut`, `date_night` at launch, and `solo` (M6.40: 1 and 1 player, `is_active` false so `api.create_room` refuses it, no `match_rules` rows; `api.start_solo` opens it) |
 | min_players, max_players | smallint | Date Night is 2 and 2 |
 | ends_on_first_match | boolean | False for every launch mode and read by nothing: `matches_to_end` in `defaults` decides (migrations only add, so the column stays) |
 | defaults | jsonb | Room setting defaults for the mode, and `matches_to_end` (3 at launch; a missing value reads as 3): the match that fills the shortlist starts the finale; 1 keeps the instant pick |

@@ -21,6 +21,7 @@ import {
   useMyProfile,
 } from '@/features/profile';
 import { haptics } from '@/lib/haptics';
+import { trackNameSubmit } from '@/features/analytics/events';
 
 type NameError = 'invalid' | 'notAllowed';
 
@@ -44,6 +45,8 @@ export default function NameScreen() {
   const [saving, setSaving] = useState(false);
   const [autoFocus, setAutoFocus] = useState(false);
   const touched = useRef(false);
+  // Whether the player chose a color themselves, not the one drawn for them.
+  const pickedColor = useRef(false);
 
   // Editing from a cold cache: fill the fields in once the profile arrives, if untouched.
   useEffect(() => {
@@ -76,6 +79,12 @@ export default function NameScreen() {
     switch (outcome.kind) {
       case 'saved':
         applySavedProfile(client, outcome);
+        // Home's avatar edit is not onboarding; a name asked by a code (an invite) is.
+        trackNameSubmit({
+          editing,
+          hasAvatar: pickedColor.current,
+          source: backToCode ? 'invite' : 'organic',
+        });
         if (editing || backToCode) {
           router.back();
         } else {
@@ -133,6 +142,7 @@ export default function NameScreen() {
             }}
             onChangeColor={(next) => {
               touched.current = true;
+              pickedColor.current = true;
               setColor(next);
             }}
             autoFocus={autoFocus}

@@ -10,8 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { tonightsFilters } from '@/features/ending/filters';
 import { useCountryProviders } from '@/features/host/queries';
-import { useRoom } from '@/features/room';
+import { useMySeat, useRoom } from '@/features/room';
 import { SLOW_LOADING_MS } from '@/features/swipe/feel';
+import { track } from '@/lib/analytics';
 import { layout } from '@/theme/motion';
 
 // What takes the top card's place when there is no card to show. Each is as big as a card, so
@@ -88,6 +89,11 @@ export function DoneCard({
   const { t } = useTranslation('swipe');
   const { t: te, i18n } = useTranslation('ending');
   const room = useRoom(roomId).data;
+  const isHost = useMySeat(roomId)?.role === 'host';
+  // The player ran out of cards: reported each time the card shows (it replaces the stack).
+  useEffect(() => {
+    track('game:nothing_left_view', { is_host: isHost });
+  }, [isHost]);
   const providers = useCountryProviders(room?.country).data;
   const filters = room ? tonightsFilters(room, providers, te, i18n.language) : null;
   return (

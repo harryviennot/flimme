@@ -2,12 +2,19 @@ import i18n from '@/i18n';
 
 import { render, screen } from '@testing-library/react-native';
 
+import { track } from '@/lib/analytics';
+
 import { RoomBanner } from './room-banner';
 
 let mockBanner: 'offline' | 'reconnecting' | 'stillTrying' | null = null;
 jest.mock('@/features/room', () => ({
   useRoomConnection: () => ({ banner: mockBanner, fresh: true }),
 }));
+
+jest.mock('@/lib/analytics', () => ({ track: jest.fn() }));
+jest.mock('expo-router', () => ({ useSegments: () => [] }));
+
+beforeEach(() => jest.clearAllMocks());
 
 beforeAll(async () => {
   await i18n.changeLanguage('en');
@@ -42,6 +49,20 @@ describe('RoomBanner', () => {
     mockBanner = 'reconnecting';
     await render(<RoomBanner roomId="r" waitingVotes={6} />);
     expect(screen.getByText('Reconnecting…')).toBeTruthy();
+  });
+
+  it('reports error:view once for what the banner says, and nothing when it is gone', async () => {
+    mockBanner = null;
+    const view = await render(<RoomBanner roomId="r" />);
+    expect(track).not.toHaveBeenCalled();
+    mockBanner = 'offline';
+    await view.rerender(<RoomBanner roomId="r" waitingVotes={2} />);
+    await view.rerender(<RoomBanner roomId="r" waitingVotes={3} />);
+    expect(track).toHaveBeenCalledTimes(1);
+    expect(track).toHaveBeenCalledWith('error:view', { code: 'offline', screen: '/' });
+    mockBanner = 'reconnecting';
+    await view.rerender(<RoomBanner roomId="r" />);
+    expect(track).toHaveBeenLastCalledWith('error:view', { code: 'reconnecting', screen: '/' });
   });
 
   it('says it in French too', async () => {

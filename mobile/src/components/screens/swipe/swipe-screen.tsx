@@ -8,6 +8,7 @@ import { useStore } from 'zustand';
 import { RoomBanner } from '@/components/screens/room/room-banner';
 import { Pressable } from '@/components/ui/pressable';
 import { Screen } from '@/components/ui/screen';
+import { useFirstCardView } from '@/features/analytics/use-first-card';
 import { useRoom } from '@/features/room';
 import { FRAME_METER_ON } from '@/features/dev/frame-meter';
 import { asksRewatch, rewatchAnswer, type AnswerKind } from '@/features/swipe/answer';
@@ -70,6 +71,7 @@ export function SwipeScreen({
   const topId = useStore(stack, (s) => s.mounted[0]?.title_id);
   const status = useStore(stack, (s) => s.status);
   const maxAge = useRoom(roomId).data?.max_age;
+  useFirstCardView(roomId, status === 'ready' && topId !== undefined);
   const nearMiss = useNearMiss(roomId, topId);
 
   const { flying, throwCard, landed } = useFlights(swipe.answer);

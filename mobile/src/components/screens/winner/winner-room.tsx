@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { roomSizeBucket } from '@/features/analytics/journey';
 import { useOnline } from '@/features/network';
-import { releaseRoomGuards, useExitRoomToHome } from '@/features/room';
+import { releaseRoomGuards, useExitRoomToHome, useRoomSeats } from '@/features/room';
 import { useMatchShown } from '@/features/room/match-shown';
 import { arrivedLive } from '@/features/winner/arrival';
 import { useWinner } from '@/features/winner/use-winner';
+
+import { track } from '@/lib/analytics';
 
 import { WinnerScreen } from './winner-screen';
 
@@ -16,6 +19,16 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
   const online = useOnline();
   const exitToHome = useExitRoomToHome();
   const played = useMatchShown(roomId);
+  const seats = useRoomSeats(roomId).data;
+  const players = seats ? seats.filter((seat) => seat.left_at === null).length : 0;
+  const outcome = view.status === 'ready' ? view.outcome : null;
+  // The pick is on screen: reported once per visit, with how it was made and the room's size.
+  const reported = useRef(false);
+  useEffect(() => {
+    if (!outcome || players === 0 || reported.current) return;
+    reported.current = true;
+    track('winner:view', { outcome, room_size: roomSizeBucket(players) });
+  }, [outcome, players]);
   // Read once, when the screen appears.
   const [fadeIn] = useState(() => arrivedLive(roomId, played));
 

@@ -24,6 +24,8 @@ import {
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
+  START_SOLO_ANSWERS,
+  SOLO_PICK_ANSWERS,
   TITLE_CARDS_ANSWERS,
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
@@ -76,6 +78,8 @@ import {
   setMyProvidersResult,
   setSeatPrefsResult,
   startGameResult,
+  startSoloResult,
+  soloPickResult,
   updateProfileResult,
   updateRoomSettingsResult,
   type AppConfig,
@@ -93,6 +97,8 @@ import {
   type SetMyProvidersResult,
   type SetSeatPrefsResult,
   type StartGameResult,
+  type StartSoloResult,
+  type SoloPickResult,
   type UpdateProfileResult,
   type UpdateRoomSettingsResult,
 } from '../payloads';
@@ -313,6 +319,34 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id },
         START_GAME_ANSWERS,
         startGameResult,
+      );
+    },
+
+    /**
+     * Opens and starts a solo room in one call (M6.40): one seat, no lobby, no code to share. The
+     * caller's other live solo room ends first. Settings are checked as `createRoom` checks them,
+     * and `seen_rule` is always `hide_seen`.
+     */
+    startSolo(args: { settings?: RoomSettings } = {}): Promise<StartSoloResult> {
+      return callAnswer(
+        client,
+        options,
+        'start_solo',
+        { p_settings: args.settings },
+        START_SOLO_ANSWERS,
+        startSoloResult,
+      );
+    },
+
+    /** Picks a film the seat liked in a solo room as tonight's pick and ends the room (M6.40). */
+    soloPick(args: { room_id: string; title_id: number }): Promise<SoloPickResult> {
+      return callAnswer(
+        client,
+        options,
+        'solo_pick',
+        { p_room_id: args.room_id, p_title_id: args.title_id },
+        SOLO_PICK_ANSWERS,
+        soloPickResult,
       );
     },
 

@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 135 of 278 tasks done.
+Progress: 137 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -437,7 +437,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: the vote between matches, the single-match pick, and rounds of 2 and 3 films closing are tested.
 - [x] **M6.36** One seat each among the finalists: after the matches, the liked film that gives a seat to the most present players without one · backend · M · needs M6.4 · [game-modes](game-modes.md#the-finalists)
   Done when: rule 2 of "The finalists" is tested, ties and a player who left included.
-- [ ] **M6.40** The solo game mode: a `solo` mode with one seat, `api.start_solo` and `api.solo_pick`, no join, no match and no finale, an idle solo room ended after 30 minutes, solo decks without films answered in earlier solo rooms · backend · L · needs M6.29, M6.30, M6.34 · [solo](solo-and-my-films.md#4-a-room-with-one-seat-or-a-separate-flow), [game-modes](game-modes.md#the-modes)
+- [x] **M6.40** The solo game mode: a `solo` mode with one seat, `api.start_solo` and `api.solo_pick`, no join, no match and no finale, an idle solo room ended after 30 minutes, solo decks without films answered in earlier solo rooms · backend · L · needs M6.29, M6.30, M6.34 · [solo](solo-and-my-films.md#4-a-room-with-one-seat-or-a-separate-flow), [game-modes](game-modes.md#the-modes)
   Done when: each rule of the solo mode in "The modes" is tested, the 30-minute end and a pick included.
 - [ ] **M6.41** My films in `user_titles`: the `solo` source, `liked_at`, `super_liked`, `picked_at` and `seen_at`, likes written by `api.cast_vote` and taken back by undo, a group's pick marked for every seated player, `api.my_films`, `api.my_film_card`, `api.set_film_seen`, `api.remove_my_film`, and the export · backend · L · needs M6.40, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [data-model](../architecture/data-model.md#4-film-history-and-taste)
   Done when: undo, both sources, a pick, the reads and edits, deletion and retention are tested, and nothing in a room reads a like.
@@ -565,7 +565,7 @@ Done when: the headline metrics, alerts and backups work, and the load test pass
 
 - [x] **M9.1** PostHog by region: anonymous in the EU, the UK and Switzerland unless the player opts in, identified elsewhere; the opt-out; no events from rooms with an age cap under 13 · app · L · needs M3.6, M8.7 · [analytics](analytics.md#consent-and-kids)
   Done when: tested with a French and a US device region.
-- [ ] **M9.2** The first release's events, through the typed wrapper · app · M · needs M9.1 · [analytics](analytics.md#events-sent-to-posthog)
+- [x] **M9.2** The first release's events, through the typed wrapper · app · M · needs M9.1 · [analytics](analytics.md#events-sent-to-posthog)
   Done when: each event shows in PostHog from a test device.
 - [x] **M9.3** SQL views for the headline metrics: time to a pick, rooms ending with a pick, time to finish onboarding, link to first swipe, second game · backend · M · needs M6.8, M4.1 · [analytics](analytics.md#every-metric)
   Done when: the views return sensible numbers on staging test games.

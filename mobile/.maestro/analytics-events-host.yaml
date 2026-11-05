@@ -1,0 +1,37 @@
+# M9.2, the first release's events, part 1 of 2 (the host's phone): a fresh guest on staging picks
+# a color and a name, opens a room, and shows the invite (QR, then the copy button). The dev menu's
+# Analytics log must show, once each and in this order: onboarding:name_submit (has_avatar true,
+# source organic), room:create_finish, lobby:services_submit (room_setup), room:invite_share
+# (qr_show, then code_copy). The room stays open for part 2 (analytics-events-play.yaml).
+# Run: `maestro --device <sim> test mobile/.maestro/analytics-events-host.yaml -e METRO_URL=http://localhost:<port>`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Alice'
+- tapOn: 'Violet'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- tapOn: '(?i)open a room'
+- extendedWaitUntil:
+    visible: 'Netflix'
+    timeout: 15000
+- tapOn: 'Netflix'
+- tapOn: 'Amazon Prime Video'
+- tapOn: 'Disney Plus'
+- tapOn: 'Canal\+'
+- tapOn: '(?i)open the room'
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 15000
+- openLink: flimme-dev:///dev/analytics
+- extendedWaitUntil:
+    visible: 'EVENT.*room:create_finish.*'
+    timeout: 10000
+- takeScreenshot: analytics-host-1-log

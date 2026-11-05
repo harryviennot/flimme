@@ -366,11 +366,27 @@ Host only. The room is `done` through an instant match decided less than 60 seco
 
 Host of a `done` or `abandoned` room. Creates a room with the same mode, country and settings (services rule, time budget, seen rule, quality, age cap, reveal, moods), with the caller as host. Broadcasts `next_room` with the new code on the old room's topic, so the other phones can offer "Join".
 
+### `api.start_solo(settings)`
+
+Opens and starts a solo room in one call (M6.40): no lobby, no invite, no host handover. The room still draws a code, and nobody can use it. At most 20 calls per 10 minutes per profile (`rate_limited`).
+
+| | |
+| --- | --- |
+| Refused | No name (`name_required`), no country (`country_required`), settings that fail `internal.room_settings_error` or a `seen_rule` other than `hide_seen` (`invalid_settings` with the `field`) |
+| Writes | The caller's other live solo room ends first, as `api.leave_room` ends it (one solo session at a time). Then one room in mode `solo` (`service_rule` `any_member`, `rule` null) and one host seat with `super_likes_left` 32767. The start goes through `api.start_game` unchanged |
+| Answers | `ok` with `room_id`, `member_id` and `state` `swiping`; `dealing` with `room_id` and `member_id` under the server's deck engine; `too_few_films` with `eligible` (the new room is `abandoned`, not back in the lobby) |
+
+`api.create_room('solo')` keeps answering `unknown_mode`: the mode's row has `is_active` false, so it isn't in `api.game_modes` either. `api.join_room` and `api.room_preview` treat a solo room as a code nobody holds (`not_found` or `closed`, the answers for a room that doesn't exist), for everyone, its player included. A refused join counts as a failed attempt.
+
+### `api.solo_pick(room, title)`
+
+The pick of a solo room (M6.40). The caller needs a live seat in the room (otherwise 42501); a room that isn't solo raises 22023. The film must carry a like or super like from the seat that still exists (`not_liked` otherwise, an undone like included). Writes the `matches` row (kind `unanimous`, 1 like, 1 present, `pick_order` 1, no `matched_at`), the card `matched`, and the room `done` with `decided_at` and `ended_at`; broadcasts `state_changed` done. A retry for the same film once done answers `ok`; anything else on a room that isn't swiping answers `closed` with the `state`.
+
 ### `internal.sweep_rooms()`
 
 Runs every minute. Each room is handled in its own short transaction, skipping rooms another transaction has locked (they'll come round next minute), in batches, so the sweeper never holds up a vote.
 
-`internal.sweep_rooms()` is a procedure (cron calls it; it commits after each room, in batches of 100). The work for one room is `internal.sweep_room(room)`, which answers what it did: `abandoned`, `host_changed`, `dealt`, `finale`, `no_pick`, `closed_round`, `rechecked`, `locked` or `nothing`. **One action per room per run**, in this order: close an expired round (two seconds after its deadline); abandon (fewer than 2 seats present for 5 minutes: a dropped seat stops being present 90 seconds after it was last heard from, a seat that left the moment it left; or the 1-hour limit with nothing liked); the 1-hour finale; the re-check of liked films for a seat silent 3 minutes (once per silence, tracked by `room_members.silence_checked_at`); the room's own finale rules (`maybe_start_finale`, which also covers the time limit and everyone done); the everyone-done ending with no pick. The next row waits for the next minute, so a room nobody is in never opens a vote and a live round is never abandoned. A finale with no open round is abandoned at the 1-hour limit.
+`internal.sweep_rooms()` is a procedure (cron calls it; it commits after each room, in batches of 100). The work for one room is `internal.sweep_room(room)`, which answers what it did: `abandoned`, `host_changed`, `dealt`, `finale`, `no_pick`, `closed_round`, `rechecked`, `ended`, `locked` or `nothing`. **One action per room per run**, in this order: close an expired round (two seconds after its deadline); abandon (fewer than 2 seats present for 5 minutes: a dropped seat stops being present 90 seconds after it was last heard from, a seat that left the moment it left; or the 1-hour limit with nothing liked); the 1-hour finale; the re-check of liked films for a seat silent 3 minutes (once per silence, tracked by `room_members.silence_checked_at`); the room's own finale rules (`maybe_start_finale`, which also covers the time limit and everyone done); the everyone-done ending with no pick. The next row waits for the next minute, so a room nobody is in never opens a vote and a live round is never abandoned. A finale with no open round is abandoned at the 1-hour limit. A swiping solo room has one row of its own and none of the others: it ends `done`, with no pick, when its latest `swipe_log` row (a vote or an undo; the heartbeat doesn't count), or else `started_at`, is 30 minutes old. It is never abandoned for fewer than 2 seats present, never reaches the 1-hour limit or a finale, and has no no-pick wait.
 
 | Rooms | Check | Action | Broadcast |
 | --- | --- | --- | --- |
@@ -383,6 +399,7 @@ Runs every minute. Each room is handled in its own short transaction, skipping r
 | Swiping | Fewer than 2 present for 5 minutes | `abandoned` | `state_changed` |
 | Swiping or finale, past the 1-hour limit | | Finale if films have likes and the room is swiping, otherwise `abandoned` | `finale_started` or `state_changed` |
 | Finale, round past its deadline | No phone closed it | `internal.close_round_stage` | `match` |
+| Swiping, solo | 30 minutes since the latest swipe, else since the start | `done`, no pick (`ended`) | `state_changed` |
 
 ### Changes to functions already written
 
@@ -398,6 +415,7 @@ Runs every minute. Each room is handled in its own short transaction, skipping r
 | `api.update_room_settings` | Host may change filters while swiping; every seat's deck is re-ranked |
 | `internal.begin_swiping` | Sets `expires_at` to 1 hour after the start |
 | `internal.deal_cards`, `internal.deal_baseline` | Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing |
+| `internal.maybe_start_finale`, `api.join_room`, `api.room_preview`, `api.leave_room`, `internal.deck_candidates` | The solo mode (M6.40): no finale; invisible to join and preview; leaving ends the room; the deal skips films answered in earlier solo rooms |
 
 ## Changes to the data model
 
@@ -439,7 +457,10 @@ All placeholders until playtests.
 | Vote now | After 10 cards each and 2 liked films, or once the room has a match |
 | Too few films to start | Fewer than 20 eligible |
 | Everyone out of cards, nothing liked | 5 minutes for the host to change filters |
-| Fewer than 2 players present | 5 minutes, then abandoned |
+| Fewer than 2 players present | 5 minutes, then abandoned (not in a solo room) |
+| Solo room without a vote | 30 minutes, then done |
+| Solo super likes | 32767 (no limit) |
+| Solo starts | 20 per 10 minutes per profile |
 | Lobby expiry | 3 hours |
 | Game limit | 1 hour after the start |
 | Server silence before the phone deals the SQL baseline | 8 seconds (already in the data model) |

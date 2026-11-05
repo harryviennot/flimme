@@ -9,9 +9,13 @@ export {
   ANALYTICS_HOST,
   INSTALL_ID_MONTHS,
   KIDS_AGE,
+  REGISTERED_PROPS,
   createAnalytics,
+  gamesPlayedBucket,
   type AnalyticsEvent,
   type AnalyticsProps,
+  type EventProps,
+  type RegisteredProps,
   type LogEntry,
   type RoomCap,
 } from './analytics-core';
@@ -52,6 +56,8 @@ const deps: AnalyticsDeps = {
 export const analytics = createAnalytics(deps);
 
 export const track = analytics.track;
+export const trackWhenRoomKnown = analytics.trackWhenRoomKnown;
+export const setRegistered = analytics.setRegistered;
 export const screen = analytics.screen;
 export const setRoomCap = analytics.setRoomCap;
 export const clearRoomCap = analytics.clearRoomCap;
