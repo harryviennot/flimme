@@ -16,25 +16,34 @@ async function main() {
           }),
         );
 
+  // The host of the backend is not personal data: printing it shows where the bots go.
+  console.log(`Target ${config.target}: ${new URL(backend.url).host}`);
+
   const bots: Bot[] = [];
-  const stopAll = async () => {
-    await Promise.all(bots.map((bot) => bot.stop()));
-    process.exit(0);
+  const stopAll = async (exitCode = 0) => {
+    await Promise.all(bots.map((bot) => bot.stop().catch(() => {})));
+    process.exit(exitCode);
   };
   process.on('SIGINT', () => void stopAll());
   process.on('SIGTERM', () => void stopAll());
 
-  for (let index = 1; index <= config.count; index += 1) {
-    bots.push(
-      await startBot({
-        index,
-        backend,
-        code: config.code,
-        swipeMs: config.swipeMs,
-        likeRate: config.likeRate,
-        log: console.log,
-      }),
-    );
+  try {
+    for (let index = 1; index <= config.count; index += 1) {
+      bots.push(
+        await startBot({
+          index,
+          backend,
+          code: config.code,
+          swipeMs: config.swipeMs,
+          likeRate: config.likeRate,
+          log: console.log,
+        }),
+      );
+    }
+  } catch (error) {
+    // A bot that could not join: leave the ones already in, then report.
+    console.error(String((error as Error).message ?? error));
+    await stopAll(1);
   }
   console.log(`${config.count} bots present on ${config.target}. Ctrl-C to leave.`);
 }
