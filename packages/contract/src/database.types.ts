@@ -202,14 +202,14 @@ export type Database = {
                   ]
                 },"rooms": {
                   Row: {
-                    "code": string,"country": string,"created_at": string,"decided_at": string | null,"ended_at": string | null,"finale_at": string | null,"id": string,"locked": boolean,"max_age": number | null,"max_players": number,"mode": string,"offer_kinds": ("subscription"|"free"|"ads"|"rent"|"buy")[],"provider_ids": (number)[],"quality": "standard"|"hidden_gems"|"guilty_pleasures","reveal": "party"|"blind","runtime_max": number | null,"seen_rule": "hide_seen"|"allow_rewatch"|"show_all","service_rule": "any_member"|"every_member","started_at": string | null,"state": "lobby"|"dealing"|"swiping"|"finale"|"done"|"abandoned","stats": Json | null
+                    "code": string,"country": string,"created_at": string,"decided_at": string | null,"ended_at": string | null,"finale_at": string | null,"id": string,"locked": boolean,"max_age": number | null,"max_players": number,"mode": string,"next_room_code": string | null,"next_room_id": string | null,"offer_kinds": ("subscription"|"free"|"ads"|"rent"|"buy")[],"provider_ids": (number)[],"quality": "standard"|"hidden_gems"|"guilty_pleasures","reveal": "party"|"blind","runtime_max": number | null,"seen_rule": "hide_seen"|"allow_rewatch"|"show_all","service_rule": "any_member"|"every_member","started_at": string | null,"state": "lobby"|"dealing"|"swiping"|"finale"|"done"|"abandoned","stats": Json | null
                   }
                   ComputedFields: never
                   Insert: {
-                           "code"?: string | null,"country"?: string | null,"created_at"?: string | null,"decided_at"?: string | null,"ended_at"?: string | null,"finale_at"?: string | null,"id"?: string | null,"locked"?: boolean | null,"max_age"?: number | null,"max_players"?: number | null,"mode"?: string | null,"offer_kinds"?: ("subscription"|"free"|"ads"|"rent"|"buy")[] | null,"provider_ids"?: (number)[] | null,"quality"?: "standard"|"hidden_gems"|"guilty_pleasures" | null,"reveal"?: "party"|"blind" | null,"runtime_max"?: number | null,"seen_rule"?: "hide_seen"|"allow_rewatch"|"show_all" | null,"service_rule"?: "any_member"|"every_member" | null,"started_at"?: string | null,"state"?: "lobby"|"dealing"|"swiping"|"finale"|"done"|"abandoned" | null,"stats"?: Json | null
+                           "code"?: string | null,"country"?: string | null,"created_at"?: string | null,"decided_at"?: string | null,"ended_at"?: string | null,"finale_at"?: string | null,"id"?: string | null,"locked"?: boolean | null,"max_age"?: number | null,"max_players"?: number | null,"mode"?: string | null,"next_room_code"?: never,"next_room_id"?: string | null,"offer_kinds"?: ("subscription"|"free"|"ads"|"rent"|"buy")[] | null,"provider_ids"?: (number)[] | null,"quality"?: "standard"|"hidden_gems"|"guilty_pleasures" | null,"reveal"?: "party"|"blind" | null,"runtime_max"?: number | null,"seen_rule"?: "hide_seen"|"allow_rewatch"|"show_all" | null,"service_rule"?: "any_member"|"every_member" | null,"started_at"?: string | null,"state"?: "lobby"|"dealing"|"swiping"|"finale"|"done"|"abandoned" | null,"stats"?: Json | null
                          }
                         Update: {
-                           "code"?: string | null,"country"?: string | null,"created_at"?: string | null,"decided_at"?: string | null,"ended_at"?: string | null,"finale_at"?: string | null,"id"?: string | null,"locked"?: boolean | null,"max_age"?: number | null,"max_players"?: number | null,"mode"?: string | null,"offer_kinds"?: ("subscription"|"free"|"ads"|"rent"|"buy")[] | null,"provider_ids"?: (number)[] | null,"quality"?: "standard"|"hidden_gems"|"guilty_pleasures" | null,"reveal"?: "party"|"blind" | null,"runtime_max"?: number | null,"seen_rule"?: "hide_seen"|"allow_rewatch"|"show_all" | null,"service_rule"?: "any_member"|"every_member" | null,"started_at"?: string | null,"state"?: "lobby"|"dealing"|"swiping"|"finale"|"done"|"abandoned" | null,"stats"?: Json | null
+                           "code"?: string | null,"country"?: string | null,"created_at"?: string | null,"decided_at"?: string | null,"ended_at"?: string | null,"finale_at"?: string | null,"id"?: string | null,"locked"?: boolean | null,"max_age"?: number | null,"max_players"?: number | null,"mode"?: string | null,"next_room_code"?: never,"next_room_id"?: string | null,"offer_kinds"?: ("subscription"|"free"|"ads"|"rent"|"buy")[] | null,"provider_ids"?: (number)[] | null,"quality"?: "standard"|"hidden_gems"|"guilty_pleasures" | null,"reveal"?: "party"|"blind" | null,"runtime_max"?: number | null,"seen_rule"?: "hide_seen"|"allow_rewatch"|"show_all" | null,"service_rule"?: "any_member"|"every_member" | null,"started_at"?: string | null,"state"?: "lobby"|"dealing"|"swiping"|"finale"|"done"|"abandoned" | null,"stats"?: Json | null
                          }
                         Relationships: [
                     
@@ -280,6 +280,9 @@ export type Database = {
                            },
 "my_next_cards":
 { Args: { "p_language"?: string,"p_limit"?: number,"p_member_id"?: string,"p_room_id": string }; Returns: Json
+                           },
+"play_again":
+{ Args: { "p_room_id": string }; Returns: Json
                            },
 "remove_member":
 { Args: { "p_member_id": string,"p_room_id": string }; Returns: Json

@@ -14,3 +14,14 @@ describe('state_changed payload', () => {
     expect(back).toEqual({ state: 'lobby', reason: 'too_few_films', eligible: 12 });
   });
 });
+
+describe('next_room payload', () => {
+  it('names the new room and the host by seat id, with no name', () => {
+    const payload: RoomEventPayloads['next_room'] = {
+      room_id: 'r1',
+      code: '123456',
+      host_member_id: 'm1',
+    };
+    expect(Object.keys(payload).sort()).toEqual(['code', 'host_member_id', 'room_id']);
+  });
+});

@@ -435,6 +435,7 @@ erDiagram
 | reveal | reveal_mode | `party` (near-miss teasers) or `blind` |
 | max_players | smallint | 10 at launch |
 | locked | boolean | The host locked the room: no new seats, by code or by link (`api.set_room_locked`, M4.23). Seats that left still rejoin. The lock stays when the host leaves |
+| next_room_id | uuid | The room Play again opened from this one (`api.play_again`, M6.22); null until then. `api.rooms` also shows `next_room_code`, the code while that room is open, so a phone that missed `next_room` still finds it |
 | provider_ids | integer[] | Tonight's services, recomputed from the seats on every change, plus the country's free services while `include_free_services` is on |
 | include_free_services | boolean | Default true: the country's `free_for_all` services count for the room. The host's switch comes with M4.4 |
 | rule | jsonb | The mode's match_rules rows, frozen at start |
@@ -704,7 +705,7 @@ The veto, rank and stage-closing functions are described here but not yet in sch
 
 Every path to `done` fires a trigger that queues `room_finished`. The pipeline worker then:
 
-1. Writes `rooms.stats` for the recap card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes"). Built (M6.8): `internal.write_room_stats` holds `outcome`, `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median over seats that swiped), `players` and `finale_reason`; the worker only calls it. The host-control fields wait for M18.9, M18.5, M18.6 and M6.22; steps 2 and 3 wait for M19.
+1. Writes `rooms.stats` for the recap card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes"). Built (M6.8): `internal.write_room_stats` holds `outcome`, `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median over seats that swiped), `players`, `finale_reason`, `matches` and `next_room_id` (copied from `rooms.next_room_id`, merged by `api.play_again` when it runs after the stats were written); the worker only calls it. The host-control fields wait for M18.9, M18.5 and M18.6; steps 2 and 3 wait for M19.
 2. Turns "seen it" swipes into `user_titles` rows with source `app`.
 3. Queues a taste refresh for every seat.
 
@@ -804,6 +805,7 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `member_removed` | room | remove_member | seat | Refetches seats (the removed phone's own handling: M4.13) |
 | `room_locked` | room | set_room_locked | locked | Refetches the room (only sent when the value changes) |
 | `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
+| `next_room` | room | play_again | `room_id`, `code`, `host_member_id` (the host's seat in this room, never a name) | Reads the room and offers "Join" (sent again on a repeat call) |
 | `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state, optional reason and eligible (a start sent back to the lobby: `too_few_films`) | Moves to the next screen ("Shuffling" while dealing) |
 | `deck_updated` | room | cast_vote, deal_cards | seat ids | Those seats refetch behind their mounted cards |

@@ -29,7 +29,7 @@ The event list lives in `packages/contract/src/realtime.ts`. Adding an event mea
 | `near_miss` | A film is one like short of the match rule, with 2 or more likes and a present player left to answer (Party mode). Carries `needed` | "2 of 3 of you liked this" |
 | `match` | A match, or the finale's result (`decided`, points, vetoes) | The match overlay; the winner screen if decided |
 | `finale_started`, `round_progress` | The finale opens; a seat locks in (carries `round_id`, `locked` seat ids, `of`) | Refetches the round |
-| `next_room` | The host taps Play again (carries the new code) | Offers "Join" |
+| `next_room` | The host taps Play again (`room_id`, `code`, `host_member_id`: the host's seat in this room, no name); sent again on a repeat call | Reads the room (`api.rooms` also carries `next_room_id` and `next_room_code` for phones that missed it) and offers "Join" |
 
 ## Who sees what
 
