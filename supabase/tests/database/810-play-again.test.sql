@@ -5,7 +5,7 @@
 -- the host's seat moods are copied, and the event names the host by seat id, never by name.
 
 begin;
-select plan(56);
+select plan(59);
 
 select tests.create_provider(9001, 'Play Again Service');
 select tests.create_player('x1');   -- a stranger, seated nowhere
@@ -69,8 +69,8 @@ update public.rooms set
 where id = pg_temp.rid('a');
 update public.room_members set mood_slugs = '{cosy,funny}' where id = tests.member_id('a1', pg_temp.rid('a'));
 insert into public.profile_providers (profile_id, provider_id) values (tests.uid('a1'), 9001);
-update public.profiles set avatar_key = 'avatar_fox' where id = tests.uid('a1');
-update public.room_members set avatar_key = 'avatar_fox' where id = tests.member_id('a1', pg_temp.rid('a'));
+update public.profiles set avatar_key = 'violet' where id = tests.uid('a1');
+update public.room_members set avatar_key = 'violet' where id = tests.member_id('a1', pg_temp.rid('a'));
 
 -- 11 (before any call): with no next room the code is null.
 select is(pg_temp.view_of('a2', pg_temp.rid('a')),
@@ -85,7 +85,7 @@ create temp table nr as
 grant select on nr to public;
 select is((select answer->>'status' from first_call), 'ok', '1 a done room: the host gets ok');
 select isnt((select id from nr), pg_temp.rid('a'), '1 the room is a new one');
-select is((select code from public.rooms where id = (select id from nr)), (select code from nr), '1 the answer carries the new code');
+select is((select code::text from public.rooms where id = (select id from nr)), (select code from nr), '1 the answer carries the new code');
 select is((select state::text from public.rooms where id = (select id from nr)), 'lobby', '1 the new room is a lobby');
 select is(
   (select row(n.mode, n.country, n.service_rule, n.offer_kinds, n.include_free_services, n.runtime_max,
@@ -103,7 +103,7 @@ select is((select count(*) from public.room_members where room_id = (select id f
 select is(
   (select row(m.role, m.display_name, m.avatar_key, m.mood_slugs, m.provider_ids)::text
    from public.room_members m where m.room_id = (select id from nr)),
-  row('host'::public.member_role, 'a1', 'avatar_fox', '{cosy,funny}'::text[], '{9001}'::integer[])::text,
+  row('host'::public.member_role, 'a1', 'violet', '{cosy,funny}'::text[], '{9001}'::integer[])::text,
   '3 the new host seat has the host role, the profile''s name, avatar and services, and the old seat''s moods');
 select is((select provider_ids from public.rooms where id = (select id from nr)), '{9001}'::integer[],
   '3 the room''s providers are refreshed from the seat (free services off, as copied)');
