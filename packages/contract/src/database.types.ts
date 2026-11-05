@@ -272,11 +272,20 @@ export type Database = {
 "leave_room":
 { Args: { "p_room_id": string }; Returns: Json
                            },
+"my_film_card":
+{ Args: { "p_language"?: string,"p_title_id": number }; Returns: Json
+                           },
+"my_films":
+{ Args: { "p_cursor"?: string,"p_filter"?: string,"p_language"?: string,"p_segment": string }; Returns: Json
+                           },
 "my_next_cards":
 { Args: { "p_language"?: string,"p_limit"?: number,"p_member_id"?: string,"p_room_id": string }; Returns: Json
                            },
 "remove_member":
 { Args: { "p_member_id": string,"p_room_id": string }; Returns: Json
+                           },
+"remove_my_film":
+{ Args: { "p_title_id": number }; Returns: Json
                            },
 "report_member":
 { Args: { "p_member_id": string,"p_reason": string,"p_room_id": string }; Returns: Json
@@ -292,6 +301,9 @@ export type Database = {
                            },
 "set_analytics_choice":
 { Args: { "p_choice": "on"|"off"|"detailed","p_version": string }; Returns: Json
+                           },
+"set_film_seen":
+{ Args: { "p_seen": boolean,"p_title_id": number }; Returns: Json
                            },
 "set_my_providers":
 { Args: { "p_provider_ids": (number)[] }; Returns: Json

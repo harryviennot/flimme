@@ -22,6 +22,10 @@ import {
   START_SOLO_ANSWERS,
   SOLO_PICK_ANSWERS,
   TITLE_CARDS_ANSWERS,
+  MY_FILMS_ANSWERS,
+  MY_FILM_CARD_ANSWERS,
+  SET_FILM_SEEN_ANSWERS,
+  REMOVE_MY_FILM_ANSWERS,
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
 } from '../answers';
@@ -68,6 +72,25 @@ const ok = (data: unknown): Response => ({ data, error: null, status: 200 });
 
 const ROOM = '11111111-1111-1111-1111-111111111111';
 const MEMBER = '22222222-2222-2222-2222-222222222222';
+const CARD = {
+  title_id: 7,
+  tmdb_id: 60000007,
+  title: 'Film Fictif',
+  overview: null,
+  year: 2001,
+  runtime_min: 100,
+  genre_ids: [18],
+  tmdb_score: 7.5,
+  tmdb_votes: 1000,
+  poster_path: '/p.jpg',
+  poster_placeholder: null,
+  backdrop_path: '/b.jpg',
+  trailer_key: null,
+  directors: ['Dora Director'],
+  cast: ['Alma Actor'],
+  providers: [{ provider_id: 8, kind: 'subscription', name: 'Service', logo_path: null }],
+  watch_link: null,
+};
 
 // Every answer of every wrapped function, with the extra fields the SQL sends.
 const cases = [
@@ -145,6 +168,7 @@ const cases = [
         games: [
           {
             room_id: ROOM,
+            mode: 'quick_match',
             joined_at: '2026-11-04T20:00:00Z',
             left_at: null,
             display_name: 'Camille',
@@ -232,6 +256,30 @@ const cases = [
     answers: SOLO_PICK_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.soloPick({ room_id: ROOM, title_id: 7 }),
     full: { ok: { title_id: 7 }, closed: { state: 'done' } },
+  },
+  {
+    name: 'my_films',
+    answers: MY_FILMS_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.myFilms({ segment: 'liked' }),
+    full: { ok: { films: [], next_cursor: null } },
+  },
+  {
+    name: 'my_film_card',
+    answers: MY_FILM_CARD_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.myFilmCard({ title_id: 7 }),
+    full: { ok: { card: CARD, seen: false, liked: true } },
+  },
+  {
+    name: 'set_film_seen',
+    answers: SET_FILM_SEEN_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.setFilmSeen({ title_id: 7, seen: true }),
+    full: {},
+  },
+  {
+    name: 'remove_my_film',
+    answers: REMOVE_MY_FILM_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.removeMyFilm({ title_id: 7 }),
+    full: {},
   },
   {
     name: 'title_cards',
@@ -719,6 +767,74 @@ describe('views', () => {
       fake(() => ({ data: null, error: { message: 'denied', code: '42501' }, status: 403 })).client,
     );
     await expect(api.appConfig()).rejects.toMatchObject({ kind: 'denied' });
+  });
+});
+
+describe('my films', () => {
+  const tile = {
+    title_id: 7,
+    title: 'Film Fictif',
+    year: 2001,
+    poster_path: null,
+    is_picked: false,
+    is_super_liked: true,
+    at: '2026-11-05T10:00:00Z',
+  };
+
+  it('my_films sends the segment, the filter, the cursor and the language', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok', films: [tile], next_cursor: '1_2' }));
+    const result = await createApi(client, { validate: true }).myFilms({
+      segment: 'liked',
+      filter: 'solo',
+      cursor: '5_6',
+      language: 'fr',
+    });
+    expect(result).toEqual({ status: 'ok', films: [tile], next_cursor: '1_2' });
+    expect(calls[0]).toEqual({
+      fn: 'my_films',
+      args: { p_segment: 'liked', p_filter: 'solo', p_cursor: '5_6', p_language: 'fr' },
+    });
+  });
+
+  it('my_films defaults to the all filter and the first page', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok', films: [], next_cursor: null }));
+    await createApi(client).myFilms({ segment: 'seen' });
+    expect(calls[0]).toEqual({
+      fn: 'my_films',
+      args: { p_segment: 'seen', p_filter: 'all', p_cursor: undefined, p_language: undefined },
+    });
+  });
+
+  it('my_films rejects a tile with a wrong shape', async () => {
+    const { client } = fake(() =>
+      ok({ status: 'ok', films: [{ ...tile, is_picked: 'yes' }], next_cursor: null }),
+    );
+    await expect(
+      createApi(client, { validate: true }).myFilms({ segment: 'liked' }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
+  });
+
+  it('my_film_card carries seen and liked next to the card', async () => {
+    const { client, calls } = fake(() =>
+      ok({ status: 'ok', card: CARD, seen: true, liked: false }),
+    );
+    await expect(
+      createApi(client, { validate: true }).myFilmCard({ title_id: 7, language: 'en' }),
+    ).resolves.toEqual({ status: 'ok', card: CARD, seen: true, liked: false });
+    expect(calls[0]).toEqual({ fn: 'my_film_card', args: { p_title_id: 7, p_language: 'en' } });
+  });
+
+  it('set_film_seen and remove_my_film send the film and resolve not_found as a value', async () => {
+    const { client, calls } = fake(() => ok({ status: 'not_found' }));
+    const api = createApi(client, { validate: true });
+    await expect(api.setFilmSeen({ title_id: 7, seen: false })).resolves.toEqual({
+      status: 'not_found',
+    });
+    await expect(api.removeMyFilm({ title_id: 7 })).resolves.toEqual({ status: 'not_found' });
+    expect(calls).toEqual([
+      { fn: 'set_film_seen', args: { p_title_id: 7, p_seen: false } },
+      { fn: 'remove_my_film', args: { p_title_id: 7 } },
+    ]);
   });
 });
 
