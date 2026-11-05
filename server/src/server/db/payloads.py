@@ -62,3 +62,23 @@ CatalogRefreshMessage = Annotated[
 ]
 
 CatalogRefreshAdapter: TypeAdapter[CatalogRefreshMessage] = TypeAdapter(CatalogRefreshMessage)
+
+
+class HealthSignal(BaseModel):
+    """One line of `internal.ops_health()`. The thresholds live in SQL; `value` is null where
+    nothing exists yet. `ids` is only on `new_reports` (report ids, never a seat or a name)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    value: float | None
+    threshold: float
+    crossed: bool
+    ids: list[UUID] | None = None
+
+
+class OpsHealth(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    checked_at: str
+    signals: list[HealthSignal]

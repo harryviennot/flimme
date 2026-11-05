@@ -421,3 +421,35 @@ language sql
 as $$
   with gone as (delete from cron.job where jobid = job_id returning 1) select exists (select from gone)
 $$;
+
+-- cron.job_run_details: a table here, never filled by a run; tests insert rows.
+create table cron.job_run_details (
+  jobid bigint,
+  runid bigint primary key generated always as identity,
+  job_pid integer,
+  database text,
+  username text,
+  command text,
+  status text,
+  return_message text,
+  start_time timestamptz,
+  end_time timestamptz
+);
+
+-- pgmq.metrics_all: one row per queue, ages in whole seconds like the extension.
+create function pgmq.metrics_all() returns table (
+  queue_name text, queue_length bigint, newest_msg_age_sec integer, oldest_msg_age_sec integer,
+  total_messages bigint, scrape_time timestamptz)
+language plpgsql
+as $$
+declare
+  q record;
+begin
+  for q in select m.queue_name as name from pgmq.meta m loop
+    return query execute format(
+      'select %L::text, count(*), extract(epoch from now() - max(enqueued_at))::integer,
+              extract(epoch from now() - min(enqueued_at))::integer, count(*), now()
+       from pgmq.%I', q.name, 'q_' || q.name);
+  end loop;
+end
+$$;
