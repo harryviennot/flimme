@@ -2,7 +2,7 @@ import type { Card, RunnersUpResult } from '@flimme/contract';
 
 import type { AvatarColor } from '@/components/ui/avatar';
 import { formatList } from '@/features/lobby/names';
-import { toAvatarColor } from '@/features/profile';
+import { toAvatarColor } from '@/features/profile/device';
 
 // What the winner screen shows under the pick (winner.md#the-runners-up): the read's films, in the
 // read's order, each with what the read says about who liked it and nothing else. Party carries the
