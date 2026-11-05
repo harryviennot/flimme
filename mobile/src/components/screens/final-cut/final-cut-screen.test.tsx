@@ -167,6 +167,16 @@ describe('the Final Cut screen', () => {
     expect(names(/Beta/)).toEqual(['rankNext']);
     expect(screen.queryByLabelText(/Vetoed/)).toBeNull();
     expect(screen.queryByText(/Long-press/)).toBeNull();
+    expect(screen.getByLabelText('The final vote. Pick one.')).toBeTruthy();
+    // a long press changes nothing on the screen: the labels stay, and the model is not told of a veto stamp
+    await fireEvent(screen.getByLabelText(/Beta/), 'longPress');
+    expect(screen.getByLabelText('Beta, 2020. Not picked, counts as 2')).toBeTruthy();
+    expect(screen.getByLabelText('Alpha, 2020. Your pick')).toBeTruthy();
+    // the two posters share the row, each capped at 144 points and centred
+    for (const id of [10, 20]) {
+      expect(screen.getByTestId(`finalist-${id}`).props.className).toMatch(/max-w-36/);
+    }
+    expect(screen.queryByTestId('finalist-30')).toBeNull();
   });
 
   it('shows the intro line once on a Final Cut', async () => {
