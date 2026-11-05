@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 119 of 270 tasks done.
+Progress: 120 of 270 tasks done.
 
 ```mermaid
 flowchart LR
@@ -529,7 +529,7 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: tested.
 - [ ] **M8.7** Settings: language, analytics opt-out, download my data, delete my data, About with the TMDB logo and notice and the JustWatch credit, policy, terms, support · app · L · needs M8.5, M8.6, M3.8, M8.12 · [privacy](privacy.md#players-rights-in-practice), [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
   Done when: every item works on both platforms.
-- [ ] **M8.8** Guest cleanup: guests inactive for 90 days are deleted from `auth.users` · backend · M · needs M1.5, M8.9 · [security](../architecture/security.md#guest-accounts)
+- [x] **M8.8** Guest cleanup: guests inactive for 90 days are deleted from `auth.users` · backend · M · needs M1.5, M8.9 · [security](../architecture/security.md#guest-accounts)
   Done when: a scheduled run deletes a test guest on staging.
 - [x] **M8.9** The daily retention job (`internal.run_retention`) · backend · M · needs M1.5 · [operations](../architecture/operations.md#retention-jobs)
   Done when: each retention rule is tested.
