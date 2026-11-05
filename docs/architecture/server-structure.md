@@ -300,7 +300,8 @@ All from environment variables, validated at start: the process refuses to start
 | `API_DATABASE_URL` | API | The API's login (`flimme_http` in role `app_http`), through the shared pooler in session mode |
 | `DATABASE_URL` | Local only | Stands in for any of the four above when `ENVIRONMENT` is `local`. Staging and production ignore it |
 | `SUPABASE_URL` | API, trainer | For the signing keys, the admin API and Storage |
-| `SUPABASE_SECRET_KEY` | API | Only for deleting accounts |
+| `SUPABASE_SECRET_KEY` | API | Only for deleting accounts. Required outside `local` |
+| `POSTHOG_PERSONAL_API_KEY`, `POSTHOG_PROJECT_ID`, `POSTHOG_HOST` | API | To delete a deleted player's analytics person (`POST /v1/account/delete`). The key and project id are required in `production`; without a key the step is skipped. Host defaults to `https://eu.posthog.com` |
 | `STORAGE_BUCKET` | Trainer, deck worker | Models and training exports |
 | `TMDB_READ_TOKEN` | Pipeline worker, API | TMDB's read access token |
 | `LETTERBOXD_USER_AGENT` | Pipeline worker, API | The app's name and contact, for feed requests |

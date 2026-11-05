@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 124 of 270 tasks done.
+Progress: 125 of 270 tasks done.
 
 ```mermaid
 flowchart LR
@@ -523,7 +523,7 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: all four URLs are live.
 - [x] **M8.4** The server's HTTP API (FastAPI): token checks with ES256 against Supabase's signing keys, request limits, health check · server · L · needs M2.2, M1.12 · [server-structure](../architecture/server-structure.md#the-http-api), [security](../architecture/security.md#the-servers-http-api-and-letterboxd-uploads)
   Done when: a bad or expired token is refused in tests; deployed with the worker.
-- [ ] **M8.5** Delete my data: an HTTP API route that deletes the guest's auth user (everything cascades) and their analytics person · server · M · needs M8.4 · [security](../architecture/security.md#account-deletion-and-data-export)
+- [x] **M8.5** Delete my data: an HTTP API route that deletes the guest's auth user (everything cascades) and their analytics person · server · M · needs M8.4 · [security](../architecture/security.md#account-deletion-and-data-export)
   Done when: after deletion, nothing about the player remains except anonymous seats.
 - [x] **M8.6** `api.export_my_data` matches the first release (profile, services, seen films, votes) · backend · M · needs M1.5 · [privacy](privacy.md#players-rights-in-practice)
   Done when: tested.
