@@ -51,7 +51,7 @@ begin
     where r.state = 'abandoned' and r.started_at is null
       and coalesce(r.ended_at, r.expires_at) < now() - interval '7 days'
       -- A report is a safety record kept 12 months (data-model.md#retention) and would cascade
-      -- with its room: the room waits until the report rule has deleted its reports.
+      -- with its room: the room waits while it holds one. A report past 12 months goes with its room.
       and not exists (select 1 from public.member_reports mr
                       where mr.room_id = r.id and mr.created_at >= now() - interval '12 months')
     order by r.id limit p_cap + 1),

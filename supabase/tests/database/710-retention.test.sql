@@ -227,9 +227,9 @@ select is((select count(*) from public.member_reports where reporter_member_id =
           1::bigint, 'one 11 months old stays');
 
 -- The answer and the ingest_runs row
-select is((select r->'lobbies'->>'deleted' from run1), '2', 'the answer counts the lobbies deleted');
+select is((select r->'lobbies'->>'deleted' from run1), '3', 'the answer counts the lobbies deleted');
 select is((select r->'rate_limits'->>'deleted' from run1), '1', 'and the rate limits');
-select is((select r->'member_reports'->>'deleted' from run1), '2', 'and the reports');
+select is((select r->'member_reports'->>'deleted' from run1), '1', 'and the reports');
 select is((select (r->'lobbies'->>'capped')::boolean from run1), false, 'a rule under its cap says capped false');
 
 select is((select count(*) from public.ingest_runs where id = (select (r->>'run_id')::bigint from run1) and kind = 'retention' and finished_at is not null),
@@ -255,9 +255,8 @@ select is((select r->'rate_limits' from run4), '{"deleted": 1, "capped": false}'
 -- Reports in abandoned lobbies
 select ok(pg_temp.has_room((select fresh from replobby)), 'an abandoned lobby with a report under 12 months old survives the 7-day rule');
 select is((select count(*) from public.member_reports where room_id = (select fresh from replobby)), 1::bigint, 'and keeps its report');
-select ok(pg_temp.has_room((select stale from replobby)), 'a lobby whose report went at 12 months waits for the next night');
-create temp table run5 as select internal.run_retention() as r;
-select ok(not pg_temp.has_room((select stale from replobby)), 'and goes then, with nothing left to hold it');
+select ok(not pg_temp.has_room((select stale from replobby)), 'a lobby whose only report is past 12 months goes, report included, with nothing left to hold it');
+select is((select count(*) from public.member_reports where room_id = (select stale from replobby)), 0::bigint, 'and the report with it');
 
 -- Access
 select ok(not (has_function_privilege('authenticated', 'internal.run_retention(integer)', 'execute')
