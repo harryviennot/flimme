@@ -210,6 +210,31 @@ describe('routes', () => {
       },
     );
 
+    // Tabs keep their scenes mounted, so Play's scroll position survives a visit to My films. The
+    // test checks the scene is the same one (same route key) after the round trip.
+    it('keeps the same Play scene (and so its scroll) after a visit to My films', async () => {
+      const app = await renderRouter(routes, { initialUrl: '/play', wrapper: Providers });
+      const playKey = () => {
+        type S = { name?: string; key?: string; state?: { routes?: S[] }; routes?: S[] };
+        const find = (node: S): string | undefined => {
+          if (node.name === 'play') return node.key;
+          for (const child of node.routes ?? node.state?.routes ?? []) {
+            const hit = find(child);
+            if (hit) return hit;
+          }
+          return undefined;
+        };
+        return find(app.getRouterState() as S);
+      };
+      const before = playKey();
+      expect(before).toBeTruthy();
+      await fireEvent.press(screen.getByRole('tab', { name: 'My films' }));
+      await waitFor(() => expect(screen).toHavePathname('/my-films'));
+      await fireEvent.press(screen.getByRole('tab', { name: 'Play' }));
+      await waitFor(() => expect(screen).toHavePathname('/play'));
+      expect(playKey()).toBe(before);
+    });
+
     it('sends the old /home to Play', async () => {
       await renderRouter(routes, { initialUrl: '/home', wrapper: Providers });
       await waitFor(() => expect(screen).toHavePathname('/play'));
