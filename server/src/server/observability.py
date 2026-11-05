@@ -71,6 +71,16 @@ def scrub(text: str) -> str:
     return text
 
 
+_UUID = re.compile(
+    r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"
+)
+
+
+def scrub_for_sentry(text: str) -> str:
+    """The scrubber plus ids: a message can carry a profile or room id, which Sentry never gets."""
+    return _UUID.sub(REDACTED, scrub(text))
+
+
 def _clean(value: Any) -> Any:
     return scrub(value) if isinstance(value, str) else value
 
@@ -110,7 +120,8 @@ class JsonFormatter(logging.Formatter):
 def configure_logging() -> None:
     """INFO for our own loggers, as JSON. `httpx` and `httpcore` log every request at INFO,
     which on the first full load is about 120,000 lines (and a line is a URL), so they speak at
-    WARNING. uvicorn's own access log is off: the API writes its own (`api/access.py`)."""
+    WARNING. uvicorn is told not to configure logging (`log_config=None`) and its access log
+    is off: the API writes its own (`api/access.py`)."""
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonFormatter())
     root = logging.getLogger()
@@ -118,7 +129,6 @@ def configure_logging() -> None:
     root.setLevel(logging.INFO)
     for noisy in ("httpx", "httpcore"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
-    logging.getLogger("uvicorn.access").disabled = True
 
 
 # --- Sentry -------------------------------------------------------------------------------
@@ -140,11 +150,13 @@ def before_send(event: Any, hint: Any) -> Any:
         exception["value"] = ""
     logentry = event.get("logentry")
     if isinstance(logentry, dict):
-        logentry["message"] = scrub(str(logentry.get("formatted") or logentry.get("message", "")))
+        logentry["message"] = scrub_for_sentry(
+            str(logentry.get("formatted") or logentry.get("message", ""))
+        )
         logentry.pop("formatted", None)
         logentry.pop("params", None)
     if isinstance(event.get("message"), str):
-        event["message"] = scrub(event["message"])
+        event["message"] = scrub_for_sentry(event["message"])
     event["breadcrumbs"] = {
         "values": [_breadcrumb(b) for b in event.get("breadcrumbs", {}).get("values", [])]
     }
@@ -154,7 +166,7 @@ def before_send(event: Any, hint: Any) -> Any:
 def _breadcrumb(crumb: dict[str, Any]) -> dict[str, Any]:
     kept = {key: crumb[key] for key in ("level", "category", "timestamp", "type") if key in crumb}
     if "message" in crumb:
-        kept["message"] = scrub(str(crumb["message"]))
+        kept["message"] = scrub_for_sentry(str(crumb["message"]))
     return kept
 
 
@@ -182,9 +194,15 @@ def init_sentry(settings: Settings, process_name: str, transport: Transport | No
         environment=settings.environment.value,
         release=release(),
         send_default_pii=False,
+        data_collection={
+            "user_info": False,
+            "http_bodies": [],
+            "stack_frame_variables": False,
+            "database_query_data": False,
+            "queues": False,
+        },
         include_local_variables=False,
         max_request_body_size="never",
-        traces_sample_rate=0,
         before_send=before_send,
         before_breadcrumb=before_breadcrumb,
         integrations=[LoggingIntegration(level=logging.INFO, event_level=logging.ERROR)],

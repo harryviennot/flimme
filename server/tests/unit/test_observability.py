@@ -350,3 +350,38 @@ def test_an_unknown_path_is_logged_as_unmatched_never_as_the_raw_path(
     assert line["route"] == "unmatched"
     assert line["status"] == 404
     assert EMAIL not in lines.getvalue()
+
+
+def test_an_id_in_an_earlier_message_does_not_reach_sentry(sentry: CapturingTransport) -> None:
+    profile = "11111111-1111-4111-8111-111111111111"
+    log = logging.getLogger("t")
+    log.info("account deletion %s: ok", profile)
+    log.error("later failure for room %s", profile)
+
+    [event] = sentry.events
+    assert profile not in json.dumps(event)
+
+
+def test_the_api_leaves_logging_to_us_so_uvicorn_prints_no_ip_path_or_query(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import uvicorn
+
+    from server import cli
+
+    calls: dict[str, Any] = {}
+    monkeypatch.setenv("ENVIRONMENT", "local")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@127.0.0.1:5432/db")
+    monkeypatch.setenv("SUPABASE_URL", "http://127.0.0.1:54321")
+    monkeypatch.delenv("SENTRY_DSN", raising=False)
+    monkeypatch.setattr(uvicorn, "run", lambda app, **kwargs: calls.update(kwargs))
+    root = logging.getLogger()
+    before, level = root.handlers[:], root.level
+    try:
+        assert cli.main(["api"]) == 0
+    finally:
+        root.handlers[:] = before
+        root.setLevel(level)
+
+    assert calls["log_config"] is None
+    assert calls["access_log"] is False

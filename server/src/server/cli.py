@@ -186,7 +186,9 @@ def run_api(host: str, port: int) -> int:
     from server.api.app import create_app
 
     observability.setup(settings, "api")
-    uvicorn.run(create_app(settings), host=host, port=port)
+    # No uvicorn logging config: it would add plain handlers that print the client IP, the raw
+    # path and query, and exception text. Its loggers go to the JSON handler instead.
+    uvicorn.run(create_app(settings), host=host, port=port, log_config=None, access_log=False)
     return 0
 
 
