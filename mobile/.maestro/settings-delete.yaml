@@ -6,6 +6,7 @@
 appId: com.harryviennot.flimme.dev
 ---
 - runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/settle-dev-menu.yaml
 - extendedWaitUntil:
     visible: '(?i)get started'
     timeout: 30000
@@ -15,17 +16,6 @@ appId: com.harryviennot.flimme.dev
 - extendedWaitUntil:
     visible: '(?i)open a room'
     timeout: 15000
-- extendedWaitUntil:
-    visible: 'Go home'
-    timeout: 25000
-    optional: true
-- runFlow:
-    when:
-      visible: 'Go home'
-    commands:
-      # The developer menu's first-run sheet can open late, over Home.
-      - tapOn:
-          point: 90%,49%
 - tapOn: 'Settings'
 - scrollUntilVisible:
     element: 'Delete my data'

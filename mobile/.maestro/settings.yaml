@@ -6,6 +6,7 @@
 appId: com.harryviennot.flimme.dev
 ---
 - runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/settle-dev-menu.yaml
 - extendedWaitUntil:
     visible: '(?i)get started'
     timeout: 30000
@@ -15,17 +16,6 @@ appId: com.harryviennot.flimme.dev
 - extendedWaitUntil:
     visible: '(?i)open a room'
     timeout: 15000
-- extendedWaitUntil:
-    visible: 'Go home'
-    timeout: 25000
-    optional: true
-- runFlow:
-    when:
-      visible: 'Go home'
-    commands:
-      # The developer menu's first-run sheet can open late, over Home.
-      - tapOn:
-          point: 90%,49%
 
 # Home's settings button opens Settings.
 - tapOn: 'Settings'
@@ -47,6 +37,7 @@ appId: com.harryviennot.flimme.dev
 - tapOn: 'Help improve the app'
 - stopApp
 - runFlow: subflows/open-app.yaml
+- runFlow: subflows/settle-dev-menu.yaml
 - extendedWaitUntil:
     visible: '(?i)open a room'
     timeout: 30000
@@ -69,7 +60,7 @@ appId: com.harryviennot.flimme.dev
 
 # About carries TMDB's exact notice and the JustWatch credit.
 - scrollUntilVisible:
-    element: 'This app uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.'
+    element: 'TMDB logo. This app uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.'
 - assertVisible: 'Streaming availability by JustWatch.'
 - assertVisible: 'Version.*'
 - takeScreenshot: settings-4-about
