@@ -54,7 +54,8 @@ as $$
           'internal.my_profile_ids()'::regprocedure,
           'internal.is_room_member(uuid)'::regprocedure,
           'internal.can_use_room_topic(text, boolean)'::regprocedure,
-          'internal.my_seat_ids()'::regprocedure  -- M1.8: the own_seat policy on votes calls it
+          'internal.my_seat_ids()'::regprocedure,  -- M1.8: the own_seat policy on votes calls it
+          'internal.next_room_code(uuid)'::regprocedure  -- M6.22: api.rooms calls it
         ]::oid[])
     union all
     select 'd', name from rels
