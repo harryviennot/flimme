@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 116 of 265 tasks done.
+Progress: 117 of 265 tasks done.
 
 ```mermaid
 flowchart LR
@@ -459,7 +459,7 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: a touch run on the simulator against staging brings the card back, and the server agrees.
 - [x] **M6.27** The swipe screen's top: player pills with each count (steps of 5), "Sam is done", Leave with its confirmation, the host menu to remove a player mid-game, and the Reconnecting banner · app · M · needs M6.9 · [moments](../design/moments.md#what-every-moment-keeps)
   Done when: every state of the top bar's spec is shown, checked in a three-player touch run.
-- [ ] **M6.31** The Final Cut's reveal · app · M · needs M6.15 · [game-modes](game-modes.md#the-finale)
+- [x] **M6.31** The Final Cut's reveal · app · M · needs M6.15 · [game-modes](game-modes.md#the-finale)
   Done when: the reveal plays once per room on every phone, and a phone that missed the event plays it after reading the candidates.
 - [ ] **M6.32** The winner screen's runners-up, with who liked them in Party mode after the pick, and a read for it · app · needs M6.16 · [game-modes](game-modes.md#after-the-pick)
   Done when: the runners-up show after the pick, and in Party mode each one names who liked it.
