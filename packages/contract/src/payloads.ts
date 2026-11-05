@@ -6,6 +6,7 @@
 import * as z from 'zod/mini';
 
 import type { Json } from './database.types';
+import { ANALYTICS_CHOICES } from './answers';
 import { ROOM_STATES } from './realtime';
 
 const roomState = z.enum(ROOM_STATES);
@@ -78,6 +79,81 @@ export const reportMemberResult = z.object({
 });
 export type ReportMemberResult = z.infer<typeof reportMemberResult>;
 
+// The first release's export (M8.6). Only the caller's own data: their seats, never other seats,
+// and no reports. The Letterboxd lists are empty in the first release. Dates are ISO strings.
+const exportVote = z.object({
+  tmdb_id: z.number(),
+  title: z.string(),
+  answer: z.string(),
+  at: z.string(),
+});
+const exportSwipe = z.object({
+  tmdb_id: z.number(),
+  action: z.enum(['vote', 'undo']),
+  answer: z.string(),
+  at: z.string(),
+  dwell_ms: z.nullable(z.number()),
+});
+const exportBallot = z.object({
+  tmdb_id: z.nullable(z.number()),
+  kind: z.enum(['veto', 'pass', 'rank']),
+  rank: z.nullable(z.number()),
+  at: z.string(),
+});
+export const exportGame = z.object({
+  room_id: z.string(),
+  joined_at: z.string(),
+  left_at: z.nullable(z.string()),
+  display_name: z.string(),
+  avatar_key: z.string(),
+  role: z.enum(['host', 'guest']),
+  joined_via: z.nullable(z.string()),
+  services: z.array(z.number()),
+  votes: z.array(exportVote),
+  swipes: z.array(exportSwipe),
+  ballots: z.array(exportBallot),
+  pick: z.nullable(z.object({ tmdb_id: z.number(), title: z.string(), kind: z.string() })),
+  watched_answer: z.nullable(z.string()),
+  post_reaction: z.nullable(z.string()),
+});
+export type ExportGame = z.infer<typeof exportGame>;
+
+export const exportMyData = z.object({
+  profile: z.nullable(z.record(z.string(), z.unknown())),
+  services: z.array(z.number()),
+  consents: z.array(z.record(z.string(), z.unknown())),
+  linked_accounts: z.array(z.unknown()),
+  letterboxd_diary: z.array(z.unknown()),
+  film_history: z.array(
+    z.object({
+      tmdb_id: z.number(),
+      title: z.string(),
+      source: z.string(),
+      seen: z.boolean(),
+      rating: z.nullable(z.number()),
+      on_watchlist: z.boolean(),
+      reaction: z.nullable(z.string()),
+      last_watched_on: z.nullable(z.string()),
+    }),
+  ),
+  taste: z.nullable(z.unknown()),
+  games: z.array(exportGame),
+});
+export type ExportMyData = z.infer<typeof exportMyData>;
+
+export const exportMyDataResult = z.discriminatedUnion('status', [
+  z.extend(exportMyData, { status: z.literal('ok') }),
+  z.object({ status: z.literal('rate_limited') }),
+]);
+export type ExportMyDataResult = z.infer<typeof exportMyDataResult>;
+
+export const setAnalyticsChoiceResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), choice: z.enum(ANALYTICS_CHOICES) }),
+  z.object({ status: z.literal('invalid') }),
+  z.object({ status: z.literal('rate_limited') }),
+]);
+export type SetAnalyticsChoiceResult = z.infer<typeof setAnalyticsChoiceResult>;
+
 export const leaveRoomResult = z.object({ status: z.enum(['ok', 'not_in_room']) });
 export type LeaveRoomResult = z.infer<typeof leaveRoomResult>;
 
@@ -122,7 +198,8 @@ export const startGameResult = z.discriminatedUnion('status', [
   // Under deck_engine `sql` the start deals at once (`ok`); `fallback` marks the 8-second path.
   z.object({
     status: z.literal('ok'),
-    request_id: z.nullish(z.string()),
+    // A bigint in SQL: a number once a start went through, null when nothing was dealt.
+    request_id: z.nullish(z.union([z.string(), z.number()])),
     started: z.optional(z.boolean()),
     seats: z.optional(z.number()),
     fallback: z.optional(z.boolean()),
@@ -155,11 +232,40 @@ export const castVoteResult = z.discriminatedUnion('status', [
     kind: z.optional(matchKind),
     decided: z.optional(z.boolean()),
     finale_round_id: z.optional(z.string()),
+    /** The room's state, only when this vote left it no longer swiping (M6.29). */
+    state: z.optional(roomState),
   }),
   z.object({ status: z.literal('closed'), state: roomState }),
   z.object({ status: z.enum(['duplicate', 'dropped', 'no_super_likes']) }),
 ]);
 export type CastVoteResult = z.infer<typeof castVoteResult>;
+
+/** `api.cast_ballot` (M6.5): `locked` is seat ids, `of` the seats present. */
+export const castBallotResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), locked: z.array(z.string()), of: z.number() }),
+  z.object({
+    status: z.enum(['not_in_room', 'closed', 'already_voted', 'invalid', 'no_veto']),
+  }),
+]);
+export type CastBallotResult = z.infer<typeof castBallotResult>;
+
+/** `api.close_round_stage` (M6.5). */
+export const closeRoundStageResult = z.discriminatedUnion('status', [
+  z.object({ status: z.enum(['ok', 'closed']), winner_title_id: z.number() }),
+  z.object({ status: z.literal('not_yet'), closes_at: z.string() }),
+]);
+export type CloseRoundStageResult = z.infer<typeof closeRoundStageResult>;
+
+/** `api.round_progress` (M6.5). `stage` is `vote` while open, `closed` after. */
+export const roundProgressResult = z.object({
+  status: z.literal('ok'),
+  stage: z.enum(['veto', 'rank', 'vote', 'closed']),
+  closes_at: z.string(),
+  locked: z.array(z.string()),
+  of: z.number(),
+  me_locked: z.boolean(),
+});
+export type RoundProgressResult = z.infer<typeof roundProgressResult>;
 
 /** `api.request_cards`: `ok` carries the deal's counts when cards were dealt now. */
 export const requestCardsResult = z.discriminatedUnion('status', [
@@ -172,6 +278,7 @@ export const requestCardsResult = z.discriminatedUnion('status', [
   z.object({ status: z.literal('queued') }),
   z.object({ status: z.literal('enough'), remaining: z.number() }),
   z.object({ status: z.literal('closed'), state: roomState }),
+  z.object({ status: z.literal('done'), liked: z.number() }),
 ]);
 export type RequestCardsResult = z.infer<typeof requestCardsResult>;
 
@@ -193,6 +300,30 @@ export const roomMatchRow = z.object({
 });
 export type RoomMatch = z.infer<typeof roomMatchRow>;
 
+/** A row of `api.rounds`: one Final Cut or ranked vote of the room. */
+export const roomRoundRow = z.object({
+  id: z.string(),
+  room_id: z.string(),
+  seq: z.number(),
+  kind: z.enum(['final_cut', 'ranked_vote']),
+  stage: z.enum(['veto', 'rank', 'vote', 'closed']),
+  stage_closes_at: z.string(),
+  opened_at: z.string(),
+  closed_at: z.nullable(z.string()),
+  winner_title_id: z.nullable(z.number()),
+});
+export type RoomRound = z.infer<typeof roomRoundRow>;
+
+/** A row of `api.round_candidates`: a finalist. `points` and `vetoed` stay 0 and false until the round closes. */
+export const roundCandidateRow = z.object({
+  round_id: z.string(),
+  title_id: z.number(),
+  seed: z.number(),
+  points: z.number(),
+  vetoed: z.nullable(z.boolean()),
+});
+export type RoundCandidate = z.infer<typeof roundCandidateRow>;
+
 // --- Views -----------------------------------------------------------------------------
 
 /** The `app_config` keys the app reads. Unknown keys are ignored, missing ones are undefined. */
@@ -201,12 +332,30 @@ export type AppConfig = {
   tmdb_image_base?: string;
   /** The invite page's https origin (from M4.18). Missing: invites use the build's scheme. */
   invite_base_url?: string;
+  /** The policy, terms and deletion links and the support address (M8.12). Parse with `parseLegalUrls`. */
+  legal_urls?: unknown;
 };
+
+const perLanguage = z.object({ fr: z.string(), en: z.string() });
+export const legalUrlsSchema = z.object({
+  privacy: perLanguage,
+  terms: perLanguage,
+  deletion: perLanguage,
+  support_email: z.string(),
+});
+export type LegalUrls = z.infer<typeof legalUrlsSchema>;
+
+/** The legal links from `app_config.legal_urls`, or null when missing or malformed (the app hides the rows then). */
+export function parseLegalUrls(value: unknown): LegalUrls | null {
+  const parsed = legalUrlsSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
 
 export const appConfigSchema = z.object({
   min_app_version: z.optional(z.object({ ios: z.string(), android: z.string() })),
   tmdb_image_base: z.optional(z.string()),
   invite_base_url: z.optional(z.string()),
+  legal_urls: z.optional(z.unknown()),
 });
 
 export const myProfileRow = z.object({
@@ -258,8 +407,9 @@ export const roomSeatRow = z.object({
   calibrated_at: z.nullable(z.string()),
   done_at: z.nullable(z.string()),
   swipe_count: z.number(),
-  super_likes_left: z.number(),
-  vetoes_left: z.number(),
+  // Null on seats the caller does not control: a spent veto must not show who vetoed (M6.5).
+  super_likes_left: z.nullable(z.number()),
+  vetoes_left: z.nullable(z.number()),
   is_me: z.nullable(z.boolean()),
   is_mine: z.nullable(z.boolean()),
 });
@@ -281,6 +431,7 @@ export const gameModeRow = z.object({
   max_players: z.number(),
   ends_on_first_match: z.boolean(),
   sort: z.number(),
+  matches_to_end: z.number(),
 });
 export const gameModesSchema = z.array(gameModeRow);
 export type GameMode = z.infer<typeof gameModeRow>;

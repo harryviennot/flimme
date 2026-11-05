@@ -5,13 +5,19 @@
 // error rejects, as an ApiError. A PR that changes a wrapped function changes its answer
 // list (answers.ts), its schema (payloads.ts) and its wrapper here.
 import {
+  CAST_BALLOT_ANSWERS,
   CAST_VOTE_ANSWERS,
+  CLOSE_ROUND_STAGE_ANSWERS,
+  ROUND_PROGRESS_ANSWERS,
   REQUEST_CARDS_ANSWERS,
   UNDO_LAST_VOTE_ANSWERS,
   CREATE_ROOM_ANSWERS,
   JOIN_ROOM_ANSWERS,
   ROOM_PREVIEW_ANSWERS,
   REPORT_MEMBER_ANSWERS,
+  EXPORT_MY_DATA_ANSWERS,
+  SET_ANALYTICS_CHOICE_ANSWERS,
+  type AnalyticsChoice,
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
@@ -27,10 +33,20 @@ import {
 } from '../answers';
 import {
   appConfigSchema,
+  castBallotResult,
   castVoteResult,
+  closeRoundStageResult,
+  roundProgressResult,
+  type CastBallotResult,
+  type CloseRoundStageResult,
+  type RoundProgressResult,
   requestCardsResult,
   undoLastVoteResult,
   roomMatchRow,
+  roomRoundRow,
+  roundCandidateRow,
+  type RoomRound,
+  type RoundCandidate,
   type CastVoteResult,
   type RequestCardsResult,
   type UndoLastVoteResult,
@@ -39,6 +55,10 @@ import {
   joinRoomResult,
   roomPreviewResult,
   reportMemberResult,
+  exportMyDataResult,
+  setAnalyticsChoiceResult,
+  type SetAnalyticsChoiceResult,
+  type ExportMyDataResult,
   leaveRoomResult,
   removeMemberResult,
   setRoomLockedResult,
@@ -178,6 +198,33 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id, p_member_id: args.member_id, p_reason: args.reason },
         REPORT_MEMBER_ANSWERS,
         reportMemberResult,
+      );
+    },
+
+    /** "Download my data": the caller's own data only. One an hour; `rate_limited` is an answer. */
+    exportMyData(): Promise<ExportMyDataResult> {
+      return callAnswer(
+        client,
+        options,
+        'export_my_data',
+        {},
+        EXPORT_MY_DATA_ANSWERS,
+        exportMyDataResult,
+      );
+    },
+
+    /** The analytics choice with its wording version (1 to 40 characters). `invalid` and `rate_limited` are answers. */
+    setAnalyticsChoice(args: {
+      choice: AnalyticsChoice;
+      version: string;
+    }): Promise<SetAnalyticsChoiceResult> {
+      return callAnswer(
+        client,
+        options,
+        'set_analytics_choice',
+        { p_choice: args.choice, p_version: args.version },
+        SET_ANALYTICS_CHOICE_ANSWERS,
+        setAnalyticsChoiceResult,
       );
     },
 
@@ -324,6 +371,8 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
       member_id?: string;
       dwell_ms?: number;
       client_at?: string;
+      /** Whether the card was turned over before the answer (M6.2). */
+      flipped?: boolean;
     }): Promise<CastVoteResult> {
       return callAnswer(
         client,
@@ -336,6 +385,7 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
           p_member_id: args.member_id,
           p_dwell_ms: args.dwell_ms,
           p_client_at: args.client_at,
+          p_flipped: args.flipped,
         },
         CAST_VOTE_ANSWERS,
         castVoteResult,
@@ -366,6 +416,56 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
       );
     },
 
+    // --- The Final Cut -------------------------------------------------------------------
+    /**
+     * The whole ballot in one call: every film of the round in order, minus the vetoed one. Final
+     * Cut only; a ranked vote has no veto. A ballot can't be changed afterwards.
+     */
+    castBallot(args: {
+      round_id: string;
+      ranking: number[];
+      veto?: number;
+      member_id?: string;
+    }): Promise<CastBallotResult> {
+      return callAnswer(
+        client,
+        options,
+        'cast_ballot',
+        {
+          p_round_id: args.round_id,
+          p_ranking: args.ranking,
+          p_veto: args.veto,
+          p_member_id: args.member_id,
+        },
+        CAST_BALLOT_ANSWERS,
+        castBallotResult,
+      );
+    },
+
+    /** Every phone calls this at zero; it closes the round only when it is time, and is safe to repeat. */
+    closeRoundStage(args: { round_id: string }): Promise<CloseRoundStageResult> {
+      return callAnswer(
+        client,
+        options,
+        'close_round_stage',
+        { p_round_id: args.round_id },
+        CLOSE_ROUND_STAGE_ANSWERS,
+        closeRoundStageResult,
+      );
+    },
+
+    /** Who has locked in, out of how many present, for a phone that restarted. */
+    roundProgress(args: { round_id: string }): Promise<RoundProgressResult> {
+      return callAnswer(
+        client,
+        options,
+        'round_progress',
+        { p_round_id: args.round_id },
+        ROUND_PROGRESS_ANSWERS,
+        roundProgressResult,
+      );
+    },
+
     // --- Views ---------------------------------------------------------------------------
     /** The films the room has matched on, in the order they were found. */
     async roomMatches(args: { room_id: string }): Promise<RoomMatch[]> {
@@ -387,6 +487,45 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         }
       }
       return (rows ?? []) as RoomMatch[];
+    },
+
+    /** The room's rounds (Final Cut, ranked vote), oldest first. Empty for a room that never had one. */
+    async rounds(args: { room_id: string }): Promise<RoomRound[]> {
+      const rows = await readView(
+        () => client.from('rounds').select('*').eq('room_id', args.room_id).order('seq'),
+        'rounds',
+      );
+      if (options.validate) {
+        for (const row of rows ?? []) {
+          const parsed = roomRoundRow.safeParse(row);
+          if (!parsed.success) {
+            throw new ApiError('unexpected', 'rounds', `wrong shape: ${parsed.error.message}`);
+          }
+        }
+      }
+      return (rows ?? []) as RoomRound[];
+    },
+
+    /** The finalists of a round, by seed (the order the cards are shown in). */
+    async roundCandidates(args: { round_id: string }): Promise<RoundCandidate[]> {
+      const rows = await readView(
+        () =>
+          client.from('round_candidates').select('*').eq('round_id', args.round_id).order('seed'),
+        'round_candidates',
+      );
+      if (options.validate) {
+        for (const row of rows ?? []) {
+          const parsed = roundCandidateRow.safeParse(row);
+          if (!parsed.success) {
+            throw new ApiError(
+              'unexpected',
+              'round_candidates',
+              `wrong shape: ${parsed.error.message}`,
+            );
+          }
+        }
+      }
+      return (rows ?? []) as RoundCandidate[];
     },
 
     /** The signed-in player's profile, or null when there is none yet. */
@@ -475,7 +614,7 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         () =>
           client
             .from('game_modes')
-            .select('slug, min_players, max_players, ends_on_first_match, sort')
+            .select('slug, min_players, max_players, ends_on_first_match, sort, matches_to_end')
             .order('sort'),
         'game_modes',
       );

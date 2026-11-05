@@ -6,6 +6,7 @@ A body that fails validation is bad input: the runner archives it at once.
 """
 
 from typing import Annotated, Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
@@ -48,6 +49,12 @@ class SweepMessage(_Message):
     run_id: int
     country: Annotated[str, Field(pattern=r"^[A-Z]{2}$")]
     provider_id: int
+
+
+class RoomFinishedMessage(_Message):
+    """A room ended (done, or abandoned after the start): write its stats (M6.8)."""
+
+    room_id: UUID
 
 
 CatalogRefreshMessage = Annotated[

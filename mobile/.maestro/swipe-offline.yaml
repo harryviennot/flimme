@@ -1,0 +1,22 @@
+# M6.9, the swipe screen, offline: six swipes made with the connection down. Run it on a phone
+# that is swiping, after the Supabase connection was cut (kill the forwarder the staging URL
+# points at, or turn off the simulator's Wi-Fi); then bring the connection back and check that
+# the six votes reached the server in this order (the forwarder's log, or the server's votes).
+# The swipes never wait: every tap answers a card at once, and nothing in the screen blocks.
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-offline.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 30000
+- takeScreenshot: swipe-offline-0-before
+- tapOn: 'Like'
+- tapOn: 'Nope'
+- tapOn: 'Like'
+- tapOn: 'Seen it'
+- tapOn: 'Like'
+- tapOn: 'Nope'
+- takeScreenshot: swipe-offline-1-six-swipes
+# The screen carried on: the next card is there and the buttons answer.
+- assertVisible: 'Like'
+- assertVisible: 'Nope'

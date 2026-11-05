@@ -88,7 +88,7 @@ The design file's 26 screens are the reference for what exists, not the final wo
 | `/room/[id]/closed` | 25 | Room abandoned or expired |
 | `/profile`, `/profile/letterboxd`, `/profile/import` | 18 to 20 | Import status and the unmatched-films list |
 | `/account/save`, `/account/delete` | 21, 23 | Linking Apple or Google; deleting the account |
-| `/settings` | 22 | |
+| `/settings` | 22, 23 | Language, haptics and sound, the analytics switch, download and delete my data, the legal links, support, About ([spec](../design/screens/settings.md)). The delete confirmation is the sheet `/settings/delete` |
 
 "It's a match" (14) is an overlay, not a route: in Quick Match it leads to the winner screen, in Final Cut the game carries on. "Reconnecting" (24) is a banner shown over any room screen.
 

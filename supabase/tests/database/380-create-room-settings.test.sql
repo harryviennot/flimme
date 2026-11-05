@@ -57,7 +57,7 @@ $$;
 -- T1: two keys given, the other four at their defaults.
 create temp table a1 as select pg_temp.open('quick_match', '{"runtime_max":105,"max_age":12}') as a;
 select is((select a->>'status' from a1), 'ok', 'T1 a room opens with two settings');
-select is(pg_temp.row_of((select a from a1)), 'any_member|105|hide_seen|standard|12|party', 'T1 the room holds both, the rest are defaults');
+select is(pg_temp.row_of((select a from a1)), 'any_member|105|allow_rewatch|standard|12|party', 'T1 the room holds both, the rest are defaults');
 
 -- T2: all six keys.
 create temp table a2 as select pg_temp.open('quick_match',
@@ -68,8 +68,8 @@ select is(pg_temp.row_of((select a from a2)), 'every_member|120|show_all|hidden_
 -- T3: null and {} leave the room as before M4.4.
 create temp table a3 as select pg_temp.open('quick_match', null) as a;
 create temp table a3b as select pg_temp.open('quick_match', '{}') as a;
-select is(pg_temp.row_of((select a from a3)), 'any_member|null|hide_seen|standard|null|party', 'T3 null settings give the defaults');
-select is(pg_temp.row_of((select a from a3b)), 'any_member|null|hide_seen|standard|null|party', 'T3 empty settings give the defaults');
+select is(pg_temp.row_of((select a from a3)), 'any_member|null|allow_rewatch|standard|null|party', 'T3 null settings give the defaults');
+select is(pg_temp.row_of((select a from a3b)), 'any_member|null|allow_rewatch|standard|null|party', 'T3 empty settings give the defaults');
 
 -- T4: a key beats the mode's default; json null on an enum leaves the mode's default.
 select is(pg_temp.row_of(pg_temp.open('date_night', '{"seen_rule":"allow_rewatch"}')),
@@ -77,12 +77,12 @@ select is(pg_temp.row_of(pg_temp.open('date_night', '{"seen_rule":"allow_rewatch
 select is(pg_temp.row_of(pg_temp.open('date_night', '{"seen_rule":null}')),
   'any_member|null|hide_seen|standard|null|party', 'T4 json null on seen_rule keeps the mode default');
 select is(pg_temp.row_of(pg_temp.open('quick_match', '{"quality":null,"reveal":null,"service_rule":null}')),
-  'any_member|null|hide_seen|standard|null|party', 'T4 json null on the other enums keeps the defaults');
+  'any_member|null|allow_rewatch|standard|null|party', 'T4 json null on the other enums keeps the defaults');
 
 -- T5: json null on the limits stores null.
 create temp table a5 as select pg_temp.open('quick_match', '{"runtime_max":null,"max_age":null}') as a;
 select is((select a->>'status' from a5), 'ok', 'T5 null limits are accepted');
-select is(pg_temp.row_of((select a from a5)), 'any_member|null|hide_seen|standard|null|party', 'T5 both limits are null');
+select is(pg_temp.row_of((select a from a5)), 'any_member|null|allow_rewatch|standard|null|party', 'T5 both limits are null');
 
 -- T6: each refused value answers invalid_settings with its field (and creates nothing: T7).
 select is(pg_temp.refused('{"runtime_max":39}', 'runtime_max'), 'ok', 'T6 runtime_max 39');
@@ -121,7 +121,7 @@ update public.profiles set country = 'FR' where id = tests.uid('host');
 -- T9: unknown keys are ignored.
 create temp table a9 as select pg_temp.open('quick_match', '{"colour":"red","max_age":10}') as a;
 select is((select a->>'status' from a9), 'ok', 'T9 an unknown key does not refuse the call');
-select is(pg_temp.row_of((select a from a9)), 'any_member|null|hide_seen|standard|10|party', 'T9 the known key is kept');
+select is(pg_temp.row_of((select a from a9)), 'any_member|null|allow_rewatch|standard|10|party', 'T9 the known key is kept');
 
 -- T10: providers are computed once the settings are on the row (the host's services here).
 create temp table a10 as select pg_temp.open('quick_match', '{"service_rule":"every_member"}') as a;

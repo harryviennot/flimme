@@ -1,6 +1,6 @@
 # Swipe
 
-Screens 11 Swipe (`99:4065`), 12 Mid-swipe (`99:4093`) and 13 Card flipped (`99:4122`) on the Figma's First release page. Route `/room/[id]/swipe`, under the room layout (`/room/[id]/_layout.tsx`), shown while the room is `swiping`. Written on 4 November 2026 from [the signature moments](../moments.md) (the swipe, the flip, the near miss), slices 10 and 11's plan (Harry accepted every default on 4 November 2026; the answers are in [decisions.md](../../decisions.md)), [the card stack](../../architecture/app-structure.md#the-card-stack), [the vote queue](../../architecture/app-structure.md#the-vote-queue), [the answers](../../product/game-modes.md#the-answers) and [the first game](../../product/onboarding.md#the-first-game). Connection states follow [Reconnecting](reconnecting.md); the seat sheet is the [host menu](host-menu.md); the match is [its own spec](match.md).
+Screens 11 Swipe (`99:4065`), 12 Mid-swipe (`99:4093`) and 13 Card flipped (`99:4122`) on the Figma's First release page. Route `/room/[id]/swipe`, under the room layout (`/room/[id]/_layout.tsx`), shown while the room is `swiping`. Written on 4 November 2026 from [the signature moments](../moments.md) (the swipe, the flip, the near miss), slices 10 and 11's plan (Harry accepted every default on 4 November 2026; the answers are in [decisions.md](../../decisions.md)), [the card stack](../../architecture/app-structure.md#the-card-stack), [the vote queue](../../architecture/app-structure.md#the-vote-queue), [the answers](../../product/game-modes.md#the-answers) and [the first game](../../product/onboarding.md#the-first-game). Connection states follow [Reconnecting](reconnecting.md); the seat sheet is the [host menu](host-menu.md); the match is [its own spec](match.md). Updated on 5 November 2026 (M6.33) for the shortlist, from [the shortlisted beat](../moments.md#the-shortlisted-beat) and Harry's rules of that day ([when it's a match](../../product/game-modes.md#when-its-a-match)): a match joins the room's shortlist, swiping goes on, and the third match starts the finale.
 
 Built in parts, each with its own section here:
 
@@ -13,6 +13,8 @@ Built in parts, each with its own section here:
 | M6.18 | The four first-game hints | [Hints](#first-game-hints) |
 | M6.26 | Undo | [Undo](#undo) |
 | M6.27 | The top bar: pills, done, Leave, the host menu | [The top bar](#the-top-bar) |
+| M6.17 | The done card's filters and liked count ("Nothing left", screen 26) | [The done card](#the-done-card-nothing-left) |
+| M6.37 | The shortlist in the top bar, the shortlisted beat over the stack, the route held on the third match, Undo after a shortlisted match | [The top bar](#the-top-bar), [The shortlisted beat](#the-shortlisted-beat), [Undo](#undo) |
 
 ## Purpose
 
@@ -22,17 +24,17 @@ Answer a film in under a second, from either side of the card, without ever wait
 
 `Screen` (no `scroll`), `bg-bg-canvas`. Top to bottom:
 
-1. **The top bar** (`screens/swipe/top-bar.tsx`, M6.27), 56 high, `px-5`.
+1. **The top bar** (`screens/swipe/top-bar.tsx`, M6.27), 56 high, `px-5`: Leave, the pills and the shortlist (M6.37).
 2. **`RoomBanner`** right under it, in the flow, as on every room screen ([Reconnecting](reconnecting.md#layout)). On this screen it also carries the offline note (below).
 3. **The stack** (`screens/swipe/card-stack.tsx`), `flex-1`, centred. The card is as wide as the screen minus `px-5` (345 on a 393-point phone), and shrinks to fit the height left, keeping the card's 345 by 518 shape, with 16 points under it for the cards behind to peek out. When the banner comes or goes, the card resizes with a `LinearTransition` (`duration.base`); a drag in progress keeps going.
 4. **The hint line** (`screens/swipe/hints.tsx`, M6.18), between the stack and the buttons, `min-h-9` (two lines of `body-s`), centred, `px-5`. Reserved only when the phone still has a hint to show at the start of the game; otherwise it takes no space.
 5. **The buttons row** (`screens/swipe/action-row.tsx`), above the home indicator with `pb-2`. While the [rewatch question](#seen-it-the-rewatch-question) is open, the question takes its place (`screens/swipe/seen-question.tsx`, M6.12).
 
-The near-miss toast (`screens/swipe/near-miss.tsx`, M6.13) is drawn over the top bar's pills. M6.9 creates `top-bar.tsx`, `near-miss.tsx`, `seen-question.tsx` and `hints.tsx` rendering nothing, so later waves never share a file. Logic lives in `features/swipe/`: `answer.ts` (the answer path, M6.12 changes it), `undo.ts` (M6.26), `near-miss.ts` (a stub from M6.9, filled by M6.13) and `top-card.ts` (M6.9: the top card's shared values, so the card 1 hint can lean it without touching the gesture code).
+The near-miss toast (`screens/swipe/near-miss.tsx`, M6.13) is drawn over the top bar's pills. The shortlisted beat's layer (`screens/swipe/shortlisted.tsx`, M6.37) is drawn over the whole screen while it plays ([The shortlisted beat](#the-shortlisted-beat)). M6.9 creates `top-bar.tsx`, `near-miss.tsx`, `seen-question.tsx` and `hints.tsx` rendering nothing, so later waves never share a file. Logic lives in `features/swipe/`: `answer.ts` (the answer path, M6.12 changes it), `undo.ts` (M6.26), `near-miss.ts` (a stub from M6.9, filled by M6.13) and `top-card.ts` (M6.9: the top card's shared values, so the card 1 hint can lean it without touching the gesture code).
 
 ## The top bar
 
-`screens/swipe/top-bar.tsx`, M6.27. A row, `items-center gap-2`:
+`screens/swipe/top-bar.tsx`, M6.27. A row, `items-center gap-2`: Leave, the pills, then the shortlist (M6.37).
 
 - **Leave:** `IconButton` filled, icon `x`, label `lobby:a11y.leave`. It opens the same alert as the lobby ([leaving](lobby.md#leaving): `lobby:leave.*`, the next host named for the host). The room layout's `RoomLeaveGuard` (#127) already stops the edge swipe and Android's back on this screen and opens the same alert. A confirmed Leave runs `leaveRoom`; votes still in the queue for this room are dropped (a seat that left can't vote, `42501`). Offline: `showToast` warn `common:states.offlineRoom`, the player stays. A failed call: `showToast` warn `common:errors.generic.title`.
 - **The pills:** a horizontal `ScrollView` (`flex-1`, `gap-2`, no indicator) of `PlayerPill`, one per seat with `left_at` null, in seat order (`joined_at`, then `member_id`), the same order as every avatar row in the game.
@@ -42,6 +44,29 @@ The near-miss toast (`screens/swipe/near-miss.tsx`, M6.13) is drawn over the top
   - **Done** (presence `done`, Q27.2: the seat reached the rule's card count, or has no cards left): the count becomes `swipe:pills.done` in tone `like`. Screen readers hear `swipe:a11y.done` once, politely. No toast: a pill changing is enough.
   - **The host's** pill has the `crown` icon (14, `marquee.default`) after the name (decision M4.15: the host's name shows in the swipe screen's player row).
 - **The host menu:** a tap on any pill but your own opens the [seat sheet](host-menu.md#the-seat-sheet) (`/room/[id]/seat/[memberId]`): Report for everyone, Remove for the host. M6.27 adds `seat` and `report` to the `swiping` row of `SHEETS` in `features/room/screens.ts`. The game keeps running under the sheet. Remove's answers, the other phones' side and the removed phone's side are exactly the host menu's; a removed phone's queued votes are dropped. The lock row stays in the lobby.
+- **The shortlist** (M6.37), described below.
+
+### The shortlist
+
+`screens/swipe/shortlist.tsx` and `features/shortlist/`, M6.37. The room's matched films so far, as small posters, and how many there are. It is the room's, not anyone's: it never says who liked a film, and Party and Blind show it the same way. It is the state; [the shortlisted beat](#the-shortlisted-beat) is the moment that fills it.
+
+- **Where:** last in the top bar's row, after the pills' `ScrollView`, `shrink-0`, so it never scrolls away. Not shown in a mode whose `matches_to_end` is 1 (none at launch): there the first match is the pick.
+- **The row:** `flex-row items-center gap-2`: the count, then the slots.
+- **The count:** `swipe:shortlist.count` ("1/3") in `mono-data`, tone `muted` while the shortlist is empty, `secondary` from the first match, `maxFontSizeMultiplier` 1.2. The digits are monospaced, so the width never changes and nothing in the bar moves when the number does. It counts what the room has, never what it still needs.
+- **The slots:** `flex-row gap-1`, one per place on the shortlist (`matches_to_end`, 3 at launch), each 24 by 36 (the poster's 2:3 shape), `rounded-xs`.
+  - **Empty:** `bg-bg-raised border border-border-default`. No icon, no text.
+  - **Filled:** `PosterThumb` size `xs` (new, [Design-system changes](#design-system-changes)) with the film's poster and its thumbhash, and a ring drawn over it (`absolute inset-0 rounded-xs border border-marquee-default`). No poster: the frame stays `bg-bg-raised` with the ring.
+  - Filled left to right in the order the matches happened.
+- **Sizes.** The shortlist takes 112 points (24 for the count, 8, then 3 slots of 24 with 4 between). At 375 points wide, the pills keep 167 points, about one and a half pills, and scroll as before. At the largest text the count grows to its cap, the slots keep their size, and the pills get what is left (they already scroll). The bar stays 56 high: the slots are 36.
+- **Not pressable** (question 5). The beat shows each film full size as it joins, and the Final Cut shows them all.
+- **Screen reader:** one element, after the pills in the focus order, labelled `swipe:shortlist.a11yEmpty` while empty, otherwise `swipe:shortlist.a11y` with the titles in slot order (`Intl.ListFormat`). No live region: the beat makes its own announcement.
+
+**Where the data comes from.**
+
+- **The size:** `matches_to_end` for the room's mode, from `api.game_modes` (M6.34 adds the column), read with the room. 3 until it's known.
+- **During the game:** each `match` event with `decided: false` puts its `title_id` in slot `shortlisted`. The phone's own `ok` answer with `match: true` puts the voted card in the next free slot first, and the event corrects it. If the event's `shortlisted` doesn't match the slots the phone has (it missed an event), the phone re-reads `api.room_matches`.
+- **After a reconnect, a return to the foreground or a cold start:** `api.room_matches` for the room, in `created_at` order (while swiping every row is a shortlisted film). The slots fill at once with no beat and no animation; a missed beat isn't replayed (Q37.2, [decisions.md](../../decisions.md)).
+- **The posters:** the card store keeps every card of this game; for a film it doesn't have (a matched film this phone never got, a cold start), one `api.title_cards` call for the missing ids. The poster fades in over the frame when it loads (`layout.fadeIn`).
 
 ## The stack
 
@@ -86,11 +111,11 @@ Placeholders, tuned at the first feel check. The gesture rules live in `features
 
 `shared/movie-card`, with the [changes below](#design-system-changes).
 
-**Front** (screens 11 and 12): the poster, the `card-scrim`, the flip badge, the title in `title-l`, the meta in `mono-data` ("2019 · 2 h 04 · Thriller · ★ 7.4": the year, the runtime and the score through `Intl`, the first genre), the room's services for the film as `Tag`s. No reason tag in the first release (the First release frame's caption: watchlist and taste reasons wait for M17 to M20).
+**Front** (screens 11 and 12): the poster, the `card-front-scrim` (a soft nine-stop fade of `bg.sunken` from clear to 88%, over the bottom 92% of the card, so most of the poster shows; the back keeps `card-scrim`), the flip badge, the title in `title-l`, the meta in `mono-data` in `text.primary` (AA over a bright poster, which `text.secondary` cannot reach under a light fade; "2019 · 2 h 04 · Thriller · ★ 7.4": the year, the runtime and the score through `Intl`, the first genre), the room's services for the film as `Tag`s. No reason tag in the first release (the First release frame's caption: watchlist and taste reasons wait for M17 to M20).
 
-**Back** (screen 13, M6.10): the 132-point header (poster, scrim, title, meta, the `refresh` flip badge); the TMDB score box (`star`, `display-m` in `marquee.default`, `common:card.tmdbRating`); `common:card.synopsis` and the overview in `body-m`, cut with an ellipsis to the space left (the back never scrolls, Q10.1); `common:card.director` and `common:card.cast` (the directors and the first 3 names, joined with `Intl.ListFormat`); the services tags; the Trailer button (`Button` secondary S, icon `play`, `common:card.trailer`), which opens the trailer outside the app; `common:card.flipBack`. No Letterboxd rating (M20).
+**Back** (screen 13, M6.10): the 132-point header (poster, scrim, title, meta, the `refresh` flip badge); the TMDB score box (`star`, `display-m` in `marquee.default`, `common:card.tmdbRating`); `common:card.synopsis` and the overview in `body-m`, cut with an ellipsis to the space left (the back never scrolls, Q10.1); `common:card.director` and `common:card.cast` (the directors and the first 5 names, joined with `Intl.ListFormat`; the cast line takes two lines); the room's services for the film, each with its logo when TMDB has one (`w92`, six at most), with the JustWatch credit under them (`common:card.justwatch`, `body-s` in `text-muted`, wraps at large text sizes; the same wording as the invite page, and it shows whenever the back shows services, TMDB's rule in [tmdb.md](../../integrations/tmdb.md#terms-licence-and-attribution)); the Trailer button (`Button` secondary S, icon `play`, `common:card.trailer`), which opens the trailer outside the app; `common:card.flipBack`. No Letterboxd rating (M20).
 
-- **No trailer** when `trailer_key` is null: rooms capped under 13 always get null (M7.3), and so do films without one. The services tags take the row alone.
+- **No trailer** when `trailer_key` is null: rooms capped under 13 always get null (M7.3), and so do films without one. The services badges take the row alone.
 - **The flip** (moments.md#the-flip): a tap turns the card in place (`timing.flip`, faces swap halfway), a second tap turns it back. The cards behind don't move. A drag mid-turn takes the card from where it is; a tap mid-turn reverses it. The back answers exactly like the front (drags, buttons, stamps over the back). No haptic, no sound. Whether the card was flipped goes with its vote (`flipped`, M6.2). Everything on the back is in the card's payload, so a flip never waits, offline included.
 - **Missing data:** no overview shows `swipe:card.noSynopsis`; no score hides its box; no director or cast hides its line.
 
@@ -100,7 +125,7 @@ Placeholders, tuned at the first feel check. The gesture rules live in `features
 
 | Button | Does | Disabled when |
 | --- | --- | --- |
-| Undo (48) | [Undo](#undo) | Always until M6.26 ships (Q9.4); then at the first card, and right after an undo until the next answer |
+| Undo (48) | [Undo](#undo) | Always until M6.26 ships (Q9.4); then at the first card, right after an undo until the next answer, and while the last card answered is on the shortlist (M6.37) |
 | Nope (68) | Throws left | No top card |
 | Super (56), badge with the super likes left | Throws right with the SUPER stamp and the `marquee.default` border; the badge counts down with `layout.popIn` | No top card, or 0 left (no error haptic: running out isn't a mistake) |
 | Like (68) | Throws right | No top card |
@@ -127,13 +152,16 @@ Undoing either answer brings the card back to its front, without the question.
 
 - The last card comes back from the side it left, as the reverse of its throw (`timing.base`), front side up, and lands on top; the card that was on top slides back to second place. A super like goes back to the badge (`layout.popIn`).
 - Once in a row: after an undo, the button is disabled until the next answer.
+- **Not after a match** (M6.37): "A card that matched or became a finalist can't be undone" ([the answers](../../product/game-modes.md#the-answers)). While the last card this phone answered is on the shortlist (its `title_id` came in a `match` event, or this phone's own answer said `match: true`), the button is disabled, with the hint `swipe:a11y.undoShortlisted`. The next answer enables it again.
+- **Tapped before the phone knew** (the vote was still in flight, so the card already came back): when the answer says `match: true`, the shortlisted beat takes that card away as the matched film on top of the stack, the super like (if any) leaves the badge again, and the phone doesn't call `api.undo_last_vote`.
 - The phone never waits: if the vote is still in the queue it's removed; otherwise `api.undo_last_vote` is called once the queue is empty, and the card is already back.
 
 | `api.undo_last_vote` answers | What the player sees |
 | --- | --- |
 | `ok` | Nothing more: the card is already back |
 | `nothing_to_undo` | Nothing; the card stays. Reported to Sentry (the phone and the server disagree) |
-| `locked` (the card matched or became a finalist) | Nothing: the match overlay or the Final Cut takes over |
+| `locked` while swiping (the card's film is on the shortlist) | The card that came back leaves again (`layout.fadeOut`), the card behind settles on top (`spring.snappy`), a super like leaves the badge again. No message, no haptic. The button stays disabled until the next answer. The shortlist shows the film from the event or the next re-read |
+| `locked` after the room left swiping (the card became a finalist, or the match was the pick) | Nothing: the layout follows the room to the Final Cut or the match overlay |
 | `closed` | The room is re-read and the layout follows its state |
 | Offline or a failed call | The call waits in line like a vote and is retried; the card stays back |
 
@@ -143,9 +171,47 @@ Undoing either answer brings the card back to its front, without the question.
 
 - **When** (Q2.4, Q13.1): a `near_miss` `{title_id, likes, of, needed}` arrives. The server sends it only when the film is one like short of the rule with at least 2 likes, and again with the corrected count after an undone like (Q3.4). The phone keeps the latest count per film in memory for the game, lost on a restart (Q13.2).
 - **Where:** only if this player hasn't answered the film (not in their votes or queue), and only while that card is the top card. Players who answered see nothing.
-- **What:** a `Toast` tone `like` (heart), title `swipe:nearMiss` with `count` (the likes) and `of`, no message line. It is drawn inline (not `showToast`), over the top bar's pills, from Leave's right edge to the right gutter, so Leave stays reachable. The top card takes `glow-like`. Both arrive with `layout.toastIn` once the card has settled on top, and stay while the card does (flipped too). A new count changes the number in place, without a new slide. When the card leaves (any answer), the toast leaves with `layout.toastOut` and the glow goes.
-- **Hidden** when the latest count's `needed` is more than 1 (an undo dropped it below the line), or the film matched.
+- **What:** a `Toast` tone `like` (heart), title `swipe:nearMiss` with `count` (the likes) and `of`, no message line. It is drawn inline (not `showToast`), over the top bar's pills, from Leave's right edge to 8 points before the shortlist (M6.37), so Leave stays reachable and the shortlist stays in sight. The top card takes `glow-like`. Both arrive with `layout.toastIn` once the card has settled on top, and stay while the card does (flipped too). A new count changes the number in place, without a new slide. When the card leaves (any answer), the toast leaves with `layout.toastOut` and the glow goes.
+- **Hidden** when the latest count's `needed` is more than 1 (an undo dropped it below the line), or the film matched. While [the shortlisted beat](#the-shortlisted-beat) plays, the toast fades out and comes back after it if its card is still on top.
 - No haptic, no sound. A missed event shows nothing; the phone never invents one.
+
+## The shortlisted beat
+
+`screens/swipe/shortlisted.tsx`, `features/shortlist/` and the room layout's hold, M6.37. From [the shortlisted beat](../moments.md#the-shortlisted-beat), which wins where this differs. It plays on `match` with `decided: false`, or on this phone's own `ok` answer with `match: true` and `decided: false`, whichever comes first.
+
+**The layer.** `absolute inset-0` over the whole screen (so the poster can fly up to the top bar), `pointerEvents="box-none"`, mounted only while the beat plays. A view inside it catches every touch over the stack's frame and the buttons row; the buttons keep their look (no dimming, which would flash twice a game) and a press does nothing, with no haptic. The top bar's Leave and pills still work.
+
+**The pieces**, on the layer:
+
+1. **The scrim:** `bg-overlay-scrim` over the stack's frame only (from under the banner to the top of the buttons row), so the top bar and its shortlist stay bright. In over `duration.fast`, out over `duration.fast`.
+2. **The column**, centred in the stack's frame, `items-center gap-3 px-5`:
+   - **The title:** `swipe:shortlisted.title` in `display-m`, tone `marquee`, centred, at most 2 lines. No glow: `glow-marquee` stays the pick's. The French has a no-break space before the colon, so "C'EST UN MATCH :" stays on the first line and "1 SUR 3" goes to the second at 375 points.
+   - **The poster:** `Poster` in a `rounded-md overflow-hidden` frame, 2:3, `elevation-card`, with a `border-2 border-marquee-default` ring drawn over it. Half the card's width (172 on a 393-point phone), smaller if the stack's frame can't hold the title's 2 lines, the poster and the count (on a 375 by 667 phone it still fits at half width). The placeholder is the card's thumbhash; no poster: `Icon` `film`, 48, `text-muted`.
+   - **The vote count:** `match:count.unanimous` when `likes` equals `of`, otherwise `match:count.majority` (the overlay's own lines), in `title-m`, tone `primary`, one line. Until the event arrives the line is empty but keeps its height, so nothing moves when it fades in.
+
+**The times** (from the first signal; the beat's table is the reference):
+
+| Time | What moves | Haptic |
+| --- | --- | --- |
+| 0 | A drag springs back (`spring.card`); a thrown card finishes its flight. The scrim fades in. The poster pops in (`layout.popIn`). The near-miss toast fades out (`layout.fadeOut`) and the glow goes | `haptics.shortlist()` |
+| 150 ms | The title pops in (`layout.popIn`); the vote count fades in (`layout.fadeIn`), or when the event lands | None |
+| `duration.shortlist-hold` (1.2 s) | The title and count fade out (`layout.fadeOut`). The poster flies to its slot: translate and scale from its frame to the slot's (`measureInWindow` on the slot), with its corner radius going from 12 to 4, over `duration.slow` with `easing.standard` | None |
+| + `duration.slow` (1.6 s) | The flying poster unmounts as the slot shows the film; the slot scales from 1.15 to 1 (`spring.snappy`); the count changes in place. The scrim fades out | None |
+| + `duration.fast` (1.75 s) | The layer unmounts and the stack takes input. A near-miss toast still due on the top card fades back in (`layout.fadeIn`) | None |
+
+**The matched film in this phone's stack** (it hasn't answered it yet, under the 70% rule): as the top card, the poster pops in from that card's frame instead of the middle, and the card fades out under it (`layout.fadeOut`), so the next card is on top when the scrim leaves. As the second or third mounted card, it fades out under the scrim (`layout.fadeOut`) and the cards behind move up (`spring.snappy`). Further back, `features/swipe/card-stack.ts` drops it from the held cards. An open rewatch question on it closes with no vote. A vote on it already queued is still sent.
+
+**Several beats in a row** (several matches at once): the next beat starts as the previous poster lands (at 1.6 s); the scrim stays up, the next poster pops in, and the count steps up as each one lands. The layer unmounts after the last.
+
+**The third match** (`shortlisted` equals `shortlist_size`, or this phone's own answer with `state: 'finale'`). The room layout holds its route while the beat plays: a `useShortlistHold`, like the reveal's `useRevealHold`, true from 0 to the end of the last beat in a row, and never longer than 3 seconds. `state_changed {state: 'finale'}` arrives during the beat; when the hold ends, the layout replaces the screen with the Final Cut, which fades in as it always does ([final-cut.md](final-cut.md#states), Arriving). `finale_started` may start loading the finalists' posters during the beat.
+
+**The pick arrives during a beat** (`match` with `decided: true`, `only_match`): the beat's layer unmounts at once and the match overlay takes over ([match.md](match.md#when-it-shows)).
+
+**Reduce Motion.** The poster and the title fade in (`layout.fadeIn`) instead of popping. The flight becomes a crossfade: the poster fades out over the stack while the slot's poster fades in (`duration.slow`); nothing travels and the slot doesn't pop. The times stay the same. The haptic is unchanged.
+
+**Screen reader.** At 0, `swipe:shortlisted.a11y` is announced once, assertively (`shortlisted.a11yNoTitle` without the film's card), with the vote count when the event has arrived. Focus doesn't move. The shortlist's label reads the new film from then on.
+
+**What it never shows:** an avatar, a name, whose like completed the match, "2 to go" or anything counting down to the vote.
 
 ## First-game hints
 
@@ -164,6 +230,60 @@ Undoing either answer brings the card back to its front, without the question.
 - Any touch on the card cancels the lean at once and gives the card to the finger. A tap during the lean flips the card.
 - Reduce Motion: instead of the lean, the LIKE stamp and then the NOPE stamp show still at the same share for `duration.slow` each.
 
+## The done card (Nothing left)
+
+`DoneCard` in `screens/swipe/status-cards.tsx`, from M6.29; M6.17 adds the filters and the liked count. Screen 26 Nothing left (`30:2000`, the original page only; the first release page has no copy, figma-map.md). Q17.1: the card shows what caused it, tonight's filters and how many films the room has liked, and no buttons until M18 ([how a game ends](../../product/game-modes.md#how-a-game-ends), "Running out of cards").
+
+**When.** Only after `request_cards` answers `done` `{liked}` (M6.29): the seat has no unanswered card and the SQL baseline dealt it nothing. A seat that reached the card count but still has cards keeps swiping (decision row 14), even if its pill says Done (Q27.2). The card stack keeps `liked` from the answer (`features/swipe/card-stack.ts`). The stack asks again on its retry timer; each new `done` answer updates the count in place, with no animation.
+
+**Layout.** The same card-size frame as the waiting card (`bg-bg-surface`, `rounded-xl`, `border border-border-default`, entering with `layout.fadeIn`). Inside, a `ScrollView` whose content is centred when it fits and scrolls when it doesn't (the largest text). The content is one `EmptyState`:
+
+1. Icon `popcorn`; title `swipe:done.title`; body `swipe:done.body` (both from M6.9, unchanged).
+2. In `EmptyState`'s new `children` slot ([design-system changes](#design-system-changes)), `gap-2`, centred:
+   - `ending:nothingLeft.filters` in `mono-eyebrow`, tone `secondary`.
+   - **The filter tags:** a centred `flex-row flex-wrap justify-center gap-1.5` of `Tag` tone `neutral`, in this order, each only when it applies (a filter that doesn't narrow the deck has no tag, and no empty line is ever left):
+
+     | Tag | Icon | Shown when | Label |
+     | --- | --- | --- | --- |
+     | The services | `tv` on the first only | Always: up to 2 names from `api.rooms.provider_ids`, in `useCountryProviders(country)` order (`display_priority`), one tag each | The service's name. Then one more tag `ending:filters.moreServices` (`+{{count}}`) for the rest. If the providers list hasn't loaded or failed, one tag `ending:filters.services_*` with the count instead |
+     | The time budget | `clock` | `runtime_max` is set | `ending:filters.runtime`, the duration through `formatRuntime` ("1 h 45", "2 h 00") |
+     | The age cap | `shield` | `max_age` is set (null is "Adults") | `ending:filters.age` with the age, or `ending:filters.allAges` for 0 |
+     | The seen rule | `eye` | `seen_rule` is `hide_seen` | `ending:filters.hideSeen` |
+     | The quality | `star` | `quality` is `hidden_gems` or `guilty_pleasures` | `ending:filters.hiddenGems` or `ending:filters.guiltyPleasures` |
+
+   - **The liked count:** `ending:nothingLeft.liked_*` with `liked`, in `mono-data`, tone `like`. Left out while `liked` is unknown.
+3. No button inside the card: no Change filters (M18.6), no Vote now (M18.5). The answer buttons below stay disabled; Undo follows [its own rule](#undo) (an undo gives a card back, clears `done_at`, and the done card gives way to the card).
+
+Measured at 375 by 667 (a card about 324 by 487): the icon, a two-line title, the body, the eyebrow, two rows of tags and the count fit without scrolling. A long service name is cut by `Tag`'s one line; the full names are in the label.
+
+**States.** Offline before the `done` answer: the [waiting card](#states), not this one. Offline after it: the done card stays, the count stops updating, `RoomBanner` shows the offline note. The finale starts or the room ends: the layout replaces the screen, as for any state change.
+
+**Motion, haptics, sound.** The frame's `layout.fadeIn` only; the count changes without motion. No haptic (it isn't a refusal, and nobody pressed anything), no sound. Reduce Motion: the fade stays.
+
+**Accessibility.** When the done card replaces the top card, focus moves to its title (`EmptyState` `autoFocus`), since the focused card is gone. Then the body; then the eyebrow and the tags as one element, `ending:a11y.filters` with every service name in full and every tag's label, joined by `formatList`; then the count; then the buttons row as today (disabled answer buttons announce as dimmed).
+
+**Never shown.** Which films were liked, or who liked anything: a count only. No player names on the card. Nothing about the other players' decks or how many cards they have left (their pills already say Done or a count).
+
+**Copy** (`ending` namespace; the `swipe` files are not touched, [closed.md](closed.md) lists the namespace's other keys):
+
+| Key | French | English |
+| --- | --- | --- |
+| `nothingLeft.filters` | Les filtres du soir | Tonight's filters |
+| `nothingLeft.liked_one` | {{count}} film aimé pour l'instant | {{count}} film liked so far |
+| `nothingLeft.liked_other` | {{count}} films aimés pour l'instant | {{count}} films liked so far |
+| `filters.moreServices` | +{{count}} | +{{count}} |
+| `filters.services_one` | {{count}} plateforme | {{count}} service |
+| `filters.services_other` | {{count}} plateformes | {{count}} services |
+| `filters.runtime` | Moins de {{duration}} | Under {{duration}} |
+| `filters.age` | Dès {{age}} ans | Ages {{age}}+ |
+| `filters.allAges` | Tous publics | All ages |
+| `filters.hideSeen` | Jamais vus | Unseen only |
+| `filters.hiddenGems` | Pépites cachées | Hidden gems |
+| `filters.guiltyPleasures` | Plaisirs coupables | Guilty pleasures |
+| `a11y.filters` | Les filtres du soir : {{list}} | Tonight's filters: {{list}} |
+
+French puts 0 in the singular ("0 film aimé pour l'instant"), English in the plural ("0 films liked so far"). Counts go through `Intl` (i18next's `count`).
+
 ## States
 
 | State | What the player sees |
@@ -174,8 +294,10 @@ Undoing either answer brings the card back to its front, without the question.
 | Offline, cards left | Swiping carries on, feel unchanged. `RoomBanner` shows `common:states.offlineVotes_*` with the queue's count, or `common:states.offlineRoom` while nothing waits. M6.9 gives `RoomBanner` an optional `waitingVotes` count for this |
 | Offline, no cards left | **The waiting card:** a card-size `bg-bg-surface` frame, `rounded-xl`, `border-border-default`, with `EmptyState` icon `wifi-off`, `swipe:waiting.title`, `swipe:waiting.body`. Answer buttons disabled. When the connection is back, the queue sends, the cards are fetched, and the next card replaces it with `layout.fadeIn` |
 | Reconnecting | `RoomBanner` as in [Reconnecting](reconnecting.md); on `SUBSCRIBED` the re-read includes the matches and the next cards |
-| This player is done (Q27.2: reached the rule's card count, once `api.rooms` carries it, or no cards left after `request_cards`) | **The done card:** the same frame, `EmptyState` icon `popcorn`, `swipe:done.title`, `swipe:done.body`. Answer buttons disabled; Undo follows its own rule. Presence says `done` |
-| A match | The [match overlay](match.md) takes over from the room layout. A drag springs back (`spring.card`), thrown cards finish their flight, the question closes, the near-miss toast leaves with `layout.fadeOut` |
+| This player is out of cards (`request_cards` answered `done`, M6.29) | **[The done card](#the-done-card-nothing-left):** the same frame, `EmptyState` icon `popcorn`, `swipe:done.title`, `swipe:done.body`, tonight's filters and the liked count (M6.17). Answer buttons disabled; Undo follows its own rule. Presence says `done`. A seat that only reached the card count keeps its cards and keeps swiping (decision row 14) |
+| A match that joins the shortlist (`decided: false`) | [The shortlisted beat](#the-shortlisted-beat) over the stack for about 1.75 s, then the next card. The question stays open with its buttons idle, unless its card is the matched film |
+| The third match | The beat, then the layout moves to the Final Cut |
+| A match that is the pick (`decided: true`: `only_match`, or a mode with 1) | The [match overlay](match.md) takes over from the room layout. A drag springs back (`spring.card`), thrown cards finish their flight, the question closes, the near-miss toast leaves with `layout.fadeOut` |
 | The room moves on (`finale`, `abandoned`) | The layout replaces the screen. A drag springs back first |
 | Removed | Home with `join:errors.removed` ([the removed side](host-menu.md#the-removed-players-side)) |
 
@@ -183,7 +305,7 @@ Undoing either answer brings the card back to its front, without the question.
 
 | Call and answer | What the player sees |
 | --- | --- |
-| `cast_vote` `ok` | Nothing (`match: true` starts the overlay) |
+| `cast_vote` `ok` | Nothing. With `match: true`: `decided: false` starts the shortlisted beat, `decided: true` the overlay. `state: 'finale'`: the beat plays, then the layout follows |
 | `cast_vote` `duplicate`, `dropped` | Nothing |
 | `cast_vote` `closed` | Every queued vote for the room is dropped quietly; the room is re-read |
 | `cast_vote` `no_super_likes` | The super like goes back to the badge |
@@ -191,6 +313,7 @@ Undoing either answer brings the card back to its front, without the question.
 | `cast_vote` denied (`42501`, an expired session) | The session is refreshed once and the vote retried; a second denial drops it, to Sentry (Q11.1) |
 | `request_cards` `ok`, `enough` | Nothing (the cards arrive) |
 | `request_cards` `queued` | The loading card if the stack is empty |
+| `request_cards` `done` `{liked}` | [The done card](#the-done-card-nothing-left) once the stack is empty, with the count |
 | `request_cards` `closed` | The room is re-read |
 
 ## Live changes
@@ -199,11 +322,13 @@ Undoing either answer brings the card back to its front, without the question.
 | --- | --- |
 | `deck_updated` naming this seat | Only the cards behind the 3 mounted ones are replaced |
 | `near_miss` | [The near miss](#the-near-miss) |
-| `match` | [The match](match.md) |
+| `match` with `decided: false` | [The shortlisted beat](#the-shortlisted-beat); the film goes into [the shortlist](#the-shortlist) and leaves this phone's stack |
+| `match` with `decided: true` | [The match](match.md) |
+| `finale_started` | Nothing visible; the finalists' cards may start loading |
 | `member_joined`, `member_left`, `member_removed` | The pills re-read; a new pill comes in with `layout.fadeIn` (its avatar `layout.popIn`), a leaving one goes with `layout.fadeOut` |
 | `host_changed` | The crown moves; the new host gets `lobby:youreHost.title` as a toast, with no message line |
 | Presence | Dots, away, counts, done |
-| `state_changed` | The layout follows the state |
+| `state_changed` | The layout follows the state, after the shortlisted beat if one is playing (the hold) |
 
 ## Copy
 
@@ -238,7 +363,10 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 | `a11y.actions.nope` | Bof | Nope |
 | `a11y.actions.superLike` | Coup de cœur | Super like |
 | `a11y.actions.seen` | Déjà vu | Seen it |
+| `a11y.cardBackNoRating` | {{title}}. {{synopsis}} | {{title}}. {{synopsis}} |
+| `a11y.cardBackServices` | Sur {{services}}. | On {{services}}. |
 | `a11y.actions.flip` | Retourner la carte | Flip the card |
+| `a11y.actions.trailer` | Voir la bande-annonce | Watch the trailer |
 | `a11y.superLeft_one` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superLeft_other` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superNone` | Plus de coup de cœur | No super likes left |
@@ -252,27 +380,42 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 | `a11y.done` | {{name}} a fini | {{name}} is done |
 | `a11y.thrown` | {{answer}} : {{title}} | {{answer}}: {{title}} |
 
+**Added by M6.37** (the shortlist), in the same files:
+
+| Key | French | English |
+| --- | --- | --- |
+| `shortlist.count` | {{count}}/{{of}} | {{count}}/{{of}} |
+| `shortlist.a11y` | Sélection, {{count}} sur {{of}} : {{titles}} | Shortlist, {{count}} of {{of}}: {{titles}} |
+| `shortlist.a11yEmpty` | Sélection vide. Le vote commence à {{of}} matchs. | Shortlist empty. The vote starts at {{of}} matches. |
+| `shortlisted.title` | C'est un match : {{count}} sur {{of}} | It's a match: {{count}} of {{of}} |
+| `shortlisted.a11y` | C'est un match : {{title}}. {{count}} sur {{of}} dans la sélection. {{votes}} | It's a match: {{title}}. {{count}} of {{of}} on the shortlist. {{votes}} |
+| `shortlisted.a11yNoTitle` | C'est un match. {{count}} sur {{of}} dans la sélection. {{votes}} | It's a match. {{count}} of {{of}} on the shortlist. {{votes}} |
+| `a11y.undoShortlisted` | Ce film est dans la sélection | This film is on the shortlist |
+
+In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes}}` is the `match:count.*` line, or empty before the event. In French, the space before each colon is a no-break space (U+00A0). "Sélection" for "the shortlist" is proposed (the `copy` skill's glossary). No exclamation mark: this is a small cheer, and the pick's overlay keeps "C'est un match !". "C'EST UN MATCH : 3 SUR 3" takes 2 lines at 375 points in `display-m`, which the title allows.
+
 `nearMiss_one` never shows (the minimum is 2 likes) but French needs the form. Pill readings combine: "Sam, host, 15 films". `a11y.thrown` is the polite announcement after an answer from a screen reader action.
 
 **In `common`, added by M6.9** (the card is shared): `card.stampSeen` (Déjà vu / Seen it) and `card.stampSuper` (Super / Super; "COUP DE CŒUR" doesn't fit a 52-point stamp).
 
-**Reused:** `common:answers.*` (the button labels), `common:card.*`, `common:states.offlineVotes_*`, `common:states.offlineRoom`, `common:states.reconnecting`, `common:states.stillTrying`, `common:actions.retry`, `common:errors.generic.title`, `lobby:a11y.leave`, `lobby:leave.*`, `lobby:a11y.seat`, `lobby:seatSheet.*`, `lobby:remove.*`, `lobby:youreHost.title`, `join:errors.removed`.
+**Reused:** `match:count.unanimous` and `match:count.majority` (the beat's vote count), `common:answers.*` (the button labels), `common:card.*`, `common:states.offlineVotes_*`, `common:states.offlineRoom`, `common:states.reconnecting`, `common:states.stillTrying`, `common:actions.retry`, `common:errors.generic.title`, `lobby:a11y.leave`, `lobby:leave.*`, `lobby:a11y.seat`, `lobby:seatSheet.*`, `lobby:remove.*`, `lobby:youreHost.title`, `join:errors.removed`.
 
 ## Motion, haptics, sound
 
 - Motion as in the sections above; tokens only. A new touch cancels anything still moving on the top card; a thrown card finishes on its own.
-- Haptics: `commit` at the line, `throw` on every throw, `press` from the buttons. Nothing for the flip, the near miss, the hints, a pill or a refusal.
+- Haptics: `commit` at the line, `throw` on every throw, `press` from the buttons, `shortlist` once per shortlisted beat (M6.37). Nothing for the flip, the near miss, the hints, a pill, a refusal or the shortlist filling on a re-read.
 - No sound on this screen.
 
 ## Accessibility
 
-- **Focus order:** Leave, the pills (each a button but your own, hint `lobby:a11y.seat`), the banner, the top card, the hint, Undo, Nope, Super, Like, Seen it.
-- **The top card is one element:** `swipe:a11y.card` on the front, `swipe:a11y.cardBack` on the back, with custom actions like, nope, super like, seen it and flip (`swipe:a11y.actions.*`). After an action, `swipe:a11y.thrown` is announced and focus stays on the new top card. The Trailer button is its own element while the back shows.
+- **Focus order:** Leave, the pills (each a button but your own, hint `lobby:a11y.seat`), the shortlist (`swipe:shortlist.a11y` or `a11yEmpty`), the banner, the top card, the hint, Undo, Nope, Super, Like, Seen it. When the done card shows, it takes the top card's place in this order (its own order is in [the done card](#the-done-card-nothing-left)).
+- **The top card is one element:** `swipe:a11y.card` on the front, `swipe:a11y.cardBack` on the back, with custom actions like, nope, super like, seen it and flip (`swipe:a11y.actions.*`). After an action, `swipe:a11y.thrown` is announced and focus stays on the new top card. While the back shows, the card also offers a `trailer` custom action (the card is one element, so a button inside it can't take focus). The back's reading adds the director, the cast and the services after the synopsis. The reason label waits for the reason codes (M17 to M20): until the app knows a code, no label shows, front or back.
 - **The buttons** use `common:answers.*` as labels; Super uses `swipe:a11y.superLeft_*` or `superNone`; a disabled Undo has `swipe:a11y.undoNone` as its hint.
 - **The rewatch question** takes focus on its title; Yes and No are labelled `swipe:a11y.seenYes` and `seenNo`; the escape gesture closes it with no vote.
 - **The near-miss toast** is announced once, politely, when it shows on the focused card.
-- **Reduce Motion:** the drag follows the finger without the tilt; a throw becomes a short slide toward its side with a fade (`timing.base`); the stamp shows at full once the line is crossed, without growing; the second card is already full size; Undo fades the card back in place; the flip crossfades in place (`timing.flip`); the toast fades (`layout.fadeIn`, `layout.fadeOut`) and the glow doesn't pulse; the hint lean becomes the still stamps.
-- Largest text: the pills scroll; the hint line wraps to two lines; the question's title wraps; the card's meta is cut before the title.
+- **The shortlisted beat** is announced once, assertively (`swipe:shortlisted.a11y`); focus stays where it was. A disabled Undo after a match has the hint `swipe:a11y.undoShortlisted`.
+- **Reduce Motion:** the drag follows the finger without the tilt; a throw becomes a short slide toward its side with a fade (`timing.base`); the stamp (label included) shows at full as soon as the drag starts toward an answer, with its coloured border, without growing; the second card is already full size; Undo fades the card back in place; the flip crossfades in place (`timing.flip`); the toast fades (`layout.fadeIn`, `layout.fadeOut`) and the glow doesn't pulse; the hint lean becomes the still stamps; the shortlisted beat fades instead of popping and crossfades instead of flying ([The shortlisted beat](#the-shortlisted-beat)).
+- Largest text: the pills scroll; the shortlist's count grows to its cap (1.2) and its slots keep their size; the beat's title keeps 2 lines at `display-m`'s capped scale; the hint line wraps to two lines; the question's title wraps; the card's meta is cut before the title.
 
 ## Design-system changes
 
@@ -285,16 +428,22 @@ Spec here; app-dev builds them with their gallery states in the task named.
 | `MovieCard`: `glow` (the near miss's `glow-like` around the card, under the drag's border) | M6.13 |
 | `PlayerPill`: `you` (the label), `away` (muted name, no dot), `done` (the count replaced by `swipe:pills.done` in tone `like`), `host` (the crown), and `onPress` | M6.27 |
 | `RoomBanner`: an optional `waitingVotes` count for the offline note | M6.9 |
+| `EmptyState`: an optional `children` slot between the body and the action (the done card's filters and count). A gallery state with a row of tags | M6.17 |
 | Tokens: `rotation.card-tilt` 10 and `rotation.card-tilt-max` 15 (degrees, the swipe), `duration.hint-delay` 600ms (the card 1 lean's wait), each with a `$description`, then `mise run tokens` | M6.9, M6.18 |
+| `PosterThumb`: a size `xs`, 24 by 36 (`h-9 w-6`), with `rounded-xs` instead of `rounded-sm`. A gallery state with a missing poster | M6.37 |
+| Token: `duration.shortlist-hold`, 1200ms, "The shortlisted beat: the poster over the stack before it flies to the shortlist (a starting value)", then `mise run tokens` | M6.37 |
+| Haptic: `haptics.shortlist()` in `lib/haptics`, "A match joins the shortlist": two `Light` impacts 100 ms apart, a starting point for the feel check. The `motion` skill's haptics table gets the row | M6.37 |
 
-No new component: the new pieces are single-use screen pieces in `components/screens/swipe/`.
+No new component: the new pieces are single-use screen pieces in `components/screens/swipe/` (the shortlist and the beat's layer are M6.37's).
 
 ## Differences from the Figma
 
 - The Figma's top row (an avatar stack, "3 swiping", "You're on card 14" and a sliders button) becomes Leave and the player pills with each count (Q27.1). No sliders button: the host's tools are on the pills.
 - The near-miss toast drops "One more yes and it's a match": the count only, always true (moments.md#copy). It sits over the pills and keeps Leave visible.
 - The hints share one line between the card and the buttons, so the card never moves when one arrives. Onboarding put the card 2 hint under the buttons; this spec moves it (onboarding.md and moments.md are updated).
+- Nothing left (26, `30:2000`): no top-row avatars or sliders, and no Vote on our likes or Change filters until M18.5 and M18.6 (Q17.1). The title and body stay M6.9's ("That's all your cards"), not "You've seen the whole lineup", because the body has to say what happens next while there is no button. The filters are `Tag`s, not selected `Chip`s: a chip looks pressable, and nothing here can be pressed yet. The icon is `EmptyState`'s, without the Figma's marquee glow: a glow is for the shared moments. The count says "liked so far", not "liked by at least one player".
 - Copy on the Figma's game screens is English only; this spec is the copy.
+- The shortlist and the shortlisted beat have no Figma frame; this spec is their source (M6.33). The draft's visible "Shortlist" label isn't in the bar: at 375 points it would leave the pills under 100 points. The word is in the shortlist's screen-reader label and the beat's announcement.
 
 ## Questions
 
@@ -304,3 +453,9 @@ Harry accepted every default of slices 10 and 11's plan and of the moments' ques
 2. **The super likes hint's end.** Onboarding says "Dismissed". Default: a tap on it, or 3 answers later, so it never sits there all game.
 3. **The loading card's slow line.** Default: after 10 seconds, "Still dealing the cards." and Try again.
 4. **Lock mid-game.** Default: the lock stays in the lobby; the swipe screen's host menu is the seat sheet only.
+
+New choices for the shortlist (M6.33), each with a default; none needs an answer unless Harry objects:
+
+5. **Can you tap the shortlist?** Default: no. The beat showed each film full size, and the Final Cut shows them all. If players ask "what was the second one?" in the playtest (M6.20), a sheet with the shortlisted films can come later.
+6. **The count while empty.** Default: "0/3" in muted from the first card, so the bar never shifts and the rule can be seen from the start. It counts what the room has, never what it still needs.
+7. **Undo after a match.** Default: disabled while the last card answered is on the shortlist; a `locked` answer takes the card away again with no message.

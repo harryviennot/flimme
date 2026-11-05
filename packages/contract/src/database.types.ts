@@ -48,14 +48,14 @@ export type Database = {
                   ]
                 },"game_modes": {
                   Row: {
-                    "ends_on_first_match": boolean,"max_players": number,"min_players": number,"slug": string,"sort": number
+                    "ends_on_first_match": boolean,"matches_to_end": number | null,"max_players": number,"min_players": number,"slug": string,"sort": number
                   }
                   ComputedFields: never
                   Insert: {
-                           "ends_on_first_match"?: boolean | null,"max_players"?: number | null,"min_players"?: number | null,"slug"?: string | null,"sort"?: number | null
+                           "ends_on_first_match"?: boolean | null,"matches_to_end"?: never,"max_players"?: number | null,"min_players"?: number | null,"slug"?: string | null,"sort"?: number | null
                          }
                         Update: {
-                           "ends_on_first_match"?: boolean | null,"max_players"?: number | null,"min_players"?: number | null,"slug"?: string | null,"sort"?: number | null
+                           "ends_on_first_match"?: boolean | null,"matches_to_end"?: never,"max_players"?: number | null,"min_players"?: number | null,"slug"?: string | null,"sort"?: number | null
                          }
                         Relationships: [
                     
@@ -188,14 +188,14 @@ export type Database = {
                   ]
                 },"room_seats": {
                   Row: {
-                    "avatar_key": string,"calibrated_at": string | null,"display_name": string,"done_at": string | null,"is_me": boolean | null,"is_mine": boolean | null,"joined_at": string,"left_at": string | null,"member_id": string,"provider_ids": (number)[],"role": "host"|"guest","room_id": string,"super_likes_left": number,"swipe_count": number,"vetoes_left": number
+                    "avatar_key": string,"calibrated_at": string | null,"display_name": string,"done_at": string | null,"is_me": boolean | null,"is_mine": boolean | null,"joined_at": string,"left_at": string | null,"member_id": string,"provider_ids": (number)[],"role": "host"|"guest","room_id": string,"super_likes_left": number | null,"swipe_count": number,"vetoes_left": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                           "avatar_key"?: string | null,"calibrated_at"?: string | null,"display_name"?: string | null,"done_at"?: string | null,"is_me"?: never,"is_mine"?: never,"joined_at"?: string | null,"left_at"?: string | null,"member_id"?: string | null,"provider_ids"?: (number)[] | null,"role"?: "host"|"guest" | null,"room_id"?: string | null,"super_likes_left"?: number | null,"swipe_count"?: number | null,"vetoes_left"?: number | null
+                           "avatar_key"?: string | null,"calibrated_at"?: string | null,"display_name"?: string | null,"done_at"?: string | null,"is_me"?: never,"is_mine"?: never,"joined_at"?: string | null,"left_at"?: string | null,"member_id"?: string | null,"provider_ids"?: (number)[] | null,"role"?: "host"|"guest" | null,"room_id"?: string | null,"super_likes_left"?: never,"swipe_count"?: number | null,"vetoes_left"?: never
                          }
                         Update: {
-                           "avatar_key"?: string | null,"calibrated_at"?: string | null,"display_name"?: string | null,"done_at"?: string | null,"is_me"?: never,"is_mine"?: never,"joined_at"?: string | null,"left_at"?: string | null,"member_id"?: string | null,"provider_ids"?: (number)[] | null,"role"?: "host"|"guest" | null,"room_id"?: string | null,"super_likes_left"?: number | null,"swipe_count"?: number | null,"vetoes_left"?: number | null
+                           "avatar_key"?: string | null,"calibrated_at"?: string | null,"display_name"?: string | null,"done_at"?: string | null,"is_me"?: never,"is_mine"?: never,"joined_at"?: string | null,"left_at"?: string | null,"member_id"?: string | null,"provider_ids"?: (number)[] | null,"role"?: "host"|"guest" | null,"room_id"?: string | null,"super_likes_left"?: never,"swipe_count"?: number | null,"vetoes_left"?: never
                          }
                         Relationships: [
                     
@@ -230,14 +230,14 @@ export type Database = {
                   ]
                 },"rounds": {
                   Row: {
-                    "closed_at": string | null,"id": string,"kind": "final_cut"|"ranked_vote","opened_at": string,"room_id": string,"seq": number,"stage": "veto"|"rank"|"closed","stage_closes_at": string,"winner_title_id": number | null
+                    "closed_at": string | null,"id": string,"kind": "final_cut"|"ranked_vote","opened_at": string,"room_id": string,"seq": number,"stage": "veto"|"rank"|"vote"|"closed","stage_closes_at": string,"winner_title_id": number | null
                   }
                   ComputedFields: never
                   Insert: {
-                           "closed_at"?: string | null,"id"?: string | null,"kind"?: "final_cut"|"ranked_vote" | null,"opened_at"?: string | null,"room_id"?: string | null,"seq"?: number | null,"stage"?: "veto"|"rank"|"closed" | null,"stage_closes_at"?: string | null,"winner_title_id"?: number | null
+                           "closed_at"?: string | null,"id"?: string | null,"kind"?: "final_cut"|"ranked_vote" | null,"opened_at"?: string | null,"room_id"?: string | null,"seq"?: number | null,"stage"?: "veto"|"rank"|"vote"|"closed" | null,"stage_closes_at"?: string | null,"winner_title_id"?: number | null
                          }
                         Update: {
-                           "closed_at"?: string | null,"id"?: string | null,"kind"?: "final_cut"|"ranked_vote" | null,"opened_at"?: string | null,"room_id"?: string | null,"seq"?: number | null,"stage"?: "veto"|"rank"|"closed" | null,"stage_closes_at"?: string | null,"winner_title_id"?: number | null
+                           "closed_at"?: string | null,"id"?: string | null,"kind"?: "final_cut"|"ranked_vote" | null,"opened_at"?: string | null,"room_id"?: string | null,"seq"?: number | null,"stage"?: "veto"|"rank"|"vote"|"closed" | null,"stage_closes_at"?: string | null,"winner_title_id"?: number | null
                          }
                         Relationships: [
                     
@@ -248,8 +248,14 @@ export type Database = {
             "answer_followup":
 { Args: { "p_reaction"?: "love"|"fine"|"nope","p_room_id": string,"p_watched": "yes"|"no"|"something_else" }; Returns: Json
                            },
+"cast_ballot":
+{ Args: { "p_member_id"?: string,"p_ranking": (number)[],"p_round_id": string,"p_veto"?: number }; Returns: Json
+                           },
 "cast_vote":
 { Args: { "p_answer": "nope"|"like"|"super_like"|"seen"|"seen_rewatch","p_client_at"?: string,"p_dwell_ms"?: number,"p_flipped"?: boolean,"p_member_id"?: string,"p_room_id": string,"p_title_id": number }; Returns: Json
+                           },
+"close_round_stage":
+{ Args: { "p_round_id": string }; Returns: Json
                            },
 "create_room":
 { Args: { "p_country"?: string,"p_mode"?: string,"p_settings"?: Json }; Returns: Json
@@ -280,6 +286,12 @@ export type Database = {
                            },
 "room_preview":
 { Args: { "p_code": string,"p_ref": string }; Returns: Json
+                           },
+"round_progress":
+{ Args: { "p_round_id": string }; Returns: Json
+                           },
+"set_analytics_choice":
+{ Args: { "p_choice": "on"|"off"|"detailed","p_version": string }; Returns: Json
                            },
 "set_my_providers":
 { Args: { "p_provider_ids": (number)[] }; Returns: Json

@@ -1,0 +1,26 @@
+# A fresh guest named Alice opens a room with four services and waits in the lobby.
+# Starts on the welcome screen.
+appId: com.harryviennot.flimme.dev
+---
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Alice'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- tapOn: '(?i)open a room'
+- extendedWaitUntil:
+    visible: 'Netflix'
+    timeout: 15000
+- tapOn: 'Netflix'
+- tapOn: 'Amazon Prime Video'
+- tapOn: 'Disney Plus'
+- tapOn: 'Canal\+'
+- tapOn: '(?i)open the room'
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 15000
+- takeScreenshot: swipe-host-lobby

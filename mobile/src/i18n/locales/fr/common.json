@@ -42,15 +42,22 @@
     "director": "Réalisation  {{name}}",
     "cast": "Avec  {{names}}",
     "trailer": "Bande-annonce",
+    "justwatch": "Disponibilités fournies par JustWatch.",
     "flipBack": "Touche la carte pour la retourner",
     "stampLike": "J'aime",
     "stampNope": "Bof",
-    "stars": "★ {{rating}}"
+    "stars": "★ {{rating}}",
+    "stampSeen": "Déjà vu",
+    "stampSuper": "Super"
   },
   "ticket": {
     "roomCode": "Code de la salle",
     "locked": "Verrouillée",
     "lockedA11y": "Salle verrouillée"
+  },
+  "countdown": {
+    "a11y_one": "Encore {{count}} seconde",
+    "a11y_other": "Encore {{count}} secondes"
   },
   "services": {
     "tapToAdd": "Ajouter",

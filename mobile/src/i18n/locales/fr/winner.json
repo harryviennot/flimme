@@ -1,0 +1,22 @@
+{
+  "eyebrow": "Le film du soir",
+  "onlyFilm": "Le seul film qui a plu",
+  "whereToWatch": "Où regarder",
+  "notListed": "Aucune de vos plateformes ne le propose plus.",
+  "justwatch": "Disponibilités fournies par JustWatch.",
+  "moreDetails": "Plus d'infos",
+  "home": "Accueil",
+  "error": {
+    "title": "Impossible de charger le film.",
+    "offline": "Tu es hors ligne. Le film s'affiche dès ton retour."
+  },
+  "a11y": {
+    "title": "Le film du soir : {{title}}",
+    "poster": "Affiche de {{title}}",
+    "services": "Disponible sur {{names}}",
+    "moreDetails": "Plus d'infos sur TMDB",
+    "moreDetailsHint": "S'ouvre dans le navigateur",
+    "home": "Retour à l'accueil",
+    "loading": "Chargement du film"
+  }
+}

@@ -99,10 +99,10 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 28 | In progress |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 38 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
-| [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 11 | Not started |
-| [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 7 | Not started |
+| [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 12 | In progress |
+| [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 9 | In progress |
 | [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | Not started |
 | [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the reviewers' demo room are ready on both stores | 9 | Not started |
 | [M12](#m12-closed-beta) | Closed beta | Friend groups and families play, Google's 12 testers have run 14 days, and the go decision is made | 7 | Not started |
@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 92 of 257 tasks done.
+Progress: 124 of 270 tasks done.
 
 ```mermaid
 flowchart LR
@@ -362,7 +362,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: the invite page shows the code and the steps, and the verification files are in the repo.
 - [x] **M4.15** The `/join/[code]` route: a link or a QR code from the phone's camera opens the room · app · M · needs M4.8 · [onboarding](onboarding.md#app-installed)
   Done when: tested from a cold start on both platforms, with the `flimme-dev` scheme.
-- [ ] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · M · needs M4.1, M3.6, M1.17 · [groundwork](../architecture/groundwork.md#the-local-environment)
+- [x] **M4.16** An early bot player: joins a room by code and stays present, so the lobby can be tested with one phone · test · M · needs M4.1, M3.6, M1.17 · [groundwork](../architecture/groundwork.md#the-local-environment)
   Done when: `mise run bots` fills a local room with three present players.
 - [x] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
   Done when: Home is three taps from a fresh install.
@@ -404,7 +404,7 @@ Done when: a room is dealt in under a second, only with films its players can wa
 
 From the host pressing Start to the night's pick.
 
-Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the Final Cut, within the time limits.
+Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote between matches and by the Final Cut, within the time limits.
 
 **Backend**
 
@@ -414,54 +414,74 @@ Done when: 2, 4 and 8 players each reach a pick, by an instant match and by the 
   Done when: the match check is tested with both answers, and the near miss and `flipped` are tested too.
 - [x] **M6.3** Undo: the last swipe only, once; undoing "Seen it" brings the film back; undoing a like at the near-miss line sends `near_miss` with the corrected counts · backend · M · needs M1.5 · [game-modes](game-modes.md#the-answers)
   Done when: tested.
-- [ ] **M6.4** Starting the finale: finalists need at least one like; one 60-second round; card counts use seats seated at the start; every time limit; everyone done · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
+- [x] **M6.4** Starting the finale: finalists need at least one like; one 60-second round; card counts use seats seated at the start; every time limit · backend · L · needs M6.1 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: each trigger and the finalist rule are tested.
-- [ ] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · L · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
+- [x] **M6.5** `api.cast_ballot` (the whole ballot in one call) and `api.close_round_stage` with the counting and tie rules · backend · L · needs M6.4 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tests cover vetoes, ties, missing ballots and phones closing at once.
-- [ ] **M6.6** `internal.sweep_rooms` every minute, as specified · backend · L · needs M6.5, M4.5, M1.13, M6.7 · [game-modes](game-modes.md#functions-still-to-write)
-  Done when: each row of the spec's table has a test.
-- [ ] **M6.7** Starting to swipe moves `expires_at` to 1 hour after the start · backend · S · needs M1.5 · [game-modes](game-modes.md#changes-to-functions-already-written)
+- [x] **M6.6** `internal.sweep_rooms` every minute, as specified, without the silence re-check (M6.30) · backend · L · needs M6.5, M4.5, M1.13, M6.7, M6.29 · [game-modes](game-modes.md#functions-still-to-write)
+  Done when: each row of the spec's table, except the silence re-check, has a test.
+- [x] **M6.7** Starting to swipe moves `expires_at` to 1 hour after the start · backend · S · needs M1.5 · [game-modes](game-modes.md#changes-to-functions-already-written)
   Done when: a room opened 3 hours earlier isn't abandoned mid-game.
-- [ ] **M6.8** End of room on the server: `rooms.stats` with the outcome, seconds to the pick, players present, swipes per seat, why the finale started · server · M · needs M2.2, M6.5 · [analytics](analytics.md#changes-this-asks-elsewhere)
+- [x] **M6.8** End of room on the server: `rooms.stats` with the outcome, seconds to the pick, players present, swipes per seat, why the finale started · server · M · needs M2.2, M6.5, M6.4 · [analytics](analytics.md#changes-this-asks-elsewhere)
   Done when: every finished room on staging has its stats, written once even if the message comes twice.
-- [ ] **M6.28** `allow_rewatch` as the default for Quick Match and Final Cut (Date Night keeps `hide_seen`): a data migration on `game_modes.defaults` · backend · S · needs M6.2 · [game-modes](game-modes.md#the-answers)
+- [x] **M6.28** `allow_rewatch` as the default for Quick Match and Final Cut (Date Night keeps `hide_seen`): a data migration on `game_modes.defaults` · backend · S · needs M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: a new room in either mode gets `allow_rewatch`, tested in `610-rewatch-default.test.sql`.
+- [x] **M6.29** Out of cards: seats done, the finale when everyone is done · backend · M · needs M6.4 · [game-modes](game-modes.md#how-a-game-ends)
+  Done when: the "Running out of cards" rule is tested, with the `done` answer and the finale with reason `all_done`.
+- [x] **M6.30** The 3-minute silence: voters and the sweeper's re-check · backend · M · needs M6.6 · [game-modes](game-modes.md#who-counts-presence-joining-and-leaving)
+  Done when: the silence rule is tested, with the sweeper's re-check row.
+- [x] **M6.34** Matches build a shortlist: `matches_to_end` per mode (3 at launch), the third match starts the finale (`shortlist_full`), several matches at once most liked first, `rooms.stats` counts the matches · backend · L · needs M6.4, M6.8, M6.30 · [game-modes](game-modes.md#when-its-a-match)
+  Done when: each rule of "When it's a match" is tested, a mode with `matches_to_end` 1 included.
+- [ ] **M6.35** The finale with a shortlist: a vote between 2 or 3 matches (2 films without a veto), a single match is the pick in Quick Match and Date Night (`only_match`) · backend · L · needs M6.34, M6.5, M6.36 · [game-modes](game-modes.md#when-it-starts), [the finalists](game-modes.md#the-finalists)
+  Done when: the vote between matches, the single-match pick, and rounds of 2 and 3 films closing are tested.
+- [x] **M6.36** One seat each among the finalists: after the matches, the liked film that gives a seat to the most present players without one · backend · M · needs M6.4 · [game-modes](game-modes.md#the-finalists)
+  Done when: rule 2 of "The finalists" is tested, ties and a player who left included.
 
 **App**
 
-- [ ] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched, the undo button shown disabled until M6.26 · app · L · needs M6.25, M6.11, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [x] **M6.9** The swipe screen: 3 mounted cards, gestures with haptics, Like, Nope, Super like and Seen it buttons with screen-reader labels, the next 3 posters prefetched, the undo button shown disabled until M6.26 · app · L · needs M6.25, M6.11, M4.10, M5.6 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: smooth by the frame meter on the simulator, and usable with VoiceOver.
-- [ ] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · M · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
+- [x] **M6.10** The card back: tap to flip, synopsis, runtime, director, cast, TMDB score, the room's services · app · M · needs M6.9 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: flipping works mid-stack.
 - [x] **M6.11** The vote queue module: persisted, sent in order, retried, a `denied` vote refreshed once and retried, votes for rooms the phone no longer keeps dropped on restart · app · M · needs M3.7, M5.7 · [app-structure](../architecture/app-structure.md#the-vote-queue)
   Done when: the queue's rules are tested. The airplane-mode run is M6.9's.
-- [ ] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · M · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
+- [x] **M6.12** "Watch it again tonight?" after "Seen it" in rooms that allow rewatches · app · M · needs M6.9, M6.2 · [game-modes](game-modes.md#the-answers)
   Done when: both answers reach the server.
-- [ ] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · M · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
+- [x] **M6.13** The near-miss message in Party mode ("2 of 3 of you liked this") · app · M · needs M6.9 · [game-modes](game-modes.md#what-players-see-party-and-blind)
   Done when: shown on the right phones, never naming anyone.
-- [ ] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
+- [x] **M6.14** The match overlay: the poster full screen, a haptic burst, everyone's avatars · app · L · needs M6.9 · [game-modes](game-modes.md#when-its-a-match)
   Done when: it appears on every phone together.
-- [ ] **M6.15** The Final Cut screen: rank by tapping in order, veto one, a 60-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
+- [x] **M6.15** The Final Cut screen, without the reveal (M6.31): rank by tapping in order, veto one, a 60-second countdown, who has locked in, closing at zero · app · L · needs M6.5, M4.10 · [game-modes](game-modes.md#the-finale)
   Done when: a round with a missing ballot still closes on time.
-- [ ] **M6.16** The winner screen: the poster, the logos of the room's services that have it, the JustWatch credit, "More details" to TMDB's watch page · app · L · needs M6.14, M6.15 · [game-modes](game-modes.md#after-the-pick), [tmdb](../integrations/tmdb.md#the-watch-link)
+- [x] **M6.16** The winner screen: the poster, the logos of the room's services that have it, the JustWatch credit, "More details" to TMDB's watch page · app · M · needs M6.14 · [game-modes](game-modes.md#after-the-pick), [tmdb](../integrations/tmdb.md#the-watch-link)
   Done when: shown after a match and after the Final Cut.
-- [ ] **M6.17** "Nothing left" and the closed-room screen · app · M · needs M6.9, M5.5 · [game-modes](game-modes.md#how-a-game-ends)
+- [x] **M6.17** "Nothing left" and the closed-room screen · app · M · needs M6.9, M5.5, M6.29, M6.6 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: both reachable in a test room.
-- [ ] **M6.18** Hints over the first game's first cards: how to swipe, Seen it, super likes · app · M · needs M6.9 · [onboarding](onboarding.md#the-first-game)
+- [x] **M6.18** Hints over the first game's first cards: how to swipe, Seen it, super likes · app · M · needs M6.9 · [onboarding](onboarding.md#the-first-game)
   Done when: shown once per player.
 - [x] **M6.25** The card stack store: one Zustand store for the stack's rules, with no UI. Down to 5 unanswered cards asks for more, the next 3 posters are prefetched, and posters are w780 on screens 600 points wide or more · app · M · needs M5.6, M4.10 · [app-structure](../architecture/app-structure.md#the-card-stack)
   Done when: fully unit-tested, with its two calls injected so that M6.9 wires the real ones.
-- [ ] **M6.26** Undo on the swipe screen: the rewind button, the last card coming back, and the queued vote removed or `api.undo_last_vote` sent · app · M · needs M6.9, M6.11, M6.3 · [moments](../design/moments.md#the-swipe)
+- [x] **M6.26** Undo on the swipe screen: the rewind button, the last card coming back, and the queued vote removed or `api.undo_last_vote` sent · app · M · needs M6.9, M6.11, M6.3 · [moments](../design/moments.md#the-swipe)
   Done when: a touch run on the simulator against staging brings the card back, and the server agrees.
-- [ ] **M6.27** The swipe screen's top: player pills with each count (steps of 5), "Sam is done", Leave with its confirmation, the host menu to remove a player mid-game, and the Reconnecting banner · app · M · needs M6.9 · [moments](../design/moments.md#what-every-moment-keeps)
+- [x] **M6.27** The swipe screen's top: player pills with each count (steps of 5), "Sam is done", Leave with its confirmation, the host menu to remove a player mid-game, and the Reconnecting banner · app · M · needs M6.9 · [moments](../design/moments.md#what-every-moment-keeps)
   Done when: every state of the top bar's spec is shown, checked in a three-player touch run.
+- [x] **M6.31** The Final Cut's reveal · app · M · needs M6.15 · [game-modes](game-modes.md#the-finale)
+  Done when: the reveal plays once per room on every phone, and a phone that missed the event plays it after reading the candidates.
+- [ ] **M6.32** The winner screen's runners-up, with who liked them in Party mode after the pick, and a read for it · app · needs M6.16 · [game-modes](game-modes.md#after-the-pick)
+  Done when: the runners-up show after the pick, and in Party mode each one names who liked it.
+- [x] **M6.33** The shortlist's beat and specs: the shortlisted beat, the match overlay only for a pick, the swipe screen's shortlist, the Final Cut with 2 films and its intro line · design · M · [proposal](three-matches-and-fair-finalists.md#option-1a-a-shortlist-of-up-to-3-matches-recommended), [moments](../design/moments.md#the-match)
+  Done when: the shortlisted beat is in moments.md, and the swipe, match and Final Cut specs cover it in French and English.
+- [ ] **M6.37** The shortlist on the swipe screen: the shortlisted beat, the shortlist's posters in the top bar, the match overlay only for a pick · app · L · needs M6.33, M6.34, M6.14, M6.27 · [game-modes](game-modes.md#when-its-a-match), [swipe](../design/screens/swipe.md#the-top-bar)
+  Done when: a touch run on simulators against staging with the bots plays each beat, fills the top bar to the Final Cut, and reads the shortlist back after a cold start.
+- [ ] **M6.38** The Final Cut with 2 films and its intro line: the 2-film vote without a veto, its reveal, and the fixed line on how the films were chosen · app · M · needs M6.33, M6.35, M6.15, M6.31 · [the finalists](game-modes.md#the-finalists), [final-cut](../design/screens/final-cut.md#layout)
+  Done when: a touch run against staging reaches a 2-film vote and its reveal, and every Final Cut shows the intro line in French and English.
 
 **Tests**
 
-- [ ] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
+- [x] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
   Done when: bots can fill a room on staging.
-- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, both ways to a pick, leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12 · [game-modes](game-modes.md#a-game-at-a-glance)
-  Done when: every run ends with a pick within the limits; bugs become tasks.
+- [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, every way to a pick (a single match, a vote between matches, the Final Cut from swipes), leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12, M6.29, M6.30, M6.31, M6.37, M6.38 · [game-modes](game-modes.md#a-game-at-a-glance)
+  Done when: every run ends with a pick within the limits; the swiping after the first match is timed, and every player is asked "was there a film for you in the vote?"; bugs become tasks.
 
 **Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
 
@@ -484,7 +504,7 @@ Done when: the security checklist for the closed beta is ticked.
   Done when: a report is stored, a repeat from the same reporter adds no row, and the limit answers `rate_limited`.
 - [x] **M7.2** Report a player, from the player list · app · M · needs M7.1, M4.11 · [security](../architecture/security.md#room-codes-joining-and-the-host)
   Done when: works on both platforms.
-- [ ] **M7.3** No trailer button in rooms with an age cap under 13 · app · S · needs M6.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
+- [x] **M7.3** No trailer button in rooms with an age cap under 13 · app · S · needs M6.10 · [security](../architecture/security.md#keeping-kids-safe-on-screen)
   Done when: tested in a capped room.
 - [ ] **M7.4** Walk the security checklist for the closed beta · test · M · needs M1.6, M1.7, M1.8, M1.9, M1.10, M1.11, M1.12, M4.1, M4.2, M4.3, M7.1, M1.2, M4.10, M5.6, M7.3, M8.4, M9.5 · [security](../architecture/security.md#checklist)
   Done when: every first-release item is ticked or deferred in decisions.md.
@@ -501,22 +521,24 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: written from the outline.
 - [ ] **M8.3** Host the policy, the terms, a support page and an account deletion request page on the domain · ops · M · needs M8.1, M8.2, M0.2 · [store-listing](store-listing.md#release-checklist)
   Done when: all four URLs are live.
-- [ ] **M8.4** The server's HTTP API (FastAPI): token checks with ES256 against Supabase's signing keys, request limits, health check · server · L · needs M2.2, M1.12 · [server-structure](../architecture/server-structure.md#the-http-api), [security](../architecture/security.md#the-servers-http-api-and-letterboxd-uploads)
+- [x] **M8.4** The server's HTTP API (FastAPI): token checks with ES256 against Supabase's signing keys, request limits, health check · server · L · needs M2.2, M1.12 · [server-structure](../architecture/server-structure.md#the-http-api), [security](../architecture/security.md#the-servers-http-api-and-letterboxd-uploads)
   Done when: a bad or expired token is refused in tests; deployed with the worker.
-- [ ] **M8.5** Delete my data: an HTTP API route that deletes the guest's auth user (everything cascades) and their analytics person · server · L · needs M8.4 · [security](../architecture/security.md#account-deletion-and-data-export)
+- [ ] **M8.5** Delete my data: an HTTP API route that deletes the guest's auth user (everything cascades) and their analytics person · server · M · needs M8.4 · [security](../architecture/security.md#account-deletion-and-data-export)
   Done when: after deletion, nothing about the player remains except anonymous seats.
-- [ ] **M8.6** `api.export_my_data` matches the first release (profile, services, seen films, votes) · backend · M · needs M1.5 · [privacy](privacy.md#players-rights-in-practice)
+- [x] **M8.6** `api.export_my_data` matches the first release (profile, services, seen films, votes) · backend · M · needs M1.5 · [privacy](privacy.md#players-rights-in-practice)
   Done when: tested.
-- [ ] **M8.7** Settings: language, analytics opt-out, download my data, delete my data, About with the TMDB logo and notice and the JustWatch credit, policy, terms, support · app · L · needs M8.5, M8.6, M3.8, M8.3 · [privacy](privacy.md#players-rights-in-practice), [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
+- [ ] **M8.7** Settings: language, analytics opt-out, download my data, delete my data, About with the TMDB logo and notice and the JustWatch credit, policy, terms, support · app · L · needs M8.5, M8.6, M3.8, M8.12 · [privacy](privacy.md#players-rights-in-practice), [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
   Done when: every item works on both platforms.
-- [ ] **M8.8** Guest cleanup: guests inactive for 90 days are deleted from `auth.users` · server · M · needs M8.4, M8.5 · [security](../architecture/security.md#guest-accounts)
+- [x] **M8.8** Guest cleanup: guests inactive for 90 days are deleted from `auth.users` · backend · M · needs M1.5, M8.9 · [security](../architecture/security.md#guest-accounts)
   Done when: a scheduled run deletes a test guest on staging.
-- [ ] **M8.9** The daily retention job (`internal.run_retention`) · backend · M · needs M1.5 · [operations](../architecture/operations.md#retention-jobs)
+- [x] **M8.9** The daily retention job (`internal.run_retention`) · backend · M · needs M1.5 · [operations](../architecture/operations.md#retention-jobs)
   Done when: each retention rule is tested.
 - [ ] **M8.10** Record of processing for the first release · legal · S · needs M8.1 · [privacy](privacy.md#who-is-responsible)
   Done when: written from the data map.
 - [ ] **M8.11** Decide on a lawyer's review and a DPIA before launch · decision · S · [privacy](privacy.md#questions-for-a-lawyer)
   Done when: recorded in decisions.md (open today).
+- [x] **M8.12** Settings' backend: `api.set_analytics_choice` and the legal links · backend · S · needs M1.5 · [privacy](privacy.md#consents)
+  Done when: the choice is stored with its history, and the legal links are read from `app_config`.
 
 ## M9 Observability and analytics
 
@@ -532,12 +554,16 @@ Done when: the headline metrics, alerts and backups work, and the load test pass
   Done when: the views return sensible numbers on staging test games.
 - [ ] **M9.4** Server logging without personal data, and Sentry on the server with no user id · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
   Done when: a server error shows in Sentry with no personal data.
-- [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load, new reports · backend · M · needs M2.11, M6.6, M9.4, M2.12, M7.1 · [operations](../architecture/operations.md#monitoring-and-alerts)
+- [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load, new reports · backend · M · needs M2.11, M6.6, M9.4, M2.12, M7.1, M8.9 · [operations](../architecture/operations.md#monitoring-and-alerts)
   Done when: a stopped worker raises an alert, and a new report alerts within 5 minutes.
-- [ ] **M9.6** Backups: the weekly logical dump and a restore drill on staging · ops · M · needs M1.1 · [operations](../architecture/operations.md#backups-and-restore)
-  Done when: staging is restored from a dump and works.
-- [ ] **M9.7** The load test on staging: 45 rooms of 4 and 5 rooms of 10 played by bots · test · L · needs M6.19, M6.20 · [operations](../architecture/operations.md#load-test)
-  Done when: the doc's targets hold.
+- [x] **M9.6** Backups: the weekly logical dump and the restore script · ops · M · needs M1.1 · [operations](../architecture/operations.md#backups-and-restore)
+  Done when: the weekly dump runs, and a local drill restores it.
+- [ ] **M9.7** The load runner (narrowed): 230 bots in 50 rooms, measures for each target, a report · test · L · needs M6.19 · [operations](../architecture/operations.md#load-test)
+  Done when: a local run produces the report for each target.
+- [ ] **M9.8** The restore drill on Supabase · ops · M · needs M9.6, M2.15 · [operations](../architecture/operations.md#backups-and-restore)
+  Done when: a dump restores into a new Supabase project and the copy works.
+- [ ] **M9.9** The load test run on staging · test · M · needs M9.7, M2.15, M6.20 · [operations](../architecture/operations.md#load-test)
+  Done when: the doc's targets hold on staging with production compute.
 
 ## M10 Internal alpha
 
@@ -719,15 +745,15 @@ The other launch modes and the host's controls.
 
 Done when: Final Cut and Date Night modes and the host controls are live.
 
+M18.4 (Keep swiping after an instant match) was dropped on 5 November 2026: a match no longer ends the game ([decisions](../decisions.md)).
+
 - [ ] **M18.1** The mode picker in host setup · app · needs M4.9 · [game-modes](game-modes.md#the-modes)
   Done when: the host can pick a mode.
-- [ ] **M18.2** Final Cut mode: matches join a shortlist; the finale starts when it's full · backend · needs M6.4 · [game-modes](game-modes.md#the-modes)
+- [ ] **M18.2** Final Cut mode: 1 or 2 matches seeded first and the vote filled to its size · backend · needs M6.35, M6.36 · [game-modes](game-modes.md#the-modes)
   Done when: tested.
 - [ ] **M18.3** Date Night: 2 players, nothing either has seen, its recipe · backend · needs M17.2 · [game-modes](game-modes.md#the-modes)
   Done when: tested.
-- [ ] **M18.4** Keep swiping for 60 seconds after an instant match · app · needs M6.6 · [game-modes](game-modes.md#when-its-a-match)
-  Done when: backend function and button work together.
-- [ ] **M18.5** Vote now · app · needs M6.5 · [game-modes](game-modes.md#when-it-starts)
+- [ ] **M18.5** Vote now: after 10 cards each and 2 liked films, or once the room has a match · app · needs M6.5 · [game-modes](game-modes.md#when-it-starts)
   Done when: backend function and button work together.
 - [ ] **M18.6** Changing filters while swiping, with every deck re-ranked · app · needs M1.10, M17.4 · [game-modes](game-modes.md#how-a-game-ends)
   Done when: works mid-game.
@@ -735,6 +761,8 @@ Done when: Final Cut and Date Night modes and the host controls are live.
   Done when: the host can switch it.
 - [ ] **M18.8** Decide on, then build, the "Reading the room" banner · app · needs M17.5 · [deck-engine](../architecture/deck-engine.md#how-a-game-unfolds)
   Done when: built, or dropped in decisions.md.
+- [ ] **M18.9** Backend for Vote now: `api.start_finale_now`, also open once the room has a match · backend · needs M6.4, M6.35 · [game-modes](game-modes.md#apistart_finale_nowroom)
+  Done when: backend function and button work together, for M18.5.
 
 ## M19 Smart deck
 

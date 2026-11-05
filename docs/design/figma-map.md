@@ -78,13 +78,13 @@ Copies of the Release screens frames, changed on 30 October 2026 (M0.9) to match
 | | | | 12 Mid-swipe | `99:4093` | `19:938` | [swipe](screens/swipe.md) |
 | | | | 13 Card flipped | `99:4122` | `19:1332` | [swipe](screens/swipe.md) (the back) |
 | | | | 14 It's a match | `99:4149` | `22:921` | [match](screens/match.md) |
-| | | | 15 Final cut | `99:4187` | `22:1051` | No spec yet |
-| | | | 16 Winner | `99:4232` | `22:1304` | No spec yet |
+| | | | 15 Final cut | `99:4187` | `22:1051` | [final-cut](screens/final-cut.md) (the reveal comes with M6.31) |
+| | | | 16 Winner | `99:4232` | `22:1304` | [winner](screens/winner.md) |
 | | | | 17 Recap card | `99:4268` | `22:1578` | No spec yet |
-| 05-06 Settings and edge states | `114:2022` | `114:2026` | 22 Settings | `99:4309` | `26:2113` | No spec yet |
-| | | | 25 Room closed | `99:4337` | `30:1950` | No spec yet |
+| 05-06 Settings and edge states | `114:2022` | `114:2026` | 22 Settings | `99:4309` | `26:2113` | [settings](screens/settings.md) (with screen 23's delete confirm as a sheet) |
+| | | | 25 Room closed | `99:4337` | `30:1950` | [closed](screens/closed.md) |
 
-Not copied, because the first release doesn't have them: 06 Game mode and 07 Set the vibe as separate steps (merged into Host setup), 10 Taste check (M19), 18 Profile, 19 Connect Letterboxd, 20 Import history and 21 Save account (M15, M20), 23 Delete account (its account and Letterboxd wording waits for the Settings spec), and section 07. Not copied because nothing changed for the first release: 24 Reconnecting (the banner is in [reconnecting](screens/reconnecting.md), and the swipe screen's offline note in [swipe](screens/swipe.md#states)) and 26 Nothing left (it needs a decision first: its Vote on our likes and Change filters wait for M18).
+Not copied, because the first release doesn't have them: 06 Game mode and 07 Set the vibe as separate steps (merged into Host setup), 10 Taste check (M19), 18 Profile, 19 Connect Letterboxd, 20 Import history and 21 Save account (M15, M20), 23 Delete account (its first-release sheet, without the typed word, is in [settings](screens/settings.md#the-delete-sheet)), and section 07. Not copied because nothing changed for the first release: 24 Reconnecting (the banner is in [reconnecting](screens/reconnecting.md), and the swipe screen's offline note in [swipe](screens/swipe.md#states)) and 26 Nothing left (its Vote on our likes and Change filters wait for M18.5 and M18.6; the first release's done card is specced from the original `30:2000` in [swipe](screens/swipe.md#the-done-card-nothing-left), Q17.1). "Nothing fits tonight" has no frame; it is in [winner](screens/winner.md#nothing-fits-tonight).
 
 Drawn as overrides until the components catch up: the `PinBox` error border on 05b (the component has no `Error` variant yet) and the host `Tag` without the `crown` icon (the icon set has none yet). Service logos on 16 Winner are placeholder tiles: the app shows TMDB's provider logos. The invite domain is flimme.com (decided 4 November 2026); `flimme.app` was a placeholder.
 

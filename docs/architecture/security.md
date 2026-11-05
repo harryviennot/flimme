@@ -65,7 +65,7 @@ Read against the draft [schema.sql](schema.sql):
 - **Nobody can list rooms.** A room is found only by its code, through `api.join_room`, which counts the attempt first and never raises on a wrong code, so a failed guess can't roll back the counter.
 - **Realtime is split in two.** Phones can't send on `room:<id>`, so a fake `match` can't appear; they can only send on `room:<id>:live`.
 - **The server writes decks through one function** (`internal.deal_cards`), never votes or room state.
-- **`api.room_seats` hides profile ids**, showing only `is_me` and `is_mine`. Deleting an account blanks the name on past seats.
+- **`api.room_seats` hides profile ids**, showing only `is_me` and `is_mine`. Deleting an account blanks the name on past seats. It also hides other seats' `vetoes_left` and `super_likes_left` (null), so a spent veto never shows who vetoed.
 
 ## The database: gaps found
 
@@ -128,7 +128,7 @@ Settings outside the SQL that the security above depends on. Checked against Sup
 - **Remove player** (`api.remove_member(room, member)`, host only): sets `removed_at`. The seat stops being a member (gap 3), its presence disappears, and `api.join_room` answers `removed` if it tries to come back. Its votes stay in the log but no longer count, because the seat is no longer present. One limit: Supabase evaluates Realtime policies when a channel is joined and caches them until a new token is sent, so a removed phone can keep receiving room events for up to the token's lifetime. It sees counts and matches, never votes, and the other phones ignore anything it sends on `:live`.
 - **Lock room** (`rooms.locked`, host only): no new seats, by code or by link; players who already have a seat can still rejoin. Late joining stays the default, as decided.
 
-**The host's powers**, all checked in the database: change settings (lobby only), start, the game-modes controls (Vote now, Keep swiping, Play again), remove a player, lock the room. The host never sees anyone's votes. When the host leaves, the role goes to a present player ([game modes](../product/game-modes.md#who-counts-presence-joining-and-leaving)).
+**The host's powers**, all checked in the database: change settings (lobby only), start, the game-modes controls (Vote now, Play again), remove a player, lock the room. The host never sees anyone's votes. When the host leaves, the role goes to a present player ([game modes](../product/game-modes.md#who-counts-presence-joining-and-leaving)).
 
 **Abuse from inside the room**, and what covers it:
 
@@ -145,7 +145,7 @@ Every install starts as an anonymous Supabase user, and a trigger gives it a pro
 
 - **Sign-up limit.** Supabase limits anonymous sign-ins to 30 an hour per IP address by default (configurable). Keep the default: each phone signs in once, so even a large party on one Wi-Fi stays far below it.
 - **CAPTCHA.** Supabase recommends invisible CAPTCHA or Cloudflare Turnstile against abuse of anonymous sign-ins. Its CAPTCHA guide only shows web examples, so a native app needs a small web view. A challenge in front of the 30-second join would hurt the core promise, so **configure Turnstile but leave it off at launch**, and switch it on if the sign-up alert fires.
-- **Cleanup.** Supabase says automatic cleanup of anonymous users isn't available and suggests deleting them with SQL. The retention job in the [data model](data-model.md#retention) must therefore delete guests inactive for 90 days from `auth.users` itself, which cascades to the profile and blanks past seats.
+- **Cleanup.** Supabase says automatic cleanup of anonymous users isn't available and suggests deleting them with SQL. A daily cron job (`internal.delete_inactive_guests`, 04:45 UTC, M8.8) therefore deletes anonymous users inactive for 90 days from `auth.users` itself, at most 1,000 a run, which cascades to the profile and blanks past seats. Users with an email or a linked identity are never touched.
 - **What guests may do.** Everything a signed-in player can, including connecting Letterboxd: it's their own data, and it's deleted with the guest. The `is_anonymous` claim matters later, for the hosting cap ([monetization](../product/monetization.md)).
 
 ## The server's HTTP API and Letterboxd uploads

@@ -234,11 +234,12 @@ The first release's tasks, grouped into features. Each slice gets one brief; the
 | 9 | The deck | M5.1 to M5.10 | None |
 | 10 | Swiping | M6.2, M6.3, M6.9 to M6.12, M6.18, M6.25 to M6.28, M7.3 | Screens 11 to 13, the hints, the undo return and the top bar; the swipe and the flip |
 | 11 | The match | M6.1, M6.13, M6.14 | Screen 14; the near miss and the match |
-| 12 | The Final Cut | M6.4, M6.5, M6.15 | Screen 15; the countdown, the veto, the reveal |
-| 13 | Endings | M6.6, M6.7, M6.8, M6.16, M6.17 | Screens 16, 25 and 26 |
-| 14 | Settings and privacy | M8.4 to M8.9 | Screen 22 |
-| 15 | Analytics and operations | M9.1 to M9.7 | None |
+| 12 | The Final Cut | M6.4, M6.5, M6.15, M6.29, M6.31 | Screen 15; the countdown, the veto, the reveal |
+| 13 | Endings | M6.6, M6.7, M6.8, M6.16, M6.17, M6.30, M6.32 | Screens 16, 25 and 26 |
+| 14 | Settings and privacy | M8.4 to M8.9, M8.12 | Screen 22 |
+| 15 | Analytics and operations | M9.1 to M9.9 | None |
 | 16 | The group test | M6.19, M6.20 | The playtest protocol |
+| 17 | The shortlist | M6.33 to M6.38 | The shortlisted beat, the swipe screen's top bar and the Final Cut with 2 films (M6.33) |
 
 ## Design and game feel
 

@@ -28,7 +28,7 @@ The event list lives in `packages/contract/src/realtime.ts`. Adding an event mea
 | `deck_updated` | A seat's deck was re-ranked (carries the seat id) | That seat refetches its next cards and replaces what's behind the 3 mounted ones |
 | `near_miss` | A film is one like short of the match rule, with 2 or more likes and a present player left to answer (Party mode). Carries `needed` | "2 of 3 of you liked this" |
 | `match` | A match, or the finale's result (`decided`, points, vetoes) | The match overlay; the winner screen if decided |
-| `finale_started`, `round_progress` | The finale opens; a seat locks in | Refetches the round |
+| `finale_started`, `round_progress` | The finale opens; a seat locks in (carries `round_id`, `locked` seat ids, `of`) | Refetches the round |
 | `next_room` | The host taps Play again (carries the new code) | Offers "Join" |
 
 ## Who sees what

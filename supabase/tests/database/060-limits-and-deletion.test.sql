@@ -29,7 +29,7 @@ select tests.create_room(2, 'quick_match', 'FR', 'd');
 select tests.create_provider(9001, 'Test Service A');
 select tests.create_title('Test Film One');
 insert into public.profile_providers (profile_id, provider_id) values (tests.uid('d2'), 9001);
-insert into public.consents (profile_id, kind, version) values (tests.uid('d2'), 'analytics', 'test-1');
+insert into public.consents (profile_id, kind, version, choice) values (tests.uid('d2'), 'analytics', 'test-1', 'on');
 with c as (
   insert into public.consents (profile_id, kind, version) values (tests.uid('d2'), 'letterboxd_import', 'test-1')
   returning id

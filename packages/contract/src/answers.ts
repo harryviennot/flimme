@@ -93,9 +93,10 @@ export type StartGameAnswer = (typeof START_GAME_ANSWERS)[number];
 
 /**
  * `api.request_cards` answers. `ok` means cards were dealt now: under `deck_engine`
- * `sql` (M1.13), or the 8-second fallback (with `fallback`).
+ * `sql` (M1.13), or the 8-second fallback (with `fallback`). `done` (M6.29): the seat has no card
+ * left and the baseline dealt it nothing; `liked` counts the room's films with a like.
  */
-export const REQUEST_CARDS_ANSWERS = ['ok', 'queued', 'enough', 'closed'] as const;
+export const REQUEST_CARDS_ANSWERS = ['ok', 'queued', 'enough', 'closed', 'done'] as const;
 export type RequestCardsAnswer = (typeof REQUEST_CARDS_ANSWERS)[number];
 
 /** `api.cast_vote` answers. */
@@ -137,6 +138,14 @@ export type SubmitCalibrationAnswer = (typeof SUBMIT_CALIBRATION_ANSWERS)[number
 export const EXPORT_MY_DATA_ANSWERS = ['ok', 'rate_limited'] as const;
 export type ExportMyDataAnswer = (typeof EXPORT_MY_DATA_ANSWERS)[number];
 
+/** The analytics choice (M8.12): on is the region's default mode, off the opt-out, detailed the opt-in to identified stats. */
+export const ANALYTICS_CHOICES = ['on', 'off', 'detailed'] as const;
+export type AnalyticsChoice = (typeof ANALYTICS_CHOICES)[number];
+
+/** `api.set_analytics_choice` answers: `invalid` is a wording version outside 1 to 40 characters, `rate_limited` 20 an hour. */
+export const SET_ANALYTICS_CHOICE_ANSWERS = ['ok', 'invalid', 'rate_limited'] as const;
+export type SetAnalyticsChoiceAnswer = (typeof SET_ANALYTICS_CHOICE_ANSWERS)[number];
+
 /**
  * `api.title_cards` answers (M5.9): `ok` comes with the cards, `too_many` with `max` (50 films a call,
  * refused and not truncated), `rate_limited` is 30 calls per 10 minutes. A caller with no seat in the
@@ -150,10 +159,11 @@ export const ANSWER_FOLLOWUP_ANSWERS = ['ok', 'not_found'] as const;
 export type AnswerFollowupAnswer = (typeof ANSWER_FOLLOWUP_ANSWERS)[number];
 
 /**
- * Planned: `api.cast_ballot` (roadmap M6.5, game-modes.md#apicast_ballotround-ranking-veto).
- * No SQL function yet, so there is no real list.
+ * `api.cast_ballot` answers (M6.5). `ok` carries `locked` (the seats that have locked in) and `of`
+ * (the seats present), never what anyone voted. A round that doesn't exist, or a caller with no seat
+ * in the room, raises (denied): it is not an answer.
  */
-export const PLANNED_CAST_BALLOT_ANSWERS = [
+export const CAST_BALLOT_ANSWERS = [
   'ok',
   'not_in_room',
   'closed',
@@ -161,6 +171,19 @@ export const PLANNED_CAST_BALLOT_ANSWERS = [
   'invalid',
   'no_veto',
 ] as const;
+export type CastBallotAnswer = (typeof CAST_BALLOT_ANSWERS)[number];
+
+/**
+ * `api.close_round_stage` answers (M6.5). `ok`: this call closed the round. `closed`: it was already
+ * closed (several phones calling at once). `not_yet`: before the deadline plus the 2 seconds of grace,
+ * with `closes_at` the time to call again.
+ */
+export const CLOSE_ROUND_STAGE_ANSWERS = ['ok', 'closed', 'not_yet'] as const;
+export type CloseRoundStageAnswer = (typeof CLOSE_ROUND_STAGE_ANSWERS)[number];
+
+/** `api.round_progress` answers (M6.5): a restarted phone re-reads who has locked in. */
+export const ROUND_PROGRESS_ANSWERS = ['ok'] as const;
+export type RoundProgressAnswer = (typeof ROUND_PROGRESS_ANSWERS)[number];
 
 /** The answers on a card the database accepts today (the `vote_answer` enum). */
 export const VOTE_ANSWERS = ['nope', 'like', 'super_like', 'seen', 'seen_rewatch'] as const;

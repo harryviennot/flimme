@@ -3,11 +3,9 @@
 # a name (the room's lobby, a placeholder until M4.11). Saving the name never goes to Home.
 # Needs the local stack: seed the open room first with
 #   mobile/.maestro/scripts/seed-open-room.sh      (a room with the code 482913)
-# Run: `maestro test mobile/.maestro/name-from-code.yaml -e METRO_URL=http://localhost:8095`
+# Run: `maestro test mobile/.maestro/name-from-code.yaml -e METRO_URL=http://localhost:<port>`
 # with the development build installed and Metro running.
 appId: com.harryviennot.flimme.dev
-env:
-  METRO_URL: http://localhost:8095
 ---
 - runFlow: subflows/open-app-fresh.yaml
 - extendedWaitUntil:

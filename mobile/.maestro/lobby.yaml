@@ -1,11 +1,9 @@
-# Slice 7, the lobby: Home, Host, open the room, close the invite sheet, then the lobby shows the
+# Slice 7, the lobby: Home, Host, open the room (no share step), then the lobby shows the
 # code, the own seat with the crown, and Start waiting for a second player. Leaving drops the
 # phone on Home, and a relaunch stays on Home (the kept room is forgotten). Needs the local stack.
-# Run: `maestro test mobile/.maestro/lobby.yaml -e METRO_URL=http://localhost:8094`
+# Run: `maestro test mobile/.maestro/lobby.yaml -e METRO_URL=http://localhost:<port>`
 # with the development build installed and Metro running.
 appId: com.harryviennot.flimme.dev
-env:
-  METRO_URL: http://localhost:8094
 ---
 - runFlow: subflows/open-app-fresh.yaml
 - extendedWaitUntil:
@@ -23,16 +21,6 @@ env:
     timeout: 15000
 - tapOn: 'Lumo'
 - tapOn: '(?i)open the room'
-- extendedWaitUntil:
-    visible: '(?i)invite friends'
-    timeout: 20000
-
-# Close the invite sheet. In a development build the floating dev tools button sits over its
-# Close button, so drag that button out of the way first.
-- swipe:
-    start: 91%,10%
-    end: 50%,70%
-- tapOn: '(?i)close'
 - extendedWaitUntil:
     visible: '(?i)in the room'
     timeout: 15000

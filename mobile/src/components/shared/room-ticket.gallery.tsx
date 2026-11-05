@@ -4,11 +4,13 @@ import { RoomTicket } from './room-ticket';
 export const gallery: GalleryEntry = {
   name: 'Room ticket',
   tier: 'shared',
-  description: 'The room code as a cinema ticket, readable across a couch.',
+  description:
+    'The room code as a cinema ticket, readable across a couch. The side notches are half circles cut into the edges; check them on every screen background.',
   render: () => (
     <>
       <RoomTicket code="482913" leftDetail="3 of 10 players" rightDetail="Host · Harry" />
       <RoomTicket code="482913" leftDetail="3 of 10 players" rightDetail="Host · Harry" locked />
+      <RoomTicket code="482913" leftDetail="4 Nov" rightDetail="Closed at 9:04 PM" stamp="Closed" />
     </>
   ),
 };

@@ -47,9 +47,14 @@ The words players see, used the same way everywhere. French terms marked "propos
 | Rewatch question | Watch it again tonight? | On le revoit ce soir ? (proposed) |
 | Everyone agreed | It's a match | C'est un match (proposed) |
 | Almost agreed | 2 of 3 of you liked this | 2 sur 3 ont aimé (proposed) |
+| The room's matches so far | the shortlist; "It's a match: 1 of 3" | la sélection; « C'est un match : 1 sur 3 » (proposed) |
 | The quick mode | Quick Match | Partie rapide (decided on 30 October 2026) |
 | The final vote | the Final Cut; "Pick one. Veto one." | le Final Cut; « Choisis-en un. Élimine-en un. » (proposed) |
-| The result | tonight's pick | le film du soir (proposed) |
+| The ranked vote's title (5 to 10 players) | Final vote | Vote final (proposed) |
+| A ballot sent | Locked in | Vote validé (proposed) |
+| Who has locked in | 2 of 4 locked in | 2 sur 4 ont validé (proposed) |
+| The result | tonight's pick | le film du soir (decided on 4 November 2026) |
+| No pick | Nothing fits tonight | Rien à l'affiche ce soir (decided on 4 November 2026) |
 | The share image | recap card | récap (proposed) |
 | Streaming services | services | plateformes |
 | Time budget | time budget, "Under 2 h" | durée, « Moins de 2 h » (proposed) |

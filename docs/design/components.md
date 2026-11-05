@@ -80,7 +80,7 @@ An invisible input that owns a value and draws nothing: it fills its `relative` 
 
 ## Toast (`ui/toast`)
 
-"Transient message with icon." `bg.raised`, a hairline border in the tone's color, `radius.md`, padding 12 (14 on the left), gap 12, `elevation-card`. Title `body-m-strong`, message `body-s` `text.secondary`. Tones: info (info icon, `accent.text`), like (heart, `like.default`), warn (wifi-off, `marquee.default`).
+"Transient message with icon." `bg.raised`, a hairline border in the tone's color, `radius.md`, padding 12 (14 on the left), gap 12, `elevation-card`. Title `body-m-strong`, message `body-s` `text.secondary`. Tones: info (info icon, `accent.text`), like (heart, `like.default`), success (check, `like.default`: something the player did worked, such as a copied code), warn (wifi-off, `marquee.default`).
 
 ## Player pill (`shared/player-pill`)
 
@@ -88,7 +88,7 @@ An invisible input that owns a value and draws nothing: it fills its `relative` 
 
 ## Room ticket (`shared/room-ticket`)
 
-"Cinema ticket that shows the room code. Use on lobby, invite and recap." `bg.surface`, a `marquee.strong` hairline, `radius.lg`, `elevation-card`. "Room code" in `mono-eyebrow` `marquee.default`; the code in Staatliches 60 with 8% tracking (raw, `display-ticket`; the tracking after the last digit is pulled back so the code is centred); a dashed perforation with round notches that cover the border and bulge past the card edge (the card does not clip); details `mono-data` `text.secondary`. An optional `locked` (slice 8, M4.13) adds a `Tag` tone `neutral`, icon `lock`, `common:ticket.locked`, at the top right ([host menu](screens/host-menu.md#lock-room)).
+"Cinema ticket that shows the room code. Use on lobby, invite and recap." `bg.surface`, a `marquee.strong` hairline, `radius.lg`, `elevation-card`. "Room code" in `mono-eyebrow` `marquee.default`; the code in Staatliches 60 with 8% tracking (raw, `display-ticket`; the tracking after the last digit is pulled back so the code is centred); a dashed perforation with notches that are half circles cut into the card's two sides (a circle in the screen's canvas color centred on the edge, clipped by the card, with a `marquee.strong` outline; the shadow sits on an outer view so the clip does not cut it); details `mono-data` `text.secondary`. An optional `locked` (slice 8, M4.13) adds a `Tag` tone `neutral`, icon `lock`, `common:ticket.locked`, at the top right ([host menu](screens/host-menu.md#lock-room)). An optional `stamp` (M6.17) dims the code to `text.disabled` and lays a still stamp across it, drawn like `MovieCard`'s Nope stamp (`bg.sunken`, 4-point `nope.default` border, `radius.sm`, `display-stamp` in `nope`) and rotated `rotation.ticket-stamp` (-8 degrees): the closed room's "CLOSED" ([room closed](screens/closed.md#design-system-changes)). `display-stamp` is shared by these two components only.
 
 ## Service tile (`shared/service-tile`)
 
@@ -98,7 +98,7 @@ An invisible input that owns a value and draws nothing: it fills its `relative` 
 
 "Swipe card. Tap flips between Side=Front and Side=Back. Swap Poster; set Title, Meta, Rating and Synopsis." 345 by 518, `radius.xl`, `bg.surface`, `elevation-card`.
 
-- **Front:** the poster fills the card; the `card-scrim` gradient over the bottom 64%; a 36-point `bg.sunken` flip badge (info icon) top right; at the bottom, the reason tag (accent, zap), title `title-l`, meta `mono-data` `text.secondary`, service tags.
+- **Front:** the poster fills the card; the `card-front-scrim` gradient over the bottom 92% (clear at the top, 88% `bg.sunken` at the bottom, nine eased stops; the back header, the match poster and the Final Cut bands keep `card-scrim`); a 36-point `bg.sunken` flip badge (info icon) top right; at the bottom, the reason tag (accent, zap), title `title-l`, meta `mono-data` `text.primary`, service tags.
 - **Like / Nope:** a 3-point `like.default` or `nope.default` border, and a stamp rotated -14 or 14 degrees: `bg.sunken`, 4-point border, `radius.sm`, Staatliches 52 (raw, `display-stamp`).
 - **Back:** a 132-point header with the poster, scrim, flip badge (refresh icon), title and meta; then the ratings (TMDB: star and `display-m` in `marquee.default`; a seated player's Letterboxd rating with their avatar), the synopsis (`mono-eyebrow` label, `body-m`), credits (`body-s`), service tags and the Trailer button (secondary S, play icon), and "Tap the card to flip back".
 
@@ -118,9 +118,11 @@ TMDB and Letterboxd only (IMDb and Rotten Tomatoes are in the Figma from the ori
 
 `Text`, `Icon`, `Pressable`, `Screen`, `Banner`, `Countdown`, `Skeleton`, `EmptyState`, `MarqueeBulbs`, `Spotlight`, `GradientFill`. The designer should add them to the Figma library, or confirm them in the gallery.
 
-## Proposed for slices 4 to 7
+`EmptyState` gains an optional `children` slot between its body and its action in M6.17, for the swipe screen's done card (tonight's filters and the liked count, [swipe.md](screens/swipe.md#the-done-card-nothing-left)).
 
-Specified in the screen specs (`docs/design/screens/`) of 30 October 2026, not built yet. App-dev builds each with its gallery entry.
+## Proposed in the screen specs
+
+Specified in the screen specs (`docs/design/screens/`) from 30 October 2026 on, not built yet. App-dev builds each with its gallery entry.
 
 | Component | Tier | What changes | Spec |
 | --- | --- | --- | --- |
@@ -129,5 +131,7 @@ Specified in the screen specs (`docs/design/screens/`) of 30 October 2026, not b
 | `ServiceGrid` | shared | New: `ServiceTile`s in rows of three, with a loading state, used by host setup and the lobby's services sheet | [Host setup](screens/host-setup.md#new-component) |
 | `PinBox` | ui | Gains an `error` state: a 2-point `nope.default` border | [Join with a code](screens/join-code.md#design-system-change) |
 | `Icon` | ui | Gains `crown` (24 points, 2-point stroke) for the host's tag | [Lobby](screens/lobby.md#design-system-change) |
+| `ListRow` | ui | Gains `tone="danger"`, `loading`, `disabled`, a minimum height with a two-line label for large text, and a label hidden from screen readers when `trailing` is set | [Settings](screens/settings.md#design-system-changes) |
+| `Icon` | ui | Gains `volume` (24 points, 2-point stroke) for the Sound row | [Settings](screens/settings.md#design-system-changes) |
 
 Single-use pieces, in `components/screens/`: `splash/splash-view`, `welcome/hero`, `home/host-card`, `home/join-card`, `join/code-field`, `lobby/seat-row`, `lobby/shuffling-overlay`, `invite/qr-panel`. The QR panel adds the `react-native-qrcode-svg` dependency named in [app structure](../architecture/app-structure.md#invites-and-deep-links).

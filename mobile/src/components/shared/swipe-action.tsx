@@ -9,11 +9,12 @@ import { Text, type TextTone } from '@/components/ui/text';
 import { cn } from '@/lib/cn';
 import type { HapticName } from '@/lib/haptics';
 import type { ColorToken } from '@/theme/generated/tokens';
-import { timing } from '@/theme/motion';
+import { layout, timing } from '@/theme/motion';
 
 // Figma "Swipe action": the swipe screen's buttons. Flat caps on the same 4-point lip as
 // the main buttons. Pressed sinks onto the lip; lit glows while a card is dragged toward
-// that button. Super shows the super likes left.
+// that button. Super shows the super likes left (and counts down with a pop). Every press gives
+// the light tick; the throw's own haptic belongs to the card that leaves.
 
 export type SwipeActionKind = 'nope' | 'undo' | 'super' | 'like' | 'seen';
 
@@ -46,7 +47,7 @@ const looks: Record<SwipeActionKind, Look> = {
     iconColor: 'text-inverse',
     stroke: 2.2,
     tone: 'nope',
-    haptic: 'throw',
+    haptic: 'press',
   },
   like: {
     size: 'size-17',
@@ -61,7 +62,7 @@ const looks: Record<SwipeActionKind, Look> = {
     filled: true,
     stroke: 2.2,
     tone: 'like',
-    haptic: 'throw',
+    haptic: 'press',
   },
   super: {
     size: 'size-14',
@@ -76,7 +77,7 @@ const looks: Record<SwipeActionKind, Look> = {
     filled: true,
     stroke: 2,
     tone: 'marquee',
-    haptic: 'throw',
+    haptic: 'press',
   },
   undo: {
     size: 'size-12',
@@ -104,7 +105,7 @@ const looks: Record<SwipeActionKind, Look> = {
     iconColor: 'text-secondary',
     stroke: 2.45,
     tone: 'muted',
-    haptic: 'throw',
+    haptic: 'press',
   },
 };
 
@@ -118,6 +119,9 @@ export type SwipeActionProps = {
   /** Hides the label under the button. */
   hideLabel?: boolean;
   disabled?: boolean;
+  /** What a screen reader says when it is not the visible label ("Super like, 2 left"). */
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 };
 
 export function SwipeAction({
@@ -127,6 +131,8 @@ export function SwipeAction({
   left,
   hideLabel = false,
   disabled,
+  accessibilityLabel,
+  accessibilityHint,
 }: SwipeActionProps) {
   const { t } = useTranslation();
   const [pressed, setPressed] = useState(false);
@@ -139,7 +145,8 @@ export function SwipeAction({
   return (
     <View className="items-center gap-2 self-stretch">
       <Pressable
-        accessibilityLabel={label}
+        accessibilityLabel={accessibilityLabel ?? label}
+        accessibilityHint={accessibilityHint}
         haptic={look.haptic}
         disabled={disabled}
         onPress={onPress}
@@ -172,9 +179,11 @@ export function SwipeAction({
         </Animated.View>
         {kind === 'super' && left !== undefined ? (
           <View className="absolute -top-1.5 left-10 size-5.5 items-center justify-center rounded-pill stroke-badge border-marquee-default bg-bg-canvas">
-            <Text variant="mono-eyebrow" tone="marquee">
-              {left}
-            </Text>
+            <Animated.View key={left} entering={layout.popIn}>
+              <Text variant="mono-eyebrow" tone="marquee">
+                {left}
+              </Text>
+            </Animated.View>
           </View>
         ) : null}
       </Pressable>

@@ -1,0 +1,54 @@
+# Slice 12, the Final Cut on fixture data (the dev menu's "Play the Final Cut"): ranking by taps,
+# the veto by long press (lifting it, moving it), Lock in, Sending, Locked in, and the end of the
+# round. No room needed. The room runs (a curl guest for the other seat) are in final-cut-room.yaml.
+# Run: `maestro --device <sim> test mobile/.maestro/final-cut.yaml -e METRO_URL=http://localhost:<port>`
+# with the development build installed and Metro running.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app.yaml
+- openLink: flimme-dev://dev/final-cut
+- tapOn: 'Final Cut, 3 finalists'
+- assertVisible: '.*Pick one. Veto one..*'
+- assertVisible: 'Neon Harbor, 2021. Not ranked, counts as 1'
+- assertVisible: '.*0 of 4 locked in.*'
+- takeScreenshot: final-cut-1-none-tapped
+
+# Tap in order: the first tapped gets 1, the rest keep faint numbers after it.
+- tapOn: 'The Paper Comet, 2019.*'
+- assertVisible: 'The Paper Comet, 2019. Ranked 1'
+- assertVisible: 'Neon Harbor, 2021. Not ranked, counts as 2'
+- takeScreenshot: final-cut-2-some-tapped
+- tapOn: 'Neon Harbor, 2021.*'
+- tapOn: 'Midnight Matinee, 2023.*'
+- assertVisible: 'Midnight Matinee, 2023. Ranked 3'
+- takeScreenshot: final-cut-3-all-tapped
+# Tapping a ranked poster takes it off and closes the gap.
+- tapOn: 'The Paper Comet, 2019.*'
+- assertVisible: 'Neon Harbor, 2021. Ranked 1'
+- assertVisible: 'The Paper Comet, 2019. Not ranked, counts as 3'
+
+# Veto: a long press.
+- longPressOn: 'Neon Harbor, 2021.*'
+- assertVisible: 'Neon Harbor, 2021. Vetoed'
+- assertVisible: 'Midnight Matinee, 2023. Ranked 1'
+- takeScreenshot: final-cut-4-vetoed
+# Tapping the vetoed poster changes nothing and says how to lift it.
+- tapOn: 'Neon Harbor, 2021.*'
+- assertVisible: 'Long-press it again to lift the veto.'
+- assertVisible: 'Neon Harbor, 2021. Vetoed'
+# Moving it with a long press on another poster.
+- longPressOn: 'The Paper Comet, 2019.*'
+- assertVisible: 'The Paper Comet, 2019. Vetoed'
+- assertVisible: 'Neon Harbor, 2021. Not ranked, counts as 2'
+# Lifting it.
+- longPressOn: 'The Paper Comet, 2019.*'
+- assertVisible: 'The Paper Comet, 2019. Not ranked, counts as 3'
+
+# Lock in: Sending, then Locked in; the ballot is frozen.
+- tapOn: 'Lock in my vote'
+- extendedWaitUntil:
+    visible: 'Locked in'
+    timeout: 5000
+- takeScreenshot: final-cut-5-locked
+- tapOn: 'The Paper Comet, 2019.*'
+- assertVisible: 'The Paper Comet, 2019. Not ranked, counts as 3'

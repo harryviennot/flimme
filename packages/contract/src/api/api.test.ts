@@ -1,13 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  CAST_BALLOT_ANSWERS,
   CAST_VOTE_ANSWERS,
+  CLOSE_ROUND_STAGE_ANSWERS,
+  ROUND_PROGRESS_ANSWERS,
   REQUEST_CARDS_ANSWERS,
   UNDO_LAST_VOTE_ANSWERS,
   CREATE_ROOM_ANSWERS,
   JOIN_ROOM_ANSWERS,
   ROOM_PREVIEW_ANSWERS,
   REPORT_MEMBER_ANSWERS,
+  EXPORT_MY_DATA_ANSWERS,
+  SET_ANALYTICS_CHOICE_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
@@ -116,6 +121,57 @@ const cases = [
     full: {},
   },
   {
+    name: 'set_analytics_choice',
+    answers: SET_ANALYTICS_CHOICE_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) =>
+      a.setAnalyticsChoice({ choice: 'off', version: 'v1' }),
+    full: { ok: { choice: 'off' } },
+  },
+  {
+    name: 'export_my_data',
+    answers: EXPORT_MY_DATA_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.exportMyData(),
+    full: {
+      ok: {
+        profile: { id: MEMBER },
+        services: [8],
+        consents: [],
+        linked_accounts: [],
+        letterboxd_diary: [],
+        film_history: [],
+        taste: null,
+        games: [
+          {
+            room_id: ROOM,
+            joined_at: '2026-11-04T20:00:00Z',
+            left_at: null,
+            display_name: 'Camille',
+            avatar_key: 'blue',
+            role: 'host',
+            joined_via: 'code',
+            services: [8],
+            votes: [
+              { tmdb_id: 603, title: 'The Matrix', answer: 'like', at: '2026-11-04T20:01:00Z' },
+            ],
+            swipes: [
+              {
+                tmdb_id: 603,
+                action: 'vote',
+                answer: 'like',
+                at: '2026-11-04T20:01:00Z',
+                dwell_ms: null,
+              },
+            ],
+            ballots: [{ tmdb_id: null, kind: 'pass', rank: null, at: '2026-11-04T20:10:00Z' }],
+            pick: null,
+            watched_answer: null,
+            post_reaction: null,
+          },
+        ],
+      },
+    },
+  },
+  {
     name: 'leave_room',
     answers: LEAVE_ROOM_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.leaveRoom({ room_id: ROOM }),
@@ -169,13 +225,44 @@ const cases = [
     answers: CAST_VOTE_ANSWERS,
     call: (a: ReturnType<typeof createApi>) =>
       a.castVote({ room_id: ROOM, title_id: 7, answer: 'like' }),
-    full: { ok: { match: false }, closed: { state: 'finale' } },
+    full: { ok: { match: false, state: 'done' }, closed: { state: 'finale' } },
+  },
+  {
+    name: 'cast_ballot',
+    answers: CAST_BALLOT_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) =>
+      a.castBallot({ round_id: ROOM, ranking: [1, 2, 3], veto: 4 }),
+    full: { ok: { locked: [MEMBER], of: 3 } },
+  },
+  {
+    name: 'close_round_stage',
+    answers: CLOSE_ROUND_STAGE_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.closeRoundStage({ round_id: ROOM }),
+    full: {
+      ok: { winner_title_id: 7 },
+      closed: { winner_title_id: 7 },
+      not_yet: { closes_at: '2026-11-04T20:00:00Z' },
+    },
+  },
+  {
+    name: 'round_progress',
+    answers: ROUND_PROGRESS_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.roundProgress({ round_id: ROOM }),
+    full: {
+      ok: {
+        stage: 'vote',
+        closes_at: '2026-11-04T20:00:00Z',
+        locked: [MEMBER],
+        of: 3,
+        me_locked: true,
+      },
+    },
   },
   {
     name: 'request_cards',
     answers: REQUEST_CARDS_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.requestCards({ room_id: ROOM }),
-    full: { enough: { remaining: 12 }, closed: { state: 'finale' } },
+    full: { enough: { remaining: 12 }, closed: { state: 'finale' }, done: { liked: 3 } },
   },
   {
     name: 'undo_last_vote',
@@ -235,6 +322,25 @@ describe('arguments', () => {
     const { client, calls } = fake(() => ok({ status: 'closed' }));
     await createApi(client).roomPreview({ code: '482915', ref: ROOM });
     expect(calls[0]).toEqual({ fn: 'room_preview', args: { p_code: '482915', p_ref: ROOM } });
+  });
+
+  it('export_my_data resolves rate_limited as a value, not an error', async () => {
+    const { client, calls } = fake(() => ok({ status: 'rate_limited' }));
+    await expect(createApi(client, { validate: true }).exportMyData()).resolves.toEqual({
+      status: 'rate_limited',
+    });
+    expect(calls[0]).toEqual({ fn: 'export_my_data', args: {} });
+  });
+
+  it('set_analytics_choice sends the SQL names and resolves invalid as a value', async () => {
+    const { client, calls } = fake(() => ok({ status: 'invalid' }));
+    await expect(
+      createApi(client, { validate: true }).setAnalyticsChoice({ choice: 'detailed', version: '' }),
+    ).resolves.toEqual({ status: 'invalid' });
+    expect(calls[0]).toEqual({
+      fn: 'set_analytics_choice',
+      args: { p_choice: 'detailed', p_version: '' },
+    });
   });
 
   it('report_member sends the room, the seat and the reason', async () => {
@@ -300,6 +406,15 @@ describe('arguments', () => {
     void api.updateRoomSettings({ room_id: ROOM, settings: { colour: 'red' } });
     // @ts-expect-error provider ids are numbers
     void api.setMyProviders({ provider_ids: ['8'] });
+  });
+});
+
+describe('start_game request id', () => {
+  it('accepts the number the database sends once a start went through', async () => {
+    const { client } = fake(() => ok({ status: 'ok', request_id: 958, started: true, seats: 4 }));
+    await expect(
+      createApi(client, { validate: true }).startGame({ room_id: ROOM }),
+    ).resolves.toMatchObject({ status: 'ok', request_id: 958 });
   });
 });
 
@@ -400,8 +515,9 @@ describe('provider readers', () => {
       slug: 'quick_match',
       min_players: 2,
       max_players: 10,
-      ends_on_first_match: true,
+      ends_on_first_match: false,
       sort: 1,
+      matches_to_end: 3,
     };
     const { client, calls } = fake(() => ok([mode]));
     await expect(createApi(client, { validate: true }).gameModes()).resolves.toEqual([mode]);
@@ -697,6 +813,17 @@ describe('swiping', () => {
     expect(calls[1]?.args).toMatchObject({ p_member_id: undefined, p_dwell_ms: undefined });
   });
 
+  it('cast_vote sends flipped as p_flipped, and leaves it out when unset', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok', match: false }));
+    const api = createApi(client);
+    await api.castVote({ room_id: ROOM, title_id: 7, answer: 'like', flipped: true });
+    await api.castVote({ room_id: ROOM, title_id: 8, answer: 'like', flipped: false });
+    await api.castVote({ room_id: ROOM, title_id: 9, answer: 'like' });
+    expect(calls[0]?.args).toMatchObject({ p_flipped: true });
+    expect(calls[1]?.args).toMatchObject({ p_flipped: false });
+    expect(calls[2]?.args).toMatchObject({ p_flipped: undefined });
+  });
+
   it('cast_vote reads a match and a finale', async () => {
     const answer = {
       status: 'ok',
@@ -776,6 +903,47 @@ describe('swiping', () => {
     await expect(
       createApi(fake(() => ok([])).client).roomMatches({ room_id: ROOM }),
     ).resolves.toEqual([]);
+  });
+
+  it("rounds reads the room's rounds in order and rejects a wrong shape", async () => {
+    const row = {
+      id: 'r-1',
+      room_id: ROOM,
+      seq: 1,
+      kind: 'final_cut',
+      stage: 'closed',
+      stage_closes_at: '2026-11-04T10:01:00Z',
+      opened_at: '2026-11-04T10:00:00Z',
+      closed_at: '2026-11-04T10:01:00Z',
+      winner_title_id: 7,
+    };
+    const { client, calls } = fake(() => ok([row]));
+    await expect(createApi(client, { validate: true }).rounds({ room_id: ROOM })).resolves.toEqual([
+      row,
+    ]);
+    expect(calls[0]).toEqual({ fn: 'rounds.eq', args: ['room_id', ROOM] });
+    await expect(
+      createApi(fake(() => ok([{ ...row, stage: 'x' }])).client, { validate: true }).rounds({
+        room_id: ROOM,
+      }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
+    await expect(createApi(fake(() => ok([])).client).rounds({ room_id: ROOM })).resolves.toEqual(
+      [],
+    );
+  });
+
+  it("round_candidates reads a round's finalists by seed and rejects a wrong shape", async () => {
+    const row = { round_id: 'r-1', title_id: 7, seed: 1, points: 0, vetoed: false };
+    const { client, calls } = fake(() => ok([row]));
+    await expect(
+      createApi(client, { validate: true }).roundCandidates({ round_id: 'r-1' }),
+    ).resolves.toEqual([row]);
+    expect(calls[0]).toEqual({ fn: 'round_candidates.eq', args: ['round_id', 'r-1'] });
+    await expect(
+      createApi(fake(() => ok([{ ...row, seed: 'x' }])).client, {
+        validate: true,
+      }).roundCandidates({ round_id: 'r-1' }),
+    ).rejects.toMatchObject({ kind: 'unexpected' });
   });
 });
 

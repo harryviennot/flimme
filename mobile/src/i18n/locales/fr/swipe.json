@@ -1,0 +1,65 @@
+{
+  "pills": {
+    "you": "Toi",
+    "done": "Fini"
+  },
+  "loading": {
+    "a11y": "Chargement du film suivant",
+    "slow": "On distribue encore les cartes."
+  },
+  "waiting": {
+    "title": "En attente du réseau",
+    "body": "Tes votes sont gardés. Ils partiront dès ton retour."
+  },
+  "done": {
+    "title": "Tu as vu toutes tes cartes",
+    "body": "On attend que les autres finissent."
+  },
+  "card": {
+    "noSynopsis": "Pas encore de résumé pour ce film."
+  },
+  "nearMiss_one": "{{count}} sur {{of}} a aimé",
+  "nearMiss_other": "{{count}} sur {{of}} ont aimé",
+  "seenQuestion": {
+    "title": "On le revoit ce soir ?",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "hints": {
+    "swipe": "À droite : j'aime. À gauche : bof.",
+    "seen": "Déjà vu ? Glisse vers le haut. On te demandera si tu le reverrais.",
+    "seenHide": "Déjà vu ? Glisse vers le haut, il quitte la partie.",
+    "flip": "Touche la carte pour voir l'histoire.",
+    "superLikes_one": "{{count}} coup de cœur par partie. Il compte double s'il faut un vote final.",
+    "superLikes_other": "{{count}} coups de cœur par partie. Ils comptent double s'il faut un vote final.",
+    "dismiss": "Masquer l'astuce"
+  },
+  "a11y": {
+    "card": "{{title}}, {{meta}}. Sur {{services}}.",
+    "cardBare": "{{title}}, {{meta}}",
+    "cardBack": "{{title}}. Note TMDB {{rating}}. {{synopsis}}",
+    "cardBackNoRating": "{{title}}. {{synopsis}}",
+    "cardBackServices": "Sur {{services}}.",
+    "actions": {
+      "like": "J'aime",
+      "nope": "Bof",
+      "superLike": "Coup de cœur",
+      "seen": "Déjà vu",
+      "flip": "Retourner la carte",
+      "trailer": "Voir la bande-annonce"
+    },
+    "superLeft_one": "Coup de cœur, il en reste {{count}}",
+    "superLeft_other": "Coup de cœur, il en reste {{count}}",
+    "superNone": "Plus de coup de cœur",
+    "undoNone": "Rien à annuler",
+    "undone": "{{title}} est de retour",
+    "seenYes": "Oui, on le revoit ce soir",
+    "seenNo": "Non, pas ce soir",
+    "pill_one": "{{name}}, {{count}} film",
+    "pill_other": "{{name}}, {{count}} films",
+    "pillAway": "{{name}}, pas là",
+    "pillHost": "{{name}}, hôte",
+    "done": "{{name}} a fini",
+    "thrown": "{{answer}} : {{title}}"
+  }
+}

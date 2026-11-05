@@ -31,7 +31,9 @@ const cards = (from: number, to: number) =>
   Array.from({ length: to - from + 1 }, (_, i) => card(from + i));
 const ids = (list: NextCard[]) => list.map((c) => c.title_id);
 
-function setup(initial: NextCard[], opts: { width?: number; answers?: RequestCardsAnswer[] } = {}) {
+type Answer = RequestCardsAnswer | { status: 'done'; liked: number };
+
+function setup(initial: NextCard[], opts: { width?: number; answers?: Answer[] } = {}) {
   let clock = 1000;
   const answered = new Set<number>();
   const fetchResults: NextCard[][] = [initial];
@@ -111,6 +113,20 @@ describe('card stack', () => {
     expect(ids(t.get().buffer)[0]).toBe(5);
     t.tick(700);
     expect(t.get().answer()?.dwellMs).toBe(700);
+  });
+
+  it('counts each turn to the back, for the first-flip hint', async () => {
+    const t = setup(cards(1, 13));
+    t.stack.getState().start();
+    await flush();
+    expect(t.get().flips).toBe(0);
+    t.get().setFlipped(true);
+    t.get().setFlipped(true);
+    expect(t.get().flips).toBe(1);
+    t.get().setFlipped(false);
+    expect(t.get().flips).toBe(1);
+    t.get().setFlipped(true);
+    expect(t.get().flips).toBe(2);
   });
 
   it('resets flipped when a card reaches the top', async () => {
@@ -208,6 +224,44 @@ describe('card stack', () => {
       await flush();
       expect(t.get().mounted).toEqual([]);
       expect(t.get().status).toBe('empty');
+    });
+
+    it('is empty when requestCards answers done (M6.29)', async () => {
+      const t = setup(cards(1, 4), { answers: ['done'] });
+      t.stack.getState().start();
+      await flush();
+      for (let i = 0; i < 4; i++) t.get().answer();
+      await flush();
+      expect(t.get().mounted).toEqual([]);
+      expect(t.get().status).toBe('empty');
+    });
+
+    it('keeps the liked count from the done answer, and updates it on the next one', async () => {
+      const t = setup(cards(1, 4), {
+        answers: [
+          { status: 'done', liked: 3 },
+          { status: 'done', liked: 4 },
+        ],
+      });
+      expect(t.get().liked).toBeNull();
+      t.stack.getState().start();
+      await flush();
+      for (let i = 0; i < 4; i++) t.get().answer();
+      await flush();
+      expect(t.get().status).toBe('empty');
+      expect(t.get().liked).toBe(3);
+      jest.advanceTimersByTime(REQUEST_RETRY_MS);
+      await flush();
+      expect(t.get().liked).toBe(4);
+    });
+
+    it('knows no count when done comes without one', async () => {
+      const t = setup(cards(1, 4), { answers: ['done'] });
+      t.stack.getState().start();
+      await flush();
+      for (let i = 0; i < 4; i++) t.get().answer();
+      await flush();
+      expect(t.get().liked).toBeNull();
     });
 
     it('is loading, not empty, while a refill is queued', async () => {
@@ -318,6 +372,52 @@ describe('card stack', () => {
       t.stack.getState().start();
       await flush();
       expect(t.deps.prefetch.mock.calls[0][0][0]).toBe('https://img.test/t/p/w780/p4.jpg');
+    });
+  });
+
+  describe('putBack (undo)', () => {
+    it('puts the answered card on top again, front side up, and the others behind it', async () => {
+      const t = setup(cards(1, 13));
+      t.stack.getState().start();
+      await flush();
+      t.get().setFlipped(true);
+      const done = t.get().answer()!;
+      expect(ids(t.get().mounted)).toEqual([2, 3, 4]);
+      t.get().putBack(done.card);
+      expect(ids(t.get().mounted)).toEqual([1, 2, 3]);
+      expect(ids(t.get().buffer)[0]).toBe(4);
+      expect(t.get().flipped).toBe(false);
+      expect(t.get().status).toBe('ready');
+    });
+
+    it('restarts the dwell time', async () => {
+      const t = setup(cards(1, 13));
+      t.stack.getState().start();
+      await flush();
+      const done = t.get().answer()!;
+      t.tick(5000);
+      t.get().putBack(done.card);
+      t.tick(700);
+      expect(t.get().answer()!.dwellMs).toBe(700);
+    });
+
+    it('works when the answer was the last card of the deck', async () => {
+      const t = setup(cards(1, 1));
+      t.stack.getState().start();
+      await flush();
+      const done = t.get().answer()!;
+      expect(t.get().mounted).toEqual([]);
+      t.get().putBack(done.card);
+      expect(ids(t.get().mounted)).toEqual([1]);
+      expect(t.get().status).toBe('ready');
+    });
+
+    it('never doubles a card that is already mounted', async () => {
+      const t = setup(cards(1, 13));
+      t.stack.getState().start();
+      await flush();
+      t.get().putBack(t.get().mounted[1]!);
+      expect(ids(t.get().mounted)).toEqual([2, 1, 3]);
     });
   });
 });

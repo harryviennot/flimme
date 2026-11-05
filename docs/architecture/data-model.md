@@ -265,7 +265,7 @@ Whether a profile is a guest is not stored: it is the `is_anonymous` claim in th
 
 **profile_providers**: the services a player has, set with `api.set_my_providers`. Key: (profile_id, provider_id).
 
-**consents**: what a player agreed to and which wording version. Kinds at launch: `letterboxd_import`, `analytics`. One active consent per kind.
+**consents**: what a player agreed to and which wording version. Kinds at launch: `letterboxd_import`, `analytics`. One active consent per kind. An `analytics` row carries `choice` (`on`, `off`, `detailed`), set with `api.set_analytics_choice`; other kinds have none. A change revokes the active row and inserts a new one.
 
 ## 4. Film history and taste
 
@@ -389,8 +389,8 @@ erDiagram
 | --- | --- | --- |
 | slug | text PK | `quick_match`, `final_cut`, `date_night` at launch |
 | min_players, max_players | smallint | Date Night is 2 and 2 |
-| ends_on_first_match | boolean | True for Quick Match and Date Night. In Final Cut, matches join the shortlist |
-| defaults | jsonb | Room setting defaults for the mode |
+| ends_on_first_match | boolean | False for every launch mode and read by nothing: `matches_to_end` in `defaults` decides (migrations only add, so the column stays) |
+| defaults | jsonb | Room setting defaults for the mode, and `matches_to_end` (3 at launch; a missing value reads as 3): the match that fills the shortlist starts the finale; 1 keeps the instant pick |
 | is_active, sort | | |
 
 **match_rules**: when a like becomes a match, and when the finale starts. Seeded with the plan's starting values:
@@ -422,7 +422,7 @@ erDiagram
 | service_rule | service_rule | `any_member` (default: one screen) or `every_member` (long-distance) |
 | offer_kinds | offer_kind[] | Default subscription, free, ads. Rent and buy are there for a later "rent it" option |
 | runtime_max | smallint | "We have 2 hours" |
-| seen_rule | seen_rule | `hide_seen` (default), `allow_rewatch` (only films everyone who saw them rated 4★ or more), `show_all` |
+| seen_rule | seen_rule | `allow_rewatch` (default for Quick Match and Final Cut: only films everyone who saw them rated 4★ or more), `hide_seen` (default for Date Night), `show_all` |
 | quality | quality_preset | `standard` (150+ votes, 6.2+), `hidden_gems`, `guilty_pleasures` |
 | max_age | smallint | Age cap from certifications |
 | reveal | reveal_mode | `party` (near-miss teasers) or `blind` |
@@ -455,7 +455,8 @@ erDiagram
 | joined_at, left_at | timestamptz | Rejoining clears left_at and keeps the same seat |
 | joined_via, link_opened_at | join_via, timestamptz | How the seat came in (`link`, `code`, `qr`, `rejoin`, `play_again`; null when the app sent none) and, for `link` only, when the phone opened the link (clamped between the room's creation and now). Set once at the first join, kept on a rejoin. Analytics only: `api.room_seats` does not list them |
 | removed_at | timestamptz | Set when the host removes the player (`api.remove_member`, M4.2, which also sets `left_at`). A removed seat is not a member: it reads nothing of the room, has no Realtime topic and gets no cards, except its own votes. Null otherwise, and a removed player can't rejoin |
-| last_active_at | timestamptz | Heartbeat. Only seats active in the last 90 seconds count for match rules |
+| last_active_at | timestamptz | Heartbeat. Seats active in the last 90 seconds are present (card count, ballots); seats active in the last 3 minutes are voters for match rules |
+| silence_checked_at | timestamptz | When the sweeper last re-checked liked films because this seat went silent for 3 minutes. Not in `api.room_seats` |
 | calibrated_at, done_at | timestamptz | |
 | swipe_count | integer | Progress ring |
 | super_likes_left, vetoes_left | smallint | 2 super likes and 1 Final Cut veto per game |
@@ -499,13 +500,13 @@ erDiagram
 
 **swipe_log**: append-only record of every vote and undo, with the deck source, score, how long the card was on screen and whether it was flipped (`flipped`, never shown to a phone). Points at the seat, so it stays anonymous once an account is gone.
 
-**matches**: every film that met the room's rule, plus the night's pick. `kind` is `unanimous`, `majority` or `finale`; `like_count` and `present_count` give "3 of 3"; `pick_order` 1 is the pick (2 and 3 for a double feature later).
+**matches**: every film that met the room's rule, plus the night's pick. `kind` is `unanimous`, `majority` or `finale`; `like_count` and `present_count` give "3 of 3"; `matched_at` is when the whole room matched the film (null for the finale's own rows, and kept when a match wins the vote and its kind turns `finale`); `pick_order` 1 is the pick (2 and 3 for a double feature later).
 
 ### The finale
 
-**rounds**: one finale per room at launch. `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank only). `stage_closes_at` is the current deadline.
+**rounds**: one finale per room at launch. `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank only). `stage_closes_at` is the current deadline. The finale is now one round with a single `vote` stage, then `closed` ([game modes](../product/game-modes.md#the-finale)). `round_stage`'s `veto` and `rank` values stay in the enum, unused, because migrations only add (decided on 4 November 2026).
 
-**round_candidates**: the 3 or 4 finalists, seeded by matches, then likes (super likes count double), then group score. `vetoed_at`, `vetoed_by`, and `points` for the Borda count.
+**round_candidates**: the 3 or 4 finalists, seeded by matches, then likes (super likes count double), then group score. `vetoed_at` (set only at the close, on a film knocked out by the vetoes), `vetoed_by` (stored, never sent to phones) and `points` for the Borda count, both written only at the close, so `api.round_candidates` shows nothing secret before it.
 
 **round_ballots**: `veto`, `pass` or `rank` rows. One veto or pass per seat per round; one rank per seat per title.
 
@@ -678,14 +679,14 @@ sequenceDiagram
 - `api.leave_room` marks the seat, hands the host role to the longest-seated present player (else the longest-seated seat that hasn't left; `internal.next_host_member`), recomputes services and re-checks liked cards: if everyone still here liked a card, that's a match now (`internal.recheck_room_matches`, shared with removal).
 - `api.remove_member` (host only, any open state) sets `removed_at` and `left_at`, recomputes services, sends `member_removed` and re-checks liked cards the same way. The seat's votes stay in the log but stop counting. `api.join_room` and `api.room_preview` answer `removed` to it, by code or by link, and that is not a failed attempt.
 - A locked room (`rooms.locked`) answers `locked` to `api.join_room` and `api.room_preview` for a caller with no seat: after the rejoin check and `removed`, before `starting`, `in_finale`, `name_required` and `full`, and never a failed attempt. A seat that left still rejoins. A player who rejoins a room where no seated seat holds the host role takes the role and `rooms.host_id` (Q23.3), so a locked room can always be unlocked.
-- A phone that silently disappears stops counting after 90 seconds; the minute sweeper re-checks liked cards in rooms where a seat timed out.
+- A phone that silently disappears stops being present after 90 seconds and stops being a voter after 3 minutes; the minute sweeper re-checks liked cards in rooms where a seat timed out.
 - Reopening the app calls `api.join_room` with the room's code: same seat, and `api.my_next_cards` returns the rest of the deck.
 
 ### Finale
 
-1. When the rule's card count or time limit is reached (after every vote, and by the minute sweeper), `internal.start_finale` seeds 3 or 4 finalists: matches first, then the most liked, then group score.
-2. **Final Cut**: each seat may veto one finalist or pass, within 45 seconds. A veto can't remove the last two films standing.
-3. **Rank**: each seat orders the remaining films within 60 seconds. Borda count picks the winner; ties go to more super likes, then group score.
+1. When the rule's card count (seats seated at the start and present) or time limit is reached (after every vote; the minute sweeper adds the time check in M6.6), `internal.start_finale` seeds 3 or 4 finalists: matches first, then films with a like by score, then unnoped films by group score. One liked film is the pick without a vote; nothing liked ends the night with no pick. `rooms.finale_reason` says why.
+2. **One round of 60 seconds**, stage `vote`, for both kinds. **Final Cut**: each seat may veto one finalist or pass. A veto can't remove the last two films standing.
+3. **Ranked vote**: each seat orders the films. Borda count picks the winner; ties go to more super likes, then group score. (Ballots and closing are M6.5.)
 4. The winner becomes a `matches` row with kind `finale` and `pick_order` 1, and the room is done.
 
 The veto, rank and stage-closing functions are described here but not yet in schema.sql.
@@ -696,7 +697,7 @@ The veto, rank and stage-closing functions are described here but not yet in sch
 
 Every path to `done` fires a trigger that queues `room_finished`. The pipeline worker then:
 
-1. Writes `rooms.stats` for the recap card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes").
+1. Writes `rooms.stats` for the recap card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes"). Built (M6.8): `internal.write_room_stats` holds `outcome`, `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median over seats that swiped), `players` and `finale_reason`; the worker only calls it. The host-control fields wait for M18.9, M18.5, M18.6 and M6.22; steps 2 and 3 wait for M19.
 2. Turns "seen it" swipes into `user_titles` rows with source `app`.
 3. Queues a taste refresh for every seat.
 
@@ -709,7 +710,7 @@ Connecting by export, the RSS check, syncing and gaps are in [integrations/lette
 ### Deleting an account, exporting data
 
 - **Delete** (App Store guideline 5.1.1(v)): the phone calls the server's HTTP API, which deletes the auth user through Supabase's admin API. That cascades to the profile, services, consents, linked accounts, imports, diary entries, film history and taste profile. Seats in past rooms keep their votes but lose `profile_id`, `controlled_by` and their name, so the swipe log, training data and other players' history stay correct and anonymous.
-- **Export** (GDPR): `api.export_my_data()` returns the profile, services, consents, linked accounts, the Letterboxd diary, film history, taste affinities and the player's own votes as JSON.
+- **Export** (GDPR): `api.export_my_data()` returns the profile, services, consents, linked accounts, the Letterboxd diary, film history, taste affinities and, for each game the player sat in, their own seat (name, how it joined, services), votes with titles, swipes, Final Cut ballots, the room's pick and the after-game answers, as JSON. Never another seat's data, and never reports (decisions.md). Card memory joins the export when the table exists.
 
 ## The app's API
 
@@ -722,7 +723,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `my_profile`, `my_providers` | Your profile and services |
 | `country_providers`, `genres`, `moods`, `game_modes`, `calibration_titles` | Reference data for the pickers |
 | `app_config` | Minimum app version and other launch settings |
-| `rooms`, `room_seats`, `room_matches`, `rounds`, `round_candidates` | Rooms you have a seat in. `room_seats` flags `is_me` and `is_mine` |
+| `rooms`, `room_seats`, `room_matches`, `rounds`, `round_candidates` | Rooms you have a seat in. `room_seats` flags `is_me` and `is_mine`, and shows `vetoes_left` and `super_likes_left` only on your own seats |
 | `my_votes` | Your own votes, for rejoining |
 | `my_linked_accounts`, `my_imports`, `my_unmatched_films` | Letterboxd status (username, export date, last sync, `needs_new_export`) and the manual fix list |
 
@@ -753,7 +754,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `disconnect_letterboxd()` | Removes your Letterboxd link and everything that came with it |
 | `export_my_data()` | GDPR export |
 
-To write with the finale: `cast_ballot(round, kind, title, rank)`.
+To write with the finale: `api.cast_ballot(round, ranking, veto)`, the whole ballot in one call (M6.5; it replaces the one-row-at-a-time version planned here), and `api.close_round_stage(round)`.
 
 > How the app calls this API (one typed wrapper per function, generated types, status answers) is in [app-structure.md](app-structure.md#talking-to-the-backend).
 
@@ -821,7 +822,7 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 | `letterboxd_sync` | join_room when the last sync is over 6 hours old; the hourly job for accounts with no sync in 14 days | linked account, reason | pipeline worker |
 | `catalog_refresh` | cron | TMDB ids or the changes feed | pipeline worker |
 | `embed_titles` | catalog refresh | titles whose text changed | pipeline worker |
-| `room_finished` | trigger on rooms reaching `done` | room | pipeline worker |
+| `room_finished` | trigger on rooms reaching `done`, or `abandoned` after the start | room | pipeline worker |
 
 > How the server consumes each queue (visibility timeouts, poison messages, why running a message twice is safe) is in [server-structure.md](server-structure.md#consuming-the-queues). It adds a `letterboxd_match` queue, and `app_server` still needs read and delete grants on the queues it consumes.
 
@@ -829,9 +830,10 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 
 | When | Job |
 | --- | --- |
-| Every minute | `sweep_rooms` (to write): finales by time, stage deadlines, re-check matches after a seat times out, abandon expired lobbies |
+| Every minute | `sweep_rooms` (`call internal.sweep_rooms()`, M6.6): finales by time, stage deadlines, abandon expired lobbies and empty games, host handover, a stuck deal (re-checking matches after a seat times out is M6.30) |
 | Hourly | `internal.enqueue_due_letterboxd_syncs()`: queue accounts with no successful sync in 14 days, for players who have played in the last 12 months. Any sync resets the clock, so frequent players never reach it |
-| 04:30 daily | Retention cleanup |
+| 04:30 daily | Retention cleanup (`internal.run_retention`) |
+| 04:45 daily | Guest cleanup (`internal.delete_inactive_guests`, M8.8): anonymous users inactive for 90 days, at most 1,000 a run, recorded in `ingest_runs` (kind `guest_cleanup`) |
 
 The catalog's six jobs (migration `catalog_schedule`, times in UTC, which is what Supabase Cron uses). Each one only queues a `job` message on `catalog_refresh`; the pipeline worker runs it ([tmdb.md](../integrations/tmdb.md#keeping-it-fresh)):
 
@@ -909,7 +911,7 @@ Every room also has the country's free services. Results: not run yet (staging, 
 
 Training exports carry seat ids, never profile ids, names or Letterboxd usernames.
 
-> How these rules run (one daily job, plus server jobs for guest accounts and TMDB content) is in [operations.md](operations.md#retention-jobs). [privacy.md](../product/privacy.md#what-we-store-and-why) adds retention for training exports (24 months) and for a minimal proof of consent after deletion (5 years).
+> How these rules run (two daily cron jobs, plus a server job for TMDB content) is in [operations.md](operations.md#retention-jobs). [privacy.md](../product/privacy.md#what-we-store-and-why) adds retention for training exports (24 months) and for a minimal proof of consent after deletion (5 years).
 
 ## Later: how each future feature lands
 

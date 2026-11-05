@@ -125,11 +125,11 @@ GitHub Actions in the one repository (`.github/workflows/`). Builds run on Expo'
 | Workflow | When | Does |
 | --- | --- | --- |
 | `ci.yml` | Every pull request, and pushes to `main` | Only the parts that changed. Mobile: lint, types, Jest ([app-structure.md](app-structure.md#testing)). Server: ruff, pyright, pytest ([server-structure.md](server-structure.md)). Database: `supabase start`, `supabase db reset`, `supabase test db` (pgTAP), Squawk on new migrations, the `api` types regenerated and compared. Web (`mobile/web*`, `mobile/web/**`, `mobile/public/**`, the check script): the invite page's image built, run and checked with `tools/check-well-known.mjs`, and its output checked for logged requests. Always: the pull request title, gitleaks, every action pinned to a SHA, the CI tools' tests, and the docs' link check. On pull requests: new migrations sort after every migration on `main` |
-| `staging.yml` | Merge to `main` that touches `supabase/migrations/**`, `server/**`, `mobile/**` or `packages/**`, or by hand | In the `staging` environment: `supabase link`, `supabase db push`, then a smoke test of the Data API. Then the `server` job deploys the pipeline worker to `flimme-workers-staging` (`server/fly.workers.staging.toml`), unless the app has no `PIPELINE_DATABASE_URL` secret yet. Last the `app` job: for each platform it asks EAS whether a finished preview build has this commit's native fingerprint (`tools/preview-update-plan.mjs`). If so, `eas update --channel preview --environment preview` and the update's source maps go to Sentry. If not, no build starts (the free plan has 15 builds per platform a month) and the job summary says to run `preview-build.yml` |
+| `staging.yml` | Merge to `main` that touches `supabase/migrations/**`, `server/**`, `mobile/**` or `packages/**`, or by hand | In the `staging` environment: `supabase link`, `supabase db push`, then a smoke test of the Data API. Then the `server` job deploys the pipeline worker to `flimme-workers-staging` (`server/fly.workers.staging.toml`), unless the app has no `PIPELINE_DATABASE_URL` secret yet, and the `api` job deploys the HTTP API to `flimme-api-staging` (`server/fly.api.staging.toml`, one machine), unless `FLY_API_TOKEN_API` is empty, the app does not exist, or it lacks the `API_DATABASE_URL` or `SUPABASE_URL` secret (a warning, never red). Last the `app` job: for each platform it asks EAS whether a finished preview build has this commit's native fingerprint (`tools/preview-update-plan.mjs`). If so, `eas update --channel preview --environment preview` and the update's source maps go to Sentry. If not, no build starts (the free plan has 15 builds per platform a month) and the job summary says to run `preview-build.yml` |
 | `preview-build.yml` | By hand, choosing `all`, `ios` or `android` | `eas build --profile preview --no-wait`: the build runs on EAS and the job ends once it is queued. Harry runs it when `staging.yml` says the native fingerprint changed |
-| `production.yml` | By hand (`workflow_dispatch`), after checking staging | In the `production` environment, which holds the job until Harry approves: the same steps against production, from `main` only, then the `server` job deploys the pipeline worker to `flimme-workers-production`, with the same secrets check. Last the `web` job asks Dokploy to deploy the invite page and checks `https://flimme.com` for up to 10 minutes |
+| `production.yml` | By hand (`workflow_dispatch`), after checking staging | In the `production` environment, which holds the job until Harry approves: the same steps against production, from `main` only, then the `server` job deploys the pipeline worker to `flimme-workers-production`, with the same secrets check, and the `api` job deploys the API to `flimme-api-production` (two machines) with its own. Last the `web` job asks Dokploy to deploy the invite page and checks `https://flimme.com` for up to 10 minutes |
 | `roadmap.yml` | A pull request merges | Ticks the roadmap task whose id starts the title; a `Docs`, `Chore`, `Fix` or `Bootstrap` title ticks nothing |
-| `backup.yml` | Weekly | A logical dump of production to private storage (see [Backups and restore](#backups-and-restore)) |
+| `backup.yml` | Sundays 03:30 UTC, or by hand choosing `production` or `staging` | In that GitHub environment: `supabase db dump` three times (roles, schema, data), each file encrypted with `age` on the runner, uploaded to the private Tigris bucket, then dumps older than 28 days deleted. Ends green with a warning until the settings below exist (see [Backups and restore](#backups-and-restore)) |
 
 The end-to-end flows run on EAS Workflows (the Maestro flows, nightly and before a release, against staging), and the app's production updates are EAS's own workflows ([app-structure.md](app-structure.md)). Preview updates and builds go through the two GitHub workflows above.
 
@@ -209,9 +209,23 @@ What we add:
 - **A weekly logical dump** of production (`backup.yml`, with the Supabase CLI) to private, encrypted storage, kept 4 weeks (starting value). How long backups holding personal data may be kept, and how deletions reach them, is for [privacy.md](../product/privacy.md).
 - **A restore drill before the closed beta, then every 6 months:** restore the latest daily backup into a new project, reset the four server logins, point a staging server at it, run the pgTAP suite and one bot game, and write down how long it took.
 
+The weekly dump, as built (M9.6):
+
+- **What goes in.** Three files from `supabase db dump`, as Supabase's guide for moving a project does: `roles.sql` (`--role-only`), `schema.sql`, and `data.sql` (`--data-only --use-copy`), covering `auth.users` and every `public`, `internal` and `rec` table. The workflow refuses to upload a data file without `auth.users` and `public.profiles`. Left out: the queues (`pgmq`), `cron.job_run_details`, Supabase's own schemas (`storage`, `realtime`) and the migration history (`supabase_migrations`), none of which the CLI dumps.
+- **Encrypted on the runner.** Each file goes through `age` to the public key in the GitHub variable `BACKUP_AGE_RECIPIENT`, and the plain file is removed at once. The private key exists only in Harry's password manager, never in the repository or in CI. A dump is never a workflow artifact (the repository is public).
+- **Where.** The private Tigris bucket named by the variable `BACKUP_BUCKET` (endpoint `https://fly.storage.tigris.dev`), as `<env>/<UTC date>/{roles,schema,data}.sql.age`. The credentials are the secrets `BACKUP_S3_ACCESS_KEY_ID` and `BACKUP_S3_SECRET_ACCESS_KEY`. Variables and secrets live in the `production` GitHub environment, and in `staging` for a manual staging run. The workflow also needs the three `SUPABASE_*` secrets the deploy workflows use. If any is missing the run ends green with a `::warning::` naming it.
+- **Kept 28 days.** After a successful upload the same run deletes that environment's objects dated more than 28 days ago (`tools/backup-retention.mjs`).
+- **Fetch and decrypt one.** With the bucket's credentials in your own shell: `aws s3 cp --recursive --endpoint-url https://fly.storage.tigris.dev s3://<bucket>/production/<date>/ ./dump`, then `age --decrypt --identity <key file> --output dump/data.sql dump/data.sql.age` for each file, or let the restore script decrypt.
+- **Restore.** `tools/restore-dump.sh <dump folder> <target database URL> [--identity <age key file>]` into an empty database: roles, schema, then data with `session_replication_role = replica`, stopping at the first error, then row counts of a fixed list of tables. It refuses a `*.supabase.co` or pooler host unless `--i-mean-it` is passed. The target must already have what a Supabase project has (the `auth` and `realtime` schemas, `supabase_realtime_admin`, `supabase_functions_admin`): restore into a new Supabase project, never a bare Postgres.
+- **After any restore.** Passwords of custom roles aren't in a logical dump either: run `node tools/server-logins.mjs <env>` and redeploy both server apps. The dump has no migration history, so mark the migrations applied before the next deploy (`supabase migration repair --status applied <versions>`), or `supabase db push` will try to run them again.
+- **The local drill.** `tools/restore-drill.sh` builds a throwaway source database in its own container (every migration, the seed, one synthetic room), dumps it the way `backup.yml` does, encrypts with a throwaway key, restores into a second empty container with `restore-dump.sh`, and compares counts of users, profiles, rooms and seats, the numbers of tables, `api` views, functions and policies, and that `api.app_config` answers. It never touches the shared local stack, and removes both containers (ports 54998 and 54999). Last run (5 Nov 2026, a Mac): the restore took 2 seconds and the whole drill 11, on a database of 500 synthetic films. The bare image lacks some Supabase parts, so the drill adds stand-ins for them (see the script); that is why it proves the dump and the restore order, not Supabase's own platform.
+- **Not yet proven:** a restore into a real Supabase project and a staging server running on it. That drill is M9.8 (Harry, after M2.15).
+
+Harry sets up once (step H5 of the slice plan): a private Tigris bucket, an `age` key pair (`age-keygen`, public key into `BACKUP_AGE_RECIPIENT`, private key into the password manager only), and a Tigris access key limited to that bucket. Then run `backup.yml` by hand with `staging` and check the objects appear.
+
 ## Retention jobs
 
-The data model's [Retention](data-model.md#retention) table runs as one daily job (04:30, Supabase Cron), `internal.run_retention()`, plus two jobs on the server for what SQL can't do alone:
+The data model's [Retention](data-model.md#retention) table runs as one daily job (04:30, Supabase Cron), `internal.run_retention()`, plus one more cron job for guests and a server job for what SQL can't do alone:
 
 | Data | Rule | Run by |
 | --- | --- | --- |
@@ -219,15 +233,15 @@ The data model's [Retention](data-model.md#retention) table runs as one daily jo
 | Deck entries never voted on | 1 day after the room ends | Cron |
 | Room cards nobody voted on | 7 days after the room ends | Cron |
 | `swipe_log`, `rec.requests` | 13 months | Cron |
-| `rec.request_items` | 90 days, after the monthly export to object storage | The trainer exports, then Cron deletes |
+| `rec.request_items` | 90 days, after the monthly export to object storage | The trainer exports, then Cron deletes (not in `run_retention` yet: it waits for the trainer, M22.1) |
 | `import_rows` unmatched | 30 days | Cron |
 | `rate_limits` | 1 day | Cron |
 | `member_reports` | 12 months after `created_at` (M8.9) | Cron |
-| `card_history` | 12 months after the last showing ([deck engine](deck-engine.md#changes-to-the-data-model)) | Cron |
+| `card_history` | 12 months after the last showing ([deck engine](deck-engine.md#changes-to-the-data-model)) | Cron (joins `run_retention` with the task that creates its table) |
 | TMDB content of films missing for 6 months | Cleared ([tmdb.md](../integrations/tmdb.md#keeping-it-fresh)) | Pipeline worker |
-| Guest accounts inactive for 90 days | Deleted with their data, through the same auth admin call as account deletion | Pipeline worker |
+| Guest accounts inactive for 90 days | Deleted from `auth.users` with their data (M8.8): anonymous users only, at most 1,000 a run, at 04:45 UTC. Inactive is the latest of the account's and profile's `created_at`, `last_seen_at` and the seats' `last_active_at`. Past seats stay, anonymous | Cron (`internal.delete_inactive_guests`, job `guest_cleanup_daily`) |
 
-Each run writes a row to `ingest_runs` (kind `retention`) with what it deleted, which the health check watches.
+Each run writes a row to `ingest_runs` (kind `retention`) with what it deleted, which the health check watches. "After the room ends" is `coalesce(ended_at, expires_at)` of a room in `done` or `abandoned`; a room in play is never touched. A rule deletes at most 50,000 rows a night and says `capped` when more wait for the next night. A failing rule raises: the whole run rolls back, `cron.job_run_details` shows it as failed and no `retention` row is written, so the health check sees a missing run.
 
 ## Load test
 
@@ -291,7 +305,7 @@ A short checklist for when something is wrong:
 2. **Is it Supabase?** Check Supabase's status page. Nothing to fix on our side; the app shows "Reconnecting" and re-reads the truth when it's back.
 3. **Is it a release?** Roll back the newest thing first: the app update, then the server. Migrations are fixed forward.
 4. **Is it TMDB?** Decks keep working on the last good data, and unfinished sweeps delete nothing. Wait, watch the 36-hour alert.
-5. **A leaked secret?** Rotate it at once, following [security.md](security.md), and check the logs for its use.
+5. **A leaked secret?** Rotate it at once, following [security.md](security.md), and check the logs for its use. After rotating a Supabase signing key, restart the API (`fly apps restart flimme-api-<env>`): it keeps the project's public keys for 10 minutes and refetches on an unknown key id, but a restart is the sure flush.
 6. **Personal data exposed?** Follow [privacy.md](../product/privacy.md): GDPR breach rules start a clock.
 7. **Afterwards**, five lines in a GitHub issue labelled `incident`: what happened, when, impact, cause, what changes.
 
@@ -305,7 +319,7 @@ A short checklist for when something is wrong:
 | --- | --- |
 | `internal.ops_health()` | New: returns the numbers the health check watches (deal latency and fallback share over the last hour, queue metrics, the last runs of `sweep_rooms` and retention, unfinished `ingest_runs`, Letterboxd failures, the share of winners reported). Callable by `app_server` only |
 | `internal.run_retention()` | New: the daily retention job, writing its counts to `ingest_runs` |
-| `ingest_runs.kind` | Add `retention` |
+| `ingest_runs.kind` | Add `retention` and `guest_cleanup` |
 | Baseline migration | Drops `pg_graphql`; enables `vector`, `pg_trgm`, `pgmq`, `pg_cron` |
 | `docs/architecture/schema.sql` | Retired once the baseline migration exists; the 120 checks become pgTAP tests |
 

@@ -1,0 +1,9 @@
+# M6.9, the swipe screen, part 2 of 3 (the second phone): a fresh guest on staging joins the
+# host's room by its code and waits in the lobby. Then the host starts the game.
+# Run: `maestro --device <second sim> test mobile/.maestro/swipe-join.yaml -e CODE=123456`
+# (swipe-join-release.yaml does the same on a Release build).
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/join-room.yaml

@@ -1,4 +1,4 @@
-import { type ComponentRef, useEffect, useRef } from 'react';
+import { type ComponentRef, type ReactNode, useEffect, useRef } from 'react';
 import { AccessibilityInfo, View } from 'react-native';
 
 import { Button } from './button';
@@ -14,6 +14,8 @@ export type EmptyStateProps = {
   error?: boolean;
   /** Moves a screen reader's focus to the title when it appears (a screen that failed). */
   autoFocus?: boolean;
+  /** Extra content between the body and the action (the done card's filters and count). */
+  children?: ReactNode;
 };
 
 /**
@@ -28,6 +30,7 @@ export function EmptyState({
   action,
   error = false,
   autoFocus = false,
+  children,
 }: EmptyStateProps) {
   const titleRef = useRef<ComponentRef<typeof View>>(null);
   useEffect(() => {
@@ -50,6 +53,7 @@ export function EmptyState({
           {body}
         </Text>
       ) : null}
+      {children}
       {action ? (
         <View className="mt-2">
           <Button label={action.label} onPress={action.onPress} variant="secondary" size="s" />

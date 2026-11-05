@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, findNodeHandle, Platform, View } from 'react-native';
 
+import type { RoomState } from '@flimme/contract';
+
 import { api } from '@/api';
 import { LobbyFooter } from '@/components/screens/lobby/lobby-footer';
 import { SeatRow } from '@/components/screens/lobby/seat-row';
@@ -14,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Toggle } from '@/components/ui/toggle';
 import { ListRow } from '@/components/ui/list-row';
-import type { PressableNode } from '@/components/ui/pressable';
+import { Pressable, type PressableNode } from '@/components/ui/pressable';
 import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
@@ -23,12 +25,18 @@ import { TopBar } from '@/components/ui/top-bar';
 import { useCountryProviders } from '@/features/host/queries';
 import { useInvite } from '@/features/invite/invite-link';
 import { useSeatAnnouncements } from '@/features/lobby/announce';
+import { useCopyRoomCode } from '@/features/lobby/copy-code';
 import { useAskToLeave } from '@/features/lobby/leave-context';
 import { formatList, serviceNames } from '@/features/lobby/names';
 import { useGameModes } from '@/features/lobby/queries';
 import { hostSeat, presentSeats, seatedSeats, startGate } from '@/features/lobby/seats';
 import { useRoomLock } from '@/features/lobby/use-room-lock';
-import { runStart, tooFewFromEvent, useDealingTimers } from '@/features/lobby/start';
+import {
+  runStart,
+  showsStartError,
+  tooFewFromEvent,
+  useDealingTimers,
+} from '@/features/lobby/start';
 import { useOnline } from '@/features/network';
 import { toAvatarColor } from '@/features/profile';
 import {
@@ -58,6 +66,7 @@ export default function RoomLobbyScreen() {
   const modes = useGameModes().data;
   const invite = useInvite(id);
   const lock = useRoomLock(id);
+  const copyCode = useCopyRoomCode(room?.code);
 
   const seated = useMemo(() => seatedSeats(seatsRead.data), [seatsRead.data]);
   const host = hostSeat(seated);
@@ -143,7 +152,12 @@ export default function RoomLobbyScreen() {
       haptics.error();
       refused(tooFewLine(outcome.eligible));
     } else if (outcome.kind === 'failed') {
-      showToast({ tone: 'warn', title: t('errors.start') });
+      // The call may have gone through (or the room moved on under a retry): look again first.
+      await reread();
+      const latest = client.getQueryData<{ state: RoomState }>(ROOM_KEY(id ?? ''));
+      if (showsStartError(latest?.state)) {
+        showToast({ tone: 'warn', title: t('errors.start') });
+      }
     }
   };
 
@@ -231,8 +245,14 @@ export default function RoomLobbyScreen() {
         }
       >
         <View className="gap-4 pt-4 pb-4">
-          <View
-            accessible
+          <Pressable
+            haptic={false}
+            onLongPress={copyCode}
+            accessibilityRole="text"
+            accessibilityActions={[{ name: 'copyCode', label: t('a11y.copyCode') }]}
+            onAccessibilityAction={(event) => {
+              if (event.nativeEvent.actionName === 'copyCode') copyCode();
+            }}
             accessibilityLabel={
               t('a11y.ticket', {
                 code: room.code.split('').join(' '),
@@ -248,7 +268,7 @@ export default function RoomLobbyScreen() {
               rightDetail={t('ticket.host', { name: hostName })}
               locked={room.locked}
             />
-          </View>
+          </Pressable>
 
           <View className="flex-row gap-3">
             <View className="flex-1">

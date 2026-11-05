@@ -35,8 +35,7 @@ export type RoomState = (typeof ROOM_STATES)[number];
 
 /**
  * Payloads of the events the SQL sends today, as `internal.broadcast_room` builds them.
- * Events not listed here carry no payload the phone reads yet (`host_changed`,
- * `round_progress`, `next_room` are planned: roadmap M6 and M7). `match` has no `result`.
+ * Events not listed here carry no payload the phone reads yet (`next_room` is planned: roadmap M7). `match` has no `result`.
  */
 export type RoomEventPayloads = {
   member_joined: { member_id: string; display_name: string; avatar_key: string };
@@ -46,6 +45,8 @@ export type RoomEventPayloads = {
   /** The saved value; only sent when it changed (api.set_room_locked, M4.23). */
   room_locked: { locked: boolean };
   seat_updated: { member_id: string };
+  /** The seat that now holds the host role; the sweeper sends it for a silent host (M6.6). */
+  host_changed: { member_id: string };
   /** The six settings as saved, read back from the room (api.update_room_settings, M1.10). */
   settings_changed: {
     service_rule: 'any_member' | 'every_member';
@@ -56,12 +57,40 @@ export type RoomEventPayloads = {
     reveal: 'party' | 'blind';
   };
   // `reason` and `eligible` come with a start that went back to the lobby (M5.5).
-  state_changed: { state: RoomState; reason?: 'too_few_films'; eligible?: number };
+  // `outcome: 'no_pick'` comes with a finale that found no liked film: the night ends with no pick (M6.4).
+  state_changed: {
+    state: RoomState;
+    reason?: 'too_few_films';
+    eligible?: number;
+    outcome?: 'no_pick';
+  };
   deck_updated: { member_ids: string[] };
   near_miss: { title_id: number; likes: number; of: number; needed: number };
-  match: { title_id: number; kind: MatchKind; likes: number; of: number; decided: boolean };
+  /**
+   * The finale's result has `kind: 'finale'`. With a single qualifying film it carries
+   * `reason: 'only_film'` and no finalists (M6.4).
+   */
+  match: {
+    title_id: number;
+    kind: MatchKind;
+    likes: number;
+    of: number;
+    decided: boolean;
+    /** Matches on the shortlist, this one included; absent on a finale's result (M6.34). */
+    shortlisted?: number;
+    /** The mode's matches_to_end: the shortlist's size; absent on a finale's result (M6.34). */
+    shortlist_size?: number;
+    /** `only_film` (M6.4, no finalists), or how a Final Cut was decided (M6.5). */
+    reason?: 'only_film' | 'only_unvetoed' | 'points' | 'no_ballots';
+    finalists?: FinalistResult[];
+  };
+  /** Who has locked in, never what they voted (M6.5). */
+  round_progress: { round_id: string; locked: string[]; of: number };
   finale_started: { round_id: string; title_ids: number[]; kind: FinaleKind; closes_at: string };
 };
+
+/** A finalist as the finale's `match` event reports it; `vetoed` means knocked out, never by whom. */
+export type FinalistResult = { title_id: number; seed: number; points: number; vetoed: boolean };
 
 export type MatchKind = 'unanimous' | 'majority' | 'finale';
 export type FinaleKind = 'final_cut' | 'ranked_vote';

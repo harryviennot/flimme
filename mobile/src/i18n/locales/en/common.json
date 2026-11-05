@@ -42,15 +42,22 @@
     "director": "Director  {{name}}",
     "cast": "Cast  {{names}}",
     "trailer": "Trailer",
+    "justwatch": "Streaming availability by JustWatch.",
     "flipBack": "Tap the card to flip back",
     "stampLike": "Like",
     "stampNope": "Nope",
-    "stars": "★ {{rating}}"
+    "stars": "★ {{rating}}",
+    "stampSeen": "Seen it",
+    "stampSuper": "Super"
   },
   "ticket": {
     "roomCode": "Room code",
     "locked": "Locked",
     "lockedA11y": "Room locked"
+  },
+  "countdown": {
+    "a11y_one": "{{count}} second left",
+    "a11y_other": "{{count}} seconds left"
   },
   "services": {
     "tapToAdd": "Tap to add",

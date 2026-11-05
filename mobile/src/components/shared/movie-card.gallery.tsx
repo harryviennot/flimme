@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { Button } from '@/components/ui/button';
 
 import { fixturePosters, type GalleryEntry } from '../gallery';
-import { MovieCard, type MovieCardProps } from './movie-card';
+import { MovieCard, type MovieCardProps, type StampKind } from './movie-card';
 
 const film: Omit<MovieCardProps, 'flipped' | 'onFlip'> = {
   title: 'Last Reel at the Roxy',
@@ -18,30 +18,28 @@ const film: Omit<MovieCardProps, 'flipped' | 'onFlip'> = {
     synopsis:
       'On the last night before the Roxy closes for good, its projectionist screens one final reel nobody remembers booking, and the whole town shows up to find out why.',
     director: 'Ines Mora',
-    cast: 'Lior Ben-Ami, Paula Okafor',
+    cast: 'Lior Ben-Ami, Paula Okafor, Sam Reyes, Ana Costa, and Tom Vance',
+    services: [{ name: 'Netflix' }, { name: 'Canal+' }, { name: 'Arte' }],
     onTrailer: () => undefined,
   },
 };
 
 function Demo() {
   const [flipped, setFlipped] = useState(false);
-  const [stamp, setStamp] = useState<'like' | 'nope' | null>(null);
+  const [stamp, setStamp] = useState<StampKind | null>(null);
   return (
     <View className="gap-3">
       <MovieCard {...film} stamp={stamp} flipped={flipped} onFlip={() => setFlipped((f) => !f)} />
-      <View className="flex-row gap-2">
-        <Button
-          label="Like"
-          variant="secondary"
-          size="s"
-          onPress={() => setStamp(stamp === 'like' ? null : 'like')}
-        />
-        <Button
-          label="Nope"
-          variant="secondary"
-          size="s"
-          onPress={() => setStamp(stamp === 'nope' ? null : 'nope')}
-        />
+      <View className="flex-row flex-wrap gap-2">
+        {(['like', 'nope', 'seen', 'super'] as const).map((kind) => (
+          <Button
+            key={kind}
+            label={kind}
+            variant="secondary"
+            size="s"
+            onPress={() => setStamp(stamp === kind ? null : kind)}
+          />
+        ))}
         <Button label="Flip" variant="ghost" size="s" onPress={() => setFlipped((f) => !f)} />
       </View>
     </View>
@@ -51,6 +49,7 @@ function Demo() {
 export const gallery: GalleryEntry = {
   name: 'Movie card',
   tier: 'shared',
-  description: 'The swipe card. Tap to flip; the stamps show while it is dragged.',
+  description:
+    'The swipe card. Tap to flip; the like, nope, seen it and super stamps show while it is dragged.',
   render: () => <Demo />,
 };

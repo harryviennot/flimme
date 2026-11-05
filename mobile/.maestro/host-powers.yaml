@@ -3,11 +3,9 @@
 # curl: sign in a guest, `update_profile`, `join_room`), on a backend the dev build points at.
 # After the run: the removed player's `join_room` answers `removed`, and with the lock on a new
 # player's `join_room` answers `locked` (check both by curl or on a second simulator).
-# Run: `maestro test mobile/.maestro/host-powers.yaml -e METRO_URL=http://localhost:8094`
+# Run: `maestro test mobile/.maestro/host-powers.yaml -e METRO_URL=http://localhost:<port>`
 # with the app already open on the lobby.
 appId: com.harryviennot.flimme.dev
-env:
-  METRO_URL: http://localhost:8094
 ---
 - tapOn: '.*Zed.*'
 - tapOn: 'Remove Zed from the room'

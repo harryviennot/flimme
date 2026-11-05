@@ -7,7 +7,10 @@ import type { ReactNode } from 'react';
 
 import { showToast } from '@/components/ui/toast';
 
+import { revealStore } from '@/features/finale/reveal-store';
+
 import { keptRoomStore } from './kept-room';
+import { matchShownStore } from './match-shown';
 
 const mockSeat = {
   member_id: 'm1',
@@ -32,6 +35,10 @@ jest.mock('@/api', () => ({
     room: jest.fn(),
     roomSeats: jest.fn(),
     touchRoom: jest.fn(async () => undefined),
+    roomMatches: jest.fn(async () => []),
+    rounds: jest.fn(async () => []),
+    roundCandidates: jest.fn(async () => []),
+    titleCards: jest.fn(async () => ({ status: 'ok', cards: [] })),
     countryProviders: jest.fn(async () => []),
     gameModes: jest.fn(async () => []),
   },
@@ -61,6 +68,8 @@ jest.mock('@/lib/supabase', () => {
 jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
 }));
+// The bulbs chase forever; the layout test only needs to know the overlay is there.
+jest.mock('@/components/ui/marquee-bulbs', () => ({ MarqueeBulbs: () => null }));
 jest.mock('@/lib/sentry', () => ({ reportError: jest.fn() }));
 jest.mock('@/components/ui/toast', () => ({
   ...jest.requireActual('@/components/ui/toast'),
@@ -106,10 +115,14 @@ beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false, retryDelay: 0 } } });
   mockOnline.value = true;
   keptRoomStore.getState().forget();
+  matchShownStore.setState({ rooms: [] });
   jest.mocked(showToast).mockClear();
   api.room.mockReset().mockResolvedValue(roomOf('lobby'));
   api.roomSeats.mockReset().mockResolvedValue([mockSeat]);
   api.touchRoom.mockClear();
+  api.roomMatches.mockReset().mockResolvedValue([]);
+  api.rounds.mockReset().mockResolvedValue([]);
+  revealStore.getState().reset();
 });
 
 describe('the room layout', () => {
@@ -122,6 +135,81 @@ describe('the room layout', () => {
     api.room.mockResolvedValue(roomOf(state));
     await renderRouter(routes, { initialUrl: from, wrapper: Providers });
     await waitFor(() => expect(screen).toHavePathname(to));
+  });
+
+  describe('the Final Cut reveal', () => {
+    const data = {
+      winnerId: 1,
+      reason: 'points' as const,
+      finalists: [
+        { titleId: 1, seed: 1, points: 12, vetoed: false },
+        { titleId: 2, seed: 2, points: 6, vetoed: false },
+        { titleId: 3, seed: 3, points: 0, vetoed: true },
+      ],
+    };
+
+    it('keeps the Final Cut screen of a done room while the reveal plays, then moves to the winner', async () => {
+      api.room.mockResolvedValue(roomOf('done'));
+      revealStore.getState().play('r1', data);
+      await renderRouter(routes, { initialUrl: '/room/r1/final-cut', wrapper: Providers });
+      await waitFor(() => expect(api.room).toHaveBeenCalled());
+      await act(async () => undefined);
+      expect(screen).toHavePathname('/room/r1/final-cut');
+      await act(async () => revealStore.getState().finish('r1'));
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/winner'));
+    });
+
+    it('brings a phone still on the swipe screen to the Final Cut once a reveal is there', async () => {
+      api.room.mockResolvedValue(roomOf('done'));
+      revealStore.getState().play('r1', data);
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/final-cut'));
+    });
+
+    it('leaves the swipe screen for the winner when a done room has no Final Cut round', async () => {
+      api.room.mockResolvedValue(roomOf('done'));
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/winner'));
+      expect(api.rounds).toHaveBeenCalled();
+    });
+  });
+
+  describe('the match overlay', () => {
+    const pick = {
+      room_id: 'r1',
+      title_id: 7,
+      kind: 'unanimous',
+      like_count: 3,
+      present_count: 3,
+      pick_order: 1,
+      created_at: '',
+    };
+
+    it('holds the swipe screen while it plays, then lands on the winner screen', async () => {
+      api.room.mockResolvedValue(roomOf('done'));
+      api.roomMatches.mockResolvedValue([pick]);
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen.getByTestId('match-overlay')).toBeTruthy());
+      expect(screen).toHavePathname('/room/r1/swipe');
+      await fireEvent.press(screen.getByTestId('match-tap', { includeHiddenElements: true }));
+      expect(screen.getByTestId('match-overlay')).toBeTruthy();
+      await act(async () => {
+        jest.advanceTimersByTime(900);
+      });
+      await fireEvent.press(screen.getByTestId('match-tap', { includeHiddenElements: true }));
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/winner'));
+      expect(matchShownStore.getState().has('r1')).toBe(true);
+    });
+
+    it('goes straight to the winner screen when this room already showed it', async () => {
+      matchShownStore.getState().mark('r1');
+      api.room.mockResolvedValue(roomOf('done'));
+      api.roomMatches.mockResolvedValue([pick]);
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/winner'));
+      // The winner screen reads the pick itself; the overlay's re-read is what stays off.
+      expect(screen.queryByTestId('match-overlay')).toBeNull();
+    });
   });
 
   it('keeps the lobby for a dealing room', async () => {

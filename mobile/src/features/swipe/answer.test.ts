@@ -1,0 +1,261 @@
+import type { NextCard } from '@flimme/contract';
+
+import { asksRewatch, createAnswerer, PRESENCE_EVERY, rewatchAnswer } from './answer';
+import { createCardStack, type CardStack } from './card-stack';
+import type { QueuedVote } from './vote-queue';
+
+const ROOM = 'room-1';
+const ME = 'member-1';
+
+function card(id: number): NextCard {
+  return {
+    title_id: id,
+    tmdb_id: id,
+    title: `Film ${id}`,
+    overview: null,
+    year: 2020,
+    runtime_min: 100,
+    genre_ids: [],
+    tmdb_score: 7,
+    tmdb_votes: 10,
+    poster_path: null,
+    poster_placeholder: null,
+    backdrop_path: null,
+    trailer_key: null,
+    directors: [],
+    cast: [],
+    providers: [],
+    watch_link: null,
+    deck_source: 'opening',
+    reason_code: null,
+    reason_params: {},
+    member_ratings: [],
+  };
+}
+
+const stacks: CardStack[] = [];
+afterEach(() => {
+  // The stack's retry timer would keep the test run open.
+  stacks.splice(0).forEach((stack) => stack.getState().stop());
+});
+
+async function setup(options: { superLeft?: number; locked?: boolean; cards?: number } = {}) {
+  let clock = 1_000;
+  const votes: QueuedVote[] = [];
+  const counts: number[] = [];
+  const state = { locked: options.locked ?? false };
+  const stack = createCardStack(
+    {
+      fetchCards: async (limit) =>
+        Array.from({ length: options.cards ?? 40 }, (_, i) => card(i + 1))
+          .filter((c) => !votes.some((v) => v.title_id === c.title_id))
+          .slice(0, limit),
+      requestCards: async () => 'ok',
+      prefetch: () => undefined,
+      isAnswered: (id) => votes.some((v) => v.title_id === id),
+      now: () => clock,
+    },
+    { screenWidth: 393 },
+  );
+  stacks.push(stack);
+  stack.getState().start();
+  await new Promise((resolve) => setImmediate(resolve));
+  const answerer = createAnswerer({
+    stack,
+    queue: {
+      enqueue: (vote) => void votes.push(vote),
+      pendingSuperLikes: () => votes.filter((v) => v.answer === 'super_like').length,
+    },
+    roomId: ROOM,
+    memberId: ME,
+    initialSuperLikes: options.superLeft ?? 2,
+    initialCount: 0,
+    locked: () => state.locked,
+    now: () => clock,
+    onCount: (n) => void counts.push(n),
+  });
+  return {
+    stack,
+    answerer,
+    votes,
+    counts,
+    state,
+    tick: (ms: number) => void (clock += ms),
+  };
+}
+
+describe('answer', () => {
+  it('takes the top card and queues its vote with the dwell time and the flip', async () => {
+    const { answerer, votes, stack, tick } = await setup();
+    tick(1_250);
+    stack.getState().setFlipped(true);
+    const done = answerer.answer('like');
+    expect(done?.card.title_id).toBe(1);
+    expect(votes).toEqual([
+      {
+        room_id: ROOM,
+        member_id: ME,
+        title_id: 1,
+        answer: 'like',
+        dwell_ms: 1250,
+        client_at: new Date(2_250).toISOString(),
+        flipped: true,
+      },
+    ]);
+    expect(stack.getState().mounted[0]?.title_id).toBe(2);
+  });
+
+  it.each(['like', 'nope', 'super_like', 'seen'] as const)('queues a %s', async (kind) => {
+    const { answerer, votes } = await setup();
+    answerer.answer(kind);
+    expect(votes.map((v) => v.answer)).toEqual([kind]);
+  });
+
+  it('answers cards in order, each once', async () => {
+    const { answerer, votes } = await setup();
+    answerer.answer('like');
+    answerer.answer('nope');
+    answerer.answer('seen');
+    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([
+      [1, 'like'],
+      [2, 'nope'],
+      [3, 'seen'],
+    ]);
+  });
+
+  it('does nothing without a top card', async () => {
+    const { answerer, votes } = await setup({ cards: 0 });
+    expect(answerer.answer('like')).toBeNull();
+    expect(votes).toEqual([]);
+  });
+
+  it('takes no input once the room has moved on', async () => {
+    const { answerer, votes, state, stack } = await setup();
+    state.locked = true;
+    expect(answerer.answer('like')).toBeNull();
+    expect(votes).toEqual([]);
+    expect(stack.getState().mounted[0]?.title_id).toBe(1);
+  });
+});
+
+describe('super likes', () => {
+  it('spend at once: the badge drops with the queued vote', async () => {
+    const { answerer } = await setup({ superLeft: 2 });
+    expect(answerer.superLikesLeft()).toBe(2);
+    answerer.answer('super_like');
+    expect(answerer.superLikesLeft()).toBe(1);
+    answerer.answer('super_like');
+    expect(answerer.superLikesLeft()).toBe(0);
+  });
+
+  it('refuse a third without a word, and the card stays', async () => {
+    const { answerer, votes, stack } = await setup({ superLeft: 0 });
+    expect(answerer.answer('super_like')).toBeNull();
+    expect(votes).toEqual([]);
+    expect(stack.getState().mounted[0]?.title_id).toBe(1);
+  });
+
+  it('come back to the badge when the server says there were none', async () => {
+    const { answerer } = await setup({ superLeft: 1 });
+    answerer.answer('super_like');
+    expect(answerer.superLikesLeft()).toBe(0);
+    answerer.giveBackSuperLike();
+    expect(answerer.superLikesLeft()).toBe(1);
+  });
+
+  it('are not spent by other answers', async () => {
+    const { answerer } = await setup({ superLeft: 2 });
+    answerer.answer('like');
+    answerer.answer('seen');
+    expect(answerer.superLikesLeft()).toBe(2);
+  });
+});
+
+describe('presence count', () => {
+  it('is reported at 5, 10 and 15 answers, not in between', async () => {
+    const { answerer, counts } = await setup();
+    for (let i = 1; i <= 16; i++) {
+      answerer.answer('like');
+      if (i < PRESENCE_EVERY) expect(counts).toEqual([]);
+      await new Promise((resolve) => setImmediate(resolve)); // the refill arrives
+    }
+    expect(counts).toEqual([5, 10, 15]);
+  });
+
+  it('drops by one with an undo, and says so when the last count sent is now too high', async () => {
+    const { answerer, counts } = await setup();
+    for (let i = 1; i <= 5; i++) {
+      answerer.answer('like');
+      await new Promise((resolve) => setImmediate(resolve));
+    }
+    expect(counts).toEqual([5]);
+    answerer.undone();
+    expect(answerer.count()).toBe(4);
+    expect(counts).toEqual([5, 4]);
+    // Another undo while the others already know less than that says nothing new... except the new count.
+    answerer.undone();
+    expect(counts).toEqual([5, 4, 3]);
+  });
+
+  it('says nothing for an undo when no count was sent yet', async () => {
+    const { answerer, counts } = await setup();
+    answerer.answer('like');
+    answerer.undone();
+    expect(answerer.count()).toBe(0);
+    expect(counts).toEqual([]);
+  });
+
+  it('counts on from the seat the server already knows', async () => {
+    const { stack } = await setup();
+    const counts: number[] = [];
+    const answerer = createAnswerer({
+      stack,
+      queue: { enqueue: () => undefined, pendingSuperLikes: () => 0 },
+      roomId: ROOM,
+      memberId: ME,
+      initialSuperLikes: 2,
+      initialCount: 3,
+      locked: () => false,
+      now: () => 0,
+      onCount: (n) => void counts.push(n),
+    });
+    answerer.answer('like');
+    expect(counts).toEqual([]);
+    answerer.answer('like');
+    expect(counts).toEqual([5]);
+    expect(answerer.count()).toBe(5);
+  });
+});
+
+describe('the rewatch question', () => {
+  it.each([
+    ['allow_rewatch', true],
+    ['show_all', true],
+    ['hide_seen', false],
+    [undefined, false],
+  ] as const)('%s asks: %s', (rule, asks) => {
+    expect(asksRewatch(rule)).toBe(asks);
+  });
+
+  it('sends seen_rewatch for Yes and seen for No', () => {
+    expect(rewatchAnswer(true)).toBe('seen_rewatch');
+    expect(rewatchAnswer(false)).toBe('seen');
+  });
+
+  it('keeps the card and its dwell time running until an answer is queued', async () => {
+    const { answerer, votes, stack, tick } = await setup();
+    tick(4_000); // the question is open: nothing is answered yet
+    expect(votes).toEqual([]);
+    expect(stack.getState().mounted[0]?.title_id).toBe(1);
+    tick(1_000);
+    answerer.answer(rewatchAnswer(true));
+    expect(votes.map((v) => [v.answer, v.dwell_ms])).toEqual([['seen_rewatch', 5_000]]);
+  });
+
+  it('does not spend a super like on either answer', async () => {
+    const { answerer } = await setup({ superLeft: 2 });
+    answerer.answer('seen_rewatch');
+    answerer.answer('seen');
+    expect(answerer.superLikesLeft()).toBe(2);
+  });
+});

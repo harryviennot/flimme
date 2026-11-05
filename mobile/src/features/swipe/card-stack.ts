@@ -25,7 +25,8 @@ const PREFETCH_TO = MOUNTED_COUNT + 3;
 export type StackStatus = 'ready' | 'loading' | 'waiting_offline' | 'empty';
 
 /** What `api.request_cards` answers; `{ status }` is accepted too, for wrappers that wrap it. */
-export type RequestCardsResult = RequestCardsAnswer | { status: RequestCardsAnswer };
+export type RequestCardsResult =
+  RequestCardsAnswer | { status: RequestCardsAnswer; liked?: number };
 
 export type StackDeps = {
   /** `api.myNextCards({ room_id, limit, member_id })`. */
@@ -55,14 +56,20 @@ export type CardStackState = {
   status: StackStatus;
   /** A `deck_updated` arrived and the refetch hasn't returned: the buffer must not be shown. */
   stale: boolean;
+  /** Films with a like in the room, from the last `done` answer (the done card shows it), else null. */
+  liked: number | null;
   /** The top card shows its back. */
   flipped: boolean;
+  /** How many times a card was turned to its back, for the card 3 hint (it leaves at the first). */
+  flips: number;
   /** When the top card reached the top (`deps.now()`), or null with no card. */
   shownAt: number | null;
   start: () => void;
   stop: () => void;
   /** Takes the top card off; the vote queue records the returned dwell time and flip state. */
   answer: () => AnsweredCard | null;
+  /** Undo: the last answered card is on top again, front side up, its dwell starting over. */
+  putBack: (card: NextCard) => void;
   setFlipped: (flipped: boolean) => void;
   onDeckUpdated: () => void;
   onOnline: () => void;
@@ -124,12 +131,20 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
         check();
       }, REQUEST_RETRY_MS);
       let answer: RequestCardsAnswer;
+      let result: RequestCardsResult;
       try {
-        answer = statusOf(await deps.requestCards());
+        result = await deps.requestCards();
+        answer = statusOf(result);
       } catch {
         return; // the retry timer asks again
       }
-      if (answer === 'closed') {
+      if (answer === 'done') {
+        // Nothing left to deal for this seat (M6.29): the deck is dry, as after an empty refetch.
+        // The retry timer stays, so a later deck_updated or the next ask still finds new cards.
+        exhausted = true;
+        const liked = typeof result === 'object' ? result.liked : undefined;
+        commit({ liked: liked ?? null });
+      } else if (answer === 'closed') {
         closed = true;
         exhausted = true;
         clearRequestTimer();
@@ -188,6 +203,7 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
         mounted: nextMounted,
         buffer: fresh.slice(room, room + BUFFER_COUNT),
         stale: false,
+        liked: nextMounted.length > 0 ? null : get().liked,
         shownAt: mounted.length === 0 && nextMounted.length > 0 ? deps.now() : get().shownAt,
       });
       prefetchPosters();
@@ -199,7 +215,9 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
       buffer: [],
       status: 'loading',
       stale: false,
+      liked: null,
       flipped: false,
+      flips: 0,
       shownAt: null,
 
       start: () => void refetch(false),
@@ -235,8 +253,28 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
         return { card: top, dwellMs, flipped };
       },
 
+      putBack: (card) => {
+        const { mounted, buffer } = get();
+        const others = mounted.filter((c) => c.title_id !== card.title_id);
+        const all = [card, ...others];
+        // The card that would be fourth goes back to the head of the buffer.
+        exhausted = false;
+        commit({
+          mounted: all.slice(0, MOUNTED_COUNT),
+          buffer: [
+            ...all.slice(MOUNTED_COUNT),
+            ...buffer.filter((c) => c.title_id !== card.title_id),
+          ],
+          flipped: false,
+          liked: null,
+          shownAt: deps.now(),
+        });
+      },
+
       setFlipped: (flipped) => {
-        if (get().mounted.length > 0) set({ flipped });
+        const { mounted, flipped: was, flips } = get();
+        if (mounted.length === 0) return;
+        set({ flipped, flips: flipped && !was ? flips + 1 : flips });
       },
 
       onDeckUpdated: () => {

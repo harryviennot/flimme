@@ -1,0 +1,65 @@
+{
+  "pills": {
+    "you": "You",
+    "done": "Done"
+  },
+  "loading": {
+    "a11y": "Loading the next film",
+    "slow": "Still dealing the cards."
+  },
+  "waiting": {
+    "title": "Waiting for the connection",
+    "body": "Your swipes are saved. They'll go as soon as you're back."
+  },
+  "done": {
+    "title": "That's all your cards",
+    "body": "Waiting for the others to finish."
+  },
+  "card": {
+    "noSynopsis": "No synopsis for this one yet."
+  },
+  "nearMiss_one": "{{count}} of {{of}} of you liked this",
+  "nearMiss_other": "{{count}} of {{of}} of you liked this",
+  "seenQuestion": {
+    "title": "Watch it again tonight?",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "hints": {
+    "swipe": "Swipe right to like, left to nope.",
+    "seen": "Seen it? Swipe up. We'll ask if you'd watch it again.",
+    "seenHide": "Seen it? Swipe up and it leaves the game.",
+    "flip": "Tap the card for the story.",
+    "superLikes_one": "{{count}} super like per game. It counts double if it comes to a final vote.",
+    "superLikes_other": "{{count}} super likes per game. They count double if it comes to a final vote.",
+    "dismiss": "Hide this tip"
+  },
+  "a11y": {
+    "card": "{{title}}, {{meta}}. On {{services}}.",
+    "cardBare": "{{title}}, {{meta}}",
+    "cardBack": "{{title}}. TMDB rating {{rating}}. {{synopsis}}",
+    "cardBackNoRating": "{{title}}. {{synopsis}}",
+    "cardBackServices": "On {{services}}.",
+    "actions": {
+      "like": "Like",
+      "nope": "Nope",
+      "superLike": "Super like",
+      "seen": "Seen it",
+      "flip": "Flip the card",
+      "trailer": "Watch the trailer"
+    },
+    "superLeft_one": "Super like, {{count}} left",
+    "superLeft_other": "Super like, {{count}} left",
+    "superNone": "No super likes left",
+    "undoNone": "Nothing to undo",
+    "undone": "{{title}} is back",
+    "seenYes": "Yes, watch it again tonight",
+    "seenNo": "No, not tonight",
+    "pill_one": "{{name}}, {{count}} film",
+    "pill_other": "{{name}}, {{count}} films",
+    "pillAway": "{{name}}, away",
+    "pillHost": "{{name}}, host",
+    "done": "{{name}} is done",
+    "thrown": "{{answer}}: {{title}}"
+  }
+}

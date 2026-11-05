@@ -1,0 +1,11 @@
+# Slice 12, reaching the Final Cut, part 1 of 2 (the phone): a fresh guest on staging opens a room
+# and waits in the lobby. Then a curl guest joins by the room code:
+#   mobile/.maestro/scripts/guest-answers.sh join <code>
+# and part 2 (final-cut-play.yaml) starts the game and plays the phone's 40 cards.
+# Needs Metro started with the staging environment (see the task skill) and the development build.
+# Run: `maestro --device <sim> test mobile/.maestro/final-cut-host.yaml -e METRO_URL=http://localhost:<port>`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/host-room.yaml

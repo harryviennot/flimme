@@ -9,6 +9,9 @@
 begin;
 select plan(56);
 
+-- M6.34: Quick Match and Date Night pick at their first match here; Final Cut keeps its shortlist of 3.
+update public.game_modes set defaults = defaults || '{"matches_to_end": 1}' where slug <> 'final_cut';
+
 select tests.create_catalog(40);
 
 -- G1, G2, G1b, G1c: a unanimous match ends Quick Match (3 players, Party mode).
