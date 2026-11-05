@@ -65,6 +65,7 @@ describe('the first release list', () => {
         'solo:checkpoint_view',
         'solo:pick_submit',
         'solo:session_start',
+        'winner:recap_share',
         'winner:view',
         'winner:watch_page_open',
       ].sort(),

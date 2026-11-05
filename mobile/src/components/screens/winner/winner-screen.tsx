@@ -24,6 +24,7 @@ import { haptics } from '@/lib/haptics';
 import { layout, spring } from '@/theme/motion';
 
 import { NoPick } from './no-pick';
+import { ShareRecap } from './share-recap';
 import { SoloNotListed } from '@/components/screens/solo/not-listed';
 
 // Tonight's pick (winner.md): the film and where to watch it, the same on every phone. Never
@@ -40,6 +41,8 @@ export type WinnerScreenProps = {
   /** The solo pick was just made on this phone: the poster settles with a small overshoot and one buzz. */
   lands?: boolean;
   onHome: () => void;
+  /** Opens the recap sheet (winner.md#share-recap). Shown for a group pick only. */
+  onShareRecap?: () => void;
 };
 
 export function WinnerScreen({
@@ -50,6 +53,7 @@ export function WinnerScreen({
   solo = false,
   lands = false,
   onHome,
+  onShareRecap,
 }: WinnerScreenProps) {
   const { t } = useTranslation('winner');
   const { t: ts } = useTranslation('solo');
@@ -177,6 +181,7 @@ export function WinnerScreen({
                     isGroupWinner={!solo}
                   />
                 )}
+                {!solo && onShareRecap ? <ShareRecap onPress={onShareRecap} /> : null}
               </Animated.View>
             ) : waiting ? (
               <View className="items-center gap-3 pt-2">
