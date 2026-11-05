@@ -236,8 +236,8 @@ The first release's tasks, grouped into features. Each slice gets one brief; the
 | 11 | The match | M6.1, M6.13, M6.14 | Screen 14; the near miss and the match |
 | 12 | The Final Cut | M6.4, M6.5, M6.15, M6.29, M6.31 | Screen 15; the countdown, the veto, the reveal |
 | 13 | Endings | M6.6, M6.7, M6.8, M6.16, M6.17, M6.30, M6.32 | Screens 16, 25 and 26 |
-| 14 | Settings and privacy | M8.4 to M8.9 | Screen 22 |
-| 15 | Analytics and operations | M9.1 to M9.7 | None |
+| 14 | Settings and privacy | M8.4 to M8.9, M8.12 | Screen 22 |
+| 15 | Analytics and operations | M9.1 to M9.9 | None |
 | 16 | The group test | M6.19, M6.20 | The playtest protocol |
 
 ## Design and game feel
