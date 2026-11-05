@@ -52,7 +52,7 @@ Un profil invité qui n'est pas utilisé pendant 90 jours est supprimé automati
 
 ### Ton prénom
 
-Ton prénom (de 1 à 24 caractères) est le seul texte que tu écris dans Flimme. Il s'affiche dans les salles où tu joues, pour les personnes qui y entrent. Il n'y a ni profil public, ni recherche, ni messages entre joueurs.
+Ton prénom (de 1 à 24 caractères) est le seul texte que tu écris pour les autres. Il s'affiche dans les salles où tu joues. Si tu ouvres une salle, les personnes qui ont son lien voient aussi ton prénom avant d'entrer. Il n'y a ni profil public, ni recherche, ni messages entre joueurs.
 
 Choisis un prénom ou un surnom. Il ne doit pas :
 

@@ -52,7 +52,7 @@ A guest profile that isn't used for 90 days is deleted automatically, along with
 
 ### Your name
 
-Your name (1 to 24 characters) is the only text you type in Flimme. It shows in the rooms you play in, to the people who join them. There are no public profiles, no search and no messages between players.
+Your name (1 to 24 characters) is the only thing you type that others see. It shows in the rooms you play in. If you open a room, people with its link also see your name before they join. There are no public profiles, no search and no messages between players.
 
 Pick a first name or a nickname. It must not:
 
