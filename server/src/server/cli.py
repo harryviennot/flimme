@@ -176,14 +176,20 @@ def run_backfill(limit: int | None) -> int:
 
 
 def run_api(host: str, port: int) -> int:
-    if load_settings("api", Process.API) is None:
+    settings = load_settings("api", Process.API)
+    if settings is None:
+        return 1
+    if settings.supabase_url is None:
+        print("server api: SUPABASE_URL is not set.", file=sys.stderr)
+        print("Copy .env.example to .env.local, or set the variable.", file=sys.stderr)
         return 1
 
     import uvicorn
 
-    from server.api.app import app
+    from server.api.app import create_app
 
-    uvicorn.run(app, host=host, port=port)
+    configure_logging()
+    uvicorn.run(create_app(settings), host=host, port=port)
     return 0
 
 

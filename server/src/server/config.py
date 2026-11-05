@@ -15,7 +15,7 @@ from enum import StrEnum
 from typing import Self
 
 from psycopg.conninfo import conninfo_to_dict
-from pydantic import AliasChoices, Field, SecretStr, field_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -73,6 +73,9 @@ class Settings(BaseSettings):
         default=None, validation_alias=AliasChoices("TMDB_READ_TOKEN", "tmdb_token")
     )
 
+    # The project's URL, for the HTTP API: it finds the signing keys and the token issuer there.
+    supabase_url: str | None = None
+
     sentry_dsn: SecretStr | None = None
 
     @classmethod
@@ -110,3 +113,15 @@ class Settings(BaseSettings):
         except Exception:
             raise ValueError("is not a valid PostgreSQL connection URL") from None
         return value
+
+    @model_validator(mode="after")
+    def _supabase_url_is_https(self) -> Self:
+        url = self.supabase_url
+        if url is None:
+            return self
+        local_host = url.startswith(("http://127.0.0.1", "http://localhost"))
+        if not (
+            url.startswith("https://") or (local_host and self.environment is Environment.LOCAL)
+        ):
+            raise ValueError("must be an https:// URL (http://127.0.0.1 or localhost when local)")
+        return self

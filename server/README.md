@@ -18,12 +18,14 @@ Every process is a subcommand of one `server` command:
 ```sh
 uv run server --help
 uv run server api                  # the HTTP API on 127.0.0.1:8000 (--host and --port to change)
-curl http://127.0.0.1:8000/healthz  # {"status":"ok"}
+curl http://127.0.0.1:8000/healthz  # {"status":"ok"}, or 503 {"status":"db_unavailable"}
 ```
+
+`server api` also needs `SUPABASE_URL`, and the local stack must publish a signing key, or no token can be checked. Once per machine: `supabase gen signing-key --algorithm ES256` writes `supabase/signing_keys.json` (ignored by version control: never commit it), then uncomment `signing_keys_path = "./signing_keys.json"` in your local `supabase/config.toml` (do not commit that line) and restart the stack. Check with `curl http://127.0.0.1:54321/auth/v1/.well-known/jwks.json`. The API refuses every request without a valid bearer token (`401`), except `/healthz`.
 
 | Command | Status |
 | --- | --- |
-| `server api` | Runs the FastAPI app. Refuses to start if the settings are invalid, naming the variable |
+| `server api` | Runs the FastAPI app: `/healthz`, ES256 token checks against the project's signing keys, a 16 KB body limit. Refuses to start if the settings are invalid, naming the variable |
 | `server pipeline-worker` | Consumes `catalog_refresh` and `room_finished` (needs `PIPELINE_DATABASE_URL`). Handles `fetch` messages and the `reference_weekly` and `popularity_daily` jobs so far; any other message is archived as unhandled |
 | `server backfill [--limit N]` | The first catalog load (needs `PIPELINE_DATABASE_URL` and `TMDB_READ_TOKEN`): reference data, the top films of TMDB's daily export file, a fetch of each one that passes the floor, then C and every `quality_score`. `--limit N` caps the candidates: `--limit 2000` seeds a local or staging catalog. An interrupted run stays open; run the command again to resume it from `ingest_runs.cursor` |
 | `server deck-worker` | Not built yet: M17.4 |
@@ -46,6 +48,7 @@ cp .env.example .env.local
 | `ENVIRONMENT` | yes | `local`, `staging` or `production` |
 | `PIPELINE_DATABASE_URL`, `DECK_DATABASE_URL`, `TRAINER_DATABASE_URL` | for that process | The process's own `app_server` login, a `postgresql://` URL |
 | `API_DATABASE_URL` | for `server api` | The API's `app_http` login |
+| `SUPABASE_URL` | for `server api` | The project's URL: `https://...`, or `http://127.0.0.1:54321` when local. The token issuer and the signing keys' address come from it |
 | `DATABASE_URL` | local only | Stands in for any of the four above when `ENVIRONMENT=local` |
 | `TMDB_READ_TOKEN` | no | TMDB's read access token |
 | `SENTRY_DSN` | no | Error reports |
