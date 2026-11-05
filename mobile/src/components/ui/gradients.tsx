@@ -10,7 +10,7 @@ import { tokens } from '@/theme/generated/tokens';
 
 type Stops = readonly { color: string; position: number }[];
 
-export type ScrimProps = { gradient?: 'card-scrim' | 'marquee-sunset' };
+export type ScrimProps = { gradient?: 'card-scrim' | 'card-front-scrim' | 'marquee-sunset' };
 
 /** A linear gradient filling its parent (absolutely positioned). */
 export function GradientFill({ gradient = 'card-scrim' }: ScrimProps) {
