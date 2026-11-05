@@ -70,6 +70,8 @@ Every `api` function answers with a status (`packages/contract/src/answers.ts`).
 - A solo room is never the kept room (no launch rejoin). Its queued votes carry `solo: true` so the vote queue keeps them without a kept room and sends them on the next launch (`useSettleSolo` on Play). The session's answers, likes count and checkpoint live in `features/solo/session.ts` (memory, one per room); Leave is `features/solo/leave.ts` (votes first, then `leave_room`, retried from a persisted list). The daily cap's Paris date is `features/solo/cap.ts`. `/dev/solo-cap` shows the end cards with fixture data.
 - A form sheet's scroll view fills the sheet and covers a sibling above it: put a sheet's header inside the `ScrollView`.
 
+- **A sheet that scrolls** inside a nested stack (the film sheet, `app/(tabs)/my-films/`): React Native's `ScrollView` paints nothing there on iOS. Use Gesture Handler's `ScrollView` under a `GestureHandlerRootView` (a native sheet is its own tree). Found on the simulator, so check any new scrolling sheet there.
+
 ## Translations
 
 - Every visible string through `t()` (lint enforces it). French first; the same key in `locales/en`. A new feature gets its own JSON file per language, added in `src/i18n/resources.ts`.

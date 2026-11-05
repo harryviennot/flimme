@@ -17,6 +17,7 @@ import { gallery as uiMarqueeBulbs } from './ui/marquee-bulbs.gallery';
 import { gallery as uiMotion } from './ui/motion.gallery';
 import { gallery as uiOptionCard } from './ui/option-card.gallery';
 import { gallery as uiPinBox } from './ui/pin-box.gallery';
+import { gallery as uiSegmentedControl } from './ui/segmented-control.gallery';
 import { gallery as uiSkeleton } from './ui/skeleton.gallery';
 import { gallery as uiTabBar } from './ui/tab-bar.gallery';
 import { gallery as uiTag } from './ui/tag.gallery';
@@ -24,6 +25,7 @@ import { gallery as uiText } from './ui/text.gallery';
 import { gallery as uiToast } from './ui/toast.gallery';
 import { gallery as uiToggle } from './ui/toggle.gallery';
 import { gallery as uiTopBar } from './ui/top-bar.gallery';
+import { gallery as sharedFilmTile } from './shared/film-tile.gallery';
 import { gallery as sharedMovieCard } from './shared/movie-card.gallery';
 import { gallery as sharedNameForm } from './shared/name-form.gallery';
 import { gallery as sharedPlayerPill } from './shared/player-pill.gallery';
@@ -34,6 +36,7 @@ import { gallery as sharedRoomTicket } from './shared/room-ticket.gallery';
 import { gallery as sharedServiceGrid } from './shared/service-grid.gallery';
 import { gallery as sharedServiceTile } from './shared/service-tile.gallery';
 import { gallery as sharedSwipeAction } from './shared/swipe-action.gallery';
+import { gallery as sharedWhereToWatch } from './shared/where-to-watch.gallery';
 
 import type { GalleryEntry } from './gallery';
 
@@ -55,6 +58,7 @@ export const galleryEntries: GalleryEntry[] = [
   uiMotion,
   uiOptionCard,
   uiPinBox,
+  uiSegmentedControl,
   uiSkeleton,
   uiTabBar,
   uiTag,
@@ -62,6 +66,7 @@ export const galleryEntries: GalleryEntry[] = [
   uiToast,
   uiToggle,
   uiTopBar,
+  sharedFilmTile,
   sharedMovieCard,
   sharedNameForm,
   sharedPlayerPill,
@@ -72,4 +77,5 @@ export const galleryEntries: GalleryEntry[] = [
   sharedServiceGrid,
   sharedServiceTile,
   sharedSwipeAction,
+  sharedWhereToWatch,
 ];

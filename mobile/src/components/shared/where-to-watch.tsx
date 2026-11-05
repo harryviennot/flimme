@@ -6,7 +6,6 @@ import { StyleSheet, View } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { track } from '@/lib/analytics';
-import { servicesLabel, type ServiceLogo } from '@/features/winner/services';
 import { duration } from '@/theme/motion';
 
 // "Where to watch" (winner.md): the room's services that have the film, the JustWatch credit
@@ -36,14 +35,19 @@ function ServiceTile({ service }: { service: ServiceLogo }) {
   );
 }
 
+export type ServiceLogo = { id: number; name: string; logo?: string };
+
 export type WhereToWatchProps = {
   services: readonly ServiceLogo[];
   /** TMDB's watch page for the film and country; null hides "More details". */
   watchLink: string | null;
-  language: string;
+  /** "Netflix and Canal+", read by a screen reader for the logos (the caller formats the list). */
+  servicesLabel: string;
+  /** The line when none of the player's services has the film (the room's, or the player's own). */
+  notListed: string;
 };
 
-export function WhereToWatch({ services, watchLink, language }: WhereToWatchProps) {
+export function WhereToWatch({ services, watchLink, servicesLabel, notListed }: WhereToWatchProps) {
   const { t } = useTranslation('winner');
   return (
     <View className="items-center gap-2 pt-2">
@@ -54,7 +58,7 @@ export function WhereToWatch({ services, watchLink, language }: WhereToWatchProp
         <View
           className="flex-row flex-wrap justify-center gap-2"
           accessible
-          accessibilityLabel={t('a11y.services', { names: servicesLabel(services, language) })}
+          accessibilityLabel={t('a11y.services', { names: servicesLabel })}
         >
           {services.map((service) => (
             <ServiceTile key={service.id} service={service} />
@@ -62,7 +66,7 @@ export function WhereToWatch({ services, watchLink, language }: WhereToWatchProp
         </View>
       ) : (
         <Text variant="body-m" tone="secondary" align="center">
-          {t('notListed')}
+          {notListed}
         </Text>
       )}
       <Text variant="body-s" tone="muted" align="center">
