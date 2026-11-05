@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 142 of 278 tasks done.
+Progress: 143 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -488,7 +488,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on the simulator moves between the tabs, opens host setup, a join link, a room and Settings with no tab bar, and comes back to Play.
 - [x] **M6.44** Play alone: the Play alone card, Play alone setup, the solo swipe variant, the checkpoint card every 20 cards, the pick sheet and the solo pick, the cap card · app · L · needs M6.39, M6.40, M6.42, M6.43 · [solo](solo-and-my-films.md#3-what-solo-ends-with), [game-modes](game-modes.md#the-modes)
   Done when: a touch run on the simulator against staging plays alone past two checkpoints, picks a film and sees where to watch, leaves a session, and meets the cap card, in French and English.
-- [ ] **M6.45** My films and the film sheet: the grid, Liked and Seen, the chips, the badges, the empty, loading and offline states; the film sheet with the card back, where to watch, Mark as seen and Remove · app · L · needs M6.39, M6.41, M6.43 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles)
+- [x] **M6.45** My films and the film sheet: the grid, Liked and Seen, the chips, the badges, the empty, loading and offline states; the film sheet with the card back, where to watch, Mark as seen and Remove · app · L · needs M6.39, M6.41, M6.43 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles)
   Done when: a touch run on the simulator against staging shows likes, a group's pick with its badge and a seen film, removes a film and undoes it, and marks one as seen, in French and English.
 - [ ] **M6.46** Analytics for solo and My films: `solo:session_start`, `solo:checkpoint_view`, `solo:pick_submit`, `solo:cap_show` and `my_films:grid_view`, with no film ids · app · S · needs M9.2, M6.44, M6.45 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [analytics](analytics.md#events)
   Done when: each event shows in PostHog from a test device, and none leaves a phone in a solo session with an age cap under 13.
