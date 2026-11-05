@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 133 of 278 tasks done.
+Progress: 134 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -575,7 +575,7 @@ Done when: the headline metrics, alerts and backups work, and the load test pass
   Done when: a stopped worker raises an alert, and a new report alerts within 5 minutes.
 - [x] **M9.6** Backups: the weekly logical dump and the restore script · ops · M · needs M1.1 · [operations](../architecture/operations.md#backups-and-restore)
   Done when: the weekly dump runs, and a local drill restores it.
-- [ ] **M9.7** The load runner (narrowed): 230 bots in 50 rooms, measures for each target, a report · test · L · needs M6.19 · [operations](../architecture/operations.md#load-test)
+- [x] **M9.7** The load runner (narrowed): 230 bots in 50 rooms, measures for each target, a report · test · L · needs M6.19 · [operations](../architecture/operations.md#load-test)
   Done when: a local run produces the report for each target.
 - [ ] **M9.8** The restore drill on Supabase · ops · M · needs M9.6, M2.15 · [operations](../architecture/operations.md#backups-and-restore)
   Done when: a dump restores into a new Supabase project and the copy works.
