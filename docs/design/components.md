@@ -98,7 +98,7 @@ An invisible input that owns a value and draws nothing: it fills its `relative` 
 
 "Swipe card. Tap flips between Side=Front and Side=Back. Swap Poster; set Title, Meta, Rating and Synopsis." 345 by 518, `radius.xl`, `bg.surface`, `elevation-card`.
 
-- **Front:** the poster fills the card; the `card-scrim` gradient over the bottom 64%; a 36-point `bg.sunken` flip badge (info icon) top right; at the bottom, the reason tag (accent, zap), title `title-l`, meta `mono-data` `text.secondary`, service tags.
+- **Front:** the poster fills the card; the `card-front-scrim` gradient over the bottom 92% (clear at the top, 88% `bg.sunken` at the bottom, nine eased stops; the back header, the match poster and the Final Cut bands keep `card-scrim`); a 36-point `bg.sunken` flip badge (info icon) top right; at the bottom, the reason tag (accent, zap), title `title-l`, meta `mono-data` `text.primary`, service tags.
 - **Like / Nope:** a 3-point `like.default` or `nope.default` border, and a stamp rotated -14 or 14 degrees: `bg.sunken`, 4-point border, `radius.sm`, Staatliches 52 (raw, `display-stamp`).
 - **Back:** a 132-point header with the poster, scrim, flip badge (refresh icon), title and meta; then the ratings (TMDB: star and `display-m` in `marquee.default`; a seated player's Letterboxd rating with their avatar), the synopsis (`mono-eyebrow` label, `body-m`), credits (`body-s`), service tags and the Trailer button (secondary S, play icon), and "Tap the card to flip back".
 

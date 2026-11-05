@@ -368,8 +368,8 @@ function Front({
       ))}
     >
       <Poster source={poster} thumbhash={thumbhash} />
-      <View className="absolute inset-x-0 bottom-0" style={{ height: '64%' }}>
-        <GradientFill gradient="card-scrim" />
+      <View className="absolute inset-x-0 bottom-0" style={{ height: '92%' }}>
+        <GradientFill gradient="card-front-scrim" />
       </View>
       <FlipBadge icon="info" />
       <View className="absolute right-5 bottom-5 left-5 gap-2">
@@ -379,7 +379,7 @@ function Front({
         <Text variant="title-l" numberOfLines={3}>
           {title}
         </Text>
-        <Text variant="mono-data" tone="secondary" numberOfLines={2}>
+        <Text variant="mono-data" numberOfLines={2}>
           {meta}
         </Text>
         <Services services={services} />
