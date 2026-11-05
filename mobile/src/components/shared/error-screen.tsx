@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
 import { reportError } from '@/lib/sentry';
+import { useTrackErrorView } from '@/lib/use-track-error';
 
 /** Shown when a screen throws. Expo Router renders it in place of the broken route. */
 export function ErrorScreen({ error, retry }: ErrorBoundaryProps) {
   const { t } = useTranslation();
   // Expo Router catches the error, so Sentry's wrapper never sees it.
   useEffect(() => reportError(error), [error]);
+  useTrackErrorView('unexpected');
   return (
     <Screen footer={<Button label={t('actions.retry')} onPress={() => void retry()} />}>
       <View className="flex-1 justify-center gap-3">

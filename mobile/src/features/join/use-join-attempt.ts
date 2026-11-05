@@ -4,8 +4,10 @@ import { useFocusEffect, router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '@/api';
+import { trackJoinAttempt } from '@/features/analytics/events';
 import { useOnline } from '@/features/network';
 import { MY_PROFILE_KEY } from '@/features/profile';
+import { track } from '@/lib/analytics';
 import { haptics } from '@/lib/haptics';
 
 import { CODE_LENGTH, digitsOf, readPasted, roomRouteFor } from './link';
@@ -104,6 +106,9 @@ export function useJoinAttempt() {
           setView({ kind: 'message', ...NETWORK_ROW });
           return;
         }
+        if (row.kind !== 'wait' || tries >= STARTING_RETRIES) {
+          trackJoinAttempt(ref ? 'link' : 'code', result.status);
+        }
         if (row.kind === 'go') {
           if (result.status === 'ok') {
             leaveOldSeat(result.room_id, oldRoomId);
@@ -155,7 +160,10 @@ export function useJoinAttempt() {
       setShaking(false);
       setView(IDLE);
       updateCode(next);
-      if (next.length === CODE_LENGTH) void attempt(next);
+      if (next.length === CODE_LENGTH) {
+        track('join:code_submit', { via: 'code' });
+        void attempt(next);
+      }
     },
     [attempt, cancel, updateCode],
   );
@@ -170,7 +178,10 @@ export function useJoinAttempt() {
       setShaking(false);
       setView(IDLE);
       updateCode(next);
-      if (next.length === CODE_LENGTH) void attempt(next);
+      if (next.length === CODE_LENGTH) {
+        track('join:code_submit', { via: 'code' });
+        void attempt(next);
+      }
     },
     [attempt, cancel, updateCode],
   );

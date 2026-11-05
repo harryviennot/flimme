@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { api } from '@/api';
 import { showToast } from '@/components/ui/toast';
+import { trackJoinAttempt } from '@/features/analytics/events';
 import { roomRouteFor } from '@/features/join/link';
 import { useOnline } from '@/features/network';
 import { useMyProfile } from '@/features/profile';
@@ -63,6 +64,7 @@ export function useLaunch(): { step: LaunchStep; retry: () => void } {
       .joinRoom({ code: rejoinCode, ref: rejoinId, via: 'rejoin' })
       .then((result) => {
         if (!alive) return;
+        trackJoinAttempt('rejoin', result.status);
         if (result.status === 'ok') {
           setRejoin({ state: 'route', route: roomRouteFor(result.room_id, result.state) });
           return;

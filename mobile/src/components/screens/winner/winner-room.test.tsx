@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 
 import { api } from '@/api';
 import { registerRoomGuard } from '@/features/room';
+import { track } from '@/lib/analytics';
 
 import { WinnerRoom } from './winner-room';
 
@@ -21,7 +22,12 @@ jest.mock('@/features/room', () => ({
   ...jest.requireActual('@/features/room/leave-guard'),
   ROOM_KEY: (id: string) => ['room', id],
   useExitRoomToHome: () => mockExit,
+  // Three seats present and one that left.
+  useRoomSeats: () => ({
+    data: [{ left_at: null }, { left_at: null }, { left_at: null }, { left_at: 'x' }],
+  }),
 }));
+jest.mock('@/lib/analytics', () => ({ track: jest.fn() }));
 jest.mock('@/features/room/match-shown', () => ({ useMatchShown: () => true }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -69,6 +75,38 @@ describe('the winner room', () => {
     await waitFor(() => expect(screen.getByText('Past Lives')).toBeTruthy());
     expect(screen.getByText('2023 · 1 h 45')).toBeTruthy();
     expect(screen.queryByText('The only film anyone liked')).toBeNull();
+  });
+
+  it.each([
+    ['unanimous', 'match'],
+    ['majority', 'match'],
+    ['finale', 'finale'],
+  ])('reports the winner view once for a %s pick', async (kind, outcome) => {
+    mockApi.roomMatches.mockResolvedValue([match(kind, 1)]);
+    const view = await render(<WinnerRoom roomId="r1" />, { wrapper });
+    await waitFor(() => expect(screen.getByText('Past Lives')).toBeTruthy());
+    await view.rerender(<WinnerRoom roomId="r1" />);
+    expect(track).toHaveBeenCalledTimes(1);
+    expect(track).toHaveBeenCalledWith('winner:view', { outcome, room_size: '3_4' });
+  });
+
+  it('reports nothing for a room that picked nothing', async () => {
+    mockApi.roomMatches.mockResolvedValue([match('majority', null)]);
+    await render(<WinnerRoom roomId="r1" />, { wrapper });
+    await waitFor(() => expect(screen.queryByTestId('winner-loading')).toBeNull());
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it('reports the watch page opening with no property', async () => {
+    mockApi.roomMatches.mockResolvedValue([match('unanimous', 1)]);
+    mockApi.titleCards.mockResolvedValue({
+      status: 'ok',
+      cards: [{ ...card, watch_link: 'https://www.themoviedb.org/movie/1/watch?locale=FR' }],
+    });
+    await render(<WinnerRoom roomId="r1" />, { wrapper });
+    await waitFor(() => expect(screen.getByText('Past Lives')).toBeTruthy());
+    fireEvent.press(screen.getByRole('button', { name: /details/i }));
+    expect(track).toHaveBeenLastCalledWith('winner:watch_page_open');
   });
 
   it('says "The only film anyone liked" for a finale pick with no round', async () => {

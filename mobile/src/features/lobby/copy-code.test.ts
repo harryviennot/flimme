@@ -1,4 +1,9 @@
+import { track } from '@/lib/analytics';
+
 import { copyRoomCode } from './copy-code';
+
+jest.mock('@/lib/analytics', () => ({ track: jest.fn() }));
+beforeEach(() => jest.clearAllMocks());
 
 const deps = () => ({
   copy: jest.fn(async (_text: string) => true),
@@ -13,6 +18,8 @@ describe('copyRoomCode', () => {
     expect(d.copy).toHaveBeenCalledWith('482913');
     expect(d.haptic).toHaveBeenCalledTimes(1);
     expect(d.toast).toHaveBeenCalledWith({ tone: 'success', title: 'Code copied' });
+    expect(track).toHaveBeenCalledTimes(1);
+    expect(track).toHaveBeenCalledWith('room:invite_share', { method: 'code_copy' });
   });
 
   it('claims nothing when the clipboard refuses', async () => {
@@ -20,5 +27,6 @@ describe('copyRoomCode', () => {
     d.copy.mockRejectedValueOnce(new Error('no clipboard'));
     await copyRoomCode('482913', 'Code copied', d);
     expect(d.toast).not.toHaveBeenCalled();
+    expect(track).not.toHaveBeenCalled();
   });
 });

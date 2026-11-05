@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
 import { releaseRoomGuards, useExitRoomToHome, useRoom } from '@/features/room';
+import { useTrackErrorView } from '@/lib/use-track-error';
 import { layout } from '@/theme/motion';
 
 /** Whether the closing time is a real date: a null or unreadable `ended_at` leaves the detail empty. */
@@ -24,6 +25,7 @@ export function ClosedScreen({ roomId }: { roomId: string }) {
   const { t, i18n } = useTranslation('ending');
   const room = useRoom(roomId).data;
   const exitToHome = useExitRoomToHome();
+  useTrackErrorView('room_closed');
 
   const created = parse(room?.created_at);
   const ended = parse(room?.ended_at);
