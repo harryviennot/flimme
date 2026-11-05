@@ -33,16 +33,20 @@ export function Poster({ source, thumbhash, accessibilityLabel }: PosterProps) {
 }
 
 const thumbSizes = {
-  s: 'h-20.25 w-13.5',
-  m: 'h-27 w-18',
+  xs: 'h-9 w-6 rounded-xs',
+  s: 'h-20.25 w-13.5 rounded-sm',
+  m: 'h-27 w-18 rounded-sm',
 } as const;
 
 export type PosterThumbProps = PosterProps & { size?: keyof typeof thumbSizes };
 
-/** Figma "Poster thumb": a small poster for lists, the Final Cut and the profile. */
+/**
+ * Figma "Poster thumb": a small poster for lists, the Final Cut and the profile. `xs` (24 by 36)
+ * is a slot of the swipe screen's shortlist.
+ */
 export function PosterThumb({ size = 'm', ...props }: PosterThumbProps) {
   return (
-    <View className={cn('overflow-hidden rounded-sm bg-bg-raised', thumbSizes[size])}>
+    <View className={cn('overflow-hidden bg-bg-raised', thumbSizes[size])}>
       <Poster {...props} />
     </View>
   );

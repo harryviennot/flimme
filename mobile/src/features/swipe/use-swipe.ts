@@ -12,7 +12,9 @@ import { useAppConfig } from '@/features/app-config/use-app-config';
 import { useOnline } from '@/features/network';
 import { ROOM_KEY, useKeptRoom, useRoom, useRoomEvent } from '@/features/room';
 import { useRoomRealtime } from '@/features/room/realtime';
+import { useShortlistView } from '@/features/shortlist/context';
 import i18n from '@/i18n';
+import { duration } from '@/theme/motion';
 
 import { createAnswerer, type AnswerKind } from './answer';
 import { createCardStack, type AnsweredCard } from './card-stack';
@@ -39,10 +41,20 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   // Whether "Seen it" asks the rewatch question; unknown means it doesn't (the film just leaves).
   const seenRule = useRoom(roomId).data?.seen_rule;
   // What callbacks made once need to read fresh: the channels and whether the room moved on.
-  const [live] = useState(() => createStore(() => ({ realtime, locked: false })));
+  const [live] = useState(() =>
+    createStore(() => ({
+      realtime,
+      locked: false,
+      beating: false,
+      shortlisted: new Set<number>() as ReadonlySet<number>,
+    })),
+  );
+  // The shortlisted beat (moments.md#the-shortlisted-beat): the stack takes no input while it
+  // plays, and a film on the shortlist leaves this phone's stack.
+  const shortlist = useShortlistView();
   useEffect(() => {
-    live.setState({ realtime });
-  }, [live, realtime]);
+    live.setState({ realtime, beating: shortlist.active, shortlisted: shortlist.known });
+  }, [live, realtime, shortlist.active, shortlist.known]);
   const locked = useStore(live, (s) => s.locked);
   const [superLikesLeft, setSuperLikesLeft] = useState(seat.super_likes_left ?? 0);
 
@@ -62,7 +74,10 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
           }),
         requestCards: () => api.requestCards({ room_id: roomId, member_id: seat.member_id }),
         prefetch: (urls) => void Image.prefetch(urls, 'memory-disk'),
-        isAnswered: (titleId) => answered.has(titleId) || voteQueue.has(roomId, titleId),
+        isAnswered: (titleId) =>
+          answered.has(titleId) ||
+          voteQueue.has(roomId, titleId) ||
+          live.getState().shortlisted.has(titleId),
         now: () => Date.now(),
       },
       { imageBase: config?.tmdb_image_base, screenWidth },
@@ -78,7 +93,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       initialSuperLikes: seat.super_likes_left ?? 0,
       // What the server counted plus what is still waiting on this phone.
       initialCount: seat.swipe_count + voteQueue.pending(roomId),
-      locked: () => live.getState().locked,
+      locked: () => live.getState().locked || live.getState().beating,
       now: () => Date.now(),
       onCount: (count) => {
         live.getState().realtime?.setPresence({ swipe_count: count, done: false });
@@ -95,7 +110,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       queue: voteQueue,
       roomId,
       memberId: seat.member_id,
-      locked: () => live.getState().locked,
+      locked: () => live.getState().locked || live.getState().beating,
     }),
   );
   // The card Undo just brought back and the answer it had: the card moves in from that side.
@@ -155,7 +170,46 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   );
 
   // Undo wakes with the first answer and sleeps after use, or when the room moves on.
-  const canUndo = useStore(undoer.state, (s) => s.last !== null) && !locked;
+  // Not after a match: "A card that matched can't be undone" (swipe.md#undo).
+  const lastId = useStore(undoer.state, (s) => s.last?.card.title_id);
+  const undoShortlisted = lastId !== undefined && shortlist.known.has(lastId);
+  const canUndo = lastId !== undefined && !locked && !undoShortlisted;
+
+  /**
+   * Films that matched leave this phone: gone from the stack at once if behind the mounted
+   * cards, under the scrim if mounted. A film this phone had answered (an undo brought it back,
+   * or the vote was still in flight) counts as answered again, and its super like as spent.
+   */
+  const leave = useCallback(
+    (ids: readonly number[]) => {
+      const { mounted, buffer } = stack.getState();
+      for (const card of [...mounted, ...buffer]) {
+        if (!ids.includes(card.title_id)) continue;
+        if (thrown.has(card.title_id) && !answered.has(card.title_id)) {
+          const spent = refunded.delete(card.title_id);
+          answered.add(card.title_id);
+          answerer.redone(spent);
+          setSuperLikesLeft(answerer.superLikesLeft());
+          setCount(answerer.count());
+        }
+        thrown.set(card.title_id, card);
+      }
+      stack.getState().removeTitles(ids);
+    },
+    [stack, thrown, answered, refunded, answerer],
+  );
+  useEffect(() => {
+    const ids = [...shortlist.known];
+    if (ids.length === 0) return;
+    if (!shortlist.active) {
+      // The stack and the answer counts are synchronised with the shortlist, an external store.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      leave(ids);
+      return;
+    }
+    const timer = setTimeout(() => leave(ids), duration.fast);
+    return () => clearTimeout(timer);
+  }, [shortlist.known, shortlist.active, leave]);
 
   // The match overlay asks this screen for the film's card first: one the phone already holds
   // (thrown, mounted or behind) needs no read.
@@ -194,6 +248,10 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
         if (event.room_id !== roomId) return;
         if (event.type === 'match') {
           if (event.decided !== false) lock();
+        } else if (event.type === 'undo_locked') {
+          // The card that came back matched: it leaves again, with no message. After the room
+          // moved on the layout follows the room instead.
+          if (!live.getState().locked) leave([event.title_id]);
         } else if (event.type === 'finale' || event.type === 'closed') lock();
         else if (event.type === 'no_super_likes') {
           // The server has no vote for this film: Undo has nothing to take back there.
@@ -211,7 +269,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
           stack.getState().onDeckUpdated();
         }
       }),
-    [roomId, answerer, stack, lock, undoer, refunded],
+    [roomId, answerer, stack, lock, undoer, refunded, leave, live],
   );
 
   // Connection: the stack waits offline and refills on return; the queue sends what waited.
@@ -260,6 +318,10 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     count,
     undo,
     canUndo,
+    /** The last card answered is on the shortlist: Undo is off, and says why. */
+    undoShortlisted,
+    /** The shortlisted beat is playing: cards take no touch. */
+    beating: shortlist.active,
     returning,
     superLikesLeft,
     waitingVotes,

@@ -2,6 +2,11 @@ import type { NextCard, RoomSeat } from '@flimme/contract';
 import { act, renderHook } from '@testing-library/react-native';
 import { create } from 'zustand';
 
+import type { ReactNode } from 'react';
+
+import { ShortlistProvider } from '@/features/shortlist/context';
+import { createShortlistController } from '@/features/shortlist/controller';
+
 import { useSwipe } from './use-swipe';
 import type { QueuedVote, VoteQueueEvent } from './vote-queue';
 
@@ -419,5 +424,118 @@ describe('offline', () => {
     mockOnline = false;
     const { result } = await open();
     expect(result.current.stack.getState().status).toBe('waiting_offline');
+  });
+});
+
+describe('the shortlist', () => {
+  const controller = () =>
+    createShortlistController({ onBeat: () => undefined, onMismatch: () => undefined });
+  const wrap = (shortlist: ReturnType<typeof controller>) =>
+    function Wrapper({ children }: { children: ReactNode }) {
+      return <ShortlistProvider value={shortlist}>{children}</ShortlistProvider>;
+    };
+  const openWith = async (shortlist: ReturnType<typeof controller>) => {
+    const view = await renderHook(() => useSwipe(ROOM, seat, 393), { wrapper: wrap(shortlist) });
+    await flush();
+    return view;
+  };
+  const ids = (view: { result: { current: ReturnType<typeof useSwipe> } }) => {
+    const { mounted, buffer } = view.result.current.stack.getState();
+    return [...mounted, ...buffer].map((c) => c.title_id);
+  };
+  const matched = (title_id: number) => ({
+    title_id,
+    likes: 3,
+    of: 3,
+    decided: false,
+    shortlisted: 1,
+    shortlist_size: 3,
+  });
+
+  beforeEach(() => jest.useFakeTimers({ doNotFake: ['setImmediate'] }));
+  afterEach(() => jest.useRealTimers());
+
+  it('takes no answer during the beat and gives the stack back after it', async () => {
+    const shortlist = controller();
+    const view = await openWith(shortlist);
+    await act(async () => shortlist.signal(matched(9)));
+    expect(view.result.current.beating).toBe(true);
+    expect(view.result.current.answer('like')).toBeNull();
+    expect(mockQueue.store.getState().votes).toEqual([]);
+    await act(async () => void jest.advanceTimersByTime(1750));
+    expect(view.result.current.beating).toBe(false);
+    expect(view.result.current.answer('like')).not.toBeNull();
+  });
+
+  it('takes a matched film out of the stack, mounted or behind, and sends no vote for it', async () => {
+    const shortlist = controller();
+    const view = await openWith(shortlist);
+    expect(view.result.current.stack.getState().mounted.map((c) => c.title_id)).toEqual([1, 2, 3]);
+    await act(async () => {
+      shortlist.signal(matched(2));
+      shortlist.signal({ ...matched(8), shortlisted: 2 });
+    });
+    await act(async () => void jest.advanceTimersByTime(200));
+    expect(ids(view)).not.toContain(2);
+    expect(ids(view)).not.toContain(8);
+    expect(view.result.current.stack.getState().mounted.map((c) => c.title_id)).toEqual([1, 3, 4]);
+    expect(mockQueue.store.getState().votes).toEqual([]);
+  });
+
+  it('takes a film read back (a cold start) out of the stack with no beat', async () => {
+    const shortlist = controller();
+    shortlist.readBack([1, 5]);
+    const view = await openWith(shortlist);
+    expect(view.result.current.beating).toBe(false);
+    expect(ids(view)).not.toContain(1);
+    expect(ids(view)).not.toContain(5);
+    expect(view.result.current.stack.getState().mounted.map((c) => c.title_id)).toEqual([2, 3, 4]);
+  });
+
+  it('turns Undo off while the last card answered is on the shortlist, and on at the next answer', async () => {
+    const shortlist = controller();
+    const view = await openWith(shortlist);
+    await act(async () => void view.result.current.answer('like'));
+    expect(view.result.current.canUndo).toBe(true);
+    await act(async () => shortlist.signal(matched(1)));
+    expect(view.result.current.canUndo).toBe(false);
+    expect(view.result.current.undoShortlisted).toBe(true);
+    await act(async () => void jest.advanceTimersByTime(1750));
+    await act(async () => void view.result.current.answer('nope'));
+    expect(view.result.current.canUndo).toBe(true);
+    expect(view.result.current.undoShortlisted).toBe(false);
+  });
+
+  it('takes the card Undo brought back away again when the server says locked, and counts it answered', async () => {
+    const shortlist = controller();
+    const view = await openWith(shortlist);
+    await act(async () => void view.result.current.answer('super_like'));
+    await act(async () => mockQueue.store.setState({ votes: [] }));
+    await act(async () => void view.result.current.undo());
+    expect(view.result.current.stack.getState().mounted[0]?.title_id).toBe(1);
+    expect(view.result.current.superLikesLeft).toBe(2);
+    expect(view.result.current.count).toBe(0);
+    await act(async () =>
+      mockQueue.listeners.forEach((l) => l({ type: 'undo_locked', room_id: ROOM, title_id: 1 })),
+    );
+    expect(ids(view)).not.toContain(1);
+    expect(view.result.current.stack.getState().mounted[0]?.title_id).toBe(2);
+    expect(view.result.current.superLikesLeft).toBe(1);
+    expect(view.result.current.count).toBe(1);
+    expect(view.result.current.canUndo).toBe(false);
+  });
+
+  it('keeps the card when the undo is locked after the room moved on: the layout follows the room', async () => {
+    const shortlist = controller();
+    const view = await openWith(shortlist);
+    await act(async () => void view.result.current.answer('like'));
+    await act(async () => mockQueue.store.setState({ votes: [] }));
+    await act(async () => void view.result.current.undo());
+    await act(async () => mockHandlers.get('state_changed')?.({ state: 'finale' }));
+    await act(async () =>
+      mockQueue.listeners.forEach((l) => l({ type: 'undo_locked', room_id: ROOM, title_id: 1 })),
+    );
+    expect(view.result.current.locked).toBe(true);
+    expect(view.result.current.stack.getState().mounted[0]?.title_id).toBe(1);
   });
 });
