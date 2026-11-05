@@ -183,6 +183,28 @@ export type SetAnalyticsChoiceAnswer = (typeof SET_ANALYTICS_CHOICE_ANSWERS)[num
 export const TITLE_CARDS_ANSWERS = ['ok', 'too_many', 'rate_limited'] as const;
 export type TitleCardsAnswer = (typeof TITLE_CARDS_ANSWERS)[number];
 
+/**
+ * My films (M6.41, solo-and-my-films.md). `api.my_films` has one answer, `ok`; a bad segment, filter or
+ * cursor raises (22023). `api.my_film_card` answers `ok` with the card and the caller's own `seen`
+ * and `liked` flags, `not_found` for a film outside the caller's own rows, `rate_limited` at 60 calls
+ * per 10 minutes. `api.set_film_seen` and `api.remove_my_film` answer `ok`, `not_found` (nothing to
+ * change) or `rate_limited` (they share 60 per 10 minutes).
+ */
+export const MY_FILMS_ANSWERS = ['ok'] as const;
+export type MyFilmsAnswer = (typeof MY_FILMS_ANSWERS)[number];
+export const MY_FILM_CARD_ANSWERS = ['ok', 'not_found', 'rate_limited'] as const;
+export type MyFilmCardAnswer = (typeof MY_FILM_CARD_ANSWERS)[number];
+export const SET_FILM_SEEN_ANSWERS = ['ok', 'not_found', 'rate_limited'] as const;
+export type SetFilmSeenAnswer = (typeof SET_FILM_SEEN_ANSWERS)[number];
+export const REMOVE_MY_FILM_ANSWERS = ['ok', 'not_found', 'rate_limited'] as const;
+export type RemoveMyFilmAnswer = (typeof REMOVE_MY_FILM_ANSWERS)[number];
+
+/** The segments and filters of `api.my_films`. The filter is ignored for `seen`. */
+export const MY_FILMS_SEGMENTS = ['liked', 'seen'] as const;
+export type MyFilmsSegment = (typeof MY_FILMS_SEGMENTS)[number];
+export const MY_FILMS_FILTERS = ['all', 'friends', 'solo'] as const;
+export type MyFilmsFilter = (typeof MY_FILMS_FILTERS)[number];
+
 /** `api.answer_followup` answers. */
 export const ANSWER_FOLLOWUP_ANSWERS = ['ok', 'not_found'] as const;
 export type AnswerFollowupAnswer = (typeof ANSWER_FOLLOWUP_ANSWERS)[number];

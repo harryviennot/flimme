@@ -96,7 +96,7 @@ const roomOf = (state: string) => ({
 /* eslint-disable @typescript-eslint/no-require-imports */
 const routes = {
   _layout: () => <Stack screenOptions={{ headerShown: false }} />,
-  home: () => null,
+  play: () => null,
   'room/[id]/_layout': require('@/app/room/[id]/_layout').default,
   'room/[id]/lobby': require('@/app/room/[id]/lobby').default,
   'room/[id]/invite': require('@/app/room/[id]/invite').default,
@@ -351,7 +351,7 @@ describe('the room layout', () => {
     keptRoomStore.getState().keep({ id: 'r1', code: '482913' });
     api.room.mockResolvedValue(null);
     await renderRouter(routes, { initialUrl: '/room/r1/lobby', wrapper: Providers });
-    await waitFor(() => expect(screen).toHavePathname('/home'));
+    await waitFor(() => expect(screen).toHavePathname('/play'));
     expect(keptRoomStore.getState().room).toBeNull();
     expect(showToast).toHaveBeenCalledTimes(1);
     expect(showToast).toHaveBeenCalledWith({
@@ -363,7 +363,7 @@ describe('the room layout', () => {
   it('says nothing for a null read of a room the phone does not keep', async () => {
     api.room.mockResolvedValue(null);
     await renderRouter(routes, { initialUrl: '/room/r1/lobby', wrapper: Providers });
-    await waitFor(() => expect(screen).toHavePathname('/home'));
+    await waitFor(() => expect(screen).toHavePathname('/play'));
     expect(showToast).not.toHaveBeenCalled();
   });
 
@@ -371,7 +371,7 @@ describe('the room layout', () => {
     keptRoomStore.getState().keep({ id: 'r1', code: '482913' });
     api.roomSeats.mockResolvedValue([{ ...mockSeat, left_at: '2026-11-03T11:00:00Z' }]);
     await renderRouter(routes, { initialUrl: '/room/r1/lobby', wrapper: Providers });
-    await waitFor(() => expect(screen).toHavePathname('/home'));
+    await waitFor(() => expect(screen).toHavePathname('/play'));
     expect(showToast).not.toHaveBeenCalled();
   });
 

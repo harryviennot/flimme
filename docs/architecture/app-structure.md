@@ -71,9 +71,9 @@ The design file's 26 screens are the reference for what exists, not the final wo
 
 | Route | Screen | Notes |
 | --- | --- | --- |
-| `/` | | Redirects: no name yet goes to `/welcome`, otherwise `/home` |
+| `/` | | Redirects: no name yet goes to `/welcome`, otherwise `/play` |
 | `/welcome`, `/name` | 01 to 03 | First launch. The onboarding doc decides the content |
-| `/home` | 04 | Host or join, Letterboxd nudge, last night's pick |
+| `/play`, `/my-films` | 04 | The two tabs of the `(tabs)` group ([tab bar](../design/screens/tab-bar.md)): Play (host or join, Letterboxd nudge, last night's pick) and My films. Every other route is a stack over the tabs, so the bar shows only here. `/home` redirects to `/play` |
 | `/join` | 05 | Code keypad |
 | `/join/[code]` | | Invite link target. Previews the room with `room_preview` (the host and the count), calls `join_room` on the Join tap (at once for a seated player or a link with no `r`), then replaces itself with the room |
 | `/host` | 06, 07 | One setup screen in the first release: services, time budget and age cap ([spec](../design/screens/host-setup.md)). "Open the room" calls `create_room` with the settings (M4.4). Mode and moods come back with M17 and M18 |

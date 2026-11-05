@@ -1,0 +1,39 @@
+# M6.43, the tab bar: Play and My films, switching, and no tab bar over host setup. Run:
+# `maestro test mobile/.maestro/tabs.yaml` on a simulator with the development build installed and
+# Metro running (`-e METRO_URL=http://localhost:<port>`). The profile needs a name (run
+# first-launch.yaml once, or any flow that names the player).
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app.yaml
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 30000
+# Play is the first tab, with the bar.
+- assertVisible: '(?i)^play$'
+- assertVisible: '(?i)^my films$'
+- takeScreenshot: tabs-1-play
+
+# My films shows its placeholder; Play is not on screen any more.
+- tapOn: '(?i)^my films$'
+- assertVisible: '(?i)nothing here yet'
+- assertNotVisible: '(?i)open a room'
+- takeScreenshot: tabs-2-my-films
+
+# Back to Play.
+- tapOn: '(?i)^play$'
+- assertVisible: '(?i)open a room'
+
+# Host setup covers the bar.
+- tapOn: '(?i)open a room'
+- assertVisible: '(?i)new room'
+- assertNotVisible: '(?i)^my films$'
+- takeScreenshot: tabs-3-host-no-bar
+
+# The edge swipe goes back to Play, with the bar.
+- swipe:
+    start: 2%, 50%
+    end: 80%, 50%
+- extendedWaitUntil:
+    visible: '(?i)^my films$'
+    timeout: 10000
+- assertVisible: '(?i)open a room'

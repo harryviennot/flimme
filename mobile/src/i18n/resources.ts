@@ -9,9 +9,11 @@ import enHost from './locales/en/host.json';
 import enJoin from './locales/en/join.json';
 import enLobby from './locales/en/lobby.json';
 import enMatch from './locales/en/match.json';
+import enMyFilms from './locales/en/myFilms.json';
 import enOnboarding from './locales/en/onboarding.json';
 import enReport from './locales/en/report.json';
 import enSettings from './locales/en/settings.json';
+import enSolo from './locales/en/solo.json';
 import enSwipe from './locales/en/swipe.json';
 import enWeb from './locales/en/web.json';
 import enWinner from './locales/en/winner.json';
@@ -23,9 +25,11 @@ import frHost from './locales/fr/host.json';
 import frJoin from './locales/fr/join.json';
 import frLobby from './locales/fr/lobby.json';
 import frMatch from './locales/fr/match.json';
+import frMyFilms from './locales/fr/myFilms.json';
 import frOnboarding from './locales/fr/onboarding.json';
 import frReport from './locales/fr/report.json';
 import frSettings from './locales/fr/settings.json';
+import frSolo from './locales/fr/solo.json';
 import frSwipe from './locales/fr/swipe.json';
 import frWeb from './locales/fr/web.json';
 import frWinner from './locales/fr/winner.json';
@@ -40,9 +44,11 @@ export const resources = {
     join: frJoin,
     lobby: frLobby,
     match: frMatch,
+    myFilms: frMyFilms,
     onboarding: frOnboarding,
     report: frReport,
     settings: frSettings,
+    solo: frSolo,
     swipe: frSwipe,
     web: frWeb,
     winner: frWinner,
@@ -56,9 +62,11 @@ export const resources = {
     join: enJoin,
     lobby: enLobby,
     match: enMatch,
+    myFilms: enMyFilms,
     onboarding: enOnboarding,
     report: enReport,
     settings: enSettings,
+    solo: enSolo,
     swipe: enSwipe,
     web: enWeb,
     winner: enWinner,

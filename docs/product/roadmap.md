@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 137 of 278 tasks done.
+Progress: 140 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -439,9 +439,9 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: rule 2 of "The finalists" is tested, ties and a player who left included.
 - [x] **M6.40** The solo game mode: a `solo` mode with one seat, `api.start_solo` and `api.solo_pick`, no join, no match and no finale, an idle solo room ended after 30 minutes, solo decks without films answered in earlier solo rooms · backend · L · needs M6.29, M6.30, M6.34 · [solo](solo-and-my-films.md#4-a-room-with-one-seat-or-a-separate-flow), [game-modes](game-modes.md#the-modes)
   Done when: each rule of the solo mode in "The modes" is tested, the 30-minute end and a pick included.
-- [ ] **M6.41** My films in `user_titles`: the `solo` source, `liked_at`, `super_liked`, `picked_at` and `seen_at`, likes written by `api.cast_vote` and taken back by undo, a group's pick marked for every seated player, `api.my_films`, `api.my_film_card`, `api.set_film_seen`, `api.remove_my_film`, and the export · backend · L · needs M6.40, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [data-model](../architecture/data-model.md#4-film-history-and-taste)
+- [x] **M6.41** My films in `user_titles`: the `solo` source, `liked_at`, `super_liked`, `picked_at` and `seen_at`, likes written by `api.cast_vote` and taken back by undo, a group's pick marked for every seated player, `api.my_films`, `api.my_film_card`, `api.set_film_seen`, `api.remove_my_film`, and the export · backend · L · needs M6.40, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [data-model](../architecture/data-model.md#4-film-history-and-taste)
   Done when: undo, both sources, a pick, the reads and edits, deletion and retention are tested, and nothing in a room reads a like.
-- [ ] **M6.42** The solo daily cap, and solo in the metric views: 100 solo cards a day per player (`app_config.solo_daily_cards`, Paris day), the deal stops at the cap, `daily_limit` from `api.start_solo` and `api.request_cards`; solo rooms left out of the group metrics, with solo sessions, cards per session and solo picks · backend · M · needs M6.40, M9.3 · [solo](solo-and-my-films.md#8-the-cap), [analytics](analytics.md#game)
+- [x] **M6.42** The solo daily cap, and solo in the metric views: 100 solo cards a day per player (`app_config.solo_daily_cards`, Paris day), the deal stops at the cap, `daily_limit` from `api.start_solo` and `api.request_cards`; solo rooms left out of the group metrics, with solo sessions, cards per session and solo picks · backend · M · needs M6.40, M9.3 · [solo](solo-and-my-films.md#8-the-cap), [analytics](analytics.md#game)
   Done when: the cap, undo giving nothing back, group rooms never counted, and the metric views are tested.
 
 **App**
@@ -484,7 +484,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run against staging reaches a 2-film vote and its reveal, and every Final Cut shows the intro line in French and English.
 - [x] **M6.39** Solo and My films, the specs and beats: the tab bar, Play, Play alone setup, the solo swipe variant (top bar, checkpoint card, cap card, pick sheet), the solo pick, My films and the film sheet; the checkpoint and solo pick beats; the frames on the Figma's First release page · design · L · [solo](solo-and-my-films.md#the-screens-to-spec), [moments](../design/moments.md)
   Done when: every screen has a spec with its states and its copy in French and English, both beats are in moments.md, and the frames are on the First release page.
-- [ ] **M6.43** The tab bar: Play (today's Home) and My films as Expo Router tabs; host setup, join, rooms and Settings over the tabs with no tab bar; deep links and the redirects from `/` still work · app · M · needs M6.39 · [solo](solo-and-my-films.md#2-the-tab-bar), [app-structure](../architecture/app-structure.md#screens-and-navigation)
+- [x] **M6.43** The tab bar: Play (today's Home) and My films as Expo Router tabs; host setup, join, rooms and Settings over the tabs with no tab bar; deep links and the redirects from `/` still work · app · M · needs M6.39 · [solo](solo-and-my-films.md#2-the-tab-bar), [app-structure](../architecture/app-structure.md#screens-and-navigation)
   Done when: a touch run on the simulator moves between the tabs, opens host setup, a join link, a room and Settings with no tab bar, and comes back to Play.
 - [ ] **M6.44** Play alone: the Play alone card, Play alone setup, the solo swipe variant, the checkpoint card every 20 cards, the pick sheet and the solo pick, the cap card · app · L · needs M6.39, M6.40, M6.42, M6.43 · [solo](solo-and-my-films.md#3-what-solo-ends-with), [game-modes](game-modes.md#the-modes)
   Done when: a touch run on the simulator against staging plays alone past two checkpoints, picks a film and sees where to watch, leaves a session, and meets the cap card, in French and English.

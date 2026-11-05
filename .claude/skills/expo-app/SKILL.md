@@ -63,6 +63,7 @@ Every `api` function answers with a status (`packages/contract/src/answers.ts`).
 - `useSession()` / `useSessionFailed()` (`features/session`): the guest sign-in's answer, and whether it threw (reported once inside `startSession`; callers use `.catch(() => {})`). `useMyProfile()` (`features/profile`, key `['my_profile']`) is seeded from the copy kept on the device and stale from the start; `useOnline()` (`features/network`) comes from expo-network and also drives TanStack's `onlineManager`. A screen that needs the player's name reads `useMyProfile()`, never the api.
 - `routes.test.tsx` mocks `@/api`, `@/features/session`, `@/features/network` and `@/lib/storage` and wraps routes in a `QueryClientProvider`; a screen that reaches for something new adds its answer there.
 - `EmptyState autoFocus` moves a screen reader's focus to the title of a screen that failed.
+- Home is two tabs (`app/(tabs)/`: `play`, `my-films`, bar = `ui/tab-bar`); every other route is a stack over them in the root layout, so the bar never shows in a room. Exits go to `/play`. A screen inside the tabs passes `insetBottom={false}` to `Screen` (the bar owns the home indicator space).
 
 ## Translations
 
