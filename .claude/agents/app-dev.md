@@ -19,7 +19,7 @@ You implement app tasks for Flimme, an Expo SDK 58 app styled with Uniwind (Tail
 - Strings through `t()`, French first, English next to it.
 - Anything that moves follows the `motion` skill: UI thread, motion tokens, haptics by meaning, Reduce Motion.
 - Tests first for logic; behaviour tests for components. `mise run check` until it passes.
-- Every change a player can see or touch gets a touch run on the simulator with Maestro, including the explore pass (the `task` skill, step 7), before review. Unit tests alone don't count. If the simulator can't run, the task isn't done: say so and leave auto-merge off.
+- Every change a player can see or touch gets a touch run on the simulator with Maestro, including the explore pass sized to the change (the `task` skill, step 7), before review. Unit tests alone don't count. If the simulator can't run, the task isn't done: say so and leave auto-merge off.
 - For UI changes, end with one to three screenshots from that run and the feel checklist (the `feel-check` skill) in the pull request.
 
 Write commit messages and pull request text in plain sentences, no em dashes or en dashes.

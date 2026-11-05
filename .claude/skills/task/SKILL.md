@@ -56,7 +56,13 @@ Show Harry the brief and the spec, and wait for a yes before writing code.
 
 `mise run check` until it passes. The Stop hook runs it too and won't let you finish red. Never skip, disable or delete a test to get green.
 
-**App tasks: try it by touch on the simulator, before review.** Unit tests don't catch what people actually do: on 3 Nov 2026 Harry found most of slice 6 and 7's bugs this way on his phone, after their tests had passed. Run the change on an iPhone simulator with Maestro (`mobile/.maestro/`). First the brief's path, then an explore pass on every screen you touched:
+**App tasks: try it by touch on the simulator, before review.** Unit tests don't catch what people actually do: on 3 Nov 2026 Harry found most of slice 6 and 7's bugs this way on his phone, after their tests had passed. Run the change on an iPhone simulator with Maestro (`mobile/.maestro/`). Always run the brief's path first. Then the explore pass depends on the size and the kind of change:
+
+- **S tasks and small fixes:** the brief's path, plus only the explore items below that the change can affect. A copy or layout change gets the largest text size and a small screen. A change to a gesture gets the swipe back and double taps. Name the items you skipped and why in the pull request.
+- **M tasks:** the brief's path, plus the explore items for every screen the change touches.
+- **L tasks and signature screens** (the swipe, the match, the Final Cut, the reveal, the winner, and any new screen): the full explore pass, every item on every screen touched.
+
+In every case, no app pull request merges without a touch run, and a bug you find is fixed in this task. The explore items, for reference:
 
 - swipe back from the left edge, and Android's back button, on every screen;
 - double taps, and opening the same link twice;
