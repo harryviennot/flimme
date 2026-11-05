@@ -10,6 +10,7 @@ let mockOnline = true;
 let mockProfile: { display_name: string; avatar_key: string } | null = null;
 
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
+jest.mock('@/features/solo/leave', () => ({ useSettleSolo: () => undefined }));
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline }));
 jest.mock('@/features/profile', () => ({
   toAvatarColor: jest.requireActual('@/features/profile/device').toAvatarColor,
@@ -53,6 +54,13 @@ describe('Home', () => {
     expect(router.push).toHaveBeenLastCalledWith('/host');
     await fireEvent.press(screen.getByText('Join'));
     expect(router.push).toHaveBeenLastCalledWith('/join');
+  });
+
+  it('shows the Play alone card under the join card and opens its setup', async () => {
+    await renderHome();
+    expect(screen.getByText('On your own tonight?')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Play alone'));
+    expect(router.push).toHaveBeenLastCalledWith('/solo');
   });
 
   it('opens the name screen in edit mode and the settings', async () => {

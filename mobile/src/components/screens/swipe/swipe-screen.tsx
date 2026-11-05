@@ -18,6 +18,7 @@ import { useNearMiss } from '@/features/swipe/near-miss';
 import { useFlights } from '@/features/swipe/use-flights';
 import { useShortlistView } from '@/features/shortlist/context';
 import { useSwipe } from '@/features/swipe/use-swipe';
+import { likesOf } from '@/features/solo/session';
 import { timing } from '@/theme/motion';
 
 import { ActionRow } from './action-row';
@@ -29,6 +30,7 @@ import { useSeenLift } from './seen-lift';
 import { SeenQuestion } from './seen-question';
 import { ShortlistedBeat } from './shortlisted';
 import { LIT } from './swipe-card';
+import { SoloTopBar } from './solo-top-bar';
 import { SwipeTopBar } from './top-bar';
 
 // The swipe screen (docs/design/screens/swipe.md): the stack, the buttons row, and the empty
@@ -71,7 +73,7 @@ export function SwipeScreen({
   const topId = useStore(stack, (s) => s.mounted[0]?.title_id);
   const status = useStore(stack, (s) => s.status);
   const maxAge = useRoom(roomId).data?.max_age;
-  useFirstCardView(roomId, status === 'ready' && topId !== undefined);
+  useFirstCardView(roomId, status === 'ready' && topId !== undefined && !swipe.solo);
   const nearMiss = useNearMiss(roomId, topId);
 
   const { flying, throwCard, landed } = useFlights(swipe.answer);
@@ -148,7 +150,10 @@ export function SwipeScreen({
     AccessibilityInfo.announceForAccessibility(t('a11y.undone', { title: back.card.title }));
   }, [swipe, landed, t]);
 
-  const canAnswer = status === 'ready' && !swipe.locked;
+  // Solo: the likes count for the top bar, and a checkpoint on top takes the answer buttons (not Undo).
+  const entries = useStore(swipe.soloSession, (s) => s.entries);
+  const checkpointOpen = useStore(swipe.soloSession, (s) => s.open !== null);
+  const canAnswer = status === 'ready' && !swipe.locked && !(swipe.solo && checkpointOpen);
   // The shortlisted beat: the toast and the glow leave while it plays and come back after.
   const shortlist = useShortlistView();
   const beating = shortlist.active;
@@ -176,6 +181,7 @@ export function SwipeScreen({
               onUndo={undoLast}
               onAnswer={(kind) => throwAndSay(kind, false)}
               lit={lit}
+              hideSuperCount={swipe.solo}
             />
           </Animated.View>
           <SeenQuestion
@@ -191,7 +197,11 @@ export function SwipeScreen({
         </View>
       }
     >
-      <SwipeTopBar roomId={roomId} count={swipe.count} done={status === 'empty'} />
+      {swipe.solo ? (
+        <SoloTopBar roomId={roomId} likes={likesOf(entries).length} />
+      ) : (
+        <SwipeTopBar roomId={roomId} count={swipe.count} done={status === 'empty'} />
+      )}
       <RoomBanner roomId={roomId} waitingVotes={swipe.waitingVotes} />
       <SwipeNearMiss titleId={topId} nearMiss={shownNearMiss} shortlistShown={shortlist.size > 1} />
       {held !== null ? (

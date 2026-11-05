@@ -1,7 +1,9 @@
+import { createSoloSession } from '@/features/solo/session';
 import i18n from '@/i18n';
 
 import type { NextCard, RoomSeat } from '@flimme/contract';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { router } from 'expo-router';
 import { Linking } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -28,8 +30,9 @@ jest.mock('@/features/swipe/use-swipe', () => ({ useSwipe: () => mockSwipe.curre
 jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
 }));
+jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('@/lib/haptics', () => ({
-  haptics: { throw: jest.fn(), press: jest.fn(), commit: jest.fn() },
+  haptics: { throw: jest.fn(), press: jest.fn(), commit: jest.fn(), checkpoint: jest.fn() },
 }));
 const mockBanner = jest.fn();
 jest.mock('@/components/screens/room/room-banner', () => ({
@@ -59,6 +62,11 @@ jest.mock('@/features/host/queries', () => ({
     ],
   }),
 }));
+jest.mock('@/features/solo/leave', () => ({
+  useLeaveSolo: () => jest.fn(),
+  useLeaveSoloTo: () => ({ myFilms: jest.fn(), host: jest.fn() }),
+}));
+jest.mock('@/features/solo/cap', () => ({ markCapReached: jest.fn() }));
 jest.mock('@/features/room', () => ({
   // A room without filters, unless a test sets some.
   useRoom: () => ({
@@ -120,6 +128,10 @@ async function makeSwipe(
     shortlist?: ReturnType<typeof createShortlistController>;
     /** The last card answered is on the shortlist. */
     undoShortlisted?: boolean;
+    /** A solo room: the session, the likes count, the checkpoint. */
+    solo?: boolean;
+    /** `request_cards` answers `daily_limit`. */
+    capped?: boolean;
   } = {},
 ) {
   const votes: QueuedVote[] = [];
@@ -128,9 +140,11 @@ async function makeSwipe(
     {
       fetchCards: async () => cards.filter((c) => !votes.some((v) => v.title_id === c.title_id)),
       requestCards: async () =>
-        options.doneLiked === undefined
-          ? 'ok'
-          : { status: 'done' as const, liked: options.doneLiked },
+        options.capped
+          ? 'daily_limit'
+          : options.doneLiked === undefined
+            ? 'ok'
+            : { status: 'done' as const, liked: options.doneLiked },
       prefetch: () => undefined,
       isAnswered: (id) => votes.some((v) => v.title_id === id),
       now: () => Date.now(),
@@ -142,6 +156,7 @@ async function makeSwipe(
   await act(async () => {
     await new Promise((resolve) => setImmediate(resolve));
   });
+  const soloSession = createSoloSession();
   const counts: number[] = [];
   const answerer: Answerer = createAnswerer({
     stack,
@@ -182,12 +197,16 @@ async function makeSwipe(
       stack,
       answer: (kind: Parameters<Answerer['answer']>[0]) => {
         const done = answerer.answer(kind);
-        if (done) undoer.record(done.card, kind);
+        if (done) {
+          undoer.record(done.card, kind);
+          soloSession.getState().answer(done.card, kind);
+        }
         state.setState({ superLikesLeft: answerer.superLikesLeft(), returning: null });
         return done;
       },
       undo: () => {
         const back = undoer.undo();
+        if (back) soloSession.getState().undo(back.card.title_id);
         if (back?.kind === 'super_like') answerer.giveBackSuperLike();
         state.setState({ superLikesLeft: answerer.superLikesLeft(), returning: back });
         return back;
@@ -207,6 +226,8 @@ async function makeSwipe(
         return options.shortlist?.getSnapshot().active ?? false;
       },
       undoShortlisted: options.undoShortlisted ?? false,
+      solo: options.solo ?? false,
+      soloSession,
       seenRule: options.seenRule ?? 'hide_seen',
       online: true,
       imageBase: undefined,
@@ -862,5 +883,131 @@ describe('the shortlisted beat', () => {
     expect(screen.getByLabelText('Undo').props.accessibilityHint).toBe(
       'This film is on the shortlist',
     );
+  });
+});
+
+describe('a solo room', () => {
+  async function answer(label: string, times: number) {
+    for (let i = 0; i < times; i++) {
+      await fireEvent.press(screen.getByLabelText(label));
+    }
+  }
+  const SINGLE = "You liked 1 film. It's in My films.";
+
+  it('shows the Solo bar with the likes count, which follows likes, super likes and undos', async () => {
+    await setup({ solo: true, cards: 45 });
+    await layoutStack();
+    expect(screen.getByText('Solo')).toBeOnTheScreen();
+    expect(screen.getByLabelText('0 films liked')).toBeOnTheScreen();
+    await answer('Like', 1);
+    await answer('Nope', 1);
+    await fireEvent.press(screen.getByLabelText('Super like'));
+    expect(screen.getByLabelText('2 films liked')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByLabelText('Undo'));
+    expect(screen.getByLabelText('1 film liked')).toBeOnTheScreen();
+  });
+
+  it('leaves out the shortlist, the near miss, the match overlay and the host menu', async () => {
+    await setup({ solo: true, cards: 45 });
+    await layoutStack();
+    expect(screen.queryByTestId('shortlist')).toBeNull();
+    expect(screen.queryByTestId('shortlisted-catcher')).toBeNull();
+    expect(screen.queryByText(/of you liked/i)).toBeNull();
+    expect(screen.queryByLabelText(/^Remove /)).toBeNull();
+    expect(screen.queryByLabelText(/Report/)).toBeNull();
+  });
+
+  it('shows no super like count', async () => {
+    await setup({ solo: true, cards: 45 });
+    await layoutStack();
+    expect(screen.queryByLabelText(/left/)).toBeNull();
+    expect(screen.getByLabelText('Super like')).toBeOnTheScreen();
+  });
+
+  it('shows the checkpoint after the 20th answer, with both choices and the answers off', async () => {
+    const { votes } = await setup({ solo: true, cards: 45 });
+    await layoutStack();
+    await answer('Like', 1);
+    await answer('Nope', 18);
+    expect(screen.queryByTestId('checkpoint-card')).toBeNull();
+    await answer('Nope', 1);
+    expect(screen.getByTestId('checkpoint-card')).toBeOnTheScreen();
+    expect(screen.getByText(SINGLE)).toBeOnTheScreen();
+    expect(screen.getByText('Pick one')).toBeOnTheScreen();
+    expect(screen.getByText('Keep going')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Like').props.accessibilityState.disabled).toBe(true);
+    expect(screen.getByLabelText('Undo').props.accessibilityState.disabled).toBe(false);
+    // Keep going goes back to the deck and sends no vote.
+    await fireEvent.press(screen.getByText('Keep going'));
+    expect(screen.queryByTestId('checkpoint-card')).toBeNull();
+    expect(votes).toHaveLength(20);
+    // The 40th shows it again.
+    await answer('Nope', 20);
+    expect(screen.getByTestId('checkpoint-card')).toBeOnTheScreen();
+  });
+
+  it('opens the pick sheet from Pick one and leaves the checkpoint in place', async () => {
+    await setup({ solo: true, cards: 45 });
+    await layoutStack();
+    await answer('Like', 1);
+    await answer('Nope', 19);
+    await fireEvent.press(screen.getByText('Pick one'));
+    expect(router.push).toHaveBeenLastCalledWith('/room/room-1/pick');
+    expect(screen.getByTestId('checkpoint-card')).toBeOnTheScreen();
+  });
+
+  it('has only Keep going when nothing was liked', async () => {
+    await setup({ solo: true, cards: 45 });
+    await layoutStack();
+    await answer('Nope', 20);
+    expect(screen.getByText('Nothing yet. Keep going?')).toBeOnTheScreen();
+    expect(screen.queryByText('Pick one')).toBeNull();
+    expect(screen.getByText('Keep going')).toBeOnTheScreen();
+  });
+
+  it('takes the checkpoint away on Undo and does not bring it back for the same 20th', async () => {
+    await setup({ solo: true, cards: 45 });
+    await layoutStack();
+    await answer('Nope', 20);
+    await fireEvent.press(screen.getByLabelText('Undo'));
+    expect(screen.queryByTestId('checkpoint-card')).toBeNull();
+    await answer('Nope', 1);
+    expect(screen.queryByTestId('checkpoint-card')).toBeNull();
+  });
+
+  it('shows the out of films card with the likes and My films', async () => {
+    await setup({ solo: true, cards: 2, doneLiked: 1 });
+    await layoutStack();
+    await answer('Like', 1);
+    await answer('Nope', 1);
+    await act(async () => {
+      await new Promise((resolve) => setImmediate(resolve));
+    });
+    expect(screen.getByText("That's every film for these filters.")).toBeOnTheScreen();
+    expect(screen.getByText(SINGLE)).toBeOnTheScreen();
+    expect(screen.getByText('Pick one')).toBeOnTheScreen();
+    expect(screen.getByText('My films')).toBeOnTheScreen();
+    expect(screen.queryByText('Host a movie night')).toBeNull();
+  });
+
+  it('shows the cap card after the last card, never before, with Pick one when there is a like', async () => {
+    await setup({ solo: true, cards: 2, capped: true });
+    await layoutStack();
+    await answer('Like', 1);
+    expect(screen.queryByText("That's today's solo deck.")).toBeNull();
+    await answer('Nope', 1);
+    expect(screen.getByText("That's today's solo deck.")).toBeOnTheScreen();
+    expect(screen.getByText('New cards tomorrow.')).toBeOnTheScreen();
+    expect(screen.getByText('Pick one')).toBeOnTheScreen();
+    expect(screen.getByText('My films')).toBeOnTheScreen();
+    expect(screen.getByText('Host a movie night')).toBeOnTheScreen();
+  });
+
+  it('shows the cap card with My films and Host only when there is no like', async () => {
+    await setup({ solo: true, cards: 1, capped: true });
+    await layoutStack();
+    await answer('Nope', 1);
+    expect(screen.queryByText('Pick one')).toBeNull();
+    expect(screen.getByText('Host a movie night')).toBeOnTheScreen();
   });
 });

@@ -43,6 +43,8 @@ export type AnswererDeps = {
   };
   roomId: string;
   memberId: string;
+  /** A solo room: its votes are marked so they are sent although the room is not kept. */
+  solo?: () => boolean;
   /** `room_seats.super_likes_left` for this seat when the screen opened. */
   initialSuperLikes: number;
   /** The seat's swipe count when the screen opened, plus votes still waiting. */
@@ -77,6 +79,7 @@ export function createAnswerer(deps: AnswererDeps) {
         dwell_ms: Math.min(done.dwellMs, MAX_DWELL_MS),
         client_at: new Date(deps.now()).toISOString(),
         flipped: done.flipped,
+        ...(deps.solo?.() && { solo: true }),
       });
       if (kind === 'super_like') superLikes -= 1;
       count += 1;

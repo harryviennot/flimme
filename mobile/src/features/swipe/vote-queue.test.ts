@@ -445,6 +445,24 @@ describe('restart', () => {
     expect(second.queue.store.getState().votes).toEqual([]);
   });
 
+  it("keeps a solo room's votes without a kept room, across a restart, and sends them", async () => {
+    const kv = memoryKv();
+    const first = setup(
+      () => {
+        throw networkError();
+      },
+      { kv, kept: null },
+    );
+    first.queue.enqueue(vote(1, { solo: true }));
+    first.queue.enqueue(vote(2));
+    await jest.advanceTimersByTimeAsync(0);
+
+    const second = setup(undefined, { kv, kept: null });
+    await second.queue.flush();
+    expect(second.sent).toEqual([{ room_id: ROOM, title_id: 1, flipped: false }]);
+    expect(second.queue.pending(ROOM)).toBe(0);
+  });
+
   it('drops votes for a room the phone no longer keeps, unsent', async () => {
     const kv = memoryKv();
     const first = setup(

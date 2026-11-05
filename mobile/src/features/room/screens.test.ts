@@ -44,3 +44,17 @@ describe('isAllowed', () => {
     expect(isAllowed('abandoned', 'winner')).toBe(false);
   });
 });
+
+describe('a solo room', () => {
+  it('swipes while it deals, and has no lobby', () => {
+    expect(roomScreenFor('dealing', 'solo')).toBe('swipe');
+    expect(roomScreenFor('dealing', 'quick_match')).toBe('lobby');
+    expect(isAllowed('dealing', 'swipe', 'solo')).toBe(true);
+  });
+  it('lets the pick sheet over the swiping only', () => {
+    expect(isAllowed('swiping', 'pick', 'solo')).toBe(true);
+    expect(isAllowed('swiping', 'pick', 'quick_match')).toBe(false);
+    expect(isAllowed('done', 'pick', 'solo')).toBe(false);
+    expect(isSheet('pick')).toBe(true);
+  });
+});

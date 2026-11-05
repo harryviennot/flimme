@@ -16,20 +16,17 @@ import { Text } from '@/components/ui/text';
 import { TopBar } from '@/components/ui/top-bar';
 import { keptRoomId, leaveOldSeat } from '@/features/join/old-seat';
 import { openRoom } from '@/features/host/open-room';
-import { MY_PROVIDERS_KEY, useCountryProviders, useMyProviders } from '@/features/host/queries';
+import { MY_PROVIDERS_KEY } from '@/features/host/queries';
 import {
   AGE_CHOICES,
-  DEFAULT_AGE,
-  DEFAULT_TIME,
   TIME_CHOICES,
-  initialSelection,
   selectionChanged,
   toRoomSettings,
   type AgeChoice,
   type TimeChoice,
 } from '@/features/host/settings';
+import { useSetupForm } from '@/features/host/use-setup-form';
 import { useOnline } from '@/features/network';
-import { useMyProfile } from '@/features/profile';
 import { trackRoomCreated } from '@/features/analytics/events';
 import { haptics } from '@/lib/haptics';
 import { reportError } from '@/lib/sentry';
@@ -40,33 +37,16 @@ export default function HostScreen() {
   const { t: tc } = useTranslation();
   const client = useQueryClient();
   const online = useOnline();
-  const profile = useMyProfile();
-  const country = profile.data?.country ?? null;
+  const form = useSetupForm();
+  const { profile, country, providers, listed, start, selection, ready, failed } = form;
+  const { toggle, time, setTime, age, setAge, retry } = form;
 
-  const providers = useCountryProviders(country);
-  const mine = useMyProviders(Boolean(country));
-
-  // The host's own taps; until they tap, the selection is the start (saved ids the country lists).
-  const [picked, setPicked] = useState<number[] | null>(null);
-  const [time, setTime] = useState<TimeChoice>(DEFAULT_TIME);
-  const [age, setAge] = useState<AgeChoice>(DEFAULT_AGE);
   const [opening, setOpening] = useState(false);
   const [refused, setRefused] = useState(false);
   const busy = useRef(false);
 
-  const listed = providers.data ?? [];
-  const start = initialSelection(
-    mine.data ?? [],
-    listed.map((p) => p.provider_id),
-  );
-  const selection = picked ?? start;
-  const ready = providers.isSuccess && mine.isSuccess;
-  const failed = providers.isError || mine.isError;
   const unsupported =
     (!profile.isPending && !country) || refused || (providers.isSuccess && listed.length === 0);
-
-  const toggle = (id: number) =>
-    setPicked(selection.includes(id) ? selection.filter((x) => x !== id) : [...selection, id]);
 
   const canOpen = ready && selection.length > 0 && online && !opening;
 
@@ -120,11 +100,6 @@ export default function HostScreen() {
         haptics.error();
         return;
     }
-  };
-
-  const retry = () => {
-    void providers.refetch();
-    void mine.refetch();
   };
 
   const header = <TopBar title={t('topBar')} onBack={() => router.back()} />;

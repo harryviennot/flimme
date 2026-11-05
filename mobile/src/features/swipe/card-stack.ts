@@ -37,6 +37,8 @@ export type StackDeps = {
   /** The vote queue holds an answer for this film, or it was answered this session. */
   isAnswered(titleId: number): boolean;
   now(): number;
+  /** A solo seat reached the daily cap (`request_cards` answered `daily_limit`). */
+  onDailyLimit?(): void;
 };
 
 export type StackOptions = {
@@ -58,6 +60,8 @@ export type CardStackState = {
   stale: boolean;
   /** Films with a like in the room, from the last `done` answer (the done card shows it), else null. */
   liked: number | null;
+  /** The daily cap was reached (solo): once the cards on the phone run out, the cap card shows. */
+  capped: boolean;
   /** The top card shows its back. */
   flipped: boolean;
   /** How many times a card was turned to its back, for the card 3 hint (it leaves at the first). */
@@ -91,16 +95,17 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
   let exhausted = false;
   let loaded = false;
   let closed = false;
+  let capped = false;
   let fetchSeq = 0;
   let requestTimer: ReturnType<typeof setTimeout> | null = null;
   let failureTimer: ReturnType<typeof setTimeout> | null = null;
   const prefetched = new Set<string>();
 
   const store = createStore<CardStackState>()((set, get) => {
-    function status(s: Pick<CardStackState, 'mounted'>): StackStatus {
+    function status(s: Pick<CardStackState, 'mounted' | 'stale'>): StackStatus {
       if (s.mounted.length > 0) return 'ready';
       if (!online || fetchFailed) return 'waiting_offline';
-      if (exhausted && !get().stale) return 'empty';
+      if (exhausted && !s.stale) return 'empty';
       return 'loading';
     }
 
@@ -146,6 +151,13 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
         exhausted = true;
         const liked = typeof result === 'object' ? result.liked : undefined;
         commit({ liked: liked ?? null });
+      } else if (answer === 'daily_limit') {
+        // The deal stopped at the cap (M6.42): the phone keeps swiping what it holds and asks no more.
+        capped = true;
+        exhausted = true;
+        clearRequestTimer();
+        deps.onDailyLimit?.();
+        commit({ capped: true });
       } else if (answer === 'closed') {
         closed = true;
         exhausted = true;
@@ -158,7 +170,7 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
 
     /** Asks for more cards when the phone is down to REFILL_AT, at most every 8 seconds. */
     function check() {
-      if (!loaded || !online || closed || get().stale) return;
+      if (!loaded || !online || closed || capped || get().stale) return;
       const { mounted, buffer } = get();
       if (mounted.length + buffer.length > REFILL_AT) {
         clearRequestTimer();
@@ -200,7 +212,7 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
       }
       const room = MOUNTED_COUNT - mounted.length;
       const nextMounted = [...mounted, ...fresh.slice(0, room)];
-      exhausted = afterRequest && nextMounted.length === 0;
+      exhausted = capped || (afterRequest && nextMounted.length === 0);
       commit({
         mounted: nextMounted,
         buffer: fresh.slice(room, room + BUFFER_COUNT),
@@ -218,6 +230,7 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
       status: 'loading',
       stale: false,
       liked: null,
+      capped: false,
       flipped: false,
       flips: 0,
       shownAt: null,
@@ -261,7 +274,9 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
         const all = [card, ...others];
         // The card that would be fourth goes back to the head of the buffer.
         exhausted = false;
+        capped = false;
         commit({
+          capped: false,
           mounted: all.slice(0, MOUNTED_COUNT),
           buffer: [
             ...all.slice(MOUNTED_COUNT),

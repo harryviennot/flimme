@@ -65,6 +65,11 @@ Every `api` function answers with a status (`packages/contract/src/answers.ts`).
 - `EmptyState autoFocus` moves a screen reader's focus to the title of a screen that failed.
 - Home is two tabs (`app/(tabs)/`: `play`, `my-films`, bar = `ui/tab-bar`); every other route is a stack over them in the root layout, so the bar never shows in a room. Exits go to `/play`. A screen inside the tabs passes `insetBottom={false}` to `Screen` (the bar owns the home indicator space).
 
+## Solo (Play alone)
+
+- A solo room is never the kept room (no launch rejoin). Its queued votes carry `solo: true` so the vote queue keeps them without a kept room and sends them on the next launch (`useSettleSolo` on Play). The session's answers, likes count and checkpoint live in `features/solo/session.ts` (memory, one per room); Leave is `features/solo/leave.ts` (votes first, then `leave_room`, retried from a persisted list). The daily cap's Paris date is `features/solo/cap.ts`. `/dev/solo-cap` shows the end cards with fixture data.
+- A form sheet's scroll view fills the sheet and covers a sibling above it: put a sheet's header inside the `ScrollView`.
+
 ## Translations
 
 - Every visible string through `t()` (lint enforces it). French first; the same key in `locales/en`. A new feature gets its own JSON file per language, added in `src/i18n/resources.ts`.

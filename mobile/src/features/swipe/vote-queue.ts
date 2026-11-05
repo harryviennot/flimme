@@ -27,6 +27,8 @@ export type QueuedVote = {
   client_at: string;
   /** Whether the card was turned over before the answer; sent as `p_flipped`. */
   flipped: boolean;
+  /** A solo room's vote: it stays queued although the room is not the kept one, since a solo room is never reopened. */
+  solo?: boolean;
 };
 
 /**
@@ -39,6 +41,8 @@ export type QueuedUndo = {
   member_id: string;
   /** The film whose vote is taken back (for the queue's bookkeeping only). */
   title_id: number;
+  /** As on a vote. */
+  solo?: boolean;
 };
 
 export type QueueItem = QueuedVote | QueuedUndo;
@@ -98,7 +102,13 @@ function readVote(raw: unknown): QueueItem | null {
     typeof v.member_id === 'string' &&
     typeof v.title_id === 'number'
   ) {
-    return { undo: true, room_id: v.room_id, member_id: v.member_id, title_id: v.title_id };
+    return {
+      undo: true,
+      room_id: v.room_id,
+      member_id: v.member_id,
+      title_id: v.title_id,
+      ...(v.solo === true && { solo: true }),
+    };
   }
   if (
     typeof v.room_id !== 'string' ||
@@ -118,6 +128,7 @@ function readVote(raw: unknown): QueueItem | null {
     dwell_ms: typeof v.dwell_ms === 'number' ? v.dwell_ms : 0,
     client_at: v.client_at,
     flipped: v.flipped === true,
+    ...(v.solo === true && { solo: true }),
   };
 }
 
@@ -183,8 +194,9 @@ export function createVoteQueue(deps: VoteQueueDeps) {
 
   function dropUnkept() {
     const kept = deps.keptRoomId();
-    if (votes().some((v) => v.room_id !== kept)) {
-      store.setState({ votes: votes().filter((v) => v.room_id === kept) });
+    const stays = (v: QueueItem) => v.room_id === kept || v.solo === true;
+    if (votes().some((v) => !stays(v))) {
+      store.setState({ votes: votes().filter(stays) });
     }
   }
 

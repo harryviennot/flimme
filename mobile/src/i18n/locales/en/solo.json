@@ -1,6 +1,67 @@
 {
+  "card": {
+    "title": "On your own tonight?",
+    "body": "Swipe at your own pace. Your likes are saved in My films.",
+    "cta": "Play alone"
+  },
   "setup": {
     "topBar": "Play alone",
-    "title": "Your film, your pace"
+    "title": "Your film, your pace",
+    "services": "Where can you watch?",
+    "start": "Start",
+    "tooFew_one": "Only {{count}} film fits. Add a service or loosen a filter.",
+    "tooFew_other": "Only {{count}} films fit. Add a service or loosen a filter.",
+    "tooFewNone": "No film fits. Add a service or loosen a filter.",
+    "offline": "You're offline. Connect to play alone.",
+    "errors": {
+      "network": "We couldn't start. Try again.",
+      "rateLimited": "That's a lot of starts at once. Try again in a few minutes."
+    }
+  },
+  "topBar": {
+    "label": "Solo"
+  },
+  "a11y": {
+    "leave": "Stop playing alone",
+    "likes_one": "{{count}} film liked",
+    "likes_other": "{{count}} films liked"
+  },
+  "checkpoint": {
+    "liked_one": "You liked 1 film. It's in My films.",
+    "liked_other": "You liked {{count}} films. They're in My films.",
+    "none": "Nothing yet. Keep going?",
+    "pick": "Pick one",
+    "continue": "Keep going"
+  },
+  "pickSheet": {
+    "title": "Which one tonight?",
+    "helper": "Tap a film to pick it.",
+    "offline": "You're offline. Connect to pick.",
+    "notLiked": "That film isn't in your likes any more.",
+    "error": "We couldn't pick that film. Try again.",
+    "a11yHint": "Pick it for tonight"
+  },
+  "outOfFilms": {
+    "title": "That's every film for these filters.",
+    "body": "Next time, add a service or loosen a filter."
+  },
+  "cap": {
+    "title": "That's today's solo deck.",
+    "body": "New cards tomorrow."
+  },
+  "actions": {
+    "myFilms": "My films",
+    "host": "Host a movie night"
+  },
+  "ended": {
+    "title": "Your solo session ended.",
+    "body": "Your likes are in My films."
+  },
+  "pick": {
+    "eyebrow": "Tonight's pick",
+    "a11yTitle": "Tonight's pick: {{title}}",
+    "notListed": "None of your services has it any more.",
+    "done": "Done",
+    "a11yDone": "Back to Play"
   }
 }
