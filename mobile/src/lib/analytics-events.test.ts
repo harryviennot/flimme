@@ -257,10 +257,10 @@ describe('the solo events', () => {
     const { analytics } = setup({ dev: true });
     // @ts-expect-error not an event
     expect(() => analytics.track('solo:pick_submitted', { card_count: 1 })).toThrow();
-    // @ts-expect-error a bucket, not a number
-    expect(() =>
-      analytics.track('solo:checkpoint_view', { card_count: 20, like_count: 7 }),
-    ).toThrow();
+    const exact = () =>
+      // @ts-expect-error a bucket, not a number
+      analytics.track('solo:checkpoint_view', { card_count: 20, like_count: 7 });
+    expect(exact).toThrow();
     // @ts-expect-error no film id
     expect(() => analytics.track('solo:pick_submit', { card_count: 1, title_id: 3 })).toThrow();
   });
