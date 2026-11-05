@@ -1,0 +1,62 @@
+# M6.32, the winner screen's runners-up. One phone hosts a Party room on staging, three bots
+# (tools/bots) fill it and play, the phone likes every film until the pick. On the winner screen
+# the runners-up show below Share recap: the other finalists (or the most liked films after a
+# single match), each with the faces and names of who liked it. A tap opens the film's card back
+# with where to watch, and the sheet closes.
+# Needs Metro started with the staging environment (see the expo-app skill). Start the flow, and
+# once the lobby shows read the room code on the phone and run
+#   FLIMME_STAGING_URL=... FLIMME_STAGING_KEY=... \
+#     mise run bots -- --code <code> --count 3 --target staging --seed 7
+# Run: `maestro --device <sim> test mobile/.maestro/runners-up.yaml -e METRO_URL=http://localhost:<port>`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Continue|Staging'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: 'Continue'
+    commands:
+      - tapOn: 'Continue'
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/host-room.yaml
+- extendedWaitUntil:
+    visible: 'Bot 3.*'
+    timeout: 240000
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- repeat:
+    while:
+      visible: 'Like'
+    times: 200
+    commands:
+      - tapOn:
+          text: ${ANSWER || 'Like'}
+          optional: true
+- extendedWaitUntil:
+    visible: 'Share an image.*'
+    timeout: 240000
+- scrollUntilVisible:
+    element: '(The other finalists|Most liked)'
+    direction: DOWN
+    timeout: 20000
+- takeScreenshot: runners-up-1-section
+- scroll
+- takeScreenshot: runners-up-2-section-bottom
+# A tap on a runner-up opens its card back and where to watch, with no name and no count.
+- tapOn:
+    text: '.*Liked by.*|.*[0-9] likes?.*'
+    index: 0
+- extendedWaitUntil:
+    visible: 'Where to watch'
+    timeout: 15000
+- takeScreenshot: runners-up-3-sheet
+- assertNotVisible: '.*Liked by.*'
+- tapOn: 'Close'
+- extendedWaitUntil:
+    visible: '(The other finalists|Most liked)'
+    timeout: 10000
