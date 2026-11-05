@@ -58,5 +58,26 @@
     "lockedRowNone": "Nobody has locked in yet. {{summary}}",
     "lockInHint": "Sends your order. You can't change it afterwards.",
     "loadingFinalists": "Loading the finalists"
+  },
+  "reveal": {
+    "reason": {
+      "points": "Top of the votes",
+      "tie": "A tie, broken by your swipes",
+      "onlyUnvetoed": "The only film nobody vetoed",
+      "noBallots": "Top of your swipes"
+    },
+    "points_one": "{{count}} pt",
+    "points_other": "{{count}} pts",
+    "a11y": {
+      "vetoed_one": "Vetoed: {{titles}}.",
+      "vetoed_other": "Vetoed: {{titles}}.",
+      "pick": "Tonight's pick: {{title}}. {{reason}}",
+      "pickNoTitle": "Tonight's pick. {{reason}}",
+      "points_one": "{{count}} point",
+      "points_other": "{{count}} points",
+      "winner": "Tonight's pick",
+      "winnerPoints_one": "Tonight's pick, {{count}} point",
+      "winnerPoints_other": "Tonight's pick, {{count}} points"
+    }
   }
 }

@@ -22,6 +22,7 @@ import {
   useRoomSeats,
 } from '@/features/room';
 import { useFinalePreload } from '@/features/finale/use-finale-preload';
+import { useRevealOf } from '@/features/finale/reveal-store';
 import { useRevealHold } from '@/features/finale/use-reveal-hold';
 import { useMatchOverlay } from '@/features/match/use-match-overlay';
 import { useOnline } from '@/features/network';
@@ -85,18 +86,28 @@ export default function RoomLayout() {
     if (id && current) rememberRoomScreen(id, current);
   }, [id, current]);
 
-  // The reveal (M6.31) may keep the Final Cut screen up after the round closes; until then the
-  // close goes straight to the winner screen. The finalists' posters load on `finale_started`.
-  const revealHold = useRevealHold(id, state);
+  // The reveal may keep the Final Cut screen up after the round closes (final-cut.md#the-reveal).
+  // The finalists' posters load on `finale_started`.
+  const revealHold = useRevealHold(id, state, current, realtime);
+  const revealPlaying = useRevealOf(id).phase === 'playing';
   useFinalePreload(id, realtime);
 
   useEffect(() => {
-    if (match.holdRoute || revealHold) return;
+    if (match.holdRoute) return;
+    if (revealHold) {
+      // A phone still on the swipe screen when the round closed shows the reveal on the Final Cut,
+      // once there is a reveal to show: while it is still being looked for, the route stays put.
+      if (id && revealPlaying && state === 'done' && current && current !== 'final-cut') {
+        if (isSheet(current)) router.dismiss();
+        router.replace(`/room/${id}/final-cut`);
+      }
+      return;
+    }
     if (!id || !state || !current || isAllowed(state, current)) return;
     // A sheet goes first, so the state's screen replaces the room screen under it.
     if (isSheet(current)) router.dismiss();
     router.replace(`/room/${id}/${roomScreenFor(state)}`);
-  }, [id, state, current, match.holdRoute, revealHold]);
+  }, [id, state, current, match.holdRoute, revealHold, revealPlaying]);
 
   if (online && (room.isError || seats.isError) && !room.data) {
     return (

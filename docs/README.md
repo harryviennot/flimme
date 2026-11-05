@@ -18,9 +18,11 @@ Everything written about Flimme (the revival of MovieMatch): what we're building
 | **Product** | | |
 | [revival-plan.md](product/revival-plan.md) | Audit of the old app and server, Letterboxd feasibility, the stack, the catalog, the deck engine, game design, the Expo upgrade, the publishing checklist, the roadmap | Snapshot of 28 Oct 2026. Superseded in parts, noted at the top |
 | [monetization.md](product/monetization.md) | The family bet, kids' safety, free vs Host Pro, the hosting cap, affiliate payouts, break-even | Proposal, snapshot of 29 Oct 2026 |
-| [roadmap.md](product/roadmap.md) | Every step from an empty repo to launch and beyond: the first release's scope, 25 milestones with their status, and 265 tasks with dependencies and the docs to read | Kept up to date: tick tasks as they're done |
+| [roadmap.md](product/roadmap.md) | Every step from an empty repo to launch and beyond: the first release's scope, 25 milestones with their status, and 270 tasks with dependencies and the docs to read | Kept up to date: tick tasks as they're done |
 | [game-modes.md](product/game-modes.md) | The rules of play: modes, answers, match rules, presence, joining and leaving, Party and Blind, the finale, every way a game ends, the winner screen and "Did you watch it?", later modes, time to a pick, specs for the game functions still to write | Draft for review. Its data model changes aren't applied yet |
 | [simulations.md](product/simulations.md) | Bot games under the match rules: how to run them, the model and what is made up in it, results by group size for the card count, the time limit, the finale and the 70% rule, and what they mean for M0.7 | Evidence for Harry's M0.7 decision, 30 Oct 2026. Bot tastes are made up |
+| [three-matches-and-fair-finalists.md](product/three-matches-and-fair-finalists.md) | Harry's feedback of 5 Nov 2026 as rule options: a shortlist of up to 3 matches before the game ends, and finalists that give every player a film they liked; code changes, privacy, a bot simulation, Harry's answers and the new M6 tasks | Decided by Harry on 5 Nov 2026 (some answers are defaults he can reverse); game-modes.md follows it. Bot tastes are made up |
+| [playtests.md](product/playtests.md) | Every playtest, newest first: who, the build, the settings, the numbers, what we saw, what players said and the proposed changes | Kept up to date |
 | [privacy.md](product/privacy.md) | Privacy and the legal ground: a data map with bases and retention, consents, analytics without a prompt, training across players, players' rights, children by market, Letterboxd and TMDB terms, processors and data locations, store privacy forms, privacy policy and terms outlines, questions for a lawyer | Draft for review; needs a lawyer's read before launch |
 | [analytics.md](product/analytics.md) | How we know the app works: the questions, every metric defined once with its source and target, the PostHog event list, identity, consent and kids, funnels, first dashboards, reading A/B tests, PostHog's plan and EU hosting | Draft for review. Its data model changes aren't applied yet |
 | [store-listing.md](product/store-listing.md) | Getting into the App Store and Google Play: choosing the name, developer accounts, store records, the listing in English and French, screenshots and video, age ratings, passing review, invite links, price and countries, the closed beta, a release checklist | Draft for review |
@@ -58,7 +60,7 @@ Outside the repo: the [design file in Figma](https://www.figma.com/design/v2ZGLb
 
 | Folder | For | Examples to come |
 | --- | --- | --- |
-| `product/` | What we build and why: game design, modes, onboarding, pricing, the store listing | `playtests.md` |
+| `product/` | What we build and why: game design, modes, onboarding, pricing, the store listing, playtests, rule proposals | `three-matches-and-fair-finalists.md` |
 | `architecture/` | How the system works: backend, app structure, the recommendation algorithm, operations | `notifications.md` |
 | `integrations/` | One file per outside service: what it allows, how we call it, its rules | `revenuecat.md` |
 | `design/` | Specs extracted from the Figma and written by the designer agent: components, screens, moments | `moments.md` |

@@ -170,6 +170,7 @@ Estimated volume: about 20 events per player per game, plus a few per app open. 
 
 - **In identified mode, one person is one profile id**, as in [app structure](../architecture/app-structure.md#analytics-and-crash-reports). A guest is already a Supabase user with a profile from their first launch, so the phone calls `identify` with that id and there's no anonymous history to merge. **In anonymous mode** (the default in the EU, the UK and Switzerland) there is no `identify`: events carry a random install id, never joined to the database. A player who opts in to detailed stats switches to identified mode from then on, with no merge of the anonymous history.
 - **Saving an account keeps the same id**, since linking Apple or Google keeps the Supabase user: nothing to do in PostHog.
+- **Guests deleted after 90 days** (M8.8) are not deleted from PostHog in the first release: France first means players are anonymous there and have no person to delete. Revisit before the US launch, where the profile id is the person.
 - **Signing into an existing account** (no merge, per [Sign-in](../architecture/app-structure.md#sign-in)) calls `reset`, then `identify` with the other profile id. The two are never aliased, as they're never merged in the database.
 - **Deleting an account** also deletes the person in PostHog, from the server's deletion flow (see [Changes](#changes-this-asks-elsewhere)).
 - **No seat or room ids in PostHog.** Room-level numbers come from the database. PostHog's group analytics add-on isn't used.
@@ -189,7 +190,7 @@ How that applies at launch (default, to confirm in the lawyer's review):
 | Advertising and ad measurement, if ads come | Off everywhere | Only with consent, and on iOS only after Apple's tracking prompt. See [If ads come](#if-ads-come) |
 
 - **The region** comes from the device region and the profile's country. When they disagree or are missing, the stricter rule applies.
-- **The opt-out and the opt-in** are stored as an `analytics` consent row with its wording version; turning analytics off calls `optOut` and `reset`.
+- **The opt-out and the opt-in** are stored as an `analytics` consent row with its wording version and a `choice` (`on`, `off` or `detailed`; no row means `on`), written by `api.set_analytics_choice`. Each change revokes the active row and adds a new one, so history stays. Turning analytics off calls `optOut` and `reset`.
 - **The game's own records don't depend on any of this**: rooms, seats and votes exist because the game needs them, and every headline metric comes from the database, whatever a player chose.
 
 ### If ads come

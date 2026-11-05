@@ -1,20 +1,22 @@
 # The Final Cut
 
-Screen 15 Final cut (`99:4187`) on the Figma's First release page. Route `/room/[id]/final-cut`, under the room layout (`/room/[id]/_layout.tsx`), shown while the room is `finale`. Built in M6.15; the reveal is M6.31. Written on 4 November 2026 from [the Final Cut](../moments.md#the-final-cut) (the beat, which wins over this spec where they differ), [the vote](../../product/game-modes.md#the-vote-pick-one-veto-one), [what players see](../../product/game-modes.md#what-players-see-party-and-blind), M6.5's contract and slices 12 and 13's plan. Harry took Q15.1 to Q15.5 and Q5.1 to Q5.5 on 4 November 2026 ([decisions.md](../../decisions.md)), and the beat's questions 9 (a veto can be taken back until lock-in) and 10 (poster, title and year, no details sheet) the same day.
+Screen 15 Final cut (`99:4187`) on the Figma's First release page. Route `/room/[id]/final-cut`, under the room layout (`/room/[id]/_layout.tsx`), shown while the room is `finale`. Built in M6.15; the reveal is M6.31. Written on 4 November 2026 from [the Final Cut](../moments.md#the-final-cut) (the beat, which wins over this spec where they differ), [the vote](../../product/game-modes.md#the-vote-pick-one-veto-one), [what players see](../../product/game-modes.md#what-players-see-party-and-blind), M6.5's contract and slices 12 and 13's plan. Harry took Q15.1 to Q15.5 and Q5.1 to Q5.5 on 4 November 2026 ([decisions.md](../../decisions.md)), and the beat's questions 9 (a veto can be taken back until lock-in) and 10 (poster, title and year, no details sheet) the same day. Updated on 5 November 2026 (M6.33, built in M6.38) for the shortlist: the vote between 2 matches with no veto, and the fixed line on where the films came from ([the finalists](../../product/game-modes.md#the-finalists)).
 
 ## Purpose
 
-Nobody matched, so the room votes on 2 to 4 finalists in 60 seconds. The couch talks; each phone keeps its own secret ballot. A player ranks by tapping posters, may veto one (Final Cut only), and locks in. The only thing the room learns while it runs is who has locked in. It should feel short, a little tense and fair, and most rounds should end before zero because everyone locked in.
+Swiping is over without a pick, so the room votes in 60 seconds: on its 3 matches (the third match ended swiping), on its 2 matches (swiping ended with 2), or on 3 or 4 finalists from the swipes (it ended with none). In Final Cut mode, 1 or 2 matches are seeded first and the vote is filled. The couch talks; each phone keeps its own secret ballot. A player ranks by tapping posters, may veto one (Final Cut only), and locks in. The only thing the room learns while it runs is who has locked in. It should feel short, a little tense and fair, and most rounds should end before zero because everyone locked in.
 
 ## Layout
 
 `Screen` with `scroll` and `footer`, on `bg-bg-canvas`. The body scrolls only when it must (10 seats, the largest text); the footer is always pinned.
 
-1. **The top bar:** `TopBar`, no back, `title` `finale:title.finalCut` (`finale:title.ranked` in a ranked vote), `action` `{ icon: 'x', accessibilityLabel: lobby:a11y.leave }`. It opens the same leave alert as the lobby and the swipe screen (`lobby:leave.*`); the room layout's `RoomLeaveGuard` already covers the edge swipe and Android's back. A ballot already locked in still counts after leaving.
+1. **The top bar:** `TopBar`, no back, `title` `finale:title.finalCut` (`finale:title.ranked` in a ranked vote, 2 films included: the title follows the round's kind), `action` `{ icon: 'x', accessibilityLabel: lobby:a11y.leave }`. It opens the same leave alert as the lobby and the swipe screen (`lobby:leave.*`); the room layout's `RoomLeaveGuard` already covers the edge swipe and Android's back. A ballot already locked in still counts after leaving.
 2. **`RoomBanner`**, in the flow, as on every room screen (reconnecting, offline).
 3. **The body**, `px-5 pt-2 pb-3 gap-4`:
-   1. **The heading row**, `flex-row items-start gap-3`: the heading in `display-m`, tone `primary`, `flex-1`, at most 2 lines (`finale:heading.finalCut`, or `finale:heading.ranked`); then `Countdown` (see [The countdown](#the-countdown)). French wraps to two lines at 375 points.
-   2. **The intro**, `body-m`, tone `secondary`: `finale:intro.veto` in a Final Cut with a veto left, `finale:intro.noVeto` with `vetoes_left` 0, `finale:intro.rank` in a ranked vote.
+   1. **The heading row**, `flex-row items-start gap-3`: the heading in `display-m`, tone `primary`, `flex-1`, at most 2 lines (`finale:heading.finalCut`, `finale:heading.ranked`, or `finale:heading.pickOne` with 2 films); then `Countdown` (see [The countdown](#the-countdown)). French wraps to two lines at 375 points.
+   2. **The intro**, `gap-1`, two lines of text:
+      - the instructions, `body-m`, tone `secondary`: `finale:intro.veto` in a Final Cut with a veto left, `finale:intro.noVeto` with `vetoes_left` 0, `finale:intro.rank` in a ranked vote of 3 or 4, `finale:intro.pickOne` with 2 films;
+      - **where the films came from**, `body-s`, tone `muted`: `finale:intro.source`, "From your likes, with one for each of you when we can." The same line on every round, in every room: from the swipes, between matches, 2 films or 4, Party or Blind. A line that changed with the room ("everyone has a film here") would tell the room when someone was left out, so it never changes (decided on 5 November 2026, question 8).
    3. **The finalists**, `flex-row justify-center gap-2.5`, one `Finalist` per candidate in seed order, each `flex-1 max-w-36`. Widths at 375 points: 4 finalists 76, 3 finalists 105, 2 finalists 144 (the cap, centred).
    4. **The lock-in row** (`LockInRow`), `gap-2`: the count in `mono-eyebrow`, tone `secondary` (`finale:locked.count`); under it one `Avatar` S per seat with `left_at` null, in seat order (`joined_at`, then `member_id`), `flex-row flex-wrap gap-2` (9 fit in a row at 375 points, a tenth wraps).
 4. **The footer** (`LockInFooter`), `px-5 pt-3 gap-2`: the button area (one of the four looks in [Locking in](#locking-in)), then the status line, `body-s`, tone `muted`, centred, `min-h-4.5` (one line kept even when empty, so nothing jumps).
@@ -46,6 +48,14 @@ The whole finalist (poster and text) is one `Pressable` with `haptic={false}`: t
 - **All tapped:** every badge solid.
 - **A tap on the vetoed poster** does nothing to the order and has no haptic. The status line says `finale:hint.liftVeto` until the next action.
 
+**With 2 films** ("Pick one", kind `ranked_vote`; Quick Match with 2 matches at any room size, and Date Night). Ranking two films is choosing one, so a tap picks:
+
+- **None picked:** faint 1 and faint 2 in seed order, as in any round, so the player sees what Lock in sends untouched.
+- **A tap on a film** picks it: its badge turns solid 1 with the pop (`spring.snappy`), its ring turns accent with `glow-accent`, and the other film shows a faint 2. `haptics.press()`.
+- **A tap on the other film** moves the pick there: the first goes back to faint 2, the second turns solid 1. One `haptics.press()`. It never ranks a solid 2: there is nothing left to choose.
+- **A tap on the picked film** lifts the pick: both go back to faint numbers in seed order. `haptics.press()`.
+- The ballot is the same ranking as ever (the pick first), so `api.cast_ballot` and the counting don't change. `features/finale/phase.ts` adds the move for 2 films.
+
 ## The veto
 
 Only in a Final Cut (`kind` `final_cut`) with `vetoes_left` 1 or more on the phone's seat.
@@ -55,7 +65,7 @@ Only in a Final Cut (`kind` `final_cut`) with `vetoes_left` 1 or more on the pho
 - **Lifting it:** a long press on the vetoed poster lifts the veto. The stamp fades out (`layout.fadeOut`), the poster comes back to full opacity with a faint number. It doesn't get its old rank back. No haptic.
 - **Moving it:** a long press on another poster moves the veto there: the old stamp fades out and the new one pops on, the new film leaves the ranking if it was in it. No haptic (moving is silent; `haptics.veto()` is for a veto landing on a poster that had none anywhere).
 - **One veto at most** on the screen at any time. It is spent only at lock-in.
-- **No veto control** in a ranked vote or with `vetoes_left` 0: no sink, no stamp, no hint, and a long press does nothing (it doesn't count as a tap either).
+- **No veto control** in a ranked vote (2 films included) or with `vetoes_left` 0: no sink, no stamp, no hint, and a long press does nothing (it doesn't count as a tap either).
 
 ## Locking in
 
@@ -93,14 +103,15 @@ The footer's button area has four looks. Each keeps the same height (56 plus the
 
 | State | What shows |
 | --- | --- |
-| **Arriving** (`state_changed {state: 'finale'}` on the swipe screen) | The screen fades in (`layout.fadeIn`, `duration.base`): heading, countdown at the time left, the row with every avatar dim. The posters pop in one by one in seed order (`layout.popIn`, one every `duration.instant`), each with its faint number. No haptic, no sound |
+| **Arriving** (`state_changed {state: 'finale'}` on the swipe screen; after the third match, once the shortlisted beat ends, [swipe.md](swipe.md#the-shortlisted-beat)) | The screen fades in (`layout.fadeIn`, `duration.base`): heading, countdown at the time left, the row with every avatar dim. The posters pop in one by one in seed order (`layout.popIn`, one every `duration.instant`), each with its faint number. No haptic, no sound |
 | **Loading** (a cold open, or the cards not here yet) | The heading and intro; one `Skeleton` per finalist in the poster's shape (`rounded-sm`) and one title line, once the candidate count is known (3 until then); the row from the seats; `Lock in` disabled. The countdown shows as soon as the round is read. Cards arriving fade in (`layout.fadeIn`); no frame moves |
 | **Ranking, none tapped** | Faint numbers 1 to n |
 | **Ranking, some tapped** | Solid numbers on the tapped, faint numbers after them |
 | **Ranking, all tapped** | Every badge solid |
 | **Vetoed** | The stamp on one poster, no badge on it, faint numbers on the rest skip it |
 | **No veto left** (`vetoes_left` 0) | `finale:intro.noVeto`; long presses do nothing |
-| **Ranked vote** (`kind` `ranked_vote`) | `finale:title.ranked`, `finale:heading.ranked`, `finale:intro.rank`; no veto anywhere |
+| **Ranked vote** (`kind` `ranked_vote`, 3 or 4 films) | `finale:title.ranked`, `finale:heading.ranked`, `finale:intro.rank`; no veto anywhere |
+| **Two films** (`kind` `ranked_vote`, 2 candidates) | `finale:title.ranked`, `finale:heading.pickOne`, `finale:intro.pickOne`; two 144-wide posters, centred; faint 1 and 2 until a pick, then solid 1 on the pick and faint 2 on the other ([Ranking](#ranking)); no veto anywhere. The lock-in row, the countdown and Lock in as in any round |
 | **Sending** | As in [Locking in](#locking-in) |
 | **Locked in** | The Locked in look; badges and stamp kept; no taps |
 | **The last 10 seconds** | The countdown is red; ticks for the last 5 only if not locked in |
@@ -122,7 +133,8 @@ The footer's button area has four looks. Each keeps the same height (56 plus the
 - **2 finalists:** two 144-wide posters, centred. **3:** 105 wide. **4:** 76 wide.
 - **A long title** wraps to 2 lines, then an ellipsis.
 - **375 by 667** (the smallest iPhone): 3 finalists and up to 9 seats fit without scrolling; 4 finalists fit too (shorter posters); a second row of avatars scrolls a little. Lock in is always pinned.
-- **The largest text size:** the heading keeps 2 lines at `display-m`'s capped scale; the intro and titles grow and the body scrolls; badge numbers keep their size; the Lock in label stays on one line ("VALIDER MON VOTE" fits at 375 points).
+- **The line on where the films came from** takes 2 lines of `body-s` at 375 points in French, 1 or 2 in English (about 36 points). M6.38 checks the 375 by 667 claims above with it on the simulator; if 4 finalists and 9 seats no longer fit, the body scrolls and Lock in stays pinned.
+- **The largest text size:** the heading keeps 2 lines at `display-m`'s capped scale; the intro, the source line and the titles grow and the body scrolls; badge numbers keep their size; the Lock in label stays on one line ("VALIDER MON VOTE" fits at 375 points).
 
 **Answers the screen can get.** Statuses are answers, not errors.
 
@@ -152,9 +164,12 @@ A new file pair, `i18n/locales/fr/finale.json` and `en/finale.json`, registered 
 | `title.ranked` | Vote final | Final vote |
 | `heading.finalCut` | Choisis-en un. Élimine-en un. | Pick one. Veto one. |
 | `heading.ranked` | Classe-les. | Rank them. |
+| `heading.pickOne` | Choisis-en un. | Pick one. |
 | `intro.veto` | Touche les affiches dans ton ordre, ta préférée d'abord. Appui long sur une affiche pour l'éliminer : c'est secret jusqu'à la fin. | Tap the posters in your order, favourite first. Long-press one to veto it: it stays secret until the end. |
 | `intro.noVeto` | Tu as déjà utilisé ton élimination. Touche les affiches dans ton ordre, ta préférée d'abord. | You've used your veto this game. Tap the posters in your order, favourite first. |
 | `intro.rank` | Touche les affiches dans ton ordre, ta préférée d'abord. Les autres suivent dans l'ordre affiché. | Tap the posters in your order, favourite first. The rest follow in the order shown. |
+| `intro.pickOne` | Touche celui que tu préfères. Sans choix, ton vote va au numéro 1. | Tap the one you'd rather watch. If you tap nothing, your vote goes to number 1. |
+| `intro.source` | Tirés de vos j'aime, avec un film pour chacun quand c'est possible. | From your likes, with one for each of you when we can. |
 | `lockIn` | Valider mon vote | Lock in my vote |
 | `sending` | Envoi | Sending |
 | `hint.sending` | Envoi de ton vote… | Sending your vote… |
@@ -170,20 +185,27 @@ A new file pair, `i18n/locales/fr/finale.json` and `en/finale.json`, registered 
 | `error.send` | Ton vote n'est pas passé. Réessaie. | Your vote didn't go through. Try again. |
 | `a11y.heading.finalCut` | Le Final Cut. Choisis-en un. Élimine-en un. | The Final Cut. Pick one. Veto one. |
 | `a11y.heading.ranked` | Le vote final. Classe-les. | The final vote. Rank them. |
+| `a11y.heading.pickOne` | Le vote final. Choisis-en un. | The final vote. Pick one. |
 | `a11y.film` | {{title}}, {{year}} | {{title}}, {{year}} |
 | `a11y.state.ranked` | Position {{rank}} | Ranked {{rank}} |
 | `a11y.state.unranked` | Pas classé, compte en position {{rank}} | Not ranked, counts as {{rank}} |
 | `a11y.state.vetoed` | Éliminé | Vetoed |
+| `a11y.state.picked` | Ton choix | Your pick |
+| `a11y.state.notPicked` | Pas choisi, compte en position {{rank}} | Not picked, counts as {{rank}} |
 | `a11y.actions.rankNext` | Classer ensuite | Rank next |
 | `a11y.actions.removeRank` | Retirer du classement | Remove from ranking |
 | `a11y.actions.veto` | Éliminer | Veto |
 | `a11y.actions.liftVeto` | Annuler l'élimination | Lift veto |
+| `a11y.actions.pick` | Choisir | Pick |
+| `a11y.actions.unpick` | Annuler mon choix | Remove my pick |
 | `a11y.vetoLifted` | Élimination annulée | Veto lifted |
 | `a11y.timeLeft_one` | Encore {{count}} seconde | {{count}} second left |
 | `a11y.timeLeft_other` | Encore {{count}} secondes | {{count}} seconds left |
 | `a11y.lockedRow` | Ont validé : {{names}}. {{count}} | Locked in: {{names}}. {{count}} |
 | `a11y.lockedRowNone` | Personne n'a encore validé. {{count}} | Nobody has locked in yet. {{count}} |
 | `a11y.lockInHint` | Envoie ton classement. Impossible de le changer ensuite. | Sends your order. You can't change it afterwards. |
+
+M6.38 adds `heading.pickOne`, `intro.pickOne`, `intro.source`, `a11y.heading.pickOne`, `a11y.state.picked`, `a11y.state.notPicked`, `a11y.actions.pick` and `a11y.actions.unpick` to both files. `intro.source` is the decided line (5 November 2026, question 8), word for word in both languages.
 
 `{{count}}` in the row keys is `locked.count`. Names are joined with `Intl.ListFormat` (`formatList`). `a11y.film` drops the year when it's unknown. "VALIDER MON VOTE", "VOTE VALIDÉ" and "ON COMPTE LES VOTES" fit their space at 375 points.
 
@@ -213,9 +235,9 @@ From the beat; every duration is a token from `@/theme/motion`.
 
 ## Accessibility
 
-- **On arrival, focus goes to the heading** (role `header`), read as `finale:a11y.heading.finalCut` or `.ranked`, then the countdown.
-- **Focus order:** the leave button, the heading, the countdown, the intro, the finalists in seed order, the lock-in row, the button, the status line.
-- **Each finalist is one element** (role `button`): `a11y.film`, then its state (`a11y.state.ranked`, `.unranked` with the faint number, or `.vetoed`). A double tap does what a tap does. **Custom actions**, only the ones that apply: `rankNext` (untapped), `removeRank` (ranked), `veto` (veto allowed, not vetoed; on another poster it moves the veto), `liftVeto` (vetoed). After an action the new state is announced politely (`a11y.state.*`, `a11y.vetoLifted`) and focus stays on the poster. Ranking and the veto need no gesture. Once locked or counting, no actions; the state is still read.
+- **On arrival, focus goes to the heading** (role `header`), read as `finale:a11y.heading.finalCut`, `.ranked` or `.pickOne`, then the countdown.
+- **Focus order:** the leave button, the heading, the countdown, the intro, the line on where the films came from (`intro.source`, read as it is), the finalists in seed order, the lock-in row, the button, the status line.
+- **Each finalist is one element** (role `button`): `a11y.film`, then its state (`a11y.state.ranked`, `.unranked` with the faint number, or `.vetoed`). A double tap does what a tap does. **Custom actions**, only the ones that apply: `rankNext` (untapped), `removeRank` (ranked), `veto` (veto allowed, not vetoed; on another poster it moves the veto), `liftVeto` (vetoed). After an action the new state is announced politely (`a11y.state.*`, `a11y.vetoLifted`) and focus stays on the poster. **With 2 films** the state is `a11y.state.picked` or `a11y.state.notPicked` (with the faint number), and the actions are `pick` (not picked) and `unpick` (picked). Ranking and the veto need no gesture. Once locked or counting, no actions; the state is still read.
 - **The countdown** (`accessibilityRole="timer"`) reads `common:countdown.a11y_*`. It is not announced every second: the screen announces `finale:a11y.timeLeft_*` at 30 and 10 seconds, and `finale:counting.title` at zero or when everyone has locked in.
 - **The lock-in row is one element:** `a11y.lockedRow` with the locked seats' names in seat order, or `a11y.lockedRowNone`. A change is announced politely with the count only (`locked.count`), never a name.
 - **Lock in** has the hint `a11y.lockInHint`. Sending is `busy`. Once locked, the panel reads `locked.title`.
@@ -231,6 +253,7 @@ From the beat; every duration is a token from `@/theme/motion`.
 - "Your vote didn't count" for a player who didn't lock in. Everyone sees Counting the votes.
 - Another seat's `vetoes_left` (null for seats the phone doesn't control).
 - A details sheet or a card back for a finalist.
+- Whose film a finalist is: no mark, star or avatar on a film this player (or anyone) liked, super liked or matched, and no line that changes with the room. On a couch a neighbour sees your screen, and the films you didn't mark would be the ones you noped (decided on 5 November 2026, question 8). The shortlist's matches are no different from the other finalists here.
 
 ## The reveal
 
@@ -243,7 +266,7 @@ The round has closed. On every phone, the same screen shows the room's result in
 - **The signal:** the `match` event with `kind: 'finale'` and `finalists` (`title_id`, `seed`, `points`, `vetoed`), heard through the room's realtime `listen`. Time 0 is this phone's arrival of the event, so phones on a couch land within network latency of each other.
 - **The screen:** the Final Cut screen the phone already shows, in whatever look it has (Counting the votes, Locked in, Sending, or still voting if everyone else locked in first). `useRevealHold` returns true from time 0 (or from the waiting look of a missed reveal) to the hand-over, so `state_changed {state: 'done'}` doesn't swap the route. The match overlay never plays for a finale pick (Q15.1).
 - **Not on this screen yet** (the phone missed `finale_started` and is still on the swipe screen): the layout replaces the route with `/room/[id]/final-cut` without an animation, in the waiting look of [A phone that missed it](#a-phone-that-missed-it), and the reveal plays from the event as soon as the cards are read.
-- **No reveal:** a `only_film` pick (no round, Q4.4), and a room already in `matchShownStore`. The hold stays false and the layout moves on as before.
+- **No reveal:** a `only_film` pick (no round, Q4.4), an `only_match` pick (no round: the match overlay plays, [match.md](match.md#when-it-shows)), and a room already in `matchShownStore`. The hold stays false and the layout moves on as before.
 
 ### Pieces
 
@@ -300,6 +323,7 @@ Every step's time comes from the reveal's duration tokens ([Design-system change
 | `only_unvetoed` | Knock-outs, then the winner (one film in: no points) | `onlyUnvetoed` |
 | `no_ballots` | The winner only | `noBallots`. Never "nobody voted" |
 | `only_film` | No reveal (Q4.4): the winner screen as today | |
+| `only_match` | No reveal: the match overlay, then the winner screen | |
 | Missing or unknown | The steps the data calls for | `points` if points show, otherwise no line |
 
 **On a re-read** the views carry no `reason`, so `reveal.ts` works it out: exactly one film still in with at least one knocked out is `only_unvetoed`; every point 0 and nothing knocked out is `no_ballots`; anything else is `points`. `vetoed` null reads as false.
@@ -322,6 +346,7 @@ Every step's time comes from the reveal's duration tokens ([Design-system change
 | **Two ballots** (a 2-player room, or 2 seats of a bigger room locked in) | Knock-outs, then the winner, no band; the line is `points`, never `tie` |
 | **One ballot** | The same: no band. Its knock-out, if any, shows (Decided 3) |
 | **A ranked vote** | No knock-outs; the points if 3 or more ballots, then the winner |
+| **Two films** | No knock-outs (no veto). With 3 or more ballots, each film's points (each ballot gives 2 and 1, so the ballot count is the total divided by 3), then the winner: 3.8 s. With 2 ballots (a 2-player room, or 2 seats locked in), the winner alone with `points`, never `tie`: 2.8 s. A tie with the points shown says `tie`. The two posters keep their 144-point width; the band and the spotlight fit them as they fit 4 |
 | **`only_unvetoed`** | Knock-outs, then the winner with `onlyUnvetoed` |
 | **`no_ballots`** | The winner alone, 300 ms after the event, with `noBallots` |
 | **Every finalist got a veto** (2 stay in) | Only the films with `vetoed` true take the stamp; the 2 still in show as in, with points if they show |

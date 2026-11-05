@@ -138,6 +138,14 @@ export type SubmitCalibrationAnswer = (typeof SUBMIT_CALIBRATION_ANSWERS)[number
 export const EXPORT_MY_DATA_ANSWERS = ['ok', 'rate_limited'] as const;
 export type ExportMyDataAnswer = (typeof EXPORT_MY_DATA_ANSWERS)[number];
 
+/** The analytics choice (M8.12): on is the region's default mode, off the opt-out, detailed the opt-in to identified stats. */
+export const ANALYTICS_CHOICES = ['on', 'off', 'detailed'] as const;
+export type AnalyticsChoice = (typeof ANALYTICS_CHOICES)[number];
+
+/** `api.set_analytics_choice` answers: `invalid` is a wording version outside 1 to 40 characters, `rate_limited` 20 an hour. */
+export const SET_ANALYTICS_CHOICE_ANSWERS = ['ok', 'invalid', 'rate_limited'] as const;
+export type SetAnalyticsChoiceAnswer = (typeof SET_ANALYTICS_CHOICE_ANSWERS)[number];
+
 /**
  * `api.title_cards` answers (M5.9): `ok` comes with the cards, `too_many` with `max` (50 films a call,
  * refused and not truncated), `rate_limited` is 30 calls per 10 minutes. A caller with no seat in the
