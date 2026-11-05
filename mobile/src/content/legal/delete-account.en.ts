@@ -22,7 +22,7 @@ Flimme doesn't ask for an email or a password. Your guest profile is tied to a r
 Here is what happens anyway:
 
 - A guest profile that isn't used for 90 days is deleted automatically, with its data. If you stopped using Flimme, your profile disappears by itself and you don't need to do anything.
-- To delete it right now, reinstall Flimme on the same phone: if the profile is still there, Settings gives you Delete my data. Otherwise it can't be reached any more.
+- Once the app is deleted, or the phone lost, the old profile can't be reached any more, neither from another phone nor by reinstalling the app: Flimme then creates a new, empty guest profile. The automatic deletion after 90 days is the only way.
 
 ## If you saved an account
 
@@ -36,7 +36,7 @@ In your message, give only the account's email address and, if you remember it, 
 
 - We answer within one month at most (the GDPR rule, article 12(3)).
 - We check that the request comes from the account's address, delete the account, and confirm by email.
-- Usage statistics and crash reports aren't linked to you, so they hold nothing to delete.
+- Crash reports carry no player identifier. Usage statistics are also erased from the analytics tool when you delete your account in the app.
 
 To download your data before deleting it, or for any other question about your rights, write to [support@flimme.com](mailto:support@flimme.com). You can also complain to the CNIL if you think your rights aren't respected. It is all explained in the [privacy policy](https://flimme.com/en/privacy).
 `;
