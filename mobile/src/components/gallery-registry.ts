@@ -12,6 +12,7 @@ import { gallery as uiHiddenInput } from './ui/hidden-input.gallery';
 import { gallery as uiIconButton } from './ui/icon-button.gallery';
 import { gallery as uiIcon } from './ui/icon.gallery';
 import { gallery as uiInput } from './ui/input.gallery';
+import { gallery as uiLinkText } from './ui/link-text.gallery';
 import { gallery as uiListRow } from './ui/list-row.gallery';
 import { gallery as uiMarqueeBulbs } from './ui/marquee-bulbs.gallery';
 import { gallery as uiMotion } from './ui/motion.gallery';
@@ -53,6 +54,7 @@ export const galleryEntries: GalleryEntry[] = [
   uiIconButton,
   uiIcon,
   uiInput,
+  uiLinkText,
   uiListRow,
   uiMarqueeBulbs,
   uiMotion,

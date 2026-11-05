@@ -2,9 +2,17 @@
 // small renderer, so they keep to a subset: one `#` title, `##` and `###` headings,
 // paragraphs, `-` bullets (not nested), **bold**, https and mailto links, simple pipe tables.
 // Each text joins `documents` below; a text written in both languages also joins `pairs`.
-// The terms: M8.2, docs/product/privacy.md#terms-of-use-outline.
+// The terms: M8.2, docs/product/privacy.md#terms-of-use-outline. The privacy policy: M8.1,
+// docs/product/privacy.md#privacy-policy-outline.
+import deletionEn, { updated as deletionEnUpdated } from './delete-account.en';
+import deletionFr, { updated as deletionFrUpdated } from './delete-account.fr';
+import privacyEn, { updated as privacyEnUpdated } from './privacy.en';
+import privacyFr, { updated as privacyFrUpdated } from './privacy.fr';
+import supportEn, { updated as supportEnUpdated } from './support.en';
+import supportFr, { updated as supportFrUpdated } from './support.fr';
 import termsEn, { updated as termsEnUpdated } from './terms.en';
 import termsFr, { updated as termsFrUpdated } from './terms.fr';
+import { resolveLegalPath } from '@/features/legal/pages';
 
 type LegalDocument = {
   name: string;
@@ -12,6 +20,10 @@ type LegalDocument = {
   updated: string;
   // Links the text must carry, such as the other legal page in the same language.
   mustLink: string[];
+  // Words the text must contain, such as the authority a player can complain to.
+  mustSay?: string[];
+  // A text that states its own date writes `updated` out in this language ("5 novembre 2026").
+  datedIn?: 'fr-FR' | 'en-GB';
 };
 
 const documents: LegalDocument[] = [
@@ -27,10 +39,67 @@ const documents: LegalDocument[] = [
     updated: termsEnUpdated,
     mustLink: ['https://flimme.com/en/privacy'],
   },
+  {
+    name: 'privacy.fr',
+    markdown: privacyFr,
+    updated: privacyFrUpdated,
+    mustLink: ['https://flimme.com/fr/conditions', 'https://flimme.com/fr/suppression'],
+    mustSay: ['CNIL'],
+    datedIn: 'fr-FR',
+  },
+  {
+    name: 'privacy.en',
+    markdown: privacyEn,
+    updated: privacyEnUpdated,
+    mustLink: ['https://flimme.com/en/terms', 'https://flimme.com/en/delete-account'],
+    mustSay: ['CNIL'],
+    datedIn: 'en-GB',
+  },
+  // M8.3: the support page and the deletion request page, hosted next to the policy and terms.
+  {
+    name: 'support.fr',
+    markdown: supportFr,
+    updated: supportFrUpdated,
+    mustLink: [
+      'https://flimme.com/fr/confidentialite',
+      'https://flimme.com/fr/conditions',
+      'https://flimme.com/fr/suppression',
+    ],
+  },
+  {
+    name: 'support.en',
+    markdown: supportEn,
+    updated: supportEnUpdated,
+    mustLink: [
+      'https://flimme.com/en/privacy',
+      'https://flimme.com/en/terms',
+      'https://flimme.com/en/delete-account',
+    ],
+  },
+  {
+    name: 'delete-account.fr',
+    markdown: deletionFr,
+    updated: deletionFrUpdated,
+    mustLink: ['https://flimme.com/fr/confidentialite'],
+    // Honest about a guest without the app: the 90 days, the one month, the CNIL.
+    mustSay: ['90 jours', 'un mois', 'CNIL', 'mailto:support@flimme.com?subject='],
+  },
+  {
+    name: 'delete-account.en',
+    markdown: deletionEn,
+    updated: deletionEnUpdated,
+    mustLink: ['https://flimme.com/en/privacy'],
+    mustSay: ['90 days', 'one month', 'CNIL', 'mailto:support@flimme.com?subject='],
+  },
 ];
 
 // French and English say the same thing, so they share the date and the outline.
-const pairs: [string, string][] = [['terms.fr', 'terms.en']];
+const pairs: [string, string][] = [
+  ['terms.fr', 'terms.en'],
+  ['privacy.fr', 'privacy.en'],
+  ['support.fr', 'support.en'],
+  ['delete-account.fr', 'delete-account.en'],
+];
 
 const SUPPORT_EMAIL = 'support@flimme.com';
 const LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
@@ -140,46 +209,75 @@ describe('the subset check', () => {
   });
 });
 
-describe.each(documents)('$name', ({ markdown, updated, mustLink }) => {
-  it('is a Markdown text with a real date', () => {
-    expect(markdown.trim().length).toBeGreaterThan(500);
-    expect(updated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(new Date(`${updated}T00:00:00Z`).toISOString().slice(0, 10)).toBe(updated);
-  });
+describe.each(documents)(
+  '$name',
+  ({ name, markdown, updated, mustLink, mustSay = [], datedIn }) => {
+    it('is a Markdown text with a real date', () => {
+      expect(markdown.trim().length).toBeGreaterThan(500);
+      expect(updated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(new Date(`${updated}T00:00:00Z`).toISOString().slice(0, 10)).toBe(updated);
+    });
 
-  it('opens with its one # title', () => {
-    const lines = markdown.trimStart().split('\n');
-    expect(lines[0]).toMatch(/^# \S/);
-    expect(lines.filter((line) => /^# /.test(line))).toHaveLength(1);
-  });
+    it('opens with its one # title', () => {
+      const lines = markdown.trimStart().split('\n');
+      expect(lines[0]).toMatch(/^# \S/);
+      expect(lines.filter((line) => /^# /.test(line))).toHaveLength(1);
+    });
 
-  it('keeps to the Markdown subset', () => {
-    expect(subsetProblems(markdown)).toEqual([]);
-  });
+    it('keeps to the Markdown subset', () => {
+      expect(subsetProblems(markdown)).toEqual([]);
+    });
 
-  it('names the support address, as a mail link', () => {
-    expect(markdown).toContain(`[${SUPPORT_EMAIL}](mailto:${SUPPORT_EMAIL})`);
-  });
+    it('names the support address, as a mail link', () => {
+      expect(markdown).toContain(`[${SUPPORT_EMAIL}](mailto:${SUPPORT_EMAIL})`);
+    });
 
-  it('has no em or en dashes', () => {
-    expect(markdown).not.toMatch(DASHES);
-  });
+    it('has no em or en dashes', () => {
+      expect(markdown).not.toMatch(DASHES);
+    });
 
-  it('links the pages it must', () => {
-    const urls = [...markdown.matchAll(LINK)].map(([, , url]) => url);
-    for (const url of mustLink) expect(urls).toContain(url);
-  });
-});
+    it('links the pages it must', () => {
+      const urls = [...markdown.matchAll(LINK)].map(([, , url]) => url);
+      for (const url of mustLink) expect(urls).toContain(url);
+    });
+
+    it('only links flimme.com pages that exist, in its own language', () => {
+      const own = name.endsWith('.fr') ? 'fr' : 'en';
+      const urls = [...markdown.matchAll(LINK)].map(([, , url]) => url ?? '');
+      for (const url of urls.filter((u) => u.startsWith('https://flimme.com/'))) {
+        const location = resolveLegalPath(new URL(url).pathname);
+        expect(location).not.toBeNull();
+        expect(location?.language).toBe(own);
+      }
+    });
+
+    it('says what it must', () => {
+      for (const words of mustSay) expect(markdown).toContain(words);
+    });
+
+    it('states the same date as `updated`, when it states one', () => {
+      if (!datedIn) return;
+      const long = new Intl.DateTimeFormat(datedIn, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }).format(new Date(`${updated}T00:00:00Z`));
+      expect(markdown).toContain(long);
+    });
+  },
+);
 
 describe.each(pairs)('%s and %s', (first, second) => {
   const a = byName(first);
   const b = byName(second);
-  // The heading levels in order, such as ['##', '##', '###', '###', '##'].
+  // The heading levels in order, with a section's number when it has one, such as
+  // ['##', '## 1.', '### ', '## 2.']: a section dropped or swapped in one language shows.
   const outline = (markdown: string) =>
     markdown
       .split('\n')
       .filter((line) => /^#{2,3} /.test(line))
-      .map((line) => line.split(' ')[0]);
+      .map((line) => line.match(/^#{2,3} (\d+\.)?/)?.[0].trim());
 
   it('share the same date', () => {
     expect(a.updated).toBe(b.updated);

@@ -70,6 +70,41 @@ describe('the web root layout', () => {
     },
   );
 
+  it.each([
+    ['/fr/confidentialite', 'fr'],
+    ['/en/privacy', 'en'],
+    ['/fr/conditions', 'fr'],
+    ['/en/terms', 'en'],
+    ['/fr/assistance', 'fr'],
+    ['/en/support', 'en'],
+    ['/fr/suppression', 'fr'],
+    ['/en/delete-account', 'en'],
+  ])(
+    'shows the legal route at %s, in the path language, with no session',
+    async (pathname, lang) => {
+      mockPathname = pathname;
+      await i18n.changeLanguage(lang === 'fr' ? 'en' : 'fr'); // the path wins over the browser
+      await render(<WebRootLayout />);
+      expect(screen.getByText('stack')).toBeOnTheScreen();
+      const doc = (
+        globalThis as unknown as { document: { documentElement: { lang: string }; title: string } }
+      ).document;
+      expect(doc.documentElement.lang).toBe(lang);
+      expect(doc.title.length).toBeGreaterThan(5);
+      expect(startSession).not.toHaveBeenCalled();
+      expect(initSentry).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['/fr/privacy', '/en/confidentialite', '/de/privacy', '/fr', '/en/privacy/x'])(
+    'shows the broken-link state at %s',
+    async (pathname) => {
+      mockPathname = pathname;
+      await render(<WebRootLayout />);
+      expect(screen.queryByText('stack')).toBeNull();
+    },
+  );
+
   it('sets the page language and title', async () => {
     mockPathname = '/join/482913';
     await i18n.changeLanguage('fr');
@@ -79,6 +114,23 @@ describe('the web root layout', () => {
     ).document;
     expect(doc.documentElement.lang).toBe('fr');
     expect(doc.title).toBe('Rejoins la soirée film sur Flimme');
+  });
+});
+
+describe('the legal route files', () => {
+  // The legal pages are for the browser. Expo Router wants a sibling without a platform suffix for
+  // a web route, so the phone gets `[page].tsx`, which must show "not found" and import nothing of
+  // the legal pages.
+  const dir = path.join(__dirname, 'app', '[lang]');
+
+  it('has only the web route and the phone fallback', () => {
+    expect(fs.readdirSync(dir).sort()).toEqual(['[page].tsx', '[page].web.tsx']);
+  });
+
+  it('keeps the legal pages out of the phone fallback', () => {
+    const source = fs.readFileSync(path.join(dir, '[page].tsx'), 'utf8');
+    expect(source).not.toMatch(/from '[^']*legal/i);
+    expect(source).toMatch(/NotFoundScreen/);
   });
 });
 
