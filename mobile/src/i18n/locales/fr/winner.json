@@ -17,6 +17,17 @@
     "moreDetails": "Plus d'infos sur TMDB",
     "moreDetailsHint": "S'ouvre dans le navigateur",
     "home": "Retour à l'accueil",
-    "loading": "Chargement du film"
+    "loading": "Chargement du film",
+    "runnerUp": "{{title}}. {{detail}}",
+    "runnerUpTitle": "{{title}}",
+    "likedBy": "Aimé par {{names}}",
+    "runnerUpHint": "Affiche où le regarder"
+  },
+  "runnersUp": {
+    "finalists": "Les autres finalistes",
+    "mostLiked": "Les plus aimés",
+    "hint": "Plan B, si le film du soir ne passe pas.",
+    "likes_one": "{{count}} j'aime",
+    "likes_other": "{{count}} j'aime"
   }
 }

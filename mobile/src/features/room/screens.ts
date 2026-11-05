@@ -4,7 +4,7 @@ import type { RoomState } from '@flimme/contract';
 export type RoomScreen = 'lobby' | 'swipe' | 'final-cut' | 'winner' | 'closed';
 
 /** The sheets that may sit over a state's screen. */
-export type RoomSheet = 'invite' | 'services' | 'seat' | 'report' | 'recap' | 'pick';
+export type RoomSheet = 'invite' | 'services' | 'seat' | 'report' | 'recap' | 'pick' | 'film';
 
 /**
  * The screen a room state calls for (app-structure.md#screens-and-navigation). `dealing` shows
@@ -33,7 +33,7 @@ const SHEETS: Record<RoomState, readonly RoomSheet[]> = {
   dealing: ['invite', 'services', 'seat', 'report'],
   swiping: ['seat', 'report'],
   finale: [],
-  done: ['recap'],
+  done: ['recap', 'film'],
   abandoned: [],
 };
 
@@ -54,6 +54,7 @@ export function isSheet(screen: string): screen is RoomSheet {
     screen === 'seat' ||
     screen === 'report' ||
     screen === 'recap' ||
+    screen === 'film' ||
     screen === 'pick'
   );
 }
