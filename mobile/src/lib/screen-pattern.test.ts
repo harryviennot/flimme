@@ -12,7 +12,7 @@ describe('screenPattern', () => {
 
   it('names the root, and leaves groups out', () => {
     expect(screenPattern([])).toBe('/');
-    expect(screenPattern(['(tabs)', 'home'])).toBe('/home');
+    expect(screenPattern(['(tabs)', 'play'])).toBe('/play');
   });
 
   it('skips the dev menu and unusual routes', () => {

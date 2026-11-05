@@ -16,7 +16,10 @@ type NavRoute = { name: string; state?: { routes?: readonly NavRoute[] } };
 export type HomeExit = 'dismissTo' | 'replace';
 
 function hasHome(routes: readonly NavRoute[]): boolean {
-  return routes.some((route) => route.name === 'home' || hasHome(route.state?.routes ?? []));
+  return routes.some(
+    (route) =>
+      route.name === '(tabs)' || route.name === 'play' || hasHome(route.state?.routes ?? []),
+  );
 }
 
 export function homeExit(routes: readonly NavRoute[]): HomeExit {
@@ -36,14 +39,14 @@ export function useExitRoomToHome(): () => void {
   const pathname = usePathname();
   const onHome = useRef(false);
   useEffect(() => {
-    onHome.current = pathname === '/home';
+    onHome.current = pathname === '/play';
   }, [pathname]);
   return useCallback(() => {
     if (onHome.current) return;
     // Going Home is a way out the player chose (Leave) or was forced into: no confirm.
     releaseRoomGuards();
-    if (homeExit(routes.current) === 'dismissTo') router.dismissTo('/home');
-    else router.replace('/home');
+    if (homeExit(routes.current) === 'dismissTo') router.dismissTo('/play');
+    else router.replace('/play');
     onHome.current = true;
   }, []);
 }

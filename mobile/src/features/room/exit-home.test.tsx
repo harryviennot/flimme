@@ -24,7 +24,7 @@ function Room() {
 const routes = {
   _layout: () => <Stack screenOptions={{ headerShown: false }} />,
   index: () => <Text variant="body-m">Index</Text>,
-  home: () => <Text variant="body-m">Home</Text>,
+  play: () => <Text variant="body-m">Home</Text>,
   room: Room,
 };
 
@@ -37,21 +37,21 @@ function names(app: { getRouterState: () => unknown }): string[] {
 
 describe('useExitRoomToHome asked twice', () => {
   it('goes back to the Home under the room once', async () => {
-    const app = await renderRouter(routes, { initialUrl: '/home' });
+    const app = await renderRouter(routes, { initialUrl: '/play' });
     await act(async () => {
       router.push('/room');
     });
     await fireEvent.press(screen.getByLabelText('Leave'));
-    await waitFor(() => expect(screen).toHavePathname('/home'));
-    expect(names(app).filter((name) => name === 'home')).toHaveLength(1);
-    expect(names(app).at(-1)).toBe('home');
+    await waitFor(() => expect(screen).toHavePathname('/play'));
+    expect(names(app).filter((name) => name === 'play')).toHaveLength(1);
+    expect(names(app).at(-1)).toBe('play');
   });
 
   it('replaces the room with one Home when none is open', async () => {
     const app = await renderRouter(routes, { initialUrl: '/room' });
     await fireEvent.press(screen.getByLabelText('Leave'));
-    await waitFor(() => expect(screen).toHavePathname('/home'));
-    expect(names(app).filter((name) => name === 'home')).toHaveLength(1);
+    await waitFor(() => expect(screen).toHavePathname('/play'));
+    expect(names(app).filter((name) => name === 'play')).toHaveLength(1);
     expect(
       names(app)
         .slice(0, -1)
