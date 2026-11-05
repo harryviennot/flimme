@@ -122,7 +122,8 @@ export const startGameResult = z.discriminatedUnion('status', [
   // Under deck_engine `sql` the start deals at once (`ok`); `fallback` marks the 8-second path.
   z.object({
     status: z.literal('ok'),
-    request_id: z.nullish(z.string()),
+    // A bigint in SQL: a number once a start went through, null when nothing was dealt.
+    request_id: z.nullish(z.union([z.string(), z.number()])),
     started: z.optional(z.boolean()),
     seats: z.optional(z.number()),
     fallback: z.optional(z.boolean()),
