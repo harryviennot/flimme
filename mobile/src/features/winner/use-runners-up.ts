@@ -8,7 +8,7 @@ import { buildRunnersUp, type RunnersUpData } from './runners-up';
 
 // The winner screen's runners-up (winner.md#the-runners-up): `api.room_runners_up`, then the cards
 // of its films. Every state that is not "films and cards read" shows nothing and no error: the
-// pick's block never waits for this. A change to the room's key reads it again, and TanStack
+// pick's block never waits for this. The foreground refresh (a prefix invalidation of the room key) and TanStack
 // reads it again when the app is foregrounded or back online.
 
 const retry = (count: number, error: unknown) =>
