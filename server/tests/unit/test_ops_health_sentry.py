@@ -1,7 +1,10 @@
 """The real sink against a fake transport: what Sentry would receive (M9.5)."""
 
 import json
+from typing import Any
 
+import sentry_sdk
+from sentry_sdk.transport import Transport
 from tests.unit.test_observability import CapturingTransport, sentry  # noqa: F401
 
 from server.ops.health import Alert, SentrySink
@@ -43,3 +46,28 @@ def test_a_check_in_is_sent_with_the_monitor_config(sentry: CapturingTransport) 
     sink.check_in("ok")
     # Check-ins are not events: the transport saw none, and nothing raised.
     assert sentry.events == []
+
+
+class NeverDrains(Transport):
+    def capture_envelope(self, envelope: Any) -> None:
+        pass
+
+    def flush(self, timeout: float, callback: Any = None) -> None:
+        if callback is not None:
+            callback(1, timeout)
+
+
+def test_an_event_that_does_not_drain_is_not_sent() -> None:
+    from tests.unit.test_observability import FAKE_DSN, settings
+
+    from server import observability
+
+    assert observability.init_sentry(settings(FAKE_DSN), "test", NeverDrains())
+    try:
+        assert (
+            SentrySink().send(Alert("db_size", "warning", "db_size crossed: 80 (threshold 70)"))
+            is False
+        )
+    finally:
+        sentry_sdk.get_client().close()
+        sentry_sdk.get_global_scope().set_client(None)  # pyright: ignore[reportArgumentType]

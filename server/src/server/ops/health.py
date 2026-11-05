@@ -31,6 +31,7 @@ INTERVAL_S = 300
 FIRST_RUN_DELAY_S = 30
 HEALTH_TIMEOUT_S = 10
 MONITOR_SLUG = "ops-health"
+MAX_TAGGED_IDS = 20  # a Sentry tag value is cut at 200 characters
 
 Level = Literal["warning", "error"]
 CheckIn = Literal["in_progress", "ok", "error"]
@@ -84,7 +85,7 @@ def _alert(signal: HealthSignal) -> Alert:
             signal.name,
             level,
             f"{signal.name} crossed: {value} (threshold {_number(signal.threshold)})",
-            tags={"report_ids": ",".join(str(i)[:8] for i in ids)},
+            tags={"report_ids": ",".join(str(i)[:8] for i in ids[:MAX_TAGGED_IDS])},
             report_ids=tuple(str(i) for i in ids),
         )
     return Alert(
@@ -144,7 +145,15 @@ class SentrySink:
             for key, value in alert.tags.items():
                 scope.set_tag(key, value)
             event_id = sentry_sdk.capture_message(alert.message, level=alert.level)
-        return bool(event_id) and sentry_sdk.flush(timeout=HEALTH_TIMEOUT_S) is not False
+        if not event_id:
+            return False
+        # flush() returns nothing; it calls back with the number of events left when the queue
+        # did not drain in time. A response Sentry rejects is not visible here.
+        undelivered: list[int] = []
+        sentry_sdk.flush(
+            timeout=HEALTH_TIMEOUT_S, callback=lambda pending, _t: undelivered.append(pending)
+        )
+        return not undelivered
 
     def check_in(self, status: CheckIn) -> None:
         # Retries of a failed loop start a fresh check-in: only "in_progress" opens one.
