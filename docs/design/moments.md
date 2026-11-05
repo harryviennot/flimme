@@ -319,9 +319,9 @@ None. The match overlay fired `haptics.match()` and `playSound('match')` a few s
 - Who liked the film, who super liked it, who noped it, or who vetoed anything. No avatar or seat name next to the film (game-modes.md#what-players-see-party-and-blind: "A match never shows who said yes").
 - The count of likes or the Final Cut's points. The overlay and the reveal already said them; on a still screen, "7 of 9" invites the question "who were the two?".
 - Any "Open in Netflix" link (decision row 35): the group watches on the TV.
-- Anything that pushes: no "play again now", no streak, no timer.
+- Anything that pushes: no "play again now" prompt (Play again is the host's plain button), no streak, no timer.
 
-Runners-up, with who liked them in Party mode, are M6.32, after this beat.
+**After the beat** (M6.47, [winner.md](screens/winner.md#the-runners-up)): below the pick and Share recap, after a hairline and under their own heading, the runners-up (M6.32) name only who liked each one in Party mode and show a like count in Blind (Q48.1, Harry, 5 November 2026). Everything personal stays inside that section: the pick's block keeps no names and no counts. The recap card ([recap.md](screens/recap.md)) carries no name at all. Play again is a plain button for the host and the Join offer an inline card (M6.23): neither celebrates, buzzes or makes a sound.
 
 ### Edge cases
 
