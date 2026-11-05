@@ -30,7 +30,7 @@ describe('parseInviteLink', () => {
   });
 
   it('gives the code alone when there is no reference', () => {
-    expect(parseInviteLink('https://flimme.app/join/482913')).toEqual({ code: '482913' });
+    expect(parseInviteLink('https://flimme.com/join/482913')).toEqual({ code: '482913' });
     expect(parseInviteLink('/join/482913/')).toEqual({ code: '482913' });
   });
 

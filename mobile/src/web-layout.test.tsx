@@ -96,11 +96,18 @@ describe('the verification files', () => {
     const { applinks } = read('apple-app-site-association');
     expect(applinks.details).toHaveLength(1);
     const [detail] = applinks.details;
-    expect(detail.appIDs.map((id: string) => id.slice(id.indexOf('.') + 1)).sort()).toEqual([
-      'com.harryviennot.flimme',
-      'com.harryviennot.flimme.preview',
+    // The Apple Team ID (M4.18): the apps are `<team id>.<bundle id>`.
+    expect([...detail.appIDs].sort()).toEqual([
+      'QQJF5895MC.com.harryviennot.flimme',
+      'QQJF5895MC.com.harryviennot.flimme.preview',
     ]);
     expect(detail.components).toEqual([{ '/': '/join/*' }]);
+  });
+
+  it('apple-app-site-association has no placeholder left', () => {
+    expect(fs.readFileSync(path.join(dir, 'apple-app-site-association'), 'utf8')).not.toMatch(
+      /REPLACE_WITH/,
+    );
   });
 
   it('assetlinks.json lists the production and preview packages', () => {
@@ -113,5 +120,18 @@ describe('the verification files', () => {
       expect(l.target.namespace).toBe('android_app');
       expect(l.target.sha256_cert_fingerprints.length).toBeGreaterThan(0);
     }
+  });
+
+  // A fingerprint is 32 uppercase hex pairs with colons, as `eas credentials` prints it.
+  it('every assetlinks.json fingerprint is a SHA-256', () => {
+    const fingerprint = /^[0-9A-F]{2}(?::[0-9A-F]{2}){31}$/;
+    const links: { target: { sha256_cert_fingerprints: string[] } }[] = read('assetlinks.json');
+    for (const { target } of links) {
+      for (const value of target.sha256_cert_fingerprints) expect(value).toMatch(fingerprint);
+    }
+  });
+
+  it('assetlinks.json has no placeholder left', () => {
+    expect(fs.readFileSync(path.join(dir, 'assetlinks.json'), 'utf8')).not.toMatch(/REPLACE_WITH/);
   });
 });
