@@ -34,6 +34,8 @@ const pairs: [string, string][] = [['terms.fr', 'terms.en']];
 
 const SUPPORT_EMAIL = 'support@flimme.com';
 const LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+// Figure, en and em dashes and the horizontal bar, by code point so this file has none.
+const DASHES = new RegExp(`[${String.fromCodePoint(0x2012, 0x2013, 0x2014, 0x2015)}]`);
 const TABLE_SEPARATOR = /^\|(\s*:?-{3,}:?\s*\|)+$/;
 
 const byName = (name: string) => {
@@ -54,9 +56,10 @@ function subsetProblems(markdown: string): string[] {
   const closeTable = (end: number) => {
     if (table.length === 0) return;
     const start = end - table.length + 1;
-    if (table.length < 2 || !TABLE_SEPARATOR.test(table[1]))
+    const [header = '', separator = ''] = table;
+    if (!TABLE_SEPARATOR.test(separator))
       problems.push(`line ${start}: a table needs a separator row under its header`);
-    if (table.some((row) => cells(row) !== cells(table[0])))
+    if (table.some((row) => cells(row) !== cells(header)))
       problems.push(`line ${start}: every row of a table needs the same number of cells`);
     table = [];
   };
@@ -84,7 +87,7 @@ function subsetProblems(markdown: string): string[] {
   const linkCount = [...markdown.matchAll(LINK)].length;
   if ((markdown.match(/\]\(/g) ?? []).length !== linkCount)
     problems.push('a link is malformed: use [text](https://...)');
-  for (const [, , url] of markdown.matchAll(LINK)) {
+  for (const [, , url = ''] of markdown.matchAll(LINK)) {
     if (!/^(https:\/\/|mailto:)\S+$/.test(url)) problems.push(`link ${url}: https or mailto only`);
   }
 
@@ -129,6 +132,12 @@ describe('the subset check', () => {
   ])('catches %s', (_, markdown) => {
     expect(subsetProblems(markdown)).not.toEqual([]);
   });
+
+  it('spots an em dash and an en dash', () => {
+    expect(DASHES.test(`a ${String.fromCodePoint(0x2014)} b`)).toBe(true);
+    expect(DASHES.test(`1${String.fromCodePoint(0x2013)}2`)).toBe(true);
+    expect(DASHES.test('a - b')).toBe(false);
+  });
 });
 
 describe.each(documents)('$name', ({ markdown, updated, mustLink }) => {
@@ -153,7 +162,7 @@ describe.each(documents)('$name', ({ markdown, updated, mustLink }) => {
   });
 
   it('has no em or en dashes', () => {
-    expect(markdown).not.toMatch(/[‒–—―]/);
+    expect(markdown).not.toMatch(DASHES);
   });
 
   it('links the pages it must', () => {
