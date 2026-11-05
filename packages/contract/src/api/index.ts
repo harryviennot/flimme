@@ -15,6 +15,7 @@ import {
   JOIN_ROOM_ANSWERS,
   ROOM_PREVIEW_ANSWERS,
   REPORT_MEMBER_ANSWERS,
+  EXPORT_MY_DATA_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
@@ -52,6 +53,8 @@ import {
   joinRoomResult,
   roomPreviewResult,
   reportMemberResult,
+  exportMyDataResult,
+  type ExportMyDataResult,
   leaveRoomResult,
   removeMemberResult,
   setRoomLockedResult,
@@ -191,6 +194,18 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id, p_member_id: args.member_id, p_reason: args.reason },
         REPORT_MEMBER_ANSWERS,
         reportMemberResult,
+      );
+    },
+
+    /** "Download my data": the caller's own data only. One an hour; `rate_limited` is an answer. */
+    exportMyData(): Promise<ExportMyDataResult> {
+      return callAnswer(
+        client,
+        options,
+        'export_my_data',
+        {},
+        EXPORT_MY_DATA_ANSWERS,
+        exportMyDataResult,
       );
     },
 
