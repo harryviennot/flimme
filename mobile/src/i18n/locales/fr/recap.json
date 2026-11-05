@@ -1,0 +1,41 @@
+{
+  "entry": "Partager le récap",
+  "sheet": {
+    "title": "Ton récap",
+    "body": "Une image du film du soir, à envoyer où tu veux. Aucun prénom dessus.",
+    "share": "Partager"
+  },
+  "card": {
+    "eyebrow": "Soirée film",
+    "heading": "On a choisi",
+    "time": "En {{time}}",
+    "people_one": "personne",
+    "people_other": "personnes",
+    "swipes_one": "swipe",
+    "swipes_other": "swipes",
+    "footer": "Fait avec Flimme · {{site}}"
+  },
+  "time": {
+    "seconds": "{{seconds}} s",
+    "minutes": "{{minutes}} min",
+    "minutesSeconds": "{{minutes}} min {{seconds}} s",
+    "hoursMinutes": "{{hours}} h {{minutes}} min"
+  },
+  "errors": {
+    "load": "Impossible de charger le récap.",
+    "offline": "Tu es hors ligne. Le récap s'affiche dès ton retour.",
+    "capture": "Impossible de créer l'image. Réessaie.",
+    "share": "Le partage n'a pas marché. Réessaie."
+  },
+  "a11y": {
+    "entry": "Partager une image du film du soir",
+    "preview": "Récap : {{title}}, choisi en {{time}}. {{people}}, {{swipes}}.",
+    "previewNoTime": "Récap : {{title}}. {{people}}, {{swipes}}.",
+    "people_one": "{{count}} personne",
+    "people_other": "{{count}} personnes",
+    "swipes_one": "{{count}} swipe",
+    "swipes_other": "{{count}} swipes",
+    "shareHint": "Ouvre le menu de partage",
+    "loading": "Chargement du récap"
+  }
+}
