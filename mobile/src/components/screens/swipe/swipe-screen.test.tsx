@@ -8,9 +8,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createStore } from 'zustand/vanilla';
 
 import { useHintsStore } from '@/features/swipe/hints';
-import { clearNearMisses } from '@/features/swipe/near-miss';
+import { clearNearMisses, recordNearMiss } from '@/features/swipe/near-miss';
 import { createAnswerer, type Answerer } from '@/features/swipe/answer';
 import { createCardStack, type CardStack } from '@/features/swipe/card-stack';
+import { createShortlistController } from '@/features/shortlist/controller';
+import { ShortlistProvider } from '@/features/shortlist/context';
 import { createUndoer } from '@/features/swipe/undo';
 import type { QueuedVote } from '@/features/swipe/vote-queue';
 
@@ -37,6 +39,10 @@ jest.mock('@/components/screens/room/room-banner', () => ({
 }));
 
 // The top bar has its own test (top-bar.test.tsx).
+jest.mock('@/features/shortlist/use-shortlist-cards', () => ({
+  useShortlistCards: (_room: string, ids: number[]) =>
+    new Map(ids.map((id) => [id, { title: `Film ${id}`, posterUri: null }])),
+}));
 jest.mock('./top-bar', () => ({ SwipeTopBar: () => null }));
 jest.mock('@/features/swipe/index', () => ({ voteQueue: { has: () => false } }));
 const mockRoomEvents = new Map<string, (payload: unknown) => void>();
@@ -106,6 +112,10 @@ async function makeSwipe(
     seenRule?: 'hide_seen' | 'allow_rewatch' | 'show_all';
     /** The server answers `done` with this many films liked. */
     doneLiked?: number;
+    /** The room's shortlist; a beat plays when it is given a signal. */
+    shortlist?: ReturnType<typeof createShortlistController>;
+    /** The last card answered is on the shortlist. */
+    undoShortlisted?: boolean;
   } = {},
 ) {
   const votes: QueuedVote[] = [];
@@ -189,6 +199,10 @@ async function makeSwipe(
       },
       waitingVotes: 0,
       locked: options.locked ?? false,
+      get beating() {
+        return options.shortlist?.getSnapshot().active ?? false;
+      },
+      undoShortlisted: options.undoShortlisted ?? false,
       seenRule: options.seenRule ?? 'hide_seen',
       online: true,
       imageBase: undefined,
@@ -208,7 +222,12 @@ async function setup(options: Parameters<typeof makeSwipe>[0] = {}) {
           insets: { top: 47, left: 0, right: 0, bottom: 34 },
         }}
       >
-        <SwipeScreen roomId={ROOM} seat={{ ...seat, super_likes_left: options.superLikes ?? 2 }} />
+        <ShortlistProvider value={options.shortlist ?? null}>
+          <SwipeScreen
+            roomId={ROOM}
+            seat={{ ...seat, super_likes_left: options.superLikes ?? 2 }}
+          />
+        </ShortlistProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
@@ -767,5 +786,63 @@ describe('the rewatch question', () => {
     await fireEvent.press(screen.getByLabelText('Seen it'));
     expect(screen.queryByText('Watch it again tonight?')).toBeNull();
     expect(votes.map((v) => v.answer)).toEqual(['seen']);
+  });
+});
+
+describe('the shortlisted beat', () => {
+  const controller = () =>
+    createShortlistController({ onBeat: () => undefined, onMismatch: () => undefined });
+  const match = (title_id: number, shortlisted = 1) => ({
+    title_id,
+    likes: 3,
+    of: 3,
+    decided: false,
+    shortlisted,
+    shortlist_size: 3,
+  });
+
+  beforeEach(() => jest.useFakeTimers({ doNotFake: ['setImmediate'] }));
+  afterEach(() => jest.useRealTimers());
+
+  it('has no layer and no catcher while nothing matched', async () => {
+    await setup({ shortlist: controller() });
+    expect(screen.queryByTestId('shortlisted')).toBeNull();
+    expect(screen.queryByTestId('shortlisted-catcher')).toBeNull();
+  });
+
+  it('puts a layer over the stack and a catcher over the buttons, then takes both away', async () => {
+    const shortlist = controller();
+    const { votes } = await setup({ shortlist });
+    await layoutStack();
+    await act(async () => shortlist.signal(match(7)));
+    expect(screen.getByTestId('shortlisted')).toBeTruthy();
+    expect(screen.getByTestId('shortlisted-catcher')).toBeTruthy();
+    // The buttons keep their look: nothing is disabled for the beat.
+    expect(screen.getByLabelText('Like').props.accessibilityState.disabled).toBe(false);
+    await act(async () => void jest.advanceTimersByTime(1750));
+    expect(screen.queryByTestId('shortlisted')).toBeNull();
+    expect(screen.queryByTestId('shortlisted-catcher')).toBeNull();
+    expect(votes).toEqual([]);
+  });
+
+  it('takes the near-miss toast away while it plays and brings it back after', async () => {
+    const shortlist = controller();
+    await setup({ shortlist });
+    await layoutStack();
+    await act(async () => recordNearMiss(ROOM, { title_id: 1, likes: 2, of: 3, needed: 3 }));
+    await act(async () => void jest.advanceTimersByTime(400));
+    expect(screen.queryByTestId('near-miss')).toBeTruthy();
+    await act(async () => shortlist.signal(match(7)));
+    expect(screen.queryByTestId('near-miss')).toBeNull();
+    await act(async () => void jest.advanceTimersByTime(1750));
+    expect(screen.queryByTestId('near-miss')).toBeTruthy();
+  });
+
+  it('tells a screen reader why Undo is off after a match', async () => {
+    await setup({ undoShortlisted: true });
+    await layoutStack();
+    expect(screen.getByLabelText('Undo').props.accessibilityHint).toBe(
+      'This film is on the shortlist',
+    );
   });
 });

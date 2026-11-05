@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 128 of 270 tasks done.
+Progress: 132 of 270 tasks done.
 
 ```mermaid
 flowchart LR
@@ -471,7 +471,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: the runners-up show after the pick, and in Party mode each one names who liked it.
 - [x] **M6.33** The shortlist's beat and specs: the shortlisted beat, the match overlay only for a pick, the swipe screen's shortlist, the Final Cut with 2 films and its intro line · design · M · [proposal](three-matches-and-fair-finalists.md#option-1a-a-shortlist-of-up-to-3-matches-recommended), [moments](../design/moments.md#the-match)
   Done when: the shortlisted beat is in moments.md, and the swipe, match and Final Cut specs cover it in French and English.
-- [ ] **M6.37** The shortlist on the swipe screen: the shortlisted beat, the shortlist's posters in the top bar, the match overlay only for a pick · app · L · needs M6.33, M6.34, M6.14, M6.27 · [game-modes](game-modes.md#when-its-a-match), [swipe](../design/screens/swipe.md#the-top-bar)
+- [x] **M6.37** The shortlist on the swipe screen: the shortlisted beat, the shortlist's posters in the top bar, the match overlay only for a pick · app · L · needs M6.33, M6.34, M6.14, M6.27 · [game-modes](game-modes.md#when-its-a-match), [swipe](../design/screens/swipe.md#the-top-bar)
   Done when: a touch run on simulators against staging with the bots plays each beat, fills the top bar to the Final Cut, and reads the shortlist back after a cold start.
 - [x] **M6.38** The Final Cut with 2 films and its intro line: the 2-film vote without a veto, its reveal, and the fixed line on how the films were chosen · app · M · needs M6.33, M6.35, M6.15, M6.31 · [the finalists](game-modes.md#the-finalists), [final-cut](../design/screens/final-cut.md#layout)
   Done when: a touch run against staging reaches a 2-film vote and its reveal, and every Final Cut shows the intro line in French and English.
@@ -550,11 +550,11 @@ Done when: the headline metrics, alerts and backups work, and the load test pass
   Done when: tested with a French and a US device region.
 - [ ] **M9.2** The first release's events, through the typed wrapper · app · M · needs M9.1 · [analytics](analytics.md#events-sent-to-posthog)
   Done when: each event shows in PostHog from a test device.
-- [ ] **M9.3** SQL views for the headline metrics: time to a pick, rooms ending with a pick, time to finish onboarding, link to first swipe, second game · backend · M · needs M6.8, M4.1 · [analytics](analytics.md#every-metric)
+- [x] **M9.3** SQL views for the headline metrics: time to a pick, rooms ending with a pick, time to finish onboarding, link to first swipe, second game · backend · M · needs M6.8, M4.1 · [analytics](analytics.md#every-metric)
   Done when: the views return sensible numbers on staging test games.
-- [ ] **M9.4** Server logging without personal data, and Sentry on the server with no user id · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
+- [x] **M9.4** Server logging without personal data, and Sentry on the server with no user id · server · M · needs M2.1 · [security](../architecture/security.md#logging-without-personal-data)
   Done when: a server error shows in Sentry with no personal data.
-- [ ] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load, new reports · backend · M · needs M2.11, M6.6, M9.4, M2.12, M7.1, M8.9 · [operations](../architecture/operations.md#monitoring-and-alerts)
+- [x] **M9.5** `internal.ops_health()` and a health check every 5 minutes, alerting through Sentry: queue age, sweep health, the room sweeper, sign-in limits, database load, new reports · backend · M · needs M2.11, M6.6, M9.4, M2.12, M7.1, M8.9 · [operations](../architecture/operations.md#monitoring-and-alerts)
   Done when: a stopped worker raises an alert, and a new report alerts within 5 minutes.
 - [x] **M9.6** Backups: the weekly logical dump and the restore script · ops · M · needs M1.1 · [operations](../architecture/operations.md#backups-and-restore)
   Done when: the weekly dump runs, and a local drill restores it.

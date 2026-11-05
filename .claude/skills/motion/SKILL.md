@@ -9,7 +9,7 @@ description: How things move, buzz and sound in the app (motion tokens, springs,
 
 ## Tokens (`@/theme/motion`)
 
-- **`duration`** (ms): `instant` 80 (taps, toggles), `fast` 150 (chips, button presses), `base` 250 (card return, sheet fade), `slow` 400 (sheet slide, card fly-out), `celebrate` 800 (match reveal, bulb chase).
+- **`duration`** (ms): `instant` 80 (taps, toggles), `fast` 150 (chips, button presses), `base` 250 (card return, sheet fade), `slow` 400 (sheet slide, card fly-out), `celebrate` 800 (match reveal, bulb chase), `shortlist-hold` 1200 (the shortlisted beat: the poster holds before it flies to the top bar).
 - **`easing`**: `standard` (most transitions), `exit` (cards leaving), `arcade` (the overshoot for stamps, buttons popping back, the match reveal).
 - **`timing`**: ready configs for `withTiming`: `press`, `release` (arcade), `toggle`, `base`, `flip`, `exit`, `celebrate`.
 - **`spring`**: `card` (a dragged card returning), `snappy` (small things settling), `bouncy` (celebrations). For anything a finger drives.
@@ -32,6 +32,7 @@ description: How things move, buzz and sound in the app (motion tokens, springs,
 | `haptics.press()` | A button, chip or toggle is pressed (Pressable does it) |
 | `haptics.throw()` | A card is thrown off the stack, or a swipe button is pressed |
 | `haptics.match()` | It's a match; the winner is revealed |
+| `haptics.shortlist()` | A match joins the shortlist (two Light impacts 100 ms apart, lighter than `match`) |
 | `haptics.veto()` | A veto lands |
 | `haptics.countdown()` | Each of the countdown's last 5 seconds (Countdown does it) |
 | `haptics.error()` | A refusal: a wrong code, a full room |

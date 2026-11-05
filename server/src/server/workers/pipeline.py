@@ -30,6 +30,7 @@ from server.db.payloads import (
 )
 from server.db.pool import Database
 from server.db.queues import PgmqClient
+from server.ops.health import SentrySink, run_health_loop
 from server.rooms.finished import make_room_finished_handler
 from server.workers.runner import (
     Delivery,
@@ -188,7 +189,14 @@ async def run_pipeline_worker(settings: Settings) -> None:
             ROOM_FINISHED, make_room_finished_handler(database), finished_client
         )
         try:
-            await asyncio.gather(runner.run(stop), finished_runner.run(stop))
+            loops = [runner.run(stop), finished_runner.run(stop)]
+            if settings.sentry_dsn is not None:
+                # Its own timer, not a queued message: a broken pg_cron or a backed-up
+                # catalog_refresh is what it has to catch (M9.5).
+                loops.append(run_health_loop(database, SentrySink(), stop))
+            else:
+                log.info("health check is off: SENTRY_DSN is not set")
+            await asyncio.gather(*loops)
         finally:
             stop.set()
     finally:

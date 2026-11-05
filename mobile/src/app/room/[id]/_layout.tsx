@@ -26,6 +26,7 @@ import { useFinalePreload } from '@/features/finale/use-finale-preload';
 import { useRevealOf } from '@/features/finale/reveal-store';
 import { useRevealHold } from '@/features/finale/use-reveal-hold';
 import { useMatchOverlay } from '@/features/match/use-match-overlay';
+import { ShortlistProvider, useShortlist, useShortlistHold } from '@/features/shortlist';
 import { useOnline } from '@/features/network';
 import { rememberRoomScreen } from '@/features/winner/arrival';
 import { tokens } from '@/theme/generated/tokens';
@@ -84,6 +85,11 @@ export default function RoomLayout() {
   // holds its route change until the overlay hands over (match.md#the-sequence).
   const match = useMatchOverlay(id, state, mine !== null, realtime);
 
+  // The shortlisted beat plays over the swipe screen; on the third match the room is already in
+  // `finale`, and the layout holds its route until the beat ends (swipe.md#the-shortlisted-beat).
+  const shortlist = useShortlist(id, state, room.data?.mode, mine !== null, realtime);
+  const shortlistHold = useShortlistHold(shortlist);
+
   // The winner screen fades in only when it replaces the swipe or Final Cut screen live.
   useEffect(() => {
     if (id && current) rememberRoomScreen(id, current);
@@ -96,7 +102,7 @@ export default function RoomLayout() {
   useFinalePreload(id, realtime);
 
   useEffect(() => {
-    if (match.holdRoute) return;
+    if (match.holdRoute || shortlistHold) return;
     if (revealHold) {
       // A phone still on the swipe screen when the round closed shows the reveal on the Final Cut,
       // once there is a reveal to show: while it is still being looked for, the route stays put.
@@ -110,7 +116,7 @@ export default function RoomLayout() {
     // A sheet goes first, so the state's screen replaces the room screen under it.
     if (isSheet(current)) router.dismiss();
     router.replace(`/room/${id}/${roomScreenFor(state)}`);
-  }, [id, state, current, match.holdRoute, revealHold, revealPlaying]);
+  }, [id, state, current, match.holdRoute, shortlistHold, revealHold, revealPlaying]);
 
   if (online && (room.isError || seats.isError) && !room.data) {
     return (
@@ -125,77 +131,79 @@ export default function RoomLayout() {
 
   return (
     <RoomRealtimeProvider value={realtime}>
-      <RoomLeaveGuard
-        roomId={id ?? ''}
-        active={!current || !isSheet(current)}
-        finished={state === 'done' || state === 'abandoned'}
-      >
-        <View className="flex-1">
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              // Once swiping starts, leaving is an explicit "Leave room", never a back swipe.
-              gestureEnabled: false,
-              contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
-            }}
-          >
-            <Stack.Screen
-              name="invite"
-              options={{
-                presentation: 'formSheet',
-                // The stack turns gestures off for the room; a sheet still swipes down.
-                gestureEnabled: true,
-                sheetGrabberVisible: true,
-                sheetAllowedDetents: [0.8],
+      <ShortlistProvider value={shortlist}>
+        <RoomLeaveGuard
+          roomId={id ?? ''}
+          active={!current || !isSheet(current)}
+          finished={state === 'done' || state === 'abandoned'}
+        >
+          <View className="flex-1">
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                // Once swiping starts, leaving is an explicit "Leave room", never a back swipe.
+                gestureEnabled: false,
+                contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
               }}
+            >
+              <Stack.Screen
+                name="invite"
+                options={{
+                  presentation: 'formSheet',
+                  // The stack turns gestures off for the room; a sheet still swipes down.
+                  gestureEnabled: true,
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: [0.8],
+                }}
+              />
+              <Stack.Screen
+                name="services"
+                options={{
+                  presentation: 'formSheet',
+                  // The stack turns gestures off for the room; a sheet still swipes down.
+                  gestureEnabled: true,
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: [0.8],
+                }}
+              />
+              <Stack.Screen
+                name="seat/[memberId]"
+                options={{
+                  presentation: 'formSheet',
+                  // The stack turns gestures off for the room; a sheet still swipes down.
+                  gestureEnabled: true,
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: 'fitToContents',
+                }}
+              />
+              <Stack.Screen
+                name="report/[memberId]"
+                options={{
+                  presentation: 'formSheet',
+                  // The stack turns gestures off for the room; a sheet still swipes down.
+                  gestureEnabled: true,
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: 'fitToContents',
+                }}
+              />
+              <Stack.Screen
+                name="recap"
+                options={{
+                  presentation: 'formSheet',
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: [0.9],
+                }}
+              />
+            </Stack>
+            <MatchOverlayHost
+              roomId={id ?? ''}
+              match={match.match}
+              seats={seats.data}
+              onContinue={match.skip}
             />
-            <Stack.Screen
-              name="services"
-              options={{
-                presentation: 'formSheet',
-                // The stack turns gestures off for the room; a sheet still swipes down.
-                gestureEnabled: true,
-                sheetGrabberVisible: true,
-                sheetAllowedDetents: [0.8],
-              }}
-            />
-            <Stack.Screen
-              name="seat/[memberId]"
-              options={{
-                presentation: 'formSheet',
-                // The stack turns gestures off for the room; a sheet still swipes down.
-                gestureEnabled: true,
-                sheetGrabberVisible: true,
-                sheetAllowedDetents: 'fitToContents',
-              }}
-            />
-            <Stack.Screen
-              name="report/[memberId]"
-              options={{
-                presentation: 'formSheet',
-                // The stack turns gestures off for the room; a sheet still swipes down.
-                gestureEnabled: true,
-                sheetGrabberVisible: true,
-                sheetAllowedDetents: 'fitToContents',
-              }}
-            />
-            <Stack.Screen
-              name="recap"
-              options={{
-                presentation: 'formSheet',
-                sheetGrabberVisible: true,
-                sheetAllowedDetents: [0.9],
-              }}
-            />
-          </Stack>
-          <MatchOverlayHost
-            roomId={id ?? ''}
-            match={match.match}
-            seats={seats.data}
-            onContinue={match.skip}
-          />
-        </View>
-      </RoomLeaveGuard>
+          </View>
+        </RoomLeaveGuard>
+      </ShortlistProvider>
     </RoomRealtimeProvider>
   );
 }

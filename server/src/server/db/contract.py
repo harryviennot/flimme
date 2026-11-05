@@ -12,6 +12,8 @@ from psycopg import AsyncConnection
 from psycopg.types.json import Jsonb
 from pydantic import BaseModel
 
+from server.db.payloads import OpsHealth
+
 
 async def enqueue(conn: AsyncConnection, queue: str, message: BaseModel) -> None:
     """`internal.enqueue(queue, message)`: the only way the server sends to a queue."""
@@ -38,3 +40,20 @@ async def write_room_stats(conn: AsyncConnection, room_id: UUID) -> dict[str, An
     cur = await conn.execute("select internal.write_room_stats(%s)", (room_id,))
     row = await cur.fetchone()
     return row[0] if row else None
+
+
+async def ops_health(conn: AsyncConnection) -> OpsHealth:
+    """`internal.ops_health()`: which operational thresholds are crossed (read-only)."""
+    cur = await conn.execute("select internal.ops_health()")
+    row = await cur.fetchone()
+    assert row is not None
+    return OpsHealth.model_validate(row[0])
+
+
+async def mark_reports_alerted(conn: AsyncConnection, ids: Sequence[UUID]) -> int:
+    """`internal.mark_reports_alerted(ids)`: sets `alerted_at` on reports not yet alerted and
+    returns how many it set."""
+    cur = await conn.execute("select internal.mark_reports_alerted(%s)", (list(ids),))
+    row = await cur.fetchone()
+    assert row is not None
+    return int(row[0])

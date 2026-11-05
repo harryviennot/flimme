@@ -5,13 +5,13 @@ roadmap milestone that builds them and exit with code 2.
 """
 
 import argparse
-import logging
 import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
 
 from pydantic import ValidationError
 
+from server import observability
 from server.config import MissingSetting, Process, Settings
 
 EXIT_USAGE = 2
@@ -90,6 +90,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="load at most N candidates (also seeds a local catalog); default: the top 60,000",
     )
 
+    commands.add_parser(
+        "sentry-check", help="send one test message and one test exception to Sentry"
+    )
+
     for planned in PLANNED:
         command = commands.add_parser(
             planned.name, help=f"{planned.help} (not built yet: {planned.milestone})"
@@ -119,14 +123,6 @@ def load_settings(command: str, process: Process) -> Settings | None:
     return settings
 
 
-def configure_logging() -> None:
-    """INFO for our own loggers. `httpx` and `httpcore` log every request at INFO, which on the
-    first full load is about 120,000 lines (and a line is a URL), so they speak at WARNING."""
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
-    for noisy in ("httpx", "httpcore"):
-        logging.getLogger(noisy).setLevel(logging.WARNING)
-
-
 def run_pipeline_worker() -> int:
     settings = load_settings("pipeline-worker", Process.PIPELINE)
     if settings is None:
@@ -136,7 +132,7 @@ def run_pipeline_worker() -> int:
 
     from server.workers.pipeline import run_pipeline_worker as serve
 
-    configure_logging()
+    observability.setup(settings, "pipeline-worker")
     asyncio.run(serve(settings))
     return 0
 
@@ -154,7 +150,7 @@ def run_backfill(limit: int | None) -> int:
 
     from server.catalog.backfill import BackfillFailed, backfill_from_settings, summary_line
 
-    configure_logging()
+    observability.setup(settings, "backfill")
     try:
         result = asyncio.run(backfill_from_settings(settings, limit))
     except BackfillFailed as error:
@@ -189,9 +185,30 @@ def run_api(host: str, port: int) -> int:
 
     from server.api.app import create_app
 
-    configure_logging()
-    uvicorn.run(create_app(settings), host=host, port=port)
+    observability.setup(settings, "api")
+    # No uvicorn logging config: it would add plain handlers that print the client IP, the raw
+    # path and query, and exception text. Its loggers go to the JSON handler instead.
+    uvicorn.run(create_app(settings), host=host, port=port, log_config=None, access_log=False)
     return 0
+
+
+def run_sentry_check() -> int:
+    """Send a test message and a test exception to Sentry (run once per environment)."""
+    try:
+        settings = Settings.load()
+    except ValidationError:
+        print(
+            "server sentry-check: ENVIRONMENT is not set to local, staging or production.",
+            file=sys.stderr,
+        )
+        return 1
+    if not observability.setup(settings, "sentry-check"):
+        print("server sentry-check: SENTRY_DSN is not set.", file=sys.stderr)
+        return 1
+    ids = observability.sentry_check()
+    for event_id in ids:
+        print(f"sentry event {event_id}")
+    return 0 if len(ids) == 2 else 1
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -203,6 +220,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_pipeline_worker()
     if args.command == "backfill":
         return run_backfill(args.limit)
+    if args.command == "sentry-check":
+        return run_sentry_check()
 
     planned = next(p for p in PLANNED if p.name == args.command)
     print(

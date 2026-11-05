@@ -70,6 +70,8 @@ export type CardStackState = {
   answer: () => AnsweredCard | null;
   /** Undo: the last answered card is on top again, front side up, its dwell starting over. */
   putBack: (card: NextCard) => void;
+  /** Films that matched leave the phone: mounted or behind, the cards behind move up. */
+  removeTitles: (titleIds: readonly number[]) => void;
   setFlipped: (flipped: boolean) => void;
   onDeckUpdated: () => void;
   onOnline: () => void;
@@ -269,6 +271,26 @@ export function createCardStack(deps: StackDeps, options: StackOptions): CardSta
           liked: null,
           shownAt: deps.now(),
         });
+      },
+
+      removeTitles: (titleIds) => {
+        const gone = new Set(titleIds);
+        const { mounted, buffer, stale, flipped, shownAt } = get();
+        if (![...mounted, ...buffer].some((c) => gone.has(c.title_id))) return;
+        const keptMounted = mounted.filter((c) => !gone.has(c.title_id));
+        const keptBuffer = buffer.filter((c) => !gone.has(c.title_id));
+        // A stale buffer may hold cards the server replaced: never promote from it.
+        const room = stale ? 0 : MOUNTED_COUNT - keptMounted.length;
+        const nextMounted = [...keptMounted, ...keptBuffer.slice(0, room)];
+        const topChanged = nextMounted[0]?.title_id !== mounted[0]?.title_id;
+        commit({
+          mounted: nextMounted,
+          buffer: keptBuffer.slice(room),
+          flipped: topChanged ? false : flipped,
+          shownAt: topChanged ? (nextMounted.length > 0 ? deps.now() : null) : shownAt,
+        });
+        prefetchPosters();
+        check();
       },
 
       setFlipped: (flipped) => {

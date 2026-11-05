@@ -117,6 +117,17 @@ describe('the match overlay controller', () => {
     expect(controller.get()).toBeNull();
   });
 
+  it('plays the overlay for an only_match pick (the match row kind), once, from the event', () => {
+    const { controller, deps } = setup();
+    // A shortlisted match first: no overlay.
+    controller.signal({ title_id: 3, kind: 'unanimous', likes: 3, of: 3, decided: false });
+    expect(controller.get()).toBeNull();
+    controller.signal({ title_id: 7, kind: 'majority', likes: 2, of: 3, decided: true });
+    expect(controller.get()).toEqual({ title_id: 7, likes: 2, of: 3 });
+    controller.signal({ title_id: 7, kind: 'majority', likes: 2, of: 3, decided: true });
+    expect(deps.onStart).toHaveBeenCalledTimes(1);
+  });
+
   it('a re-read that finds a decided room not yet shown plays the overlay once', () => {
     const { controller, deps } = setup();
     const row = {
