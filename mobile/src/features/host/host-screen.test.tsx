@@ -141,7 +141,8 @@ describe('host setup', () => {
     await waitFor(() => expect(open()).toBeEnabled());
     await fireEvent.press(open());
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/room/r1/lobby'));
-    expect(mockRouter.push).toHaveBeenCalledWith('/room/r1/invite');
+    // No full-screen share step: the host lands on the lobby, which offers share and QR.
+    expect(mockRouter.push).not.toHaveBeenCalled();
     expect(mockApi.setMyProviders).not.toHaveBeenCalled();
     expect(mockApi.createRoom).toHaveBeenCalledWith({
       mode: 'quick_match',
