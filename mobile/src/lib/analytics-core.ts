@@ -81,6 +81,7 @@ export const ANALYTICS_EVENTS = {
   'game:nothing_left_view': { is_host: 'boolean' },
   'winner:view': { outcome: ['match', 'finale'], room_size: ['2', '3_4', '5_10'] },
   'winner:watch_page_open': {},
+  'winner:recap_share': { method: ['share_sheet'] },
   'solo:session_start': { service_count: 'number', has_time_budget: 'boolean' },
   'solo:checkpoint_view': { card_count: 'number', like_count: COUNT_BUCKETS },
   'solo:pick_submit': { card_count: 'number' },
