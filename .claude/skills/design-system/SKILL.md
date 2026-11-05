@@ -41,7 +41,8 @@ Dark cinema marquee: arcade buttons with a hard 4-point lip, neon glows, spotlig
 | ui | `OptionCard` | Radio-style card for one choice |
 | ui | `ListRow` | Settings row: icon, label, value or trailing control, chevron |
 | ui | `TopBar` | Back, centred title, one action |
-| ui | `Toast`, `showToast()` | Room events, the near miss, warnings (`ToastHost` is in the root layout) |
+| ui | `Toast`, `showToast()` | Room events, the near miss, warnings; an optional `action` (Undo) and `duration`, and `onDismiss` for a call that waits for the toast to close (`ToastHost` is in the root layout) |
+| ui | `SegmentedControl` | Two or three segments that swap between lists (My films: Liked, Seen); chips filter one list |
 | ui | `Banner` | Reconnecting, offline |
 | ui | `Countdown` | The Final Cut's timer from a server deadline |
 | ui | `Skeleton`, `EmptyState` | Loading, empty and error states |
@@ -49,6 +50,7 @@ Dark cinema marquee: arcade buttons with a hard 4-point lip, neon glows, spotlig
 | shared | `SwipeAction` | The swipe screen's buttons: `nope`, `undo`, `super`, `like`, `seen`; `lit` |
 | shared | `MovieCard` | The swipe card, front and back, flip, stamps |
 | shared | `Poster`, `PosterThumb` | Posters with their placeholder |
+| shared | `FilmTile`, `WhereToWatch` | A poster as a grid tile with Picked or the star; the services that have a film (strings and the "not listed" line through props) |
 | shared | `PlayerPill`, `RoomTicket`, `ServiceTile`, `ResultRow`, `RatingLogo` | Presence, the room code, services, runners-up, TMDB and Letterboxd marks |
 
 ## Tiers and files
