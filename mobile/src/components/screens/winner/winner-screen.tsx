@@ -4,6 +4,7 @@ import { AccessibilityInfo, findNodeHandle, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Poster } from '@/components/shared/poster';
+import { WhereToWatch } from '@/components/shared/where-to-watch';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Spotlight } from '@/components/ui/gradients';
@@ -12,11 +13,11 @@ import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { matchMeta } from '@/features/match/format';
+import { servicesLabel } from '@/features/winner/services';
 import type { WinnerView } from '@/features/winner/use-winner';
 import { layout } from '@/theme/motion';
 
 import { NoPick } from './no-pick';
-import { WhereToWatch } from './where-to-watch';
 
 // Tonight's pick (winner.md): the film and where to watch it, the same on every phone. Never
 // who liked it, never a count. No haptic and no sound: the overlay already had them.
@@ -140,7 +141,8 @@ export function WinnerScreen({
                 <WhereToWatch
                   services={view.services}
                   watchLink={view.watchLink}
-                  language={language}
+                  servicesLabel={servicesLabel(view.services, language)}
+                  notListed={t('notListed')}
                 />
               </Animated.View>
             ) : waiting ? (

@@ -46,6 +46,23 @@ jest.mock('@/api', () => ({
       },
     ]),
     touchRoom: jest.fn(async () => undefined),
+    // My films: one liked film; its sheet reads the card.
+    myFilms: jest.fn(async () => ({
+      status: 'ok',
+      films: [
+        {
+          title_id: 7,
+          title: 'Heat',
+          year: 1995,
+          poster_path: null,
+          is_picked: true,
+          is_super_liked: false,
+          at: '2026-11-05T10:00:00Z',
+        },
+      ],
+      next_cursor: null,
+    })),
+    myFilmCard: jest.fn(async () => ({ status: 'not_found' })),
     joinRoom: jest.fn(async () => ({ status: 'not_found' })),
     countryProviders: jest.fn(async () => [
       { provider_id: 8, name: 'Netflix', logo_path: null, display_priority: 1 },
@@ -111,7 +128,9 @@ const routes = {
   home: require('@/app/home').default,
   '(tabs)/_layout': require('@/app/(tabs)/_layout').default,
   '(tabs)/play': require('@/app/(tabs)/play').default,
-  '(tabs)/my-films': require('@/app/(tabs)/my-films').default,
+  '(tabs)/my-films/_layout': require('@/app/(tabs)/my-films/_layout').default,
+  '(tabs)/my-films/index': require('@/app/(tabs)/my-films/index').default,
+  '(tabs)/my-films/[title]': require('@/app/(tabs)/my-films/[title]').default,
   join: require('@/app/join/index').default,
   'join/[code]': require('@/app/join/[code]').default,
   host: require('@/app/host/index').default,
@@ -185,19 +204,25 @@ describe('routes', () => {
   });
 
   describe('the tab bar', () => {
-    it('shows on Play, and My films opens its placeholder with the tab selected', async () => {
+    it('shows on Play, and My films opens its grid with the tab selected', async () => {
       await renderRouter(routes, { initialUrl: '/play', wrapper: Providers });
       expect(screen.getByRole('tab', { name: 'Play' }).props.accessibilityState).toMatchObject({
         selected: true,
       });
       await fireEvent.press(screen.getByRole('tab', { name: 'My films' }));
       await waitFor(() => expect(screen).toHavePathname('/my-films'));
-      expect(screen.getByText('Nothing here yet')).toBeTruthy();
+      expect(await screen.findByRole('button', { name: /Heat, 1995/ })).toBeTruthy();
       expect(screen.getByRole('tab', { name: 'My films' }).props.accessibilityState).toMatchObject({
         selected: true,
       });
       await fireEvent.press(screen.getByRole('tab', { name: 'Play' }));
       await waitFor(() => expect(screen).toHavePathname('/play'));
+    });
+
+    it('opens a film from the grid in its sheet', async () => {
+      await renderRouter(routes, { initialUrl: '/my-films', wrapper: Providers });
+      await fireEvent.press(await screen.findByRole('button', { name: /Heat, 1995/ }));
+      await waitFor(() => expect(screen).toHavePathname('/my-films/7'));
     });
 
     it.each(['/welcome', '/host', '/join', '/settings', '/room/abc/lobby'])(

@@ -32,7 +32,10 @@ function formatScore(score: number, language: string): string {
 }
 
 /** "2017 · 1 h 43 · ★ 7.4": what the film has, in that order. */
-export function cardMeta(card: NextCard, language: string): string {
+export function cardMeta(
+  card: Pick<NextCard, 'year' | 'runtime_min' | 'tmdb_score'>,
+  language: string,
+): string {
   const parts: string[] = [];
   if (card.year !== null) parts.push(String(card.year));
   if (card.runtime_min !== null && card.runtime_min > 0) {

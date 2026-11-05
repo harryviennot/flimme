@@ -53,6 +53,8 @@ export type MovieCardProps = {
   flipped?: boolean;
   /** Turns the card over. Without it the card is not pressable (the swipe screen's gesture flips). */
   onFlip?: () => void;
+  /** A back that never turns over (the film sheet): no flip badge, no "tap to flip back" line. */
+  still?: boolean;
   back: {
     tmdbRating?: string;
     /** A seated player's Letterboxd rating, when they have one. */
@@ -398,6 +400,7 @@ function Back({
   thumbhash,
   services,
   back,
+  still = false,
   stamp,
   stampProgress,
 }: MovieCardProps) {
@@ -415,7 +418,7 @@ function Back({
           <Poster source={poster} thumbhash={thumbhash} />
         </View>
         <GradientFill gradient="card-scrim" />
-        <FlipBadge icon="refresh" />
+        {still ? null : <FlipBadge icon="refresh" />}
         <View className="absolute right-16 bottom-4 left-5 gap-0.5">
           <Text variant="title-l" numberOfLines={1}>
             {title}
@@ -499,9 +502,11 @@ function Back({
             </Text>
           ) : null}
         </View>
-        <Text variant="mono-eyebrow" tone="muted" align="center">
-          {t('card.flipBack')}
-        </Text>
+        {still ? null : (
+          <Text variant="mono-eyebrow" tone="muted" align="center">
+            {t('card.flipBack')}
+          </Text>
+        )}
       </View>
       {stamps?.map(({ kind, progress }) => (
         <Stamp key={kind} kind={kind} progress={progress} />
