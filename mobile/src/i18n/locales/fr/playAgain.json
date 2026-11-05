@@ -1,0 +1,21 @@
+{
+  "playAgain": "Rejouer",
+  "a11y": {
+    "playAgain": "Lancer une autre partie avec les mêmes réglages",
+    "join": "Rejoindre la nouvelle partie"
+  },
+  "errors": {
+    "notFinished": "Cette partie n'est pas encore finie.",
+    "unknownMode": "Cette partie ne se relance pas. Organise une nouvelle soirée depuis l'accueil.",
+    "notHost": "Seul l'hôte peut lancer la partie suivante.",
+    "offline": "Tu es hors ligne. Connecte-toi pour lancer la partie suivante.",
+    "network": "Impossible de lancer la partie suivante. Vérifie ta connexion."
+  },
+  "offer": {
+    "title": "{{name}} a lancé une autre partie",
+    "titleSelf": "Ta prochaine partie est ouverte",
+    "titleNoName": "Une autre partie est ouverte",
+    "body": "Mêmes réglages que celle-ci.",
+    "join": "Rejoindre"
+  }
+}
