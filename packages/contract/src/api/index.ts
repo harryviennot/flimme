@@ -614,7 +614,7 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         () =>
           client
             .from('game_modes')
-            .select('slug, min_players, max_players, ends_on_first_match, sort')
+            .select('slug, min_players, max_players, ends_on_first_match, sort, matches_to_end')
             .order('sort'),
         'game_modes',
       );

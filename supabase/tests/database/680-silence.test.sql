@@ -7,6 +7,9 @@
 begin;
 select plan(24);
 
+-- M6.34: these rooms end on a match, so every mode picks at its first match.
+update public.game_modes set defaults = defaults || '{"matches_to_end": 1}';
+
 select tests.create_catalog(25);
 select tests.use_deck_engine('sql');
 

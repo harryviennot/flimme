@@ -431,6 +431,7 @@ export const gameModeRow = z.object({
   max_players: z.number(),
   ends_on_first_match: z.boolean(),
   sort: z.number(),
+  matches_to_end: z.number(),
 });
 export const gameModesSchema = z.array(gameModeRow);
 export type GameMode = z.infer<typeof gameModeRow>;

@@ -8,6 +8,9 @@
 begin;
 select plan(28);
 
+-- M6.34: these games end on a match, so every mode picks at its first match.
+update public.game_modes set defaults = defaults || '{"matches_to_end": 1}';
+
 select tests.create_catalog(40);
 insert into public.calibration_titles (title_id, axis, sort, is_active) values
   (tests.film(1), 'horror', 1, true),

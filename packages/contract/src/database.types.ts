@@ -48,14 +48,14 @@ export type Database = {
                   ]
                 },"game_modes": {
                   Row: {
-                    "ends_on_first_match": boolean,"max_players": number,"min_players": number,"slug": string,"sort": number
+                    "ends_on_first_match": boolean,"matches_to_end": number | null,"max_players": number,"min_players": number,"slug": string,"sort": number
                   }
                   ComputedFields: never
                   Insert: {
-                           "ends_on_first_match"?: boolean | null,"max_players"?: number | null,"min_players"?: number | null,"slug"?: string | null,"sort"?: number | null
+                           "ends_on_first_match"?: boolean | null,"matches_to_end"?: never,"max_players"?: number | null,"min_players"?: number | null,"slug"?: string | null,"sort"?: number | null
                          }
                         Update: {
-                           "ends_on_first_match"?: boolean | null,"max_players"?: number | null,"min_players"?: number | null,"slug"?: string | null,"sort"?: number | null
+                           "ends_on_first_match"?: boolean | null,"matches_to_end"?: never,"max_players"?: number | null,"min_players"?: number | null,"slug"?: string | null,"sort"?: number | null
                          }
                         Relationships: [
                     
