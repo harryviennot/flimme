@@ -17,6 +17,7 @@ async function main() {
         );
 
   // The host of the backend is not personal data: printing it shows where the bots go.
+  console.log(`Seed ${config.seed}, personalities ${config.personality}`);
   console.log(`Target ${config.target}: ${new URL(backend.url).host}`);
 
   const bots: Bot[] = [];
@@ -36,6 +37,8 @@ async function main() {
           code: config.code,
           swipeMs: config.swipeMs,
           likeRate: config.likeRate,
+          seed: config.seed,
+          personality: config.personality,
           log: console.log,
         }),
       );
