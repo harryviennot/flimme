@@ -28,6 +28,7 @@ import { useRevealHold } from '@/features/finale/use-reveal-hold';
 import { useMatchOverlay } from '@/features/match/use-match-overlay';
 import { ShortlistProvider, useShortlist, useShortlistHold } from '@/features/shortlist';
 import { useOnline } from '@/features/network';
+import { useIsSolo, useSoloDealFallback, useSoloEnd } from '@/features/solo/use-solo-room';
 import { rememberRoomScreen } from '@/features/winner/arrival';
 import { tokens } from '@/theme/generated/tokens';
 
@@ -57,8 +58,15 @@ export default function RoomLayout() {
     (room.data === null || (seats.isSuccess && mine === null));
   const state = notSeated ? undefined : room.data?.state;
   const code = room.data?.code;
+  // A solo room (swipe.md#solo): never kept for the launch rejoin, no lobby, and an end with no
+  // pick sends the phone to Play with a note.
+  const solo = useIsSolo(id);
+  const mode = room.data?.mode;
+  // A solo session is not a game played: the group count leaves it out (M6.46 has its own events).
+  useCountGame(id, solo ? undefined : state);
+  const soloHold = useSoloEnd(id ?? '', state, solo);
+  useSoloDealFallback(id ?? '', state, solo);
 
-  useCountGame(id, state);
   useHeartbeat(id, room.data !== null);
   useRefreshOnForeground(id);
   const realtime = useRoomChannels(id);
@@ -78,9 +86,9 @@ export default function RoomLayout() {
       return;
     }
     if (!state || !code || !mine) return;
-    if (state === 'done' || state === 'abandoned') forget(id);
+    if (state === 'done' || state === 'abandoned' || solo) forget(id);
     else keep({ id, code });
-  }, [id, notSeated, state, code, mine, keep, forget, exitToHome, exitRemoved, room.data]);
+  }, [id, notSeated, state, code, mine, solo, keep, forget, exitToHome, exitRemoved, room.data]);
 
   // The match overlay plays over the swipe screen: the room is already `done`, and the layout
   // holds its route change until the overlay hands over (match.md#the-sequence).
@@ -103,7 +111,7 @@ export default function RoomLayout() {
   useFinalePreload(id, realtime);
 
   useEffect(() => {
-    if (match.holdRoute || shortlistHold) return;
+    if (match.holdRoute || shortlistHold || soloHold) return;
     if (revealHold) {
       // A phone still on the swipe screen when the round closed shows the reveal on the Final Cut,
       // once there is a reveal to show: while it is still being looked for, the route stays put.
@@ -113,11 +121,21 @@ export default function RoomLayout() {
       }
       return;
     }
-    if (!id || !state || !current || isAllowed(state, current)) return;
+    if (!id || !state || !current || isAllowed(state, current, mode)) return;
     // A sheet goes first, so the state's screen replaces the room screen under it.
     if (isSheet(current)) router.dismiss();
-    router.replace(`/room/${id}/${roomScreenFor(state)}`);
-  }, [id, state, current, match.holdRoute, shortlistHold, revealHold, revealPlaying]);
+    router.replace(`/room/${id}/${roomScreenFor(state, mode)}`);
+  }, [
+    id,
+    state,
+    mode,
+    current,
+    match.holdRoute,
+    shortlistHold,
+    soloHold,
+    revealHold,
+    revealPlaying,
+  ]);
 
   if (online && (room.isError || seats.isError) && !room.data) {
     return (
@@ -137,6 +155,7 @@ export default function RoomLayout() {
           roomId={id ?? ''}
           active={!current || !isSheet(current)}
           finished={state === 'done' || state === 'abandoned'}
+          solo={solo}
         >
           <View className="flex-1">
             <Stack
@@ -185,6 +204,16 @@ export default function RoomLayout() {
                   gestureEnabled: true,
                   sheetGrabberVisible: true,
                   sheetAllowedDetents: 'fitToContents',
+                }}
+              />
+              <Stack.Screen
+                name="pick"
+                options={{
+                  presentation: 'formSheet',
+                  // The stack turns gestures off for the room; a sheet still swipes down.
+                  gestureEnabled: true,
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: [0.8],
                 }}
               />
               <Stack.Screen

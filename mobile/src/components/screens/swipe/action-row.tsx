@@ -25,6 +25,8 @@ export type ActionRowProps = {
   onAnswer: (kind: AnswerKind) => void;
   /** Which button a dragged card lights (`LIT`). */
   lit: SharedValue<number>;
+  /** Solo: super likes never run out, so the button shows no count. */
+  hideSuperCount?: boolean;
 };
 
 export function ActionRow({
@@ -35,6 +37,7 @@ export function ActionRow({
   onUndo,
   onAnswer,
   lit,
+  hideSuperCount = false,
 }: ActionRowProps) {
   const { t } = useTranslation('swipe');
   const [litCode, setLitCode] = useState<number>(LIT.none);
@@ -70,12 +73,14 @@ export function ActionRow({
       <Column>
         <SwipeAction
           kind="super"
-          left={superLikesLeft}
+          left={hideSuperCount ? undefined : superLikesLeft}
           disabled={!canAnswer || superLikesLeft <= 0}
           accessibilityLabel={
-            superLikesLeft > 0
-              ? t('a11y.superLeft', { count: superLikesLeft })
-              : t('a11y.superNone')
+            hideSuperCount
+              ? t('a11y.actions.superLike')
+              : superLikesLeft > 0
+                ? t('a11y.superLeft', { count: superLikesLeft })
+                : t('a11y.superNone')
           }
           onPress={() => onAnswer('super_like')}
         />

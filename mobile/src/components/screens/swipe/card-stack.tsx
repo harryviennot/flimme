@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
@@ -11,6 +12,11 @@ import { STACK_STEP, type Direction } from '@/features/swipe/feel';
 import type { Flying } from '@/features/swipe/use-flights';
 import type { Swipe } from '@/features/swipe/use-swipe';
 import { formatList } from '@/features/lobby/names';
+
+import { CheckpointCard } from '@/components/screens/solo/checkpoint-card';
+import { CapCard, OutOfFilmsCard } from '@/components/screens/solo/end-cards';
+import { useLeaveSoloTo } from '@/features/solo/leave';
+import { likesOf } from '@/features/solo/session';
 
 import { DoneCard, LoadingCard, WaitingCard } from './status-cards';
 import { SwipeCard } from './swipe-card';
@@ -80,6 +86,14 @@ export function CardStack({
   const status = useStore(stack, (s) => s.status);
   const liked = useStore(stack, (s) => s.liked);
   const flipped = useStore(stack, (s) => s.flipped);
+  const capped = useStore(stack, (s) => s.capped);
+  // Solo (swipe.md#solo): the session's likes feed the checkpoint and the end cards.
+  const entries = useStore(swipe.soloSession, (s) => s.entries);
+  const checkpoint = useStore(swipe.soloSession, (s) => s.open);
+  const likes = likesOf(entries);
+  const checkpointOn = swipe.solo && checkpoint !== null && mounted.length > 0;
+  const leaveTo = useLeaveSoloTo(roomId);
+  const openPick = () => router.push(`/room/${roomId}/pick`);
 
   const onLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -172,6 +186,17 @@ export function CardStack({
           {mounted.length === 0 ? (
             status === 'waiting_offline' ? (
               <WaitingCard size={size} />
+            ) : status === 'empty' && swipe.solo ? (
+              <SoloEnd
+                capped={capped}
+                size={size}
+                screenWidth={screen.width}
+                likes={likes}
+                imageBase={swipe.imageBase}
+                onPick={openPick}
+                onMyFilms={leaveTo.myFilms}
+                onHost={leaveTo.host}
+              />
             ) : status === 'empty' ? (
               <DoneCard size={size} roomId={roomId} liked={liked} />
             ) : (
@@ -201,7 +226,7 @@ export function CardStack({
               dragProgress={dragProgress}
               lit={lit}
               dragging={dragging}
-              locked={swipe.locked || swipe.beating}
+              locked={swipe.locked || swipe.beating || checkpointOn}
               a11y={{ label: labelOf(card), actions, onAction }}
               asksSeen={asksSeen}
               onHold={onHold}
@@ -211,8 +236,23 @@ export function CardStack({
               onLanded={landed}
             />
           ))}
+          {checkpointOn ? (
+            <CheckpointCard
+              size={size}
+              screen={screen}
+              likes={likes}
+              imageBase={swipe.imageBase}
+              onPick={openPick}
+              onDismiss={() => swipe.soloSession.getState().dismiss()}
+            />
+          ) : null}
         </View>
       ) : null}
     </View>
   );
+}
+
+/** No card left in a solo session: the day's cap, or every film of the filters. */
+function SoloEnd({ capped, ...props }: { capped: boolean } & React.ComponentProps<typeof CapCard>) {
+  return capped ? <CapCard {...props} /> : <OutOfFilmsCard {...props} onHost={undefined} />;
 }

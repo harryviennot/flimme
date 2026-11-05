@@ -14,6 +14,9 @@ import { ROOM_KEY, useKeptRoom, useRoom, useRoomEvent } from '@/features/room';
 import { useRoomRealtime } from '@/features/room/realtime';
 import { useShortlistView } from '@/features/shortlist/context';
 import i18n from '@/i18n';
+import { markCapReached } from '@/features/solo/cap';
+import { soloSessionOf } from '@/features/solo/session';
+import { useIsSolo } from '@/features/solo/use-solo-room';
 import { duration } from '@/theme/motion';
 
 import { createAnswerer, type AnswerKind } from './answer';
@@ -40,6 +43,10 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   const config = useAppConfig().data;
   // Whether "Seen it" asks the rewatch question; unknown means it doesn't (the film just leaves).
   const seenRule = useRoom(roomId).data?.seen_rule;
+  // A solo room (swipe.md#solo): its answers feed the session (likes count, checkpoint), its votes
+  // are sent without a kept room, and nobody else hears the phone's presence.
+  const solo = useIsSolo(roomId);
+  const [soloSession] = useState(() => soloSessionOf(roomId));
   // What callbacks made once need to read fresh: the channels and whether the room moved on.
   const [live] = useState(() =>
     createStore(() => ({
@@ -47,8 +54,12 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       locked: false,
       beating: false,
       shortlisted: new Set<number>() as ReadonlySet<number>,
+      solo: false,
     })),
   );
+  useEffect(() => {
+    live.setState({ solo });
+  }, [live, solo]);
   // The shortlisted beat (moments.md#the-shortlisted-beat): the stack takes no input while it
   // plays, and a film on the shortlist leaves this phone's stack.
   const shortlist = useShortlistView();
@@ -79,6 +90,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
           voteQueue.has(roomId, titleId) ||
           live.getState().shortlisted.has(titleId),
         now: () => Date.now(),
+        onDailyLimit: () => markCapReached(),
       },
       { imageBase: config?.tmdb_image_base, screenWidth },
     ),
@@ -90,12 +102,14 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       queue: voteQueue,
       roomId,
       memberId: seat.member_id,
+      solo: () => live.getState().solo,
       initialSuperLikes: seat.super_likes_left ?? 0,
       // What the server counted plus what is still waiting on this phone.
       initialCount: seat.swipe_count + voteQueue.pending(roomId),
       locked: () => live.getState().locked || live.getState().beating,
       now: () => Date.now(),
       onCount: (count) => {
+        if (live.getState().solo) return;
         live.getState().realtime?.setPresence({ swipe_count: count, done: false });
       },
     }),
@@ -110,6 +124,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       queue: voteQueue,
       roomId,
       memberId: seat.member_id,
+      solo: () => live.getState().solo,
       locked: () => live.getState().locked || live.getState().beating,
     }),
   );
@@ -134,6 +149,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
         answered.add(done.card.title_id);
         thrown.set(done.card.title_id, done.card);
         undoer.record(done.card, kind);
+        soloSession.getState().answer(done.card, kind);
         if (kind === 'super_like') refunded.delete(done.card.title_id);
         setReturning(null);
         setSuperLikesLeft(answerer.superLikesLeft());
@@ -141,7 +157,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       }
       return done;
     },
-    [answerer, answered, thrown, undoer, refunded],
+    [answerer, answered, thrown, undoer, refunded, soloSession],
   );
 
   /** `direction` is the side the card left from (a No to the rewatch question goes left). */
@@ -151,6 +167,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       if (!back) return null;
       const titleId = back.card.title_id;
       answered.delete(titleId);
+      soloSession.getState().undo(titleId);
       if (back.kind === 'super_like' && !refunded.has(titleId)) {
         refunded.add(titleId);
         answerer.giveBackSuperLike();
@@ -166,7 +183,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       setReturning({ ...back, direction });
       return back;
     },
-    [undoer, answered, answerer, refunded, live],
+    [undoer, answered, answerer, refunded, live, soloSession],
   );
 
   // Undo wakes with the first answer and sleeps after use, or when the room moves on.
@@ -303,8 +320,8 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   // The queue flushes once the room is the kept one (it drops votes of any other room), when
   // the phone comes back online and when the app returns to the foreground.
   useEffect(() => {
-    if (kept === roomId && online) void voteQueue.flush();
-  }, [kept, roomId, online]);
+    if ((kept === roomId || solo) && online) void voteQueue.flush();
+  }, [kept, roomId, online, solo]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state !== 'active' || !online) return;
@@ -341,6 +358,8 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     returning,
     superLikesLeft,
     waitingVotes,
+    solo,
+    soloSession,
     locked,
     seenRule,
     online,

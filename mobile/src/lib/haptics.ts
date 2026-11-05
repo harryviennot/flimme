@@ -34,6 +34,8 @@ export const haptics = {
   veto: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)),
   /** Each of the countdown's last 5 seconds. */
   countdown: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)),
+  /** A solo checkpoint card is on top: one Light impact, softer than `throw` (moments.md#the-checkpoint). */
+  checkpoint: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)),
   /** A refusal: a wrong code, an action that isn't allowed. */
   error: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)),
 };

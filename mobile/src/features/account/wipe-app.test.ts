@@ -74,6 +74,8 @@ describe('wipeLocalData, on the real stores', () => {
       'hints',
       'games',
       'vote-queue',
+      'solo-cap',
+      'solo-leaves',
       'dev',
     ]);
     const root = join(__dirname, '..');
