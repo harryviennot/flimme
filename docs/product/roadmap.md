@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 151 of 280 tasks done.
+Progress: 152 of 280 tasks done.
 
 ```mermaid
 flowchart LR
@@ -476,7 +476,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: every state of the top bar's spec is shown, checked in a three-player touch run.
 - [x] **M6.31** The Final Cut's reveal · app · M · needs M6.15 · [game-modes](game-modes.md#the-finale)
   Done when: the reveal plays once per room on every phone, and a phone that missed the event plays it after reading the candidates.
-- [ ] **M6.32** The winner screen's runners-up, with who liked them in Party mode after the pick · app · M · needs M6.16, M6.47, M6.48 · [game-modes](game-modes.md#after-the-pick)
+- [x] **M6.32** The winner screen's runners-up, with who liked them in Party mode after the pick · app · M · needs M6.16, M6.47, M6.48 · [game-modes](game-modes.md#after-the-pick)
   Done when: the runners-up show after the pick, and in Party mode each one names who liked it.
 - [x] **M6.33** The shortlist's beat and specs: the shortlisted beat, the match overlay only for a pick, the swipe screen's shortlist, the Final Cut with 2 films and its intro line · design · M · [proposal](three-matches-and-fair-finalists.md#option-1a-a-shortlist-of-up-to-3-matches-recommended), [moments](../design/moments.md#the-match)
   Done when: the shortlisted beat is in moments.md, and the swipe, match and Final Cut specs cover it in French and English.
