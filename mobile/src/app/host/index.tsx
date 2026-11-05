@@ -30,6 +30,7 @@ import {
 } from '@/features/host/settings';
 import { useOnline } from '@/features/network';
 import { useMyProfile } from '@/features/profile';
+import { trackRoomCreated } from '@/features/analytics/events';
 import { haptics } from '@/lib/haptics';
 import { reportError } from '@/lib/sentry';
 
@@ -92,11 +93,17 @@ export default function HostScreen() {
       setOpening(false);
     }
     switch (outcome.kind) {
-      case 'opened':
+      case 'opened': {
+        // The room's cap isn't read yet: both events wait for the room layout (kids' rule).
+        trackRoomCreated({
+          serviceCount: selection.length,
+          runtimeMax: toRoomSettings(time, age).runtime_max,
+        });
         client.setQueryData(MY_PROVIDERS_KEY, selection);
         leaveOldSeat(outcome.roomId, oldRoomId);
         router.replace(`/room/${outcome.roomId}/lobby`);
         return;
+      }
       case 'name_required':
         router.push('/name?edit=1');
         return;

@@ -145,7 +145,7 @@ Besides PostHog's own app lifecycle events (`Application Installed`, `Applicatio
 | `lobby:taste_check_finish` | It ends with answers | `answered_count`, `dont_know_count` |
 | `lobby:taste_check_skip` | It's skipped or the game starts first | `answered_count`, `is_game_started` |
 | `game:first_card_view` | The first card is drawn, once per seat per game | `ms_since_swiping`, `ms_since_link_open` (joined by link only), `mode`, `room_size` (`2`, `3_4`, `5_10`) |
-| `game:hint_show` | A first-game hint appears | `hint` (`swipe`, `seen_it`, `super_like`, `undo`) |
+| `game:hint_show` | A first-game hint appears | `hint` (`swipe`, `seen_it`, `flip`, `super_like`; once per hint per game) |
 | `game:nothing_left_view` | The "Nothing left" screen shows | `is_host` |
 | `winner:view` | The winner screen shows | `outcome` (`match`, `finale`), `room_size` |
 | `winner:watch_page_open` | "More details" opens TMDB's watch page | |
@@ -160,7 +160,7 @@ Besides PostHog's own app lifecycle events (`Application Installed`, `Applicatio
 | `letterboxd:upload_finish` | The server answers the upload | `status` (`ok`, `rss_mismatch`, `error`) |
 | `account:save_start` | Save account with Apple or Google is tapped | `provider`, `placement` |
 | `account:save_finish` | It returns | `status` (`linked`, `existing_account`, `cancel`, `error`) |
-| `error:view` | An error screen or banner shows | `code` (`room_closed`, `offline`, `update_required`, ...), `screen` |
+| `error:view` | An error screen or banner shows | `code` (`room_closed`, `offline`, `reconnecting`, `update_required`, `unexpected`), `screen` (the route pattern) |
 
 Registered on every event, and set on the person: `language`, `country`, `has_account`, `has_letterboxd`, `games_played` (`0`, `1`, `2_4`, `5_plus`). PostHog adds the app version and platform itself.
 

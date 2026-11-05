@@ -18,17 +18,111 @@ export const INSTALL_ID_MONTHS = 13;
 export const KIDS_AGE = 13;
 const STATE_KEY = 'analytics.state';
 
+type Rule = readonly string[] | 'number' | 'boolean' | 'route' | 'country';
+
 /**
- * The events and the only values their properties may take. A string property is a closed list
- * (never a name, a code or a title); a number or a boolean is checked by its type. M9.2 adds the
- * rest of the first release's events here. `$screen` carries the route pattern and no property.
+ * The events and the only values their properties may take (analytics.md#events). A string
+ * property is a closed list (never a name, a code or a title); a number or a boolean is checked by
+ * its type; `route` is a route pattern. A typo in a name or a property doesn't compile. `$screen`
+ * carries the route pattern and no property. Later features add their events here.
  */
 export const ANALYTICS_EVENTS = {
   $screen: {},
-} as const satisfies Record<string, Record<string, readonly string[] | 'number' | 'boolean'>>;
+  'onboarding:name_submit': { has_avatar: 'boolean', source: ['invite', 'organic'] },
+  'join:link_open': { has_room_ref: 'boolean' },
+  'join:code_submit': { via: ['code', 'qr'] },
+  'join:attempt_finish': {
+    via: ['link', 'code', 'qr', 'rejoin', 'play_again'],
+    status: [
+      'ok',
+      'not_found',
+      'closed',
+      'full',
+      'starting',
+      'in_finale',
+      'name_required',
+      'rate_limited',
+      'locked',
+      'removed',
+      'unknown',
+    ],
+  },
+  'room:create_finish': {
+    mode: ['quick_match'],
+    mood_count: 'number',
+    has_time_budget: 'boolean',
+    seen_rule: ['hide_seen', 'allow_rewatch', 'show_all'],
+    quality: ['standard', 'hidden_gems', 'guilty_pleasures'],
+    service_count: 'number',
+  },
+  'room:invite_share': { method: ['share_sheet', 'qr_show', 'code_copy'] },
+  'lobby:services_submit': {
+    service_count: 'number',
+    step: ['room_setup', 'lobby', 'settings'],
+  },
+  'game:first_card_view': {
+    ms_since_swiping: 'number',
+    ms_since_link_open: 'number',
+    mode: ['quick_match'],
+    room_size: ['2', '3_4', '5_10'],
+  },
+  'game:hint_show': { hint: ['swipe', 'seen_it', 'flip', 'super_like', 'undo'] },
+  'game:nothing_left_view': { is_host: 'boolean' },
+  'winner:view': { outcome: ['match', 'finale'], room_size: ['2', '3_4', '5_10'] },
+  'winner:watch_page_open': {},
+  'error:view': {
+    code: ['room_closed', 'offline', 'reconnecting', 'update_required', 'unexpected'],
+    screen: 'route',
+  },
+} as const satisfies Record<string, Record<string, Rule>>;
+
+/** Properties an event may leave out. */
+type OptionalProps = { 'game:first_card_view': 'ms_since_link_open' };
+
+/** Registered on every event, and set on the person in identified mode (analytics.md#events). */
+export const REGISTERED_PROPS = {
+  language: ['fr', 'en'],
+  country: 'country',
+  has_account: 'boolean',
+  has_letterboxd: 'boolean',
+  games_played: ['0', '1', '2_4', '5_plus'],
+} as const satisfies Record<string, Rule>;
+
+type ValueOf<R> = R extends readonly (infer V)[]
+  ? V
+  : R extends 'number'
+    ? number
+    : R extends 'boolean'
+      ? boolean
+      : string;
+type OptionalOf<E> = E extends keyof OptionalProps ? OptionalProps[E] : never;
+type PropsOf<R extends Record<string, Rule>, O extends string> = [keyof R] extends [never]
+  ? Record<string, never>
+  : { [K in Exclude<keyof R, O>]: ValueOf<R[K]> } & { [K in Extract<keyof R, O>]?: ValueOf<R[K]> };
 
 export type AnalyticsEvent = keyof typeof ANALYTICS_EVENTS;
+/** The properties an event takes: required ones as in the list, optional ones marked above. */
+export type EventProps<E extends AnalyticsEvent> = PropsOf<
+  (typeof ANALYTICS_EVENTS)[E],
+  OptionalOf<E>
+>;
+/** `track`'s second argument: absent for an event with no required property. */
+type TrackArgs<E extends AnalyticsEvent> =
+  {} extends EventProps<E> ? [props?: EventProps<E>] : [props: EventProps<E>];
+export type RegisteredProps = Partial<{
+  [K in keyof typeof REGISTERED_PROPS]: ValueOf<(typeof REGISTERED_PROPS)[K]>;
+}>;
 export type AnalyticsProps = Record<string, string | number | boolean>;
+
+/** The bucket of games this install has seen reach swiping. */
+export function gamesPlayedBucket(count: number): '0' | '1' | '2_4' | '5_plus' {
+  if (count <= 0) return '0';
+  if (count === 1) return '1';
+  return count <= 4 ? '2_4' : '5_plus';
+}
+
+/** How long an event waits for its room's cap to be read. */
+const HOLD_MS = 15_000;
 
 /** What the phone is in: no room, a room with its cap (null: none), or a room not read yet. */
 export type RoomCap = number | null | 'unknown';
@@ -43,7 +137,7 @@ export type LogEntry = {
 };
 
 export type Client = {
-  identify(distinctId: string): unknown;
+  identify(distinctId: string, properties?: AnalyticsProps): unknown;
   reset(): unknown;
   optOut(): unknown;
   optIn(): unknown;
@@ -81,13 +175,28 @@ function addMonths(time: number, months: number): number {
   return date.getTime();
 }
 
-function checkProps(event: AnalyticsEvent, props: AnalyticsProps | undefined): string | null {
-  const allowed: Record<string, readonly string[] | 'number' | 'boolean'> = ANALYTICS_EVENTS[event];
+function checkProps(
+  event: string,
+  allowed: Record<string, Rule>,
+  props: AnalyticsProps | undefined,
+): string | null {
   for (const [name, value] of Object.entries(props ?? {})) {
     const rule = allowed[name];
     if (rule === undefined) return `${event}: unknown property ${name}`;
-    if (rule === 'number' || rule === 'boolean') {
-      if (typeof value !== rule) return `${event}.${name} must be a ${rule}`;
+    if (rule === 'number') {
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        return `${event}.${name} must be a number`;
+      }
+    } else if (rule === 'boolean') {
+      if (typeof value !== 'boolean') return `${event}.${name} must be a boolean`;
+    } else if (rule === 'route') {
+      if (typeof value !== 'string' || !SCREEN_PATTERN.test(value)) {
+        return `${event}.${name} is not a route pattern`;
+      }
+    } else if (rule === 'country') {
+      if (typeof value !== 'string' || !/^[A-Z]{2}$/.test(value)) {
+        return `${event}.${name} is not a country code`;
+      }
     } else if (typeof value !== 'string' || !rule.includes(value)) {
       return `${event}.${name} is not one of its allowed values`;
     }
@@ -104,6 +213,9 @@ export function createAnalytics(deps: AnalyticsDeps) {
   // The one screen seen while the room's cap was not known yet: sent if the room turns out open,
   // dropped if it is capped. Nothing else is ever held.
   let waitingScreen: string | null = null;
+  // Events about a room not entered yet, waiting for its cap (trackWhenRoomKnown).
+  let held: { event: AnalyticsEvent; props?: AnalyticsProps; at: number }[] = [];
+  let registered: RegisteredProps = {};
 
   let client: Client | null = null;
   let clientProfiles: 'never' | 'identified_only' | null = null;
@@ -200,7 +312,8 @@ export function createAnalytics(deps: AnalyticsDeps) {
     if (next === 'identified' && profileId && identifiedAs !== profileId) {
       if (identifiedAs) call('reset', (c) => c.reset());
       const id = profileId;
-      call('identify', (c) => c.identify(id));
+      const person = { ...registered };
+      call('identify', (c) => c.identify(id, person));
       identifiedAs = profileId;
     }
     if (before !== next || saved?.since !== since) write({ mode: next, since });
@@ -218,12 +331,21 @@ export function createAnalytics(deps: AnalyticsDeps) {
   const roomUnknown = (pattern?: string) =>
     room === 'unknown' || (room === undefined && !!pattern?.startsWith('/room/'));
 
-  function guard(event: AnalyticsEvent, props?: AnalyticsProps, pattern?: string): boolean {
-    const problem = checkProps(event, props);
+  function valid(event: AnalyticsEvent, props?: AnalyticsProps): boolean {
+    const rules = (ANALYTICS_EVENTS as Record<string, Record<string, Rule> | undefined>)[event];
+    const problem = !rules
+      ? `unknown event ${event}`
+      : (checkProps(event, rules, props) ??
+        checkProps('registered', REGISTERED_PROPS as Record<string, Rule>, registered));
     if (problem) {
       if (deps.dev) throw new Error(`analytics: ${problem}`);
       return false;
     }
+    return true;
+  }
+
+  function guard(event: AnalyticsEvent, props?: AnalyticsProps, pattern?: string): boolean {
+    if (!valid(event, props)) return false;
     const reason = blockedReason(pattern);
     if (reason) {
       log({ kind: 'dropped', name: event, reason });
@@ -233,20 +355,73 @@ export function createAnalytics(deps: AnalyticsDeps) {
   }
 
   function send(pattern: string) {
-    log({ kind: 'event', name: '$screen', props: { screen: pattern } });
-    if (client) void Promise.resolve(client.screen(pattern)).catch(() => undefined);
+    log({ kind: 'event', name: '$screen', props: { screen: pattern, ...registered } });
+    if (client) {
+      void Promise.resolve(client.screen(pattern, { ...registered })).catch(() => undefined);
+    }
+  }
+
+  function sendEvent(event: AnalyticsEvent, props?: AnalyticsProps) {
+    const all = { ...props, ...registered };
+    log({ kind: 'event', name: event, props: all });
+    if (client) void Promise.resolve(client.capture(event, all)).catch(() => undefined);
+  }
+
+  function flushHeld() {
+    const now = deps.now();
+    const waiting = held;
+    held = [];
+    for (const item of waiting) {
+      if (now - item.at > HOLD_MS) continue;
+      const reason = blockedReason();
+      if (reason) log({ kind: 'dropped', name: item.event, reason });
+      else sendEvent(item.event, item.props);
+    }
   }
 
   return {
     /**
-     * M9.2: an event fired from a room screen relies on the room layout having reported its cap
-     * first (effects run child first); `track` has no route to check, unlike `screen`.
+     * Sends an event, unless the player opted out or the phone is in a room capped under 13. An
+     * event fired from a room screen relies on the room layout having reported its cap first;
+     * `track` has no route to check, unlike `screen`.
      */
-    /** Sends an event, unless the player opted out or the phone is in a room capped under 13. */
-    track(event: AnalyticsEvent, props?: AnalyticsProps): void {
+    track<E extends AnalyticsEvent>(event: E, ...args: TrackArgs<E>): void {
+      const props = args[0] as AnalyticsProps | undefined;
       if (!guard(event, props)) return;
-      log({ kind: 'event', name: event, props });
-      if (client) void Promise.resolve(client.capture(event, props)).catch(() => undefined);
+      sendEvent(event, props);
+    },
+
+    /**
+     * An event about a room the phone is not in yet (a join, a room just opened): sent once the
+     * room layout has read the room's cap, dropped if the room is capped under 13 or the cap does
+     * not arrive within a few seconds.
+     */
+    trackWhenRoomKnown<E extends AnalyticsEvent>(event: E, ...args: TrackArgs<E>): void {
+      const props = args[0] as AnalyticsProps | undefined;
+      if (!valid(event, props)) return;
+      if (forgottenFor) {
+        log({ kind: 'dropped', name: event, reason: 'forgotten' });
+        return;
+      }
+      // The mode is checked when the event leaves: at a cold start it is not applied yet.
+      // Always wait for the next room cap: the phone may be in another room now, whose cap says
+      // nothing about the room this event is about.
+      held = [...held.slice(-4), { event, props, at: deps.now() }];
+    },
+
+    /** The values every event carries (analytics.md#events); set on the person when identified. */
+    setRegistered(next: RegisteredProps): void {
+      const problem = checkProps('registered', REGISTERED_PROPS as Record<string, Rule>, next);
+      if (problem) {
+        if (deps.dev) throw new Error(`analytics: ${problem}`);
+        return;
+      }
+      registered = { ...next };
+      if (mode === 'identified' && identifiedAs) {
+        const id = identifiedAs;
+        const person = { ...registered };
+        call('identify', (c) => c.identify(id, person));
+      }
     },
 
     /** A screen view from the route pattern (`/join/[code]`, never the code). */
@@ -269,6 +444,7 @@ export function createAnalytics(deps: AnalyticsDeps) {
       if (cap === 'unknown') return;
       waitingScreen = null;
       if (waiting && !blockedReason(waiting)) send(waiting);
+      flushHeld();
     },
     /** The phone left every room. */
     clearRoomCap(): void {
@@ -304,6 +480,7 @@ export function createAnalytics(deps: AnalyticsDeps) {
     forget(): void {
       forgottenFor = { id: profileId };
       waitingScreen = null;
+      held = [];
       ensureClient(clientProfiles ?? 'never');
       // Events queued offline carry the deleted person's id: they must never be sent.
       call('clearQueue', (c) => c.setPersistedProperty?.('queue', null));

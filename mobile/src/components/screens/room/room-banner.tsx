@@ -4,6 +4,7 @@ import { AccessibilityInfo, Platform } from 'react-native';
 
 import { Banner } from '@/components/ui/banner';
 import { useRoomConnection } from '@/features/room';
+import { useTrackErrorView } from '@/lib/use-track-error';
 
 /**
  * The room's connection banner (reconnecting.md). Each room screen places it directly under its
@@ -21,6 +22,7 @@ export function RoomBanner({
   const { t } = useTranslation('common');
   const { banner } = useRoomConnection(roomId);
   const shown = banner !== null;
+  useTrackErrorView(banner === null ? null : banner === 'offline' ? 'offline' : 'reconnecting');
 
   // Screen readers on iOS don't read live regions: say it once when the banner appears, not
   // again when its message changes on a retry.

@@ -279,6 +279,7 @@ describe('what an event may carry', () => {
     t.analytics.setRegion({ deviceRegion: 'US', profileCountry: 'US' });
     expect(() => t.analytics.screen('/join/482913')).toThrow('route pattern');
     expect(() => t.analytics.screen('/room/3f2c0b1e-aaaa/lobby')).toThrow('route pattern');
+    // @ts-expect-error an unknown property doesn't compile
     expect(() => t.analytics.track('$screen', { name: 'Léa' })).toThrow('unknown property');
     expect(sent(t.calls)).toEqual([]);
   });
