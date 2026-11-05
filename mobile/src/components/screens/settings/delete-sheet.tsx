@@ -24,11 +24,11 @@ export function DeleteSheet() {
   // At the largest text sizes the sheet takes a tall detent, drops its icon and tightens up, so
   // the text and the two buttons fit (a ScrollView inside a formSheet draws nothing here).
   const { fontScale } = useWindowDimensions();
-  const scrolls = fontScale > 1.3;
+  const compact = fontScale > 1.3;
 
   const content = (
     <>
-      {scrolls ? null : (
+      {compact ? null : (
         <View className="size-16 items-center justify-center rounded-pill bg-nope-soft">
           <Icon name="alert" size={28} color="nope-text" />
         </View>
@@ -58,14 +58,14 @@ export function DeleteSheet() {
   );
 
   return (
-    <View className={scrolls ? 'flex-1 bg-bg-canvas' : 'bg-bg-canvas'}>
+    <View className={compact ? 'flex-1 bg-bg-canvas' : 'bg-bg-canvas'}>
       <Stack.Screen
         options={{
           gestureEnabled: !deleting,
-          sheetAllowedDetents: scrolls ? [0.9] : 'fitToContents',
+          sheetAllowedDetents: compact ? [0.9] : 'fitToContents',
         }}
       />
-      <View className={scrolls ? 'flex-1 items-center gap-3 p-4' : 'items-center gap-4 p-5'}>
+      <View className={compact ? 'flex-1 items-center gap-3 p-4' : 'items-center gap-4 p-5'}>
         {content}
       </View>
       <View className="gap-3 px-5" style={{ paddingBottom: Math.max(insets.bottom, 20) }}>
