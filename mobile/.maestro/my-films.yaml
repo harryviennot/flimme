@@ -22,7 +22,9 @@ appId: com.harryviennot.flimme.dev
 - takeScreenshot: my-films-liked
 # The chips each read their own list; Solo is empty until solo mode ships.
 - tapOn: 'With friends'
-- assertVisible: '.*picked on a movie night.*'
+- extendedWaitUntil:
+    visible: '.*picked on a movie night.*'
+    timeout: 15000
 - tapOn: 'Solo'
 - extendedWaitUntil:
     visible: 'Films you like on your own land here.'
@@ -40,9 +42,11 @@ appId: com.harryviennot.flimme.dev
 - extendedWaitUntil:
     visible: 'Mark as seen'
     timeout: 20000
-- assertVisible: 'Where to watch'
+- scrollUntilVisible:
+    element: 'Where to watch'
+    timeout: 15000
+- takeScreenshot: my-films-sheet-where-to-watch
 - assertVisible: 'Remove'
-- takeScreenshot: my-films-sheet
 - tapOn: 'Mark as seen'
 - extendedWaitUntil:
     visible: 'Not seen'

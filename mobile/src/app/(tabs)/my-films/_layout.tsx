@@ -17,7 +17,7 @@ export default function MyFilmsLayout() {
         options={{
           presentation: 'formSheet',
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.92],
+          sheetAllowedDetents: [1],
         }}
       />
     </Stack>
