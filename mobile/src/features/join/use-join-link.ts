@@ -12,7 +12,10 @@ import {
   useMyProfile,
   type SubmitOutcome,
 } from '@/features/profile';
+import { trackJoinAttempt } from '@/features/analytics/events';
+import { rememberLinkJoin } from '@/features/analytics/journey';
 import { releaseRoomGuards } from '@/features/room/leave-guard';
+import { track } from '@/lib/analytics';
 import { startSession, useSession, useSessionFailed } from '@/features/session';
 import { haptics } from '@/lib/haptics';
 
@@ -144,11 +147,14 @@ export function useJoinLink(params: Params) {
           return;
         }
         if (result.status === 'ok') {
+          trackJoinAttempt('link', result.status);
+          rememberLinkJoin(result.room_id, receivedAt);
           leaveOldSeat(result.room_id, oldRoomId);
           enterRoom(roomRouteFor(result.room_id, result.state), result.room_id, rootRoutes.current);
           return;
         }
         if (result.status === 'name_required') {
+          trackJoinAttempt('link', result.status);
           setState({
             kind: 'ready',
             host: hostRef.current,
@@ -161,6 +167,7 @@ export function useJoinLink(params: Params) {
         }
         if (row.kind === 'wait') {
           if (tries >= STARTING_RETRIES) {
+            trackJoinAttempt('link', result.status);
             haptics.error();
             setState({
               kind: 'refused',
@@ -176,6 +183,7 @@ export function useJoinLink(params: Params) {
           if (id !== runId.current) return;
           continue;
         }
+        trackJoinAttempt('link', result.status);
         refuse(result.status, result.status === 'full' ? { max: result.max_players } : undefined);
         return;
       }
@@ -233,7 +241,13 @@ export function useJoinLink(params: Params) {
     else void attempt(keepConfirm.current);
   }, [preview, attempt]);
 
+  const opened = useRef(false);
   const start = useCallback(() => {
+    // The link opened the app: once per sheet, after the session answered so analytics is ready.
+    if (!opened.current) {
+      opened.current = true;
+      track('join:link_open', { has_room_ref: !!ref });
+    }
     if (ref) void preview();
     else void attempt(false);
   }, [ref, preview, attempt]);
@@ -296,7 +310,7 @@ export function useJoinLink(params: Params) {
 
   /** Join on the first-time layout: saves the profile, then joins again. */
   const submit = useCallback(
-    async (name: string, color: AvatarColor): Promise<SubmitOutcome> => {
+    async (name: string, color: AvatarColor, hasAvatar = false): Promise<SubmitOutcome> => {
       setSaving(true);
       const outcome = await submitName(name, color, {
         online: onlineRef.current,
@@ -306,6 +320,7 @@ export function useJoinLink(params: Params) {
       switch (outcome.kind) {
         case 'saved':
           applySavedProfile(client, outcome);
+          track('onboarding:name_submit', { has_avatar: hasAvatar, source: 'invite' });
           void attempt(false);
           break;
         case 'invalid':

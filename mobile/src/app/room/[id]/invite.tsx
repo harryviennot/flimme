@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
@@ -13,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { useRoomLock } from '@/features/lobby/use-room-lock';
 import { useMySeat } from '@/features/room';
+import { track } from '@/lib/analytics';
 import { cn } from '@/lib/cn';
 import { layout } from '@/theme/motion';
 import Animated from 'react-native-reanimated';
@@ -26,6 +28,11 @@ export default function RoomInviteScreen() {
   const lock = useRoomLock(id);
   const isHost = useMySeat(id)?.role === 'host';
   const ready = invite.state === 'ready' && invite.link !== undefined;
+
+  // The QR code is on screen: the invite is shown to be scanned, once each time the sheet opens.
+  useEffect(() => {
+    if (ready) track('room:invite_share', { method: 'qr_show' });
+  }, [ready]);
 
   return (
     <Screen>

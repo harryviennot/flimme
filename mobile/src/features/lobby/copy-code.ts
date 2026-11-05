@@ -2,6 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 
 import { showToast, type ToastProps } from '@/components/ui/toast';
+import { track } from '@/lib/analytics';
 import { haptics } from '@/lib/haptics';
 
 type Deps = {
@@ -19,6 +20,7 @@ export async function copyRoomCode(code: string, copiedTitle: string, deps: Deps
     // The clipboard refused: say nothing rather than claim a copy that did not happen.
     return;
   }
+  track('room:invite_share', { method: 'code_copy' });
   deps.toast({ tone: 'success', title: copiedTitle });
 }
 
