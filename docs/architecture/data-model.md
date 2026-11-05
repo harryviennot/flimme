@@ -265,7 +265,7 @@ Whether a profile is a guest is not stored: it is the `is_anonymous` claim in th
 
 **profile_providers**: the services a player has, set with `api.set_my_providers`. Key: (profile_id, provider_id).
 
-**consents**: what a player agreed to and which wording version. Kinds at launch: `letterboxd_import`, `analytics`. One active consent per kind.
+**consents**: what a player agreed to and which wording version. Kinds at launch: `letterboxd_import`, `analytics`. One active consent per kind. An `analytics` row carries `choice` (`on`, `off`, `detailed`), set with `api.set_analytics_choice`; other kinds have none. A change revokes the active row and inserts a new one.
 
 ## 4. Film history and taste
 

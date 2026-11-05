@@ -6,6 +6,7 @@
 import * as z from 'zod/mini';
 
 import type { Json } from './database.types';
+import { ANALYTICS_CHOICES } from './answers';
 import { ROOM_STATES } from './realtime';
 
 const roomState = z.enum(ROOM_STATES);
@@ -145,6 +146,13 @@ export const exportMyDataResult = z.discriminatedUnion('status', [
   z.object({ status: z.literal('rate_limited') }),
 ]);
 export type ExportMyDataResult = z.infer<typeof exportMyDataResult>;
+
+export const setAnalyticsChoiceResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), choice: z.enum(ANALYTICS_CHOICES) }),
+  z.object({ status: z.literal('invalid') }),
+  z.object({ status: z.literal('rate_limited') }),
+]);
+export type SetAnalyticsChoiceResult = z.infer<typeof setAnalyticsChoiceResult>;
 
 export const leaveRoomResult = z.object({ status: z.enum(['ok', 'not_in_room']) });
 export type LeaveRoomResult = z.infer<typeof leaveRoomResult>;
@@ -324,12 +332,30 @@ export type AppConfig = {
   tmdb_image_base?: string;
   /** The invite page's https origin (from M4.18). Missing: invites use the build's scheme. */
   invite_base_url?: string;
+  /** The policy, terms and deletion links and the support address (M8.12). Parse with `parseLegalUrls`. */
+  legal_urls?: unknown;
 };
+
+const perLanguage = z.object({ fr: z.string(), en: z.string() });
+export const legalUrlsSchema = z.object({
+  privacy: perLanguage,
+  terms: perLanguage,
+  deletion: perLanguage,
+  support_email: z.string(),
+});
+export type LegalUrls = z.infer<typeof legalUrlsSchema>;
+
+/** The legal links from `app_config.legal_urls`, or null when missing or malformed (the app hides the rows then). */
+export function parseLegalUrls(value: unknown): LegalUrls | null {
+  const parsed = legalUrlsSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
 
 export const appConfigSchema = z.object({
   min_app_version: z.optional(z.object({ ios: z.string(), android: z.string() })),
   tmdb_image_base: z.optional(z.string()),
   invite_base_url: z.optional(z.string()),
+  legal_urls: z.optional(z.unknown()),
 });
 
 export const myProfileRow = z.object({

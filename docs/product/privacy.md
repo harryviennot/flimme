@@ -104,6 +104,8 @@ Not personal: `rec.title_stats` (per-film totals of in-app reactions) and `lette
 | Notifications | The phone's own prompt, only after "Remind me tomorrow?" | The local reminder | The phone's settings |
 | Identified analytics | Not at launch. Only if we ever want analytics tied to accounts, and never before the first game | | Settings |
 
+The analytics choice (`on`, `off`, `detailed`) is stored as an `analytics` consent row with its wording version, one active row per player and every change kept as history ([analytics](analytics.md#analytics-consent)). The policy, terms and deletion links come from `app_config.legal_urls`.
+
 **Settings switches**, all on by default and described in the privacy policy:
 - "Help improve the app": anonymous analytics.
 - "Use my games to improve recommendations for everyone": training (an objection, not a consent).

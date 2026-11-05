@@ -290,6 +290,9 @@ export type Database = {
 "round_progress":
 { Args: { "p_round_id": string }; Returns: Json
                            },
+"set_analytics_choice":
+{ Args: { "p_choice": "on"|"off"|"detailed","p_version": string }; Returns: Json
+                           },
 "set_my_providers":
 { Args: { "p_provider_ids": (number)[] }; Returns: Json
                            },

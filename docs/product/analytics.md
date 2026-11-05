@@ -189,7 +189,7 @@ How that applies at launch (default, to confirm in the lawyer's review):
 | Advertising and ad measurement, if ads come | Off everywhere | Only with consent, and on iOS only after Apple's tracking prompt. See [If ads come](#if-ads-come) |
 
 - **The region** comes from the device region and the profile's country. When they disagree or are missing, the stricter rule applies.
-- **The opt-out and the opt-in** are stored as an `analytics` consent row with its wording version; turning analytics off calls `optOut` and `reset`.
+- **The opt-out and the opt-in** are stored as an `analytics` consent row with its wording version and a `choice` (`on`, `off` or `detailed`; no row means `on`), written by `api.set_analytics_choice`. Each change revokes the active row and adds a new one, so history stays. Turning analytics off calls `optOut` and `reset`.
 - **The game's own records don't depend on any of this**: rooms, seats and votes exist because the game needs them, and every headline metric comes from the database, whatever a player chose.
 
 ### If ads come

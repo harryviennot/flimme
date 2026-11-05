@@ -16,6 +16,8 @@ import {
   ROOM_PREVIEW_ANSWERS,
   REPORT_MEMBER_ANSWERS,
   EXPORT_MY_DATA_ANSWERS,
+  SET_ANALYTICS_CHOICE_ANSWERS,
+  type AnalyticsChoice,
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
@@ -54,6 +56,8 @@ import {
   roomPreviewResult,
   reportMemberResult,
   exportMyDataResult,
+  setAnalyticsChoiceResult,
+  type SetAnalyticsChoiceResult,
   type ExportMyDataResult,
   leaveRoomResult,
   removeMemberResult,
@@ -206,6 +210,21 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         {},
         EXPORT_MY_DATA_ANSWERS,
         exportMyDataResult,
+      );
+    },
+
+    /** The analytics choice with its wording version (1 to 40 characters). `invalid` and `rate_limited` are answers. */
+    setAnalyticsChoice(args: {
+      choice: AnalyticsChoice;
+      version: string;
+    }): Promise<SetAnalyticsChoiceResult> {
+      return callAnswer(
+        client,
+        options,
+        'set_analytics_choice',
+        { p_choice: args.choice, p_version: args.version },
+        SET_ANALYTICS_CHOICE_ANSWERS,
+        setAnalyticsChoiceResult,
       );
     },
 
