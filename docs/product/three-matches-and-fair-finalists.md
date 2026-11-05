@@ -1,28 +1,54 @@
-# Proposal: up to 3 matches, and finalists for everyone
+# Up to 3 matches, and finalists for everyone
 
-Harry's feedback from a game on staging on 5 November 2026 (his phone and three bots that each like about half the cards at random), turned into rule changes he can answer in one go. Written by the game designer agent on 5 November 2026. It builds on [the modes](game-modes.md#the-modes), [when it's a match](game-modes.md#when-its-a-match), [the finale](game-modes.md#the-finale), [time to a pick](game-modes.md#time-to-a-pick), [the reveal](../design/moments.md#the-reveal) and the [M18 lines of the roadmap](roadmap.md#m18-more-modes-and-host-controls). Nothing here is decided: the answers go in [decisions.md](../decisions.md), then into game-modes.md, and become tasks.
+Harry's feedback from a game on staging on 5 November 2026 (his phone and three bots that each like about half the cards at random), turned into rule changes. Written by the game designer agent on 5 November 2026. It builds on [the modes](game-modes.md#the-modes), [when it's a match](game-modes.md#when-its-a-match), [the finale](game-modes.md#the-finale), [time to a pick](game-modes.md#time-to-a-pick), [the reveal](../design/moments.md#the-reveal) and the [M18 lines of the roadmap](roadmap.md#m18-more-modes-and-host-controls). Harry answered the same day: see [Decided](#decided). The options below are the reasoning behind the answers.
 
 Every number below comes from bots with made-up tastes ([tools/sim/shortlist.mjs](../../tools/sim/shortlist.mjs), on the model in [simulations.md](simulations.md#the-model)). They test mechanics, not fun.
 
 ## Contents
 
-- [The questions](#the-questions)
+- [Decided](#decided)
 - [1. The first match ends the game](#1-the-first-match-ends-the-game)
 - [2. My likes weren't in the Final Cut](#2-my-likes-werent-in-the-final-cut)
 - [The simulation](#the-simulation)
 
-## The questions
+## Decided
 
-Each has a recommended default. Answering "defaults" accepts all of them.
+Harry answered on 5 November 2026. His own answers are questions 1, 2 and 5; the others are the recommended defaults, which he can reverse. All are in [decisions.md](../decisions.md#decided), and [game-modes.md](game-modes.md) now follows them.
 
-1. **Should Quick Match and Date Night keep swiping after a match, and end at the third match (option 1A)?** Default: yes. A match goes on a shortlist, every phone gets a short "It's a match: 1 of 3" beat, and swiping goes on. The other options are a 90-second last call after the first match (1B) or a "Find more" button for the host on the match screen (1C).
-2. **How many matches end the game: 3, or 2?** Default: 3, as a starting value ("Matches that end the game") to tune in playtests.
-3. **When the card count, the time limit or "everyone done" arrives with only 1 match, is that match the pick, with no vote?** Default: yes. The full "It's a match" overlay plays for it then.
-4. **With 2 or 3 matches, is the finale a vote between the matches only, with no other films added, and with 2 films "Pick one" without a veto?** Default: yes. With 0 matches the finale stays as today (with question 7).
-5. **Does it apply to every group size in Quick Match and to Date Night, in Party and Blind alike?** Default: yes. From 5 players the finale stays a ranked vote without vetoes.
-6. **Does it go into the first release as new M6 tasks, before the M6.20 playtest, with the roadmap changed as below?** Default: yes. M18.2 shrinks to what's left of Final Cut mode (a shortlist of 4 with films added), M18.4 Keep swiping is dropped, and Vote now (M18.5, M18.9) also works after the first match.
-7. **Should every present player with a like get a finalist they liked, when there are enough seats (option 2A)?** Default: yes. After the matches, the finale takes the liked film that gives a seat to the most players who have none yet, until everyone with a like has one; today's rank fills the rest.
-8. **Should the Final Cut say once how its films were chosen ("From your likes, with one for each of you when we can"), and never mark which film is whose, not even on your own phone?** Default: yes.
+| # | Question | Answer |
+| --- | --- | --- |
+| 1 | Keep swiping after a match, and end at the third? | **Yes (Harry).** Option 1A. "3 whole room matches should end the game" |
+| 2 | 3 matches, or 2? | **3 (Harry)** |
+| 5 | Which modes? | **Every mode (Harry):** Quick Match, Date Night and Final Cut, in Party and Blind alike. The number is a setting of each mode, so a fast mode can end at its first match ("if we have a blitz mode or fast game mode, first full room match should end the game, but otherwise it should be 3") |
+| 3 | A single match when the finale would start is the pick, with no vote? | Yes (default, Harry can reverse) |
+| 4 | 2 or 3 matches: a vote between the matches only, 2 films without a veto? | Yes (default, Harry can reverse). Final Cut mode seeds 1 or 2 matches first and fills the vote, so it always votes |
+| 6 | New M6 tasks before M6.20, and the roadmap changes below? | Yes (default, Harry can reverse) |
+| 7 | One seat each among the finalists (option 2A)? | Yes (default, Harry can reverse) |
+| 8 | A fixed line on how the films were chosen, and no marks on anyone's films? | Yes (default, Harry can reverse) |
+
+**The per-mode setting.** `game_modes.defaults` gets `matches_to_end`: 3 for `quick_match`, `final_cut` and `date_night`; a missing value reads as 3. A later fast mode (a Blitz) sets 1: its first whole-room match is the pick, the room is done, and the match overlay plays as Quick Match's does today. `game_modes.ends_on_first_match` stays in the table (migrations only add) and becomes false for every launch mode; nothing should read it once `check_card_match` reads `matches_to_end`.
+
+Options 1B, 1C, 2B and 2C below are kept for the record.
+
+### New tasks
+
+For the planner to write briefs. Numbers follow the last M6 task (M6.32); the planner may renumber.
+
+| Task | Type | Size | Needs | What |
+| --- | --- | --- | --- | --- |
+| **M6.33** The shortlist's beat and specs | design | M | | The shortlisted beat in [moments.md](../design/moments.md) (from the draft in [Option 1A](#option-1a-a-shortlist-of-up-to-3-matches-recommended)); moments.md's match beat (the overlay only for a pick); the swipe spec's top bar with the shortlist; the match spec; the Final Cut spec's 2-film layout without a veto and its intro line, in French and English |
+| **M6.34** Matches build a shortlist | backend | L | M6.4, M6.8, M6.30 | `matches_to_end` in `game_modes.defaults` (3 for the three launch modes) and `ends_on_first_match` false, as a data migration. `internal.check_card_match`: a match joins the shortlist, `match` carries `decided: false`, `shortlisted` and `of`; at `matches_to_end` it calls `internal.start_finale` with `shortlist_full`; several matches at once (leave, removal, the sweeper's silence re-check) go most liked first and stop at the setting; a mode with 1 keeps today's instant pick. `rooms.stats` counts the matches. pgTAP for each rule |
+| **M6.35** The finale with a shortlist | backend | L | M6.34, M6.5 | `internal.start_finale`: 2 or 3 matches are the only candidates, seeded most liked first, then group score, then lowest id; with 2, the round is `ranked_vote`; a single match is the pick in Quick Match and Date Night (`only_match`, `pick_order` 1, no round). Final Cut mode's fill is left to M18.2. `api.cast_ballot` and `api.close_round_stage` need no change but get tests with 2 and 3 candidates |
+| **M6.36** One seat each among the finalists | backend | M | M6.4 | `internal.start_finale`'s new rule 2 ([The finalists](game-modes.md#the-finalists)): greedy over the present seats' likes, super likes and rewatch yeses in `votes`; ties to the rank; a player who liked nothing gets no seat; a player who left doesn't count. pgTAP: a player whose likes all rank low, no likes, more uncovered players than seats, ties, a seat that left |
+| **M6.37** The shortlist on the swipe screen | app | L | M6.33, M6.34, M6.14, M6.27 | The shortlisted beat on `match` with `decided: false`; the shortlist's posters in the top bar, read back on a reconnect or a cold start; the match overlay only for a pick, `only_match` included. Strings in French and English. Maestro run on the simulator |
+| **M6.38** The Final Cut with 2 films and its intro line | app | M | M6.33, M6.35, M6.15, M6.31 | The 2-film round without the veto; the reveal with 2 films; the fixed line on how the films were chosen. Strings in French and English |
+
+Roadmap changes that go with them:
+
+- **M6.20** (the playtest) also needs M6.37 and M6.38, and asks every player "was there a film for you in the vote?" and how long the swiping after the first match felt.
+- **M18.2** becomes "Final Cut mode: 1 or 2 matches seeded first and the vote filled to its size".
+- **M18.4** (Keep swiping) is dropped, and **M18.9** keeps only `api.start_finale_now`.
+- **M18.5 and M18.9** (Vote now): also open once the room has a match.
 
 ## 1. The first match ends the game
 
@@ -66,8 +92,8 @@ Copy, proposed: "It's a match: 1 of 3" and « C'est un match : 1 sur 3 »; the t
 
 | Where | Change |
 | --- | --- |
-| The room's rule | A new value, `shortlist_size` (3), in the match rules for `quick_match` and `date_night`, read through `internal.pick_rule`. `game_modes.ends_on_first_match` becomes false for both (an update to seed data, nothing dropped) |
-| `internal.check_card_match` | On a match: mark the card `matched`, insert the `matches` row, then count the room's matches. Below `shortlist_size`: broadcast `match` with `decided: false` and `shortlisted: n, of: 3`. At `shortlist_size`: call `internal.start_finale` with reason `shortlist_full` (the enum value exists). When a leave, a removal or the sweeper makes several films match at once, take them most liked first and stop at the size |
+| The mode's setting | `matches_to_end` in `game_modes.defaults`: 3 for every launch mode, 1 for a later fast mode (decided, see [Decided](#decided)). `game_modes.ends_on_first_match` becomes false (an update to seed data, nothing dropped) |
+| `internal.check_card_match` | On a match: mark the card `matched`, insert the `matches` row, then count the room's matches. Below `matches_to_end`: broadcast `match` with `decided: false` and `shortlisted: n, of: 3`. At `matches_to_end`: call `internal.start_finale` with reason `shortlist_full` (the enum value exists). When a leave, a removal or the sweeper makes several films match at once, take them most liked first and stop at the size |
 | `internal.start_finale` | With 2 or more matches: the candidates are the matches only, seeded most liked first, then group score, then the lowest id; with exactly 2 the round's kind is `ranked_vote` (no veto). With 1 match: it is the pick, as `only_film` today, with `reason: 'only_match'`, and phones play the match overlay. With 0: today's path |
 | `internal.maybe_start_finale` | No change: the card count, the time limit and everyone done stay the triggers |
 | `api.cast_vote` | No change to its answers (`match: true, decided: false` already exists for Final Cut mode). The near miss and propagation skip `matched` cards, as they do today |
@@ -95,8 +121,8 @@ What changes in code: `api.keep_swiping` (M18.9) built now, with the shortlist c
 - **M18.2** (Final Cut mode: matches join a shortlist, the finale starts when it's full). 1A builds its core in Quick Match: the shortlist, the `shortlist_full` trigger, a vote between matches. What's left of Final Cut mode is a shortlist of 4 (3 for 2 players) filled with liked films. Recommended: M18.2 shrinks to that, or is dropped at M18 if playtests say 3 is enough.
 - **M18.4 and M18.9, Keep swiping.** With 1A swiping already goes on after a match, so Keep swiping has nothing left to do. Recommended: drop it.
 - **M18.5 and M18.9, Vote now.** The way out for a group that's happy with what it has: after the first match, the host can start the vote now (with 1 match, it's the pick). Recommended: keep it, and add "at least 1 match" as a second way to qualify next to "10 cards each and 2 liked films".
-- **Q4.6** kept the full-shortlist trigger for M18.2. 1A brings it forward; the decision would be replaced, not edited.
-- **New tasks, before M6.20:** one backend task (`check_card_match`, `start_finale`, the rule value, pgTAP), one app task (the shortlisted beat, the top bar, the 2-film Final Cut), and the moments and screen specs first.
+- **Q4.6** kept the full-shortlist trigger for M18.2. 1A brings it forward: a new decision replaces it, and the old row stays as history.
+- **New tasks, before M6.20:** see [New tasks](#new-tasks).
 
 ## 2. My likes weren't in the Final Cut
 
