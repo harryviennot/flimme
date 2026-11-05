@@ -1,3 +1,4 @@
+-- squawk-ignore-file prefer-robust-stmts
 -- M6.22: api.play_again and the next_room event (game-modes.md#apiplay_againroom). The host of a
 -- done or abandoned room opens the next one with the same settings and the host's own seat
 -- moods; the other phones learn its code from next_room on the old room's topic, or from
@@ -8,8 +9,11 @@
 set local lock_timeout = '5s';
 set local statement_timeout = '30s';
 
+alter table public.rooms add column if not exists next_room_id uuid;
 alter table public.rooms
-  add column if not exists next_room_id uuid references public.rooms on delete set null;
+  add constraint rooms_next_room_id_fkey foreign key (next_room_id) references public.rooms (id)
+  on delete set null not valid;
+alter table public.rooms validate constraint rooms_next_room_id_fkey;
 
 -- The code of the room's next room while that room is still open, else null. The caller is not a
 -- member of the next room, so the view cannot read it with their own rights. Only seats of the

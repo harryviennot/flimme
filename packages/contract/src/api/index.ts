@@ -21,6 +21,7 @@ import {
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
+  PLAY_AGAIN_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
@@ -70,6 +71,8 @@ import {
   leaveRoomResult,
   removeMemberResult,
   setRoomLockedResult,
+  playAgainResult,
+  type PlayAgainResult,
   myProfileRow,
   roomRow,
   roomSeatRow,
@@ -278,6 +281,21 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id, p_locked: args.locked },
         SET_ROOM_LOCKED_ANSWERS,
         setRoomLockedResult,
+      );
+    },
+
+    /**
+     * Host only, once the room is done or abandoned: opens the next room with the same settings
+     * and sends `next_room` on this room's topic. A repeat returns the open next room (M6.22).
+     */
+    playAgain(args: { room_id: string }): Promise<PlayAgainResult> {
+      return callAnswer(
+        client,
+        options,
+        'play_again',
+        { p_room_id: args.room_id },
+        PLAY_AGAIN_ANSWERS,
+        playAgainResult,
       );
     },
 

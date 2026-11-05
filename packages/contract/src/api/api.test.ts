@@ -16,6 +16,7 @@ import {
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
+  PLAY_AGAIN_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
@@ -214,6 +215,12 @@ const cases = [
     answers: SET_ROOM_LOCKED_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.setRoomLocked({ room_id: ROOM, locked: true }),
     full: { ok: { locked: true } },
+  },
+  {
+    name: 'play_again',
+    answers: PLAY_AGAIN_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.playAgain({ room_id: ROOM }),
+    full: { ok: { room_id: ROOM, code: '123456' } },
   },
   {
     name: 'update_room_settings',
@@ -684,6 +691,8 @@ describe('views', () => {
     decided_at: null,
     ended_at: null,
     locked: false,
+    next_room_id: null,
+    next_room_code: null,
   };
   const seatFixture = {
     member_id: MEMBER,
