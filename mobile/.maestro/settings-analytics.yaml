@@ -1,0 +1,26 @@
+# Slice 15, PostHog by region (M9.1): a fresh guest opens the dev menu's Analytics log and sees the
+# mode the device region calls for. Run it once per region, with the simulator's region set
+# beforehand (`xcrun simctl spawn <udid> defaults write .GlobalPreferences AppleLocale en_FR`, then
+# a restart of the app), and say which mode to expect:
+# `maestro test mobile/.maestro/settings-analytics.yaml -e MODE=anonymous` (France, the default)
+# `maestro test mobile/.maestro/settings-analytics.yaml -e MODE=identified` (en_US)
+# Needs a development build with no PostHog key: the log records what would be sent, nothing leaves.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/settle-dev-menu.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Maestro'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- openLink: flimme-dev:///dev/analytics
+- extendedWaitUntil:
+    visible: 'Mode: ${MODE || "anonymous"}'
+    timeout: 15000
+- assertVisible: 'EVENT.*\$screen.*'
+- takeScreenshot: analytics-log-${MODE || "anonymous"}

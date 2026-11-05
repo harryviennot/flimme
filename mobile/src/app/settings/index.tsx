@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Toggle } from '@/components/ui/toggle';
 import { TopBar } from '@/components/ui/top-bar';
+import { useAnalyticsStrict } from '@/features/analytics';
 import { useExportData } from '@/features/account/use-export-data';
 import { useSettingsLinks } from '@/features/account/use-settings-links';
 import { useOnline } from '@/features/network';
@@ -37,6 +38,7 @@ export default function SettingsScreen() {
   const hapticsOn = useHapticsEnabled();
   const soundOn = useSoundEnabled();
   const analytics = useAnalyticsChoice();
+  const strictRegion = useAnalyticsStrict();
   const exporting = useExportData();
   const links = useSettingsLinks();
 
@@ -86,7 +88,14 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         <View className="gap-2">
-          <SettingsSection label={t('sections.privacy')} helper={t('analytics.helper')}>
+          <SettingsSection
+            label={t('sections.privacy')}
+            helper={
+              strictRegion
+                ? `${t('analytics.helper')} ${t('analytics.helperStrict')}`
+                : t('analytics.helper')
+            }
+          >
             <ListRow
               icon="eye"
               label={t('analytics.label')}
@@ -98,6 +107,20 @@ export default function SettingsScreen() {
                 />
               }
             />
+            {strictRegion ? (
+              <ListRow
+                icon="user"
+                label={t('analytics.detailed')}
+                trailing={
+                  <Toggle
+                    value={analytics === 'detailed'}
+                    disabled={analytics === 'off'}
+                    onValueChange={(value) => chooseAnalytics(value ? 'detailed' : 'on')}
+                    accessibilityLabel={t('analytics.detailed')}
+                  />
+                }
+              />
+            ) : null}
           </SettingsSection>
           <SettingsSection>
             <ListRow
