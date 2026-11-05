@@ -375,6 +375,37 @@ describe('card stack', () => {
     });
   });
 
+  describe('removeTitles (a film that matched)', () => {
+    it('takes a mounted film and one behind away, and the cards behind move up', async () => {
+      const t = setup(cards(1, 13));
+      t.stack.getState().start();
+      await flush();
+      t.get().removeTitles([2, 6]);
+      expect(ids(t.get().mounted)).toEqual([1, 3, 4]);
+      expect(ids(t.get().buffer)).not.toContain(6);
+      expect(ids(t.get().buffer)[0]).toBe(5);
+    });
+
+    it('turns the top card back to its front when the top film leaves', async () => {
+      const t = setup(cards(1, 13));
+      t.stack.getState().start();
+      await flush();
+      t.get().setFlipped(true);
+      t.get().removeTitles([1]);
+      expect(ids(t.get().mounted)).toEqual([2, 3, 4]);
+      expect(t.get().flipped).toBe(false);
+    });
+
+    it('changes nothing for films it does not hold', async () => {
+      const t = setup(cards(1, 13));
+      t.stack.getState().start();
+      await flush();
+      const before = t.get().mounted;
+      t.get().removeTitles([99]);
+      expect(t.get().mounted).toBe(before);
+    });
+  });
+
   describe('putBack (undo)', () => {
     it('puts the answered card on top again, front side up, and the others behind it', async () => {
       const t = setup(cards(1, 13));

@@ -34,7 +34,18 @@
     "superLikes_other": "{{count}} super likes per game. They count double if it comes to a final vote.",
     "dismiss": "Hide this tip"
   },
+  "shortlist": {
+    "count": "{{count}}/{{of}}",
+    "a11y": "Shortlist, {{count}} of {{of}}: {{titles}}",
+    "a11yEmpty": "Shortlist empty. The vote starts at {{of}} matches."
+  },
+  "shortlisted": {
+    "title": "It's a match: {{count}} of {{of}}",
+    "a11y": "It's a match: {{title}}. {{count}} of {{of}} on the shortlist. {{votes}}",
+    "a11yNoTitle": "It's a match. {{count}} of {{of}} on the shortlist. {{votes}}"
+  },
   "a11y": {
+    "undoShortlisted": "This film is on the shortlist",
     "card": "{{title}}, {{meta}}. On {{services}}.",
     "cardBare": "{{title}}, {{meta}}",
     "cardBack": "{{title}}. TMDB rating {{rating}}. {{synopsis}}",

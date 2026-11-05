@@ -1,11 +1,36 @@
 import i18n from '@/i18n';
 
 import type { RoomSeat } from '@flimme/contract';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, render as renderUi, screen } from '@testing-library/react-native';
+import type { ReactElement } from 'react';
+
+import { createShortlistController } from '@/features/shortlist/controller';
+import { ShortlistProvider } from '@/features/shortlist/context';
 
 import { SwipeTopBar } from './top-bar';
 
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
+jest.mock('@/api', () => ({ api: {} }));
+jest.mock('@/features/shortlist/use-shortlist-cards', () => ({
+  useShortlistCards: (_room: string, ids: number[]) =>
+    new Map(ids.map((id) => [id, { title: `Film ${id}`, posterUri: null }])),
+}));
+jest.mock('@/features/app-config/use-app-config', () => ({
+  useAppConfig: () => ({ data: undefined }),
+}));
+
+let mockShortlist = createShortlistController({
+  onBeat: () => undefined,
+  onMismatch: () => undefined,
+});
+function render(ui: ReactElement) {
+  return renderUi(
+    <QueryClientProvider client={new QueryClient()}>
+      <ShortlistProvider value={mockShortlist}>{ui}</ShortlistProvider>
+    </QueryClientProvider>,
+  );
+}
 jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
 }));
@@ -52,6 +77,10 @@ beforeAll(async () => {
 describe('SwipeTopBar', () => {
   beforeEach(() => {
     mockPush.mockClear();
+    mockShortlist = createShortlistController({
+      onBeat: () => undefined,
+      onMismatch: () => undefined,
+    });
     mockAsk.mockClear();
     mockPresence = {
       online: new Set(['sam']),
@@ -80,6 +109,28 @@ describe('SwipeTopBar', () => {
     expect(mockPush).toHaveBeenCalledWith('/room/r/seat/sam');
     fireEvent.press(screen.getByLabelText('You, 7 films, host'));
     expect(mockPush).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the empty shortlist, then the posters of the films read back, never who liked them', async () => {
+    await render(<SwipeTopBar roomId="r" count={0} done={false} />);
+    expect(screen.getByText('0/3')).toBeTruthy();
+    expect(screen.getByLabelText('Shortlist empty. The vote starts at 3 matches.')).toBeTruthy();
+    expect(screen.getAllByTestId('shortlist-slot-empty')).toHaveLength(3);
+  });
+
+  it('reads the shortlist back with its count and titles', async () => {
+    mockShortlist.readBack([4, 9]);
+    await render(<SwipeTopBar roomId="r" count={0} done={false} />);
+    expect(screen.getByText('2/3')).toBeTruthy();
+    expect(screen.getByLabelText('Shortlist, 2 of 3: Film 4 and Film 9')).toBeTruthy();
+    expect(screen.getAllByTestId('shortlist-slot-filled')).toHaveLength(2);
+    expect(screen.getAllByTestId('shortlist-slot-empty')).toHaveLength(1);
+  });
+
+  it('shows no shortlist in a mode whose first match is the pick', async () => {
+    mockShortlist.setSize(1);
+    await render(<SwipeTopBar roomId="r" count={0} done={false} />);
+    expect(screen.queryByTestId('shortlist')).toBeNull();
   });
 
   it('asks to leave from the Leave button', async () => {

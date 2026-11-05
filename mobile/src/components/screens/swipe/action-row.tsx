@@ -19,6 +19,8 @@ export type ActionRowProps = {
   superLikesLeft: number;
   /** There is an answer to take back, and it hasn't been yet. */
   canUndo: boolean;
+  /** The last card answered is on the shortlist: Undo is off and the hint says why. */
+  undoShortlisted?: boolean;
   onUndo: () => void;
   onAnswer: (kind: AnswerKind) => void;
   /** Which button a dragged card lights (`LIT`). */
@@ -29,6 +31,7 @@ export function ActionRow({
   canAnswer,
   superLikesLeft,
   canUndo,
+  undoShortlisted = false,
   onUndo,
   onAnswer,
   lit,
@@ -50,7 +53,9 @@ export function ActionRow({
         <SwipeAction
           kind="undo"
           disabled={!canUndo}
-          accessibilityHint={canUndo ? undefined : t('a11y.undoNone')}
+          accessibilityHint={
+            canUndo ? undefined : undoShortlisted ? t('a11y.undoShortlisted') : t('a11y.undoNone')
+          }
           onPress={onUndo}
         />
       </Column>
