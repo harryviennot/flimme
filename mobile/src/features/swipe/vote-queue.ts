@@ -48,6 +48,8 @@ const isUndo = (item: QueueItem): item is QueuedUndo => 'undo' in item;
 /** What the screens hear about. Nothing here says a swipe was lost. */
 export type VoteQueueEvent =
   | { type: 'match'; room_id: string; title_id: number; kind?: MatchKind; decided?: boolean }
+  /** An undo came back `locked`: the card matched, so it leaves again (and the shortlist has it). */
+  | { type: 'undo_locked'; room_id: string; title_id: number }
   | { type: 'finale'; room_id: string; round_id: string }
   | { type: 'closed'; room_id: string; state: RoomState }
   | { type: 'no_super_likes'; room_id: string; title_id: number }
@@ -219,8 +221,10 @@ export function createVoteQueue(deps: VoteQueueDeps) {
           deps.report(new Error('undo_last_vote: nothing_to_undo'), context);
           break;
         case 'locked':
-          // The card matched or became a finalist: the room's next screen takes over.
+          // The card matched or became a finalist: the room's next screen takes over, or, while
+          // swiping, the card leaves again and the shortlist shows the film.
           deps.invalidateRoom(item.room_id);
+          emit({ type: 'undo_locked', room_id: item.room_id, title_id: item.title_id });
           break;
         case 'closed':
           removeRoom(item.room_id);
@@ -285,6 +289,8 @@ export function createVoteQueue(deps: VoteQueueDeps) {
         case 'ok':
           remove(vote);
           if (result.match) {
+            // A match can't be undone: an undo queued behind this vote never goes out.
+            removeUndoFor(vote);
             emit({
               type: 'match',
               ...context,
@@ -412,6 +418,16 @@ export function createVoteQueue(deps: VoteQueueDeps) {
     onAnswer(listener: (event: VoteQueueEvent) => void): () => void {
       listeners.add(listener);
       return () => void listeners.delete(listener);
+    },
+
+    /** Forgets every waiting vote and stops retrying (the wipe after a deletion). */
+    clear(): void {
+      if (timer !== undefined) {
+        clearTimeout(timer);
+        timer = undefined;
+      }
+      failures = 0;
+      store.setState({ votes: [] });
     },
 
     /** On start, on reconnect, on foreground: tries at once and starts the delays again. */

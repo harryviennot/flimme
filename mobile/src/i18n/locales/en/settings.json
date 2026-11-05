@@ -1,0 +1,79 @@
+{
+  "title": "Settings",
+  "sections": {
+    "preferences": "Preferences",
+    "privacy": "Privacy",
+    "help": "Help",
+    "about": "About"
+  },
+  "language": {
+    "label": "Language",
+    "current": "English"
+  },
+  "haptics": {
+    "label": "Vibration"
+  },
+  "sound": {
+    "label": "Sound"
+  },
+  "preferences": {
+    "helper": "Sounds only play at the match and when the film is revealed."
+  },
+  "analytics": {
+    "label": "Help improve the app",
+    "helper": "Stats on the screens you open, so we can see what gets in the way. Never your swipes or your films.",
+    "detailed": "Detailed stats",
+    "helperStrict": "They're anonymous. Detailed stats link them to your profile."
+  },
+  "export": {
+    "label": "Download my data",
+    "preparing": "Preparing your data",
+    "shareTitle": "Your Flimme data",
+    "rateLimited": {
+      "title": "One download an hour",
+      "message": "You just downloaded your data. Try again a little later."
+    },
+    "failed": {
+      "title": "Download failed",
+      "message": "Try again in a moment."
+    }
+  },
+  "legal": {
+    "privacy": "Privacy policy",
+    "terms": "Terms of use"
+  },
+  "support": {
+    "label": "Contact support",
+    "subject": "Flimme support",
+    "copied": {
+      "title": "Address copied",
+      "message": "Write to us at {{email}}."
+    }
+  },
+  "about": {
+    "tmdb": "This app uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.",
+    "version": "Version {{version}} ({{build}})"
+  },
+  "delete": {
+    "label": "Delete my data",
+    "title": "Delete your data?",
+    "body": "Your name, your services and your movie night history are erased. Past votes stay in their rooms, without your name. You start fresh, like the first time you opened the app. This can't be undone.",
+    "confirm": "Delete everything",
+    "done": "Your data is deleted",
+    "errors": {
+      "tryAgain": "We couldn't delete your data just now. Nothing changed, so try again.",
+      "offline": "You're offline. Nothing was deleted."
+    }
+  },
+  "offline": "You're offline. Downloading or deleting your data waits until you're back.",
+  "errors": {
+    "offline": "You're offline. Connect to download your data."
+  },
+  "a11y": {
+    "languageHint": "Opens your phone's settings",
+    "opensBrowser": "Opens in the browser",
+    "opensMail": "Opens your mail app",
+    "deleteHint": "Asks you to confirm first",
+    "tmdb": "TMDB logo. {{notice}}"
+  }
+}

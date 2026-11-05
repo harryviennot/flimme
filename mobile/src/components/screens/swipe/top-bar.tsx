@@ -10,8 +10,11 @@ import { toAvatarColor } from '@/features/profile';
 import { useMySeat, useRoomPresence, useRoomSeats } from '@/features/room';
 import { doneNames, pillsFor } from '@/features/swipe/pills';
 
+import { Shortlist } from './shortlist';
+
 // The top bar (swipe.md#the-top-bar): Leave, the player pills and, through a tap on a pill, the
-// seat sheet (Remove for the host, Report for everyone). Never anything about answers.
+// seat sheet (Remove for the host, Report for everyone), then the room's shortlist. Never
+// anything about answers.
 export function SwipeTopBar({
   roomId,
   count,
@@ -83,6 +86,7 @@ export function SwipeTopBar({
           />
         ))}
       </ScrollView>
+      <Shortlist roomId={roomId} />
     </View>
   );
 }

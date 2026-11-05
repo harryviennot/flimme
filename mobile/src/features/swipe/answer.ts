@@ -103,6 +103,12 @@ export function createAnswerer(deps: AnswererDeps) {
       }
     },
 
+    /** The undone card matched after all, so its answer stands again. */
+    redone(spentSuperLike: boolean): void {
+      count += 1;
+      if (spentSuperLike) superLikes = Math.max(0, superLikes - 1);
+    },
+
     count: () => count,
   };
 }

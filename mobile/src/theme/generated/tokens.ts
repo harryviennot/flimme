@@ -417,6 +417,7 @@ export const tokens = {
     "slow": 400,
     "celebrate": 800,
     "match-hold": 4000,
+    "shortlist-hold": 1200,
     "reveal-lead": 300,
     "reveal-vetoes": 500,
     "reveal-points": 1000,

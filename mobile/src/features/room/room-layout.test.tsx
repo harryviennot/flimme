@@ -9,6 +9,7 @@ import { showToast } from '@/components/ui/toast';
 
 import { revealStore } from '@/features/finale/reveal-store';
 
+import { voteQueue } from '@/features/swipe';
 import { keptRoomStore } from './kept-room';
 import { matchShownStore } from './match-shown';
 
@@ -41,6 +42,8 @@ jest.mock('@/api', () => ({
     titleCards: jest.fn(async () => ({ status: 'ok', cards: [] })),
     countryProviders: jest.fn(async () => []),
     gameModes: jest.fn(async () => []),
+    castVote: jest.fn(),
+    undoLastVote: jest.fn(),
   },
 }));
 const mockOnline = { value: true };
@@ -209,6 +212,93 @@ describe('the room layout', () => {
       await waitFor(() => expect(screen).toHavePathname('/room/r1/winner'));
       // The winner screen reads the pick itself; the overlay's re-read is what stays off.
       expect(screen.queryByTestId('match-overlay')).toBeNull();
+    });
+  });
+
+  describe('the shortlist', () => {
+    const matchRow = (title_id: number, created_at: string) => ({
+      room_id: 'r1',
+      title_id,
+      kind: 'unanimous',
+      like_count: 3,
+      present_count: 3,
+      pick_order: null,
+      created_at,
+    });
+
+    it('reads the shortlist back into the top bar on a cold start, with no beat', async () => {
+      api.room.mockResolvedValue(roomOf('swiping'));
+      api.roomMatches.mockResolvedValue([matchRow(4, '1'), matchRow(9, '2')]);
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen.getByText('2/3')).toBeTruthy());
+      expect(screen.queryByTestId('shortlisted')).toBeNull();
+      expect(screen).toHavePathname('/room/r1/swipe');
+    });
+
+    it('shows the same shortlist and beat in a Blind room as in a Party one', async () => {
+      api.room.mockResolvedValue({ ...roomOf('swiping'), reveal: 'blind' });
+      api.roomMatches.mockResolvedValue([matchRow(4, '1')]);
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen.getByText('1/3')).toBeTruthy());
+      api.castVote.mockResolvedValue({
+        status: 'ok',
+        match: true,
+        kind: 'majority',
+        decided: false,
+      });
+      await act(async () => {
+        voteQueue.enqueue({
+          room_id: 'r1',
+          member_id: 'm1',
+          title_id: 8,
+          answer: 'like',
+          dwell_ms: 500,
+          client_at: '2026-11-05T10:00:00.000Z',
+          flipped: false,
+        });
+      });
+      await waitFor(() => expect(screen.getByTestId('shortlisted')).toBeTruthy());
+      expect(screen).toHavePathname('/room/r1/swipe');
+      await act(async () => {
+        jest.advanceTimersByTime(1800);
+      });
+      await waitFor(() => expect(screen.getByText('2/3')).toBeTruthy());
+      expect(screen.queryByTestId('shortlisted')).toBeNull();
+    });
+
+    it('holds the swipe screen on the third match until the beat ends, then goes to the Final Cut', async () => {
+      api.room.mockResolvedValue(roomOf('swiping'));
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen.getByText('0/3')).toBeTruthy());
+      // The phone's own vote filled the shortlist: the answer carries the match and the finale.
+      api.castVote.mockResolvedValue({
+        status: 'ok',
+        match: true,
+        kind: 'unanimous',
+        decided: false,
+        state: 'finale',
+      });
+      api.room.mockResolvedValue(roomOf('finale'));
+      await act(async () => {
+        voteQueue.enqueue({
+          room_id: 'r1',
+          member_id: 'm1',
+          title_id: 7,
+          answer: 'like',
+          dwell_ms: 500,
+          client_at: '2026-11-05T10:00:00.000Z',
+          flipped: false,
+        });
+      });
+      await waitFor(() => expect(screen.getByTestId('shortlisted')).toBeTruthy());
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+      expect(screen).toHavePathname('/room/r1/swipe');
+      await act(async () => {
+        jest.advanceTimersByTime(800);
+      });
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/final-cut'));
     });
   });
 

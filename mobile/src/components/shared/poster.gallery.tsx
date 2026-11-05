@@ -14,6 +14,9 @@ export const gallery: GalleryEntry = {
         <PosterThumb key={i} source={source} />
       ))}
       <PosterThumb source={fixturePosters.neonHarbor} size="s" />
+      <PosterThumb source={fixturePosters.neonHarbor} size="xs" />
+      {/* A missing poster keeps the frame (a shortlist slot with no poster). */}
+      <PosterThumb source={undefined} size="xs" />
     </View>
   ),
 };

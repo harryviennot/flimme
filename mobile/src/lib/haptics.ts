@@ -25,6 +25,11 @@ export const haptics = {
   throw: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)),
   /** It's a match, or the winner is revealed. */
   match: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
+  /** A match joins the shortlist: two light taps 100 ms apart, lighter than `match` (the night's film). */
+  shortlist: () => {
+    run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
+    setTimeout(() => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)), 100);
+  },
   /** A veto lands in the Final Cut. */
   veto: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid)),
   /** Each of the countdown's last 5 seconds. */

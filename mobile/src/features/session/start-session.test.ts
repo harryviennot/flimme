@@ -1,6 +1,6 @@
 import { createApiClient } from '@/lib/supabase';
 
-import { startSessionWith } from './start-session';
+import { checkUserWith, startSessionWith } from './start-session';
 
 // The real Supabase client, a fake network and a session store that survives "restarts".
 const mockStore = new Map<string, string>();
@@ -126,6 +126,70 @@ describe('startSessionWith', () => {
     );
     const client = newClient();
     await expect(startSessionWith(client)).rejects.toBeDefined();
+    await client.auth.stopAutoRefresh();
+  });
+});
+
+describe('checkUserWith', () => {
+  const goneBody = {
+    error_code: 'user_not_found',
+    msg: 'User from sub claim in JWT does not exist',
+  };
+  const isRefresh = (url: unknown) => String(url).includes('grant_type=refresh_token');
+
+  async function started() {
+    fetchMock.mockResolvedValue(json(200, guestSession('guest-1')));
+    const client = newClient();
+    await startSessionWith(client);
+    fetchMock.mockReset();
+    return client;
+  }
+
+  it('keeps a user that exists', async () => {
+    const client = await started();
+    fetchMock.mockResolvedValue(json(200, guestSession('guest-1').user));
+    expect(await checkUserWith(client)).toBe('ok');
+    await client.auth.stopAutoRefresh();
+  });
+
+  it('keeps the user when a refresh fixes an expired token', async () => {
+    const client = await started();
+    fetchMock
+      .mockResolvedValueOnce(json(401, { error_code: 'bad_jwt', msg: 'token is expired' }))
+      .mockResolvedValueOnce(json(200, guestSession('guest-1')))
+      .mockResolvedValue(json(200, guestSession('guest-1').user));
+    expect(await checkUserWith(client)).toBe('ok');
+    expect(fetchMock.mock.calls.filter(([url]) => isRefresh(url))).toHaveLength(1);
+    await client.auth.stopAutoRefresh();
+  });
+
+  it('says gone when the user is refused again after one refresh', async () => {
+    const client = await started();
+    fetchMock.mockImplementation(async (url: unknown) =>
+      isRefresh(url) ? json(200, guestSession('guest-1')) : json(403, goneBody),
+    );
+    expect(await checkUserWith(client)).toBe('gone');
+    await client.auth.stopAutoRefresh();
+  });
+
+  it('says gone when the refresh token went with the user', async () => {
+    const client = await started();
+    fetchMock.mockImplementation(async (url: unknown) =>
+      isRefresh(url)
+        ? json(400, { error_code: 'refresh_token_not_found', msg: 'Invalid Refresh Token' })
+        : json(403, goneBody),
+    );
+    expect(await checkUserWith(client)).toBe('gone');
+    await client.auth.stopAutoRefresh();
+  });
+
+  it('does not decide while offline or when Auth is down', async () => {
+    const client = await started();
+    fetchMock.mockRejectedValue(new TypeError('Network request failed'));
+    expect(await checkUserWith(client)).toBe('unknown');
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(json(503, { msg: 'unavailable' }));
+    expect(await checkUserWith(client)).toBe('unknown');
     await client.auth.stopAutoRefresh();
   });
 });

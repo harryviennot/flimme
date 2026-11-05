@@ -15,6 +15,7 @@ import { createHintSignals } from '@/features/swipe/hints';
 import type { Direction } from '@/features/swipe/feel';
 import { useNearMiss } from '@/features/swipe/near-miss';
 import { useFlights } from '@/features/swipe/use-flights';
+import { useShortlistView } from '@/features/shortlist/context';
 import { useSwipe } from '@/features/swipe/use-swipe';
 import { timing } from '@/theme/motion';
 
@@ -25,6 +26,7 @@ import { SwipeHints } from './hints';
 import { SwipeNearMiss } from './near-miss';
 import { useSeenLift } from './seen-lift';
 import { SeenQuestion } from './seen-question';
+import { ShortlistedBeat } from './shortlisted';
 import { LIT } from './swipe-card';
 import { SwipeTopBar } from './top-bar';
 
@@ -51,7 +53,7 @@ export function SwipeScreen({
   hideSeen?: boolean;
 }) {
   const { t } = useTranslation('swipe');
-  const { t: tc } = useTranslation();
+  const { t: tc, i18n } = useTranslation();
   const screen = useWindowDimensions();
   const swipe = useSwipe(roomId, seat, screen.width);
   const dragProgress = useSharedValue(0);
@@ -145,6 +147,10 @@ export function SwipeScreen({
   }, [swipe, landed, t]);
 
   const canAnswer = status === 'ready' && !swipe.locked;
+  // The shortlisted beat: the toast and the glow leave while it plays and come back after.
+  const shortlist = useShortlistView();
+  const beating = shortlist.active;
+  const shownNearMiss = beating ? null : nearMiss;
   const rowStyle = useAnimatedStyle(() => ({
     opacity: withTiming(held === null ? 1 : 0, timing.base),
   }));
@@ -164,6 +170,7 @@ export function SwipeScreen({
               canAnswer={canAnswer}
               superLikesLeft={swipe.superLikesLeft}
               canUndo={swipe.canUndo}
+              undoShortlisted={swipe.undoShortlisted}
               onUndo={undoLast}
               onAnswer={(kind) => throwAndSay(kind, false)}
               lit={lit}
@@ -175,12 +182,16 @@ export function SwipeScreen({
             onNo={() => answerRewatch(false)}
             onEscape={() => close(true)}
           />
+          {beating ? (
+            // The buttons keep their look during the beat; a press does nothing, with no haptic.
+            <View className="absolute inset-0" testID="shortlisted-catcher" />
+          ) : null}
         </View>
       }
     >
       <SwipeTopBar roomId={roomId} count={swipe.count} done={status === 'empty'} />
       <RoomBanner roomId={roomId} waitingVotes={swipe.waitingVotes} />
-      <SwipeNearMiss titleId={topId} nearMiss={nearMiss} />
+      <SwipeNearMiss titleId={topId} nearMiss={shownNearMiss} shortlistShown={shortlist.size > 1} />
       {held !== null ? (
         // A tap anywhere outside the two answers puts the card back (the card's own tap does too).
         <Pressable
@@ -197,7 +208,7 @@ export function SwipeScreen({
           swipe={swipe}
           roomId={roomId}
           maxAge={maxAge}
-          glowId={nearMiss ? topId : undefined}
+          glowId={shownNearMiss ? topId : undefined}
           flying={flying}
           throwCard={throwAndSay}
           asksSeen={asks}
@@ -210,6 +221,17 @@ export function SwipeScreen({
           lit={lit}
           dragging={dragging}
         />
+        {beating ? (
+          <ShortlistedBeat
+            roomId={roomId}
+            beat={shortlist.beat}
+            phase={shortlist.phase}
+            seq={shortlist.seq}
+            size={shortlist.size}
+            slotIndex={shortlist.landed.length}
+            language={i18n.language}
+          />
+        ) : null}
       </View>
       <SwipeHints
         hideSeen={hideSeen}

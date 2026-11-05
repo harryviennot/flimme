@@ -11,6 +11,7 @@ import enLobby from './locales/en/lobby.json';
 import enMatch from './locales/en/match.json';
 import enOnboarding from './locales/en/onboarding.json';
 import enReport from './locales/en/report.json';
+import enSettings from './locales/en/settings.json';
 import enSwipe from './locales/en/swipe.json';
 import enWeb from './locales/en/web.json';
 import enWinner from './locales/en/winner.json';
@@ -24,6 +25,7 @@ import frLobby from './locales/fr/lobby.json';
 import frMatch from './locales/fr/match.json';
 import frOnboarding from './locales/fr/onboarding.json';
 import frReport from './locales/fr/report.json';
+import frSettings from './locales/fr/settings.json';
 import frSwipe from './locales/fr/swipe.json';
 import frWeb from './locales/fr/web.json';
 import frWinner from './locales/fr/winner.json';
@@ -40,6 +42,7 @@ export const resources = {
     match: frMatch,
     onboarding: frOnboarding,
     report: frReport,
+    settings: frSettings,
     swipe: frSwipe,
     web: frWeb,
     winner: frWinner,
@@ -55,6 +58,7 @@ export const resources = {
     match: enMatch,
     onboarding: enOnboarding,
     report: enReport,
+    settings: enSettings,
     swipe: enSwipe,
     web: enWeb,
     winner: enWinner,
