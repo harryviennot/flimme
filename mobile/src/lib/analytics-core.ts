@@ -394,7 +394,7 @@ export function createAnalytics(deps: AnalyticsDeps) {
     /**
      * An event about a room the phone is not in yet (a join, a room just opened): sent once the
      * room layout has read the room's cap, dropped if the room is capped under 13 or the cap does
-     * not arrive within a few seconds. Nothing waits when the phone is in an open room already.
+     * not arrive within a few seconds.
      */
     trackWhenRoomKnown<E extends AnalyticsEvent>(event: E, ...args: TrackArgs<E>): void {
       const props = args[0] as AnalyticsProps | undefined;
@@ -404,15 +404,8 @@ export function createAnalytics(deps: AnalyticsDeps) {
         return;
       }
       // The mode is checked when the event leaves: at a cold start it is not applied yet.
-      if (room === null) {
-        sendEvent(event, props);
-        return;
-      }
-      if (typeof room === 'number' && room < KIDS_AGE) {
-        log({ kind: 'dropped', name: event, reason: 'kids room' });
-        return;
-      }
-      // The cap is not known yet (no room, or a room not read): wait for the layout.
+      // Always wait for the next room cap: the phone may be in another room now, whose cap says
+      // nothing about the room this event is about.
       held = [...held.slice(-4), { event, props, at: deps.now() }];
     },
 

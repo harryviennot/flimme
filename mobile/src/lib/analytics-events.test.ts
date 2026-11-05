@@ -188,6 +188,16 @@ describe('when nothing is sent', () => {
     expect(t.sent.map((s) => s.event)).toEqual(['join:attempt_finish']);
   });
 
+  it('waits for the new room even when the phone sits in an open room already', () => {
+    const t = setup();
+    t.analytics.setRoomCap(null);
+    t.analytics.trackWhenRoomKnown('join:attempt_finish', { via: 'link', status: 'ok' });
+    expect(t.sent).toEqual([]);
+    t.analytics.setRoomCap('unknown');
+    t.analytics.setRoomCap(12);
+    expect(t.sent).toEqual([]);
+  });
+
   it('drops a held event when the room turns out capped', () => {
     const t = setup();
     t.analytics.trackWhenRoomKnown('join:attempt_finish', { via: 'link', status: 'ok' });
