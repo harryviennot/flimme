@@ -1,7 +1,7 @@
 import '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
 import { api } from '@/api';
@@ -60,9 +60,13 @@ describe('a solo session that ended', () => {
   });
 
   it('holds the route until the pick has been read, then lets the winner screen show', async () => {
-    mockApi.roomMatches.mockResolvedValue([{ title_id: 7, pick_order: 1 }]);
+    // The read stays open until the test answers it, so the hold is seen before the pick lands.
+    let answer: (rows: unknown) => void = () => {};
+    mockApi.roomMatches.mockReturnValue(new Promise((resolve) => (answer = resolve)));
     const { result } = await renderHook(() => useSoloEnd('r1', 'done', true), { wrapper });
+    await waitFor(() => expect(mockApi.roomMatches).toHaveBeenCalled());
     expect(result.current).toBe(true);
+    await act(async () => answer([{ title_id: 7, pick_order: 1 }]));
     await waitFor(() => expect(result.current).toBe(false));
     expect(mockExit).not.toHaveBeenCalled();
   });
