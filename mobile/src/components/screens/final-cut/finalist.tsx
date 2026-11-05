@@ -45,6 +45,8 @@ export type FinalistProps = {
   interactive: boolean;
   /** A long press can veto (a Final Cut with a veto left). */
   vetoEnabled: boolean;
+  /** 2 films: the state reads picked or not picked, and the action is pick. */
+  pickOne?: boolean;
   /** The round is being counted: the poster dims. */
   counting: boolean;
   /** A restart after locking in: the phone has no ballot to show, so no faint numbers. */
@@ -64,6 +66,7 @@ export function Finalist({
   place,
   interactive,
   vetoEnabled,
+  pickOne = false,
   counting,
   hideNumber = false,
   popDelay = 0,
@@ -150,21 +153,33 @@ export function Finalist({
           : '';
   const stateText = revealing
     ? revealText
-    : place.kind === 'ranked'
-      ? t('a11y.state.ranked', { rank: place.rank })
-      : place.kind === 'faint' && hideNumber
-        ? ''
-        : place.kind === 'faint'
-          ? t('a11y.state.unranked', { rank: place.rank })
-          : t('a11y.state.vetoed');
+    : pickOne && place.kind === 'ranked'
+      ? t('a11y.state.picked')
+      : pickOne && place.kind === 'faint' && !hideNumber
+        ? t('a11y.state.notPicked', { rank: place.rank })
+        : place.kind === 'ranked'
+          ? t('a11y.state.ranked', { rank: place.rank })
+          : place.kind === 'faint' && hideNumber
+            ? ''
+            : place.kind === 'faint'
+              ? t('a11y.state.unranked', { rank: place.rank })
+              : t('a11y.state.vetoed');
 
   const actions =
     !interactive || revealing
       ? []
       : [
-          place.kind === 'faint' ? { name: 'rankNext', label: t('a11y.actions.rankNext') } : null,
+          place.kind === 'faint'
+            ? {
+                name: 'rankNext',
+                label: t(pickOne ? 'a11y.actions.pick' : 'a11y.actions.rankNext'),
+              }
+            : null,
           place.kind === 'ranked'
-            ? { name: 'removeRank', label: t('a11y.actions.removeRank') }
+            ? {
+                name: 'removeRank',
+                label: t(pickOne ? 'a11y.actions.unpick' : 'a11y.actions.removeRank'),
+              }
             : null,
           vetoEnabled && !vetoed ? { name: 'veto', label: t('a11y.actions.veto') } : null,
           vetoed ? { name: 'liftVeto', label: t('a11y.actions.liftVeto') } : null,

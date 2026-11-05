@@ -107,6 +107,7 @@ Nothing secret is committed. Local values live in an ignored `.env.local`.
 | App Store Connect API key, Google Play service account | EAS credentials | EAS Submit |
 | One database password per process login: `flimme_deck`, `flimme_pipeline`, `flimme_trainer` (role `app_server`) and `flimme_http` (role `app_http`), each as its connection string | The server host's secrets: `flimme-api-<env>` holds `flimme_http`'s as `API_DATABASE_URL`, `flimme-workers-<env>` the others as `PIPELINE_DATABASE_URL`, `DECK_DATABASE_URL` and `TRAINER_DATABASE_URL` (session-mode pooler URL, port 5432, user `<role>.<project ref>`). Set by Harry with `node tools/server-logins.mjs <env>`: it generates each password, sends Postgres only its SCRAM hash, tests the login through the pooler and stages the URL on Fly. The passwords exist only on Fly; to replace them, run it again. Never in a migration | Each server process ([contract](recommendation-server.md#the-contract-with-the-database)) |
 | A Supabase secret key for account deletion only | The server host's secrets | The server's HTTP API |
+| A PostHog personal API key (scope `person:write`) and project id, to forget a deleted player | The server host's secrets | The server's HTTP API |
 | TMDB API token | The server host's secrets; your own key in `.env.local` | The pipeline worker, `server backfill` |
 | Sentry DSN for the server | The server host's secrets | The server |
 | Apple and Google sign-in keys | Supabase Auth settings | Supabase |

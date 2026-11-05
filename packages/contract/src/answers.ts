@@ -188,3 +188,11 @@ export type RoundProgressAnswer = (typeof ROUND_PROGRESS_ANSWERS)[number];
 /** The answers on a card the database accepts today (the `vote_answer` enum). */
 export const VOTE_ANSWERS = ['nope', 'like', 'super_like', 'seen', 'seen_rewatch'] as const;
 export type VoteAnswer = (typeof VOTE_ANSWERS)[number];
+
+/**
+ * `POST /v1/account/delete` on the HTTP API (not an `api` function): the HTTP code goes with
+ * each answer (`ok` 200, `unauthorized` 401, `try_again` 503). A retry after `try_again`, or
+ * after a dropped connection, finishes the job and answers `ok`.
+ */
+export const DELETE_ACCOUNT_ANSWERS = ['ok', 'unauthorized', 'try_again'] as const;
+export type DeleteAccountAnswer = (typeof DELETE_ACCOUNT_ANSWERS)[number];

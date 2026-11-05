@@ -506,7 +506,7 @@ erDiagram
 
 **rounds**: one finale per room at launch. `kind` is `final_cut` (veto stage, then rank stage) or `ranked_vote` (rank only). `stage_closes_at` is the current deadline. The finale is now one round with a single `vote` stage, then `closed` ([game modes](../product/game-modes.md#the-finale)). `round_stage`'s `veto` and `rank` values stay in the enum, unused, because migrations only add (decided on 4 November 2026).
 
-**round_candidates**: the 3 or 4 finalists, seeded by matches, then likes (super likes count double), then group score. `vetoed_at` (set only at the close, on a film knocked out by the vetoes), `vetoed_by` (stored, never sent to phones) and `points` for the Borda count, both written only at the close, so `api.round_candidates` shows nothing secret before it.
+**round_candidates**: the 2, 3 or 4 finalists (2 or 3 when they are the shortlist's matches, M6.35), seeded by matches, then likes (super likes count double), then group score. `vetoed_at` (set only at the close, on a film knocked out by the vetoes), `vetoed_by` (stored, never sent to phones) and `points` for the Borda count, both written only at the close, so `api.round_candidates` shows nothing secret before it.
 
 **round_ballots**: `veto`, `pass` or `rank` rows. One veto or pass per seat per round; one rank per seat per title.
 

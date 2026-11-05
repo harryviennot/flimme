@@ -5,12 +5,15 @@
   },
   "heading": {
     "finalCut": "Choisis-en un. Élimine-en un.",
-    "ranked": "Classe-les."
+    "ranked": "Classe-les.",
+    "pickOne": "Choisis-en un."
   },
   "intro": {
     "veto": "Touche les affiches dans ton ordre, ta préférée d'abord. Appui long sur une affiche pour l'éliminer : c'est secret jusqu'à la fin.",
     "noVeto": "Tu as déjà utilisé ton élimination. Touche les affiches dans ton ordre, ta préférée d'abord.",
-    "rank": "Touche les affiches dans ton ordre, ta préférée d'abord. Les autres suivent dans l'ordre affiché."
+    "rank": "Touche les affiches dans ton ordre, ta préférée d'abord. Les autres suivent dans l'ordre affiché.",
+    "pickOne": "Touche celui que tu préfères. Sans choix, ton vote va au numéro 1.",
+    "source": "Tirés de vos j'aime, avec un film pour chacun quand c'est possible."
   },
   "lockIn": "Valider mon vote",
   "sending": "Envoi",
@@ -36,20 +39,25 @@
   "a11y": {
     "heading": {
       "finalCut": "Le Final Cut. Choisis-en un. Élimine-en un.",
-      "ranked": "Le vote final. Classe-les."
+      "ranked": "Le vote final. Classe-les.",
+      "pickOne": "Le vote final. Choisis-en un."
     },
     "film": "{{title}}, {{year}}",
     "filmNoYear": "{{title}}",
     "state": {
       "ranked": "Position {{rank}}",
       "unranked": "Pas classé, compte en position {{rank}}",
-      "vetoed": "Éliminé"
+      "vetoed": "Éliminé",
+      "picked": "Ton choix",
+      "notPicked": "Pas choisi, compte en position {{rank}}"
     },
     "actions": {
       "rankNext": "Classer ensuite",
       "removeRank": "Retirer du classement",
       "veto": "Éliminer",
-      "liftVeto": "Annuler l'élimination"
+      "liftVeto": "Annuler l'élimination",
+      "pick": "Choisir",
+      "unpick": "Annuler mon choix"
     },
     "vetoLifted": "Élimination annulée",
     "timeLeft_one": "Encore {{count}} seconde",

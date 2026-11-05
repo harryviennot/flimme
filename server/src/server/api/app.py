@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 import httpx
 from fastapi import FastAPI
 
-from server.api import errors, health
+from server.api import account, errors, health
 from server.api.auth import JwksCache
 from server.api.limits import BodyLimitMiddleware
 from server.config import Environment, Process, Settings
@@ -23,6 +23,7 @@ def create_app(
     *,
     jwks: JwksCache | None = None,
     database: Database | None = None,
+    http: httpx.AsyncClient | None = None,
 ) -> FastAPI:
     if settings.supabase_url is None:
         raise ValueError("SUPABASE_URL is not set")
@@ -31,10 +32,14 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         client: httpx.AsyncClient | None = None
+        outside: httpx.AsyncClient | None = None
         opened: Database | None = None
         if jwks is None:
             client = httpx.AsyncClient()
             app.state.jwks = JwksCache(f"{base}/auth/v1/.well-known/jwks.json", client)
+        if http is None:
+            outside = httpx.AsyncClient()  # PostHog and Supabase's admin API
+            app.state.http = outside
         if database is None:
             opened = await Database.open(
                 settings.database_url_for(Process.API),
@@ -49,6 +54,8 @@ def create_app(
                 await opened.close()
             if client is not None:
                 await client.aclose()
+            if outside is not None:
+                await outside.aclose()
 
     # The interactive docs only exist locally; no CORS, only phones call the API.
     local = settings.environment is Environment.LOCAL
@@ -62,7 +69,10 @@ def create_app(
     app.state.issuer = f"{base}/auth/v1"
     app.state.jwks = jwks
     app.state.database = database
+    app.state.http = http
+    app.state.settings = settings
     errors.install(app)
     app.add_middleware(BodyLimitMiddleware)
     app.include_router(health.router)
+    app.include_router(account.router)
     return app

@@ -54,7 +54,7 @@ The whole finalist (poster and text) is one `Pressable` with `haptic={false}`: t
 - **A tap on a film** picks it: its badge turns solid 1 with the pop (`spring.snappy`), its ring turns accent with `glow-accent`, and the other film shows a faint 2. `haptics.press()`.
 - **A tap on the other film** moves the pick there: the first goes back to faint 2, the second turns solid 1. One `haptics.press()`. It never ranks a solid 2: there is nothing left to choose.
 - **A tap on the picked film** lifts the pick: both go back to faint numbers in seed order. `haptics.press()`.
-- The ballot is the same ranking as ever (the pick first), so `api.cast_ballot` and the counting don't change. `features/finale/phase.ts` adds the move for 2 films.
+- The ballot is the same ranking as ever (the pick first), so `api.cast_ballot` and the counting don't change. `tapPick` in `features/finale/ballot.ts` adds the move for 2 films.
 
 ## The veto
 

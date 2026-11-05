@@ -27,6 +27,17 @@ export function tapFinalist(ballot: Ballot, titleId: number): Ballot {
 }
 
 /**
+ * A tap with 2 films (final-cut.md#ranking, "With 2 films"): ranking two films is choosing one.
+ * A tap picks the film, a tap on the other moves the pick, a tap on the picked film lifts it.
+ * It never ranks a solid 2.
+ */
+export function tapPick(ballot: Ballot, titleId: number): Ballot {
+  return ballot.tapped[0] === titleId
+    ? { ...ballot, tapped: [] }
+    : { ...ballot, tapped: [titleId] };
+}
+
+/**
  * A long press, only where a veto is allowed. On the vetoed film it lifts the veto; on another
  * it moves the veto there; the film leaves the ranking if it was in it. A veto never gets its
  * old rank back.

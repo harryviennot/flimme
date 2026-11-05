@@ -81,12 +81,17 @@ const round = (
 });
 
 function setup(
-  options: { kind?: 'final_cut' | 'ranked_vote'; vetoes?: number; closes?: string } = {},
+  options: {
+    kind?: 'final_cut' | 'ranked_vote';
+    vetoes?: number;
+    closes?: string;
+    films?: number[];
+  } = {},
 ) {
   mockSeats.current = [seat('a', options.vetoes ?? 1, true), seat('b', null), seat('c', null)];
   mockApi.rounds.mockResolvedValue([round(options.kind, options.closes)]);
   mockApi.roundCandidates.mockResolvedValue(
-    [10, 20, 30].map((title_id, i) => ({
+    (options.films ?? [10, 20, 30]).map((title_id, i) => ({
       round_id: 'round-1',
       title_id,
       seed: i + 1,
@@ -94,7 +99,10 @@ function setup(
       vetoed: false,
     })),
   );
-  mockApi.titleCards.mockResolvedValue({ status: 'ok', cards: [10, 20, 30].map(card) });
+  mockApi.titleCards.mockResolvedValue({
+    status: 'ok',
+    cards: (options.films ?? [10, 20, 30]).map(card),
+  });
   mockApi.roundProgress.mockResolvedValue({
     status: 'ok',
     stage: 'vote',
@@ -180,6 +188,33 @@ describe('the Final Cut model', () => {
     const spent = await setup({ vetoes: 0 });
     await settle();
     expect(spent.result.current.vetoAllowed).toBe(false);
+  });
+
+  it('picks one of 2 films: a tap moves the pick and the ballot has no veto', async () => {
+    mockApi.castBallot.mockResolvedValue({ status: 'ok', locked: ['a'], of: 3 });
+    const { result } = await setup({ kind: 'ranked_vote', films: [10, 20] });
+    await settle();
+    expect(result.current.pickOne).toBe(true);
+    await act(async () => result.current.onTap(10));
+    await act(async () => result.current.onTap(20));
+    expect(haptics.press).toHaveBeenCalledTimes(2);
+    expect(result.current.places.get(20)).toEqual({ kind: 'ranked', rank: 1 });
+    expect(result.current.places.get(10)).toEqual({ kind: 'faint', rank: 2 });
+    await act(async () => result.current.onLongPress(10));
+    expect(haptics.veto).not.toHaveBeenCalled();
+    expect(result.current.places.get(10)).toEqual({ kind: 'faint', rank: 2 });
+    await act(async () => result.current.onLockIn());
+    await settle();
+    expect(mockApi.castBallot).toHaveBeenCalledWith({ round_id: 'round-1', ranking: [20, 10] });
+  });
+
+  it('keeps the ranked vote of 4 as it was', async () => {
+    const { result } = await setup({ kind: 'ranked_vote', films: [10, 20, 30, 40] });
+    await settle();
+    expect(result.current.pickOne).toBe(false);
+    await act(async () => result.current.onTap(10));
+    await act(async () => result.current.onTap(20));
+    expect(result.current.places.get(20)).toEqual({ kind: 'ranked', rank: 2 });
   });
 
   it('sends one ballot for a double tap, then shows locked in', async () => {
