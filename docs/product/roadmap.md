@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 153 of 281 tasks done.
+Progress: 154 of 281 tasks done.
 
 ```mermaid
 flowchart LR
@@ -557,7 +557,7 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: a scheduled run deletes a test guest on staging.
 - [x] **M8.9** The daily retention job (`internal.run_retention`) · backend · M · needs M1.5 · [operations](../architecture/operations.md#retention-jobs)
   Done when: each retention rule is tested.
-- [ ] **M8.10** Record of processing for the first release · legal · S · needs M8.1 · [privacy](privacy.md#who-is-responsible)
+- [x] **M8.10** Record of processing for the first release · legal · S · needs M8.1 · [privacy](privacy.md#who-is-responsible)
   Done when: written from the data map.
 - [ ] **M8.11** Decide on a lawyer's review and a DPIA before launch · decision · S · [privacy](privacy.md#questions-for-a-lawyer)
   Done when: recorded in decisions.md (open today).
