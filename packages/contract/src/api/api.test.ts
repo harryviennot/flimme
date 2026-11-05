@@ -515,8 +515,9 @@ describe('provider readers', () => {
       slug: 'quick_match',
       min_players: 2,
       max_players: 10,
-      ends_on_first_match: true,
+      ends_on_first_match: false,
       sort: 1,
+      matches_to_end: 3,
     };
     const { client, calls } = fake(() => ok([mode]));
     await expect(createApi(client, { validate: true }).gameModes()).resolves.toEqual([mode]);

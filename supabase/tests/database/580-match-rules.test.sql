@@ -5,6 +5,9 @@
 begin;
 select plan(24);
 
+-- M6.34: the re-check order is tested through the first match, so every mode picks at its first match.
+update public.game_modes set defaults = defaults || '{"matches_to_end": 1}';
+
 select tests.create_catalog(40);
 
 -- 1. The seed holds the decided values, value for value.
