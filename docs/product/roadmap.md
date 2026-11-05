@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 141 of 278 tasks done.
+Progress: 142 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -486,7 +486,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: every screen has a spec with its states and its copy in French and English, both beats are in moments.md, and the frames are on the First release page.
 - [x] **M6.43** The tab bar: Play (today's Home) and My films as Expo Router tabs; host setup, join, rooms and Settings over the tabs with no tab bar; deep links and the redirects from `/` still work · app · M · needs M6.39 · [solo](solo-and-my-films.md#2-the-tab-bar), [app-structure](../architecture/app-structure.md#screens-and-navigation)
   Done when: a touch run on the simulator moves between the tabs, opens host setup, a join link, a room and Settings with no tab bar, and comes back to Play.
-- [ ] **M6.44** Play alone: the Play alone card, Play alone setup, the solo swipe variant, the checkpoint card every 20 cards, the pick sheet and the solo pick, the cap card · app · L · needs M6.39, M6.40, M6.42, M6.43 · [solo](solo-and-my-films.md#3-what-solo-ends-with), [game-modes](game-modes.md#the-modes)
+- [x] **M6.44** Play alone: the Play alone card, Play alone setup, the solo swipe variant, the checkpoint card every 20 cards, the pick sheet and the solo pick, the cap card · app · L · needs M6.39, M6.40, M6.42, M6.43 · [solo](solo-and-my-films.md#3-what-solo-ends-with), [game-modes](game-modes.md#the-modes)
   Done when: a touch run on the simulator against staging plays alone past two checkpoints, picks a film and sees where to watch, leaves a session, and meets the cap card, in French and English.
 - [ ] **M6.45** My films and the film sheet: the grid, Liked and Seen, the chips, the badges, the empty, loading and offline states; the film sheet with the card back, where to watch, Mark as seen and Remove · app · L · needs M6.39, M6.41, M6.43 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles)
   Done when: a touch run on the simulator against staging shows likes, a group's pick with its badge and a seen film, removes a film and undoes it, and marks one as seen, in French and English.
