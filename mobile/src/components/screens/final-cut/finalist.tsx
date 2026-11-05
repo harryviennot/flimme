@@ -196,6 +196,7 @@ export function Finalist({
     <Animated.View
       entering={entering}
       className="max-w-36 flex-1"
+      testID={`finalist-${view.titleId}`}
       onLayout={(event) => {
         // The poster is the root's first child, so its frame starts where the root does.
         const { x, y, width } = event.nativeEvent.layout;

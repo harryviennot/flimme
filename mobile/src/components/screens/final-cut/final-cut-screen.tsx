@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, findNodeHandle, View } from 'react-native';
-import Animated, { LinearTransition } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+  ReduceMotion,
+  useReducedMotion,
+} from 'react-native-reanimated';
 
 import { RoomBanner } from '@/components/screens/room/room-banner';
 import { Button } from '@/components/ui/button';
@@ -30,6 +36,13 @@ import { Reveal } from './reveal';
 
 type Frame = { x: number; y: number; width: number };
 
+// The reveal's fades keep fading under Reduce Motion, on the same times (final-cut.md#the-reveal).
+const revealFadeIn = FadeIn.duration(duration.base).reduceMotion(ReduceMotion.Never);
+const revealFadeOut = FadeOut.duration(duration.fast).reduceMotion(ReduceMotion.Never);
+const spotlightIn = FadeIn.duration(duration.celebrate)
+  .easing(easing.standard)
+  .reduceMotion(ReduceMotion.Never);
+
 export function FinalCutScreen({
   roomId,
   model,
@@ -49,9 +62,11 @@ export function FinalCutScreen({
   const playing = reveal?.kind === 'playing' ? reveal : null;
   const waiting = reveal?.kind === 'waiting';
   const atWinner = playing?.stage === 'winner';
+  const reduce = useReducedMotion();
   const [frames, setFrames] = useState<Record<number, Frame>>({});
   const lineText = playing?.line ? t(`reveal.reason.${playing.line}`) : '';
-  const winnerFrame = playing?.winner ? frames[playing.winner.titleId] : undefined;
+  // The spotlight is measured early but lit only at the winner step: it never gives the winner away.
+  const winnerFrame = atWinner && playing?.winner ? frames[playing.winner.titleId] : undefined;
   const askToLeave = useAskToLeave();
   const ranked = model.kind === 'ranked_vote';
   const counting = model.phase === 'counting';
@@ -133,13 +148,13 @@ export function FinalCutScreen({
             className="flex-1"
           >
             {atWinner ? (
-              <Animated.View key="winner" entering={layout.fadeIn}>
+              <Animated.View key="winner" entering={revealFadeIn}>
                 <Text variant="display-m" tone="marquee" numberOfLines={2}>
                   {tw('eyebrow')}
                 </Text>
               </Animated.View>
             ) : (
-              <Animated.View key="vote" exiting={layout.fadeOut}>
+              <Animated.View key="vote" exiting={revealFadeOut}>
                 <Text variant="display-m" numberOfLines={2}>
                   {t(ranked ? 'heading.ranked' : 'heading.finalCut')}
                 </Text>
@@ -166,7 +181,10 @@ export function FinalCutScreen({
               </Text>
             </View>
             {atWinner && lineText ? (
-              <Animated.View entering={layout.popIn} className="absolute inset-x-0 top-0">
+              <Animated.View
+                entering={reduce ? revealFadeIn : layout.popIn}
+                className="absolute inset-x-0 top-0"
+              >
                 <Text variant="title-m" tone="secondary" numberOfLines={2}>
                   {lineText}
                 </Text>
@@ -174,7 +192,7 @@ export function FinalCutScreen({
             ) : null}
           </Animated.View>
         ) : (
-          <Animated.View exiting={layout.fadeOut}>
+          <Animated.View exiting={revealFadeOut}>
             <Text variant="body-m" tone="secondary">
               {t(intro)}
             </Text>
@@ -199,7 +217,8 @@ export function FinalCutScreen({
           <View className="relative flex-row justify-center gap-2.5">
             {winnerFrame ? (
               <Animated.View
-                entering={layout.fadeIn.duration(duration.celebrate).easing(easing.standard)}
+                entering={spotlightIn}
+                testID="reveal-spotlight"
                 pointerEvents="none"
                 style={{
                   position: 'absolute',
@@ -278,7 +297,7 @@ export function FinalCutScreen({
         ) : null}
 
         {reveal ? null : (
-          <Animated.View exiting={layout.fadeOut}>
+          <Animated.View exiting={revealFadeOut}>
             <LockInRow seats={model.seats} count={model.count} of={model.of} />
           </Animated.View>
         )}

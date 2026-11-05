@@ -179,6 +179,20 @@ describe('the reveal', () => {
     expect(haptics.match).toHaveBeenCalledTimes(1);
   });
 
+  it('lights the spotlight only at the winner step', async () => {
+    await play(withKnockout);
+    for (const id of [10, 20, 30, 40]) {
+      await fireEvent(screen.getByTestId('finalist-' + id), 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 200 } },
+      });
+    }
+    expect(screen.queryByTestId('reveal-spotlight')).toBeNull();
+    await advance(revealPlan(withKnockout).knockouts ?? 0);
+    expect(screen.queryByTestId('reveal-spotlight')).toBeNull();
+    await advance(revealPlan(withKnockout).winner);
+    expect(screen.getByTestId('reveal-spotlight')).toBeTruthy();
+  });
+
   it('shows no seat name or lock-in row', async () => {
     await play(withKnockout);
     await advance(revealPlan(withKnockout).winner);
