@@ -79,6 +79,8 @@ Guests and accounts store the same things; a guest simply has no email. Retentio
 | On the phone | Sign-in session, vote queue, settings | Keep you signed in, keep offline votes | Strictly necessary | Stays on the phone | Until sign-out or uninstall |
 | "Did you watch it?" reminder | A local notification scheduled on the phone; no push token at launch | The follow-up | OS permission | Stays on the phone | Until it fires |
 
+**Backups.** A deleted account's data leaves backups when they expire, not before: the weekly dump after 4 weeks, Supabase's daily backups after 7 days. Dumps are not rewritten. *Default taken while Harry was away (4 Nov 2026): for the lawyer's review.*
+
 Not personal: `rec.title_stats` (per-film totals of in-app reactions) and `letterboxd_film_map` (Letterboxd film to TMDB film).
 
 **What rooms reveal.** Inside a room, players see each other's names, avatars, services, whether Letterboxd is linked, a seated player's Letterboxd rating of the film on screen, watchlist labels, and after the pick in Party mode who liked the runners-up. Never anyone's swipes during the game, taste check answers, taste profile or games played with other people (the deck engine's [label rule](../architecture/deck-engine.md#reason-labels)).
@@ -151,7 +153,7 @@ Sentry in its EU data region (Frankfurt), with personal data off: no IP, no name
 
 | Right | How | Guests |
 | --- | --- | --- |
-| Access and portability | Settings, then My data, then Export: `api.export_my_data` returns JSON with the profile, services, consents, Letterboxd link and diary, film history, taste leanings, card memory and the player's own votes | Same button |
+| Access and portability | Settings, then My data, then Export: `api.export_my_data` returns JSON with the profile, services, consents, Letterboxd link and diary, film history, taste leanings, card memory and, for each game, the player's own seat, votes, swipes, Final Cut ballots, the room's pick and after-game answers (never other players' data or reports) | Same button |
 | Erasure | Settings, then Delete my data: the server deletes the auth user and everything cascades; seats in past rooms become anonymous ([data model](../architecture/data-model.md#deleting-an-account-exporting-data)). For accounts made with Sign in with Apple, the server also revokes the Apple tokens, as Apple asks. A web page lets anyone request deletion without the app (Google Play requires one) | Same button, with no account needed |
 | Rectification | Edit name, avatar and services; a new Letterboxd export; disconnect | Same |
 | Objection | The training and analytics switches | Same |

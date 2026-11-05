@@ -73,3 +73,7 @@ run = "pnpm --filter mobile tokens"
 [tasks.next]
 description = "List roadmap tasks whose dependencies are done"
 run = "node tools/next.mjs"
+
+[tasks.bots]
+description = "Bot players that join a room by code and stay present: mise run bots -- --code 482913 --count 3"
+run = "pnpm --filter @flimme/bots start"

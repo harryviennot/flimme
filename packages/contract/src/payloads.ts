@@ -78,6 +78,74 @@ export const reportMemberResult = z.object({
 });
 export type ReportMemberResult = z.infer<typeof reportMemberResult>;
 
+// The first release's export (M8.6). Only the caller's own data: their seats, never other seats,
+// and no reports. The Letterboxd lists are empty in the first release. Dates are ISO strings.
+const exportVote = z.object({
+  tmdb_id: z.number(),
+  title: z.string(),
+  answer: z.string(),
+  at: z.string(),
+});
+const exportSwipe = z.object({
+  tmdb_id: z.number(),
+  action: z.enum(['vote', 'undo']),
+  answer: z.string(),
+  at: z.string(),
+  dwell_ms: z.nullable(z.number()),
+});
+const exportBallot = z.object({
+  tmdb_id: z.nullable(z.number()),
+  kind: z.enum(['veto', 'pass', 'rank']),
+  rank: z.nullable(z.number()),
+  at: z.string(),
+});
+export const exportGame = z.object({
+  room_id: z.string(),
+  joined_at: z.string(),
+  left_at: z.nullable(z.string()),
+  display_name: z.string(),
+  avatar_key: z.string(),
+  role: z.enum(['host', 'guest']),
+  joined_via: z.nullable(z.string()),
+  services: z.array(z.number()),
+  votes: z.array(exportVote),
+  swipes: z.array(exportSwipe),
+  ballots: z.array(exportBallot),
+  pick: z.nullable(z.object({ tmdb_id: z.number(), title: z.string(), kind: z.string() })),
+  watched_answer: z.nullable(z.string()),
+  post_reaction: z.nullable(z.string()),
+});
+export type ExportGame = z.infer<typeof exportGame>;
+
+export const exportMyData = z.object({
+  profile: z.nullable(z.record(z.string(), z.unknown())),
+  services: z.array(z.number()),
+  consents: z.array(z.record(z.string(), z.unknown())),
+  linked_accounts: z.array(z.unknown()),
+  letterboxd_diary: z.array(z.unknown()),
+  film_history: z.array(
+    z.object({
+      tmdb_id: z.number(),
+      title: z.string(),
+      source: z.string(),
+      seen: z.boolean(),
+      rating: z.nullable(z.number()),
+      on_watchlist: z.boolean(),
+      reaction: z.nullable(z.string()),
+      last_watched_on: z.nullable(z.string()),
+    }),
+  ),
+  taste: z.nullable(z.unknown()),
+  games: z.array(exportGame),
+});
+export type ExportMyData = z.infer<typeof exportMyData>;
+
+export const exportMyDataResult = z.discriminatedUnion('status', [
+  z.extend(exportMyData, { status: z.literal('ok') }),
+  z.object({ status: z.literal('rate_limited') }),
+]);
+export type ExportMyDataResult = z.infer<typeof exportMyDataResult>;
+
 export const leaveRoomResult = z.object({ status: z.enum(['ok', 'not_in_room']) });
 export type LeaveRoomResult = z.infer<typeof leaveRoomResult>;
 
@@ -122,7 +190,8 @@ export const startGameResult = z.discriminatedUnion('status', [
   // Under deck_engine `sql` the start deals at once (`ok`); `fallback` marks the 8-second path.
   z.object({
     status: z.literal('ok'),
-    request_id: z.nullish(z.string()),
+    // A bigint in SQL: a number once a start went through, null when nothing was dealt.
+    request_id: z.nullish(z.union([z.string(), z.number()])),
     started: z.optional(z.boolean()),
     seats: z.optional(z.number()),
     fallback: z.optional(z.boolean()),

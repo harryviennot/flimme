@@ -11,6 +11,7 @@ import {
   JOIN_ROOM_ANSWERS,
   ROOM_PREVIEW_ANSWERS,
   REPORT_MEMBER_ANSWERS,
+  EXPORT_MY_DATA_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
@@ -117,6 +118,50 @@ const cases = [
     call: (a: ReturnType<typeof createApi>) =>
       a.reportMember({ room_id: ROOM, member_id: MEMBER, reason: 'spam' }),
     full: {},
+  },
+  {
+    name: 'export_my_data',
+    answers: EXPORT_MY_DATA_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.exportMyData(),
+    full: {
+      ok: {
+        profile: { id: MEMBER },
+        services: [8],
+        consents: [],
+        linked_accounts: [],
+        letterboxd_diary: [],
+        film_history: [],
+        taste: null,
+        games: [
+          {
+            room_id: ROOM,
+            joined_at: '2026-11-04T20:00:00Z',
+            left_at: null,
+            display_name: 'Camille',
+            avatar_key: 'blue',
+            role: 'host',
+            joined_via: 'code',
+            services: [8],
+            votes: [
+              { tmdb_id: 603, title: 'The Matrix', answer: 'like', at: '2026-11-04T20:01:00Z' },
+            ],
+            swipes: [
+              {
+                tmdb_id: 603,
+                action: 'vote',
+                answer: 'like',
+                at: '2026-11-04T20:01:00Z',
+                dwell_ms: null,
+              },
+            ],
+            ballots: [{ tmdb_id: null, kind: 'pass', rank: null, at: '2026-11-04T20:10:00Z' }],
+            pick: null,
+            watched_answer: null,
+            post_reaction: null,
+          },
+        ],
+      },
+    },
   },
   {
     name: 'leave_room',
@@ -271,6 +316,14 @@ describe('arguments', () => {
     expect(calls[0]).toEqual({ fn: 'room_preview', args: { p_code: '482915', p_ref: ROOM } });
   });
 
+  it('export_my_data resolves rate_limited as a value, not an error', async () => {
+    const { client, calls } = fake(() => ok({ status: 'rate_limited' }));
+    await expect(createApi(client, { validate: true }).exportMyData()).resolves.toEqual({
+      status: 'rate_limited',
+    });
+    expect(calls[0]).toEqual({ fn: 'export_my_data', args: {} });
+  });
+
   it('report_member sends the room, the seat and the reason', async () => {
     const { client, calls } = fake(() => ok({ status: 'ok' }));
     await createApi(client).reportMember({ room_id: ROOM, member_id: MEMBER, reason: 'other' });
@@ -334,6 +387,15 @@ describe('arguments', () => {
     void api.updateRoomSettings({ room_id: ROOM, settings: { colour: 'red' } });
     // @ts-expect-error provider ids are numbers
     void api.setMyProviders({ provider_ids: ['8'] });
+  });
+});
+
+describe('start_game request id', () => {
+  it('accepts the number the database sends once a start went through', async () => {
+    const { client } = fake(() => ok({ status: 'ok', request_id: 958, started: true, seats: 4 }));
+    await expect(
+      createApi(client, { validate: true }).startGame({ room_id: ROOM }),
+    ).resolves.toMatchObject({ status: 'ok', request_id: 958 });
   });
 });
 
