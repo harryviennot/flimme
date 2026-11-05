@@ -22,6 +22,7 @@ import {
   placesOf,
   pressFinalist,
   tapFinalist,
+  tapPick,
   vetoAllowed,
   type Ballot,
   type Place,
@@ -47,6 +48,8 @@ export type LockInSeat = { memberId: string; name: string; avatarKey: string; lo
 
 export type FinalCutModel = {
   kind: 'final_cut' | 'ranked_vote';
+  /** A ranked vote of 2 films: "Pick one", a tap picks, no veto. */
+  pickOne: boolean;
   phase: Phase;
   /** The round or its finalists can't be read. */
   loadFailed: boolean;
@@ -223,11 +226,12 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
   // With no veto allowed (a `no_veto` answer re-read the seat) a held veto is dropped, so the
   // retry goes without it and the stamped poster returns to the ranking.
   const shown: Ballot = canVeto || ballot.veto === null ? ballot : { ...ballot, veto: null };
+  const pickOne = kind === 'ranked_vote' && seedOrder.length === 2;
   const places = placesOf(seedOrder, shown);
 
   function onTap(titleId: number) {
     if (!takesTaps(phase)) return;
-    const next = tapFinalist(ballot, titleId);
+    const next = pickOne ? tapPick(ballot, titleId) : tapFinalist(ballot, titleId);
     if (next === ballot) {
       // The vetoed poster: nothing changes and nothing buzzes; the line says how to lift it.
       setLiftVetoHint(true);
@@ -256,6 +260,7 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
 
   return {
     kind,
+    pickOne,
     phase,
     loadFailed: (rounds.isError && !rounds.data) || (candidates.isError && !candidates.data),
     postersFailed: cards.isError && !cards.data,
