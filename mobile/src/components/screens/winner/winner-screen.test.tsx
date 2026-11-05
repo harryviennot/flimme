@@ -150,6 +150,37 @@ describe('the winner screen', () => {
   });
 });
 
+describe('Share recap (winner.md#share-recap)', () => {
+  const showWith = (view: WinnerView, props: { solo?: boolean; onShareRecap?: () => void }) =>
+    render(
+      <WinnerScreen
+        view={view}
+        language="en"
+        online
+        onHome={jest.fn()}
+        solo={props.solo}
+        onShareRecap={props.onShareRecap}
+      />,
+    );
+
+  it('opens the recap from a group pick', async () => {
+    const open = jest.fn();
+    await showWith(ready(), { onShareRecap: open });
+    fireEvent.press(screen.getByRole('button', { name: "Share an image of tonight's pick" }));
+    expect(open).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['a solo pick', ready(), true],
+    ['a room with no pick', { status: 'no_pick' } as WinnerView, false],
+    ['a card still loading', { status: 'loading' } as WinnerView, false],
+    ['a card that failed', { status: 'error', retry: jest.fn() } as WinnerView, false],
+  ])('has no Share recap on %s', async (_name, view, solo) => {
+    await showWith(view, { solo, onShareRecap: jest.fn() });
+    expect(screen.queryByText('Share recap')).toBeNull();
+  });
+});
+
 describe('the watch page event', () => {
   it('counts a group winner and not a solo pick', async () => {
     const group = await render(

@@ -1,5 +1,9 @@
-import { PlaceholderScreen } from '@/components/shared/placeholder-screen';
+import { useLocalSearchParams } from 'expo-router';
 
+import { RecapSheet } from '@/components/screens/recap/recap-sheet';
+
+/** The recap share card (recap.md), a form sheet over the winner screen. */
 export default function RoomRecapScreen() {
-  return <PlaceholderScreen title="Recap" task="M6.21" />;
+  const { id } = useLocalSearchParams<{ id: string }>();
+  return <RecapSheet roomId={id ?? ''} />;
 }

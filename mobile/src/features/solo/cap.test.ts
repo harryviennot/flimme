@@ -23,4 +23,11 @@ describe('the solo cap day', () => {
     expect(readSavedCap({ day: 5 })).toEqual({ day: null });
     expect(readSavedCap(null)).toEqual({ day: null });
   });
+
+  it('forgets the day, so Play alone asks the server again (Dev menu)', () => {
+    const store = createSoloCapStore();
+    store.getState().reached(new Date('2026-11-05T12:00:00Z'));
+    store.getState().forget();
+    expect(store.getState().day).toBeNull();
+  });
 });

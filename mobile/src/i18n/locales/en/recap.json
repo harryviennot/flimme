@@ -1,0 +1,41 @@
+{
+  "entry": "Share recap",
+  "sheet": {
+    "title": "Your recap",
+    "body": "An image of tonight's pick to send anywhere. No names on it.",
+    "share": "Share"
+  },
+  "card": {
+    "eyebrow": "Movie night",
+    "heading": "We picked",
+    "time": "In {{time}}",
+    "people_one": "person",
+    "people_other": "people",
+    "swipes_one": "swipe",
+    "swipes_other": "swipes",
+    "footer": "Made with Flimme · {{site}}"
+  },
+  "time": {
+    "seconds": "{{seconds}} s",
+    "minutes": "{{minutes}} min",
+    "minutesSeconds": "{{minutes}} min {{seconds}} s",
+    "hoursMinutes": "{{hours}} h {{minutes}} min"
+  },
+  "errors": {
+    "load": "Couldn't load the recap.",
+    "offline": "You're offline. The recap shows when you're back.",
+    "capture": "Couldn't make the image. Try again.",
+    "share": "Sharing didn't work. Try again."
+  },
+  "a11y": {
+    "entry": "Share an image of tonight's pick",
+    "preview": "Recap: {{title}}, picked in {{time}}. {{people}}, {{swipes}}.",
+    "previewNoTime": "Recap: {{title}}. {{people}}, {{swipes}}.",
+    "people_one": "{{count}} person",
+    "people_other": "{{count}} people",
+    "swipes_one": "{{count}} swipe",
+    "swipes_other": "{{count}} swipes",
+    "shareHint": "Opens the share sheet",
+    "loading": "Loading the recap"
+  }
+}
