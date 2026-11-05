@@ -82,6 +82,10 @@ if (touched('packages/contract/') && !testsOnly) {
 if (touched('packages/contract/')) {
   add('contract: tests', 'pnpm --filter @flimme/contract run test');
 }
+if (touched('tools/bots/', 'packages/contract/', 'pnpm-lock.yaml')) {
+  if (!testsOnly) add('bots: types', 'pnpm --filter @flimme/bots run typecheck');
+  add('bots: tests', 'pnpm --filter @flimme/bots run test');
+}
 if (touched('server/')) {
   if (has('uv')) {
     if (!testsOnly) {
