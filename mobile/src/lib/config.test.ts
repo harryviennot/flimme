@@ -1,4 +1,4 @@
-import { parseConfig } from './config';
+import { analyticsKey, parseConfig } from './config';
 
 const valid = {
   EXPO_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
@@ -41,5 +41,18 @@ describe('configuration', () => {
     const key = 'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY';
     expect(() => parseConfig({ ...valid, [key]: undefined })).toThrow(key);
     expect(() => parseConfig({ ...valid, [key]: '  ' })).toThrow(key);
+  });
+});
+
+describe('the analytics key', () => {
+  it('is optional: empty or missing turns analytics off and never stops the app', () => {
+    expect(analyticsKey({})).toBeNull();
+    expect(analyticsKey({ EXPO_PUBLIC_POSTHOG_KEY: '' })).toBeNull();
+    expect(analyticsKey({ EXPO_PUBLIC_POSTHOG_KEY: '  ' })).toBeNull();
+    expect(() => parseConfig(valid)).not.toThrow();
+  });
+
+  it('reads the key when it is set', () => {
+    expect(analyticsKey({ EXPO_PUBLIC_POSTHOG_KEY: ' phc_x ' })).toBe('phc_x');
   });
 });

@@ -2,6 +2,7 @@ packages:
   - mobile
   - packages/*
   - tools/bots
+  - tools/load
 
 onlyBuiltDependencies:
   - lefthook

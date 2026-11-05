@@ -174,7 +174,7 @@ flowchart LR
 
 ## Monitoring and alerts
 
-**Where alerts arrive:** Sentry, by email and the Sentry phone app. A health check job in the pipeline worker runs every 5 minutes, reads `internal.ops_health()` (a new function, see [Changes this asks elsewhere](#changes-this-asks-elsewhere)) and sends one Sentry event per threshold crossed; Sentry groups repeats. One Sentry uptime monitor watches the server's HTTP API health endpoint (Sentry's uptime page says one monitor comes with every plan).
+**Where alerts arrive:** Sentry, by email and the Sentry phone app. A health check in the pipeline worker runs every 5 minutes on its own timer (first run 30 seconds after start; not a queued message, so a broken `pg_cron` or a backed-up `catalog_refresh` cannot hide it), reads `internal.ops_health()` (M9.5) and sends one Sentry event per threshold crossed; Sentry groups repeats by the fingerprint `["ops-health", <signal>]`. The thresholds live in the SQL function. Latency and size signals are warnings, the rest errors. Each loop ends with a Sentry cron check-in (monitor `ops-health`, every 5 minutes, margin 5, max runtime 2), so a stopped worker shows as a missed check-in; if `ops_health()` fails or takes over 10 seconds, the loop sends one error event and checks in as `error`. The worker only runs the check when `SENTRY_DSN` is set. Events carry the signal's numbers only; a report event says how many reports and their ids cut to 8 characters (tag `report_ids`: find them with `id::text like 'a1b2c3d4%'`), and the worker sets `alerted_at` once Sentry has the event, so a failed send is retried. **Not wired yet:** anonymous sign-ins answered 429 and database CPU (both need Supabase's API and an access token), Letterboxd and "Not there anymore?" (until those features). The deal signals are quiet while `deck_engine` is `sql` now, since a deal does not record which engine dealt it. A signal with nothing to measure yet (no retention run ever, no `sweep_rooms` run ever) has a null value and is not crossed. Sentry confirms an event only as far as the SDK's flush (a response Sentry rejects is not seen), so a report could rarely be marked without arriving. Database load is measured by size (percent of 8 GB) and connections (percent of `max_connections`). One Sentry uptime monitor watches the server's HTTP API health endpoint (Sentry's uptime page says one monitor comes with every plan).
 
 | Signal | Measured from | Alert when (starting values) | First move |
 | --- | --- | --- | --- |
@@ -272,6 +272,20 @@ From the revival plan's checklist: 50 rooms at once.
 
 If a target is missed: find the slow queries in Supabase's query performance report first; then try Small compute; then the data model's own fixes (a precomputed eligible set per room, or an HNSW pre-filter).
 
+**How to run it** (M9.7 built the runner in `tools/load/`; the full run is M9.9, Harry's).
+
+- Bot accounts: email and password accounts on staging, kept in a git-ignored JSON file (name it `load-accounts.json`, or keep it outside the repository), a list of `{ "email": ..., "password": ... }` (about 230 for the full run). `LOAD_ACCOUNTS_FILE` points to it. Staging's anonymous sign-in limit would stop one machine, so the local stack is the only place bots sign in as guests.
+- Staging's public values in the environment: `FLIMME_STAGING_URL` and `FLIMME_STAGING_KEY` (the publishable key).
+- A small dry run: `mise run load -- --target staging --rooms4 2 --rooms10 1 --ramp 30s --duration 5m`. The scenario above is the default: `mise run load -- --target staging --full`. More than 20 bots needs `--full` (the dry run above is 18 bots), and the runner refuses any URL that is not staging's (or, for `--target local`, this machine's).
+- Ctrl-C or the end of the time stops new games, gives running rooms 60 seconds (`--grace`) to finish, makes every bot leave its room and writes the report.
+- The report (`load-report-<date>-<time>.md`) and the vote ledger (`load-ledger-<date>-<time>.json`, seat ids inside) are git-ignored. The report has no account, id or room code and goes into the pull request as it is.
+- The runner measures the `cast_vote` round trip, a match reaching the other bots and the fallback deals it sees. A match is timed from the matching vote's answer to each other bot's Realtime event.
+- Read by hand, with the queries the report prints: `internal.deck_candidates` (`pg_stat_statements`), the deal time and fallback deals (`rec.requests`), database CPU (Supabase reports) and new Sentry issues.
+- Lost or duplicated votes: after the run, count the rows of `votes` per seat as a JSON object (`select jsonb_object_agg(room_member_id, n) from (select room_member_id, count(*) n from public.votes where created_at >= '<start of the run>' group by 1) s`), then `mise run load -- check --ledger <ledger file> --counts <counts file>`.
+- **One machine hits the join limits.** `api.join_room` allows 30 joins per IP address and 10 per profile in 10 minutes (security.md#starting-values), and every bot joins once per game. The full run joins 230 bots in its first 5 minutes from one address, so the report lists `join:rate_limited` under "Games that could not be played" and the run is invalid until the limit is relaxed for the hour (or the bots come from several addresses). That choice is Harry's, before M9.9. The local dry run clears the `join` counters in its own database; staging has no such shortcut.
+- Locally there is no deck worker, so every `rec.requests` row is a baseline deal (`is_fallback`): the fallback line is only meaningful on staging.
+- Bots swipe about every 3 seconds, scaled by their personality (fast 0.5, slow 2), and like about 30% of cards.
+
 **What it says about capacity.** Assuming one Realtime connection per phone, Pro's 500 included connections cover about 125 four-player rooms at the same moment; beyond that, connections cost $10 per 1,000. The data model's estimate of about 350 Realtime messages per 4-player game means the 5 million included messages cover about 14,000 games a month.
 
 ## Monthly costs
@@ -318,7 +332,7 @@ A short checklist for when something is wrong:
 
 | Where | Change |
 | --- | --- |
-| `internal.ops_health()` | New: returns the numbers the health check watches (deal latency and fallback share over the last hour, queue metrics, the last runs of `sweep_rooms` and retention, unfinished `ingest_runs`, Letterboxd failures, the share of winners reported). Callable by `app_server` only |
+| `internal.ops_health()` | New (M9.5): returns each signal as `{name, value, threshold, crossed}` (queue ages, `sweep_rooms` runs, retention, catalog runs, the sweep guard, 429 rate and agreement, new reports with their ids, deal latency and fallback share, database size and connections), and `internal.mark_reports_alerted(ids)` sets `alerted_at`. Callable by `app_server` only |
 | `internal.run_retention()` | New: the daily retention job, writing its counts to `ingest_runs` |
 | `ingest_runs.kind` | Add `retention` and `guest_cleanup` |
 | Baseline migration | Drops `pg_graphql`; enables `vector`, `pg_trgm`, `pgmq`, `pg_cron` |

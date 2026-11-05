@@ -16,6 +16,8 @@ export function resetPersistedStore(store: ResettableStore): void {
 }
 
 export type WipeDeps = {
+  /** Analytics reset and switched off, before anything else, so no event re-creates the person. */
+  forgetAnalytics?: () => void;
   /** Ends the session on this phone only (no call to the server). */
   signOut: () => Promise<void>;
   /** Every persisted store, the vote queue and the profile copy, each back to nothing. */
@@ -27,6 +29,11 @@ export type WipeDeps = {
 };
 
 export async function wipeWith(deps: WipeDeps): Promise<void> {
+  try {
+    deps.forgetAnalytics?.();
+  } catch {
+    // Analytics failing must not stop the wipe.
+  }
   try {
     await deps.signOut();
   } catch {

@@ -31,8 +31,9 @@ quick_match 5-10 share_like 0.70 ranked_vote 30 360 4$t$,
 -- 2. Each mode's brackets cover 2 to its max_players, with no gap and no overlap.
 select is(
   (select count(*) from public.game_modes gm
-   where (select min(mr.min_players) from public.match_rules mr where mr.mode = gm.slug) <> 2
-      or (select max(mr.max_players) from public.match_rules mr where mr.mode = gm.slug) <> gm.max_players),
+   where gm.slug <> 'solo'   -- the solo mode has no brackets (M6.40)
+     and ((select min(mr.min_players) from public.match_rules mr where mr.mode = gm.slug) <> 2
+      or (select max(mr.max_players) from public.match_rules mr where mr.mode = gm.slug) <> gm.max_players)),
   0::bigint,
   'M6.1 every mode''s brackets start at 2 and end at the mode''s max_players'
 );

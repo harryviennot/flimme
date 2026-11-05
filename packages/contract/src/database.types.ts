@@ -302,8 +302,14 @@ export type Database = {
 "set_seat_prefs":
 { Args: { "p_genre_ids"?: (number)[],"p_member_id"?: string,"p_mood_slugs"?: (string)[],"p_provider_ids"?: (number)[],"p_room_id": string }; Returns: Json
                            },
+"solo_pick":
+{ Args: { "p_room_id": string,"p_title_id": number }; Returns: Json
+                           },
 "start_game":
 { Args: { "p_room_id": string }; Returns: Json
+                           },
+"start_solo":
+{ Args: { "p_settings"?: Json }; Returns: Json
                            },
 "submit_calibration":
 { Args: { "p_answers": Json,"p_room_id"?: string }; Returns: Json
