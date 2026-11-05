@@ -2,6 +2,7 @@ import i18n from '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { AccessibilityInfo, Alert } from 'react-native';
@@ -37,6 +38,7 @@ jest.mock('@/lib/supabase', () => ({ supabase: {} }));
 jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
 }));
+jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn(async () => true) }));
 jest.mock('@/lib/sentry', () => ({ reportError: jest.fn() }));
 jest.mock('@/lib/haptics', () => ({ haptics: { error: jest.fn(), press: jest.fn() } }));
 jest.mock('@/components/ui/toast', () => ({ showToast: jest.fn() }));
@@ -622,6 +624,39 @@ describe('sharing', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Invite friends' }));
     expect(mockRouter.push).toHaveBeenCalledTimes(2);
     expect(mockRouter.push).toHaveBeenCalledWith('/room/r1/invite');
+  });
+});
+
+describe('copying the code', () => {
+  const ticket = () => screen.getByLabelText(/^Room code 4 8 2 9 1 3/);
+
+  it('a long press copies the bare code, buzzes and shows the success toast', async () => {
+    await show();
+    await waitFor(() => expect(screen.getByText('Sam')).toBeTruthy());
+    await fireEvent(ticket(), 'longPress');
+    await waitFor(() => expect(Clipboard.setStringAsync).toHaveBeenCalledWith('482913'));
+    expect(haptics.press).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({ tone: 'success', title: 'Code copied' }),
+    );
+  });
+
+  it('a screen reader gets a Copy the code action that does the same', async () => {
+    await show();
+    await waitFor(() => expect(screen.getByText('Sam')).toBeTruthy());
+    expect(ticket().props.accessibilityActions).toEqual([
+      { name: 'copyCode', label: 'Copy the code' },
+    ]);
+    await fireEvent(ticket(), 'accessibilityAction', { nativeEvent: { actionName: 'copyCode' } });
+    await waitFor(() => expect(Clipboard.setStringAsync).toHaveBeenCalledWith('482913'));
+    expect(showToast).toHaveBeenCalledWith({ tone: 'success', title: 'Code copied' });
+  });
+
+  it('a plain tap does nothing', async () => {
+    await show();
+    await waitFor(() => expect(screen.getByText('Sam')).toBeTruthy());
+    await fireEvent.press(ticket());
+    expect(Clipboard.setStringAsync).not.toHaveBeenCalled();
   });
 });
 

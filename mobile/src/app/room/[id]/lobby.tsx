@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Toggle } from '@/components/ui/toggle';
 import { ListRow } from '@/components/ui/list-row';
-import type { PressableNode } from '@/components/ui/pressable';
+import { Pressable, type PressableNode } from '@/components/ui/pressable';
 import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
@@ -25,6 +25,7 @@ import { TopBar } from '@/components/ui/top-bar';
 import { useCountryProviders } from '@/features/host/queries';
 import { useInvite } from '@/features/invite/invite-link';
 import { useSeatAnnouncements } from '@/features/lobby/announce';
+import { useCopyRoomCode } from '@/features/lobby/copy-code';
 import { useAskToLeave } from '@/features/lobby/leave-context';
 import { formatList, serviceNames } from '@/features/lobby/names';
 import { useGameModes } from '@/features/lobby/queries';
@@ -65,6 +66,7 @@ export default function RoomLobbyScreen() {
   const modes = useGameModes().data;
   const invite = useInvite(id);
   const lock = useRoomLock(id);
+  const copyCode = useCopyRoomCode(room?.code);
 
   const seated = useMemo(() => seatedSeats(seatsRead.data), [seatsRead.data]);
   const host = hostSeat(seated);
@@ -243,8 +245,14 @@ export default function RoomLobbyScreen() {
         }
       >
         <View className="gap-4 pt-4 pb-4">
-          <View
-            accessible
+          <Pressable
+            haptic={false}
+            onLongPress={copyCode}
+            accessibilityRole="text"
+            accessibilityActions={[{ name: 'copyCode', label: t('a11y.copyCode') }]}
+            onAccessibilityAction={(event) => {
+              if (event.nativeEvent.actionName === 'copyCode') copyCode();
+            }}
             accessibilityLabel={
               t('a11y.ticket', {
                 code: room.code.split('').join(' '),
@@ -260,7 +268,7 @@ export default function RoomLobbyScreen() {
               rightDetail={t('ticket.host', { name: hostName })}
               locked={room.locked}
             />
-          </View>
+          </Pressable>
 
           <View className="flex-row gap-3">
             <View className="flex-1">

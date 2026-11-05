@@ -1,6 +1,7 @@
 {
   "topBar": "Avant la séance",
   "ticket": {
+    "copied": "Code copié",
     "players_one": "{{count}} joueur sur {{max}}",
     "players_other": "{{count}} joueurs sur {{max}}",
     "host": "Hôte · {{name}}"
@@ -65,6 +66,7 @@
     "seat": "Ouvrir les options pour {{name}}",
     "report": "Signaler {{name}}",
     "invite": "Inviter des amis",
+    "copyCode": "Copier le code",
     "joined": "{{name}} est là",
     "left": "{{name}} a quitté la salle",
     "leave": "Quitter la salle",

@@ -1,5 +1,5 @@
 # M6.9, the swipe screen, part 1 of 3 (the host's phone): a fresh guest on staging opens a room
-# with four services and waits in the lobby with the invite sheet closed. Part 2 is
+# with four services and waits in the lobby. Part 2 is
 # swipe-join.yaml on the second phone, part 3 is swipe.yaml on both.
 # Needs Metro started with the staging environment (see the expo-app skill) and the development
 # build on two simulators.

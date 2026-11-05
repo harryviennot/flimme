@@ -322,16 +322,8 @@ describe('routes', () => {
       await act(async () => {
         router.replace('/room/abc/lobby');
       });
-      // Like the host screen: the invite sheet opens over the lobby, and the host closes it.
-      jest.spyOn(Alert, 'alert').mockClear();
-      await act(async () => {
-        router.push('/room/abc/invite');
-      });
-      await act(async () => {
-        router.back();
-      });
-      // Closing the sheet is not leaving: no question.
-      expect(Alert.alert).not.toHaveBeenCalled();
+      // Like the host screen: it replaces itself with the lobby and opens nothing over it, so
+      // going back from the lobby asks to leave and never reveals a share step.
       await leave();
       expectOneHome(app);
     });
