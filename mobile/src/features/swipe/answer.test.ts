@@ -227,6 +227,33 @@ describe('presence count', () => {
   });
 });
 
+describe('a solo room', () => {
+  it('marks its votes so the queue keeps them without a kept room', async () => {
+    const { stack } = await setup();
+    const votes: { solo?: boolean }[] = [];
+    const answerer = createAnswerer({
+      stack,
+      queue: { enqueue: (vote) => void votes.push(vote), pendingSuperLikes: () => 0 },
+      roomId: ROOM,
+      memberId: ME,
+      solo: () => true,
+      initialSuperLikes: 2,
+      initialCount: 0,
+      locked: () => false,
+      now: () => 0,
+      onCount: () => undefined,
+    });
+    answerer.answer('like');
+    expect(votes[0]?.solo).toBe(true);
+  });
+
+  it("leaves a group room's votes unmarked", async () => {
+    const { votes, answerer } = await setup();
+    answerer.answer('like');
+    expect(votes[0]).not.toHaveProperty('solo');
+  });
+});
+
 describe('the rewatch question', () => {
   it.each([
     ['allow_rewatch', true],

@@ -17,6 +17,8 @@ jest.mock('@/features/lobby/use-leave-room', () => ({ useLeaveRoom: () => mockAs
 jest.mock('@/features/lobby/leave-context', () => ({
   LeaveContext: ({ children }: { children: React.ReactNode }) => children,
 }));
+const mockLeaveSolo = jest.fn();
+jest.mock('@/features/solo/leave', () => ({ useLeaveSolo: () => mockLeaveSolo }));
 jest.mock('@/features/room', () => ({
   registerRoomGuard: () => () => undefined,
   useMySeat: () => ({ member_id: 'm1' }),
@@ -47,6 +49,17 @@ describe('the room leave guard', () => {
     );
     lastCallback()?.();
     expect(mockHome).toHaveBeenCalledTimes(1);
+    expect(mockAsk).not.toHaveBeenCalled();
+  });
+
+  it('leaves a solo room at once, with no question', async () => {
+    await render(
+      <RoomLeaveGuard roomId="r1" solo>
+        <View />
+      </RoomLeaveGuard>,
+    );
+    lastCallback()?.();
+    expect(mockLeaveSolo).toHaveBeenCalled();
     expect(mockAsk).not.toHaveBeenCalled();
   });
 });

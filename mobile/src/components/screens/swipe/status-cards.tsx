@@ -51,7 +51,7 @@ export function LoadingCard({ size, onRetry }: { size: Size; onRetry: () => void
   );
 }
 
-function Frame({ size, children }: { size: Size; children: React.ReactNode }) {
+export function Frame({ size, children }: { size: Size; children: React.ReactNode }) {
   return (
     <Animated.View
       entering={layout.fadeIn}

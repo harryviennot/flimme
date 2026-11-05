@@ -1,0 +1,34 @@
+# M6.44, the cap: swipes a solo session to the daily cap (100 cards) and meets the cap card, which
+# then shows on Play alone that day. Run against staging after solo.yaml (or from a fresh day):
+# `maestro test mobile/.maestro/solo-cap.yaml -e METRO_URL=http://localhost:<port>`.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app.yaml
+- extendedWaitUntil:
+    visible: '(?i)play alone'
+    timeout: 30000
+- tapOn: '(?i)play alone'
+- tapOn: '(?i)^start$|c.est parti'
+- extendedWaitUntil:
+    visible: 'Solo'
+    timeout: 60000
+# Each checkpoint (every 20th card) is answered with Keep going, which is optional on the other cards.
+- repeat:
+    times: 100
+    commands:
+      - tapOn:
+          text: '(?i)keep going|continuer'
+          optional: true
+      - tapOn:
+          text: 'Nope'
+          optional: true
+- extendedWaitUntil:
+    visible: '(?i)today.s solo deck|c.est tout pour le solo'
+    timeout: 30000
+- takeScreenshot: solo-cap-1-card
+- tapOn: '(?i)my films|mes films'
+- tapOn: '(?i)play alone|jouer seul'
+- extendedWaitUntil:
+    visible: '(?i)today.s solo deck|c.est tout pour le solo'
+    timeout: 15000
+- takeScreenshot: solo-cap-2-setup

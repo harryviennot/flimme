@@ -20,6 +20,8 @@ export type UndoDeps = {
   };
   roomId: string;
   memberId: string;
+  /** A solo room: its queued undo stays queued without a kept room. */
+  solo?: () => boolean;
   /** The room moved on (a match, the finale): no more input. */
   locked: () => boolean;
 };
@@ -64,6 +66,7 @@ export function createUndoer(deps: UndoDeps) {
           room_id: deps.roomId,
           member_id: deps.memberId,
           title_id: titleId,
+          ...(deps.solo?.() && { solo: true }),
         });
       }
       deps.stack.getState().putBack(last.card);
