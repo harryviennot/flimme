@@ -44,10 +44,10 @@ It builds on the data model's [retention](../architecture/data-model.md#retentio
 | Role | Who |
 | --- | --- |
 | Controller | Harry, as an individual (decided on 29 October 2026). The privacy policy, the store developer accounts and the TMDB agreement all name him |
-| Processors | Supabase, the server host, object storage, Sentry, PostHog, Expo (see [Who processes data for us](#who-processes-data-for-us)) |
+| Processors | Supabase, the server host, object storage, GitHub, Sentry, PostHog, Expo, OVH (see [Who processes data for us](#who-processes-data-for-us)) |
 | Independent controllers | Apple and Google (sign-in, stores), Letterboxd (the member's own account) |
 | Data protection officer | Not required at launch in our reading: the mandatory cases are large-scale systematic monitoring or sensitive data as a core activity. **Lawyer**: revisit as the player count grows, since decks are built from profiling |
-| Record of processing | Kept from the start; [What we store and why](#what-we-store-and-why) is its base. The CNIL publishes a template |
+| Record of processing | [record-of-processing.md](../legal/record-of-processing.md), in French, on the CNIL's model: one sheet per activity of the first release (M8.10). [What we store and why](#what-we-store-and-why) is its base: a pull request that changes this data map updates the record too |
 | Impact assessment (DPIA) | Recommended before launch. The CNIL's list of criteria includes profiling and vulnerable people such as children, and two criteria usually call for one. The CNIL's free PIA tool is enough |
 
 ## What we store and why
@@ -56,7 +56,7 @@ Guests and accounts store the same things; a guest simply has no email. Retentio
 
 | Data | What it holds | Why | Basis | Who else sees it | Kept |
 | --- | --- | --- | --- | --- | --- |
-| Sign-in (Supabase Auth) | User id; for saved accounts, the email and name Apple or Google pass on (Apple can give a relay email); sign-in times; for each session, the IP address and user agent Supabase Auth records in `auth.sessions` (deleted with the session or the user) | Keep the same player across devices | Contract | Nobody | While the account exists. Guests inactive for 90 days are deleted |
+| Sign-in (Supabase Auth) | User id; for saved accounts, the email and name Apple or Google pass on (Apple can give a relay email); sign-in times; for each session, the IP address and user agent Supabase Auth records in `auth.sessions` (deleted with the session or the user); Supabase Auth's audit log (`auth.audit_log_entries`), with the action, the user id, the time and the IP address of each sign-in and token refresh (nothing deletes it yet, not even with the user: an open point in the [record of processing](../legal/record-of-processing.md#points-ouverts)) | Keep the same player across devices | Contract | Nobody | While the account exists. Guests inactive for 90 days are deleted |
 | Profile | Display name, preset avatar, country, language | Show you in rooms, pick the catalog country and card language | Contract | Name and avatar: people in your rooms | While the account exists |
 | Services | Streaming services you have | Only deal films you can watch | Contract | People in your rooms (the lobby shows each player's services) | While the account exists |
 | Consents | Kind, wording version, dates; for analytics, the choice (`on`, `off`, `detailed`) | Prove consent was given | Legal obligation (GDPR art. 7(1)) | Nobody | While the account exists. **New**: a minimal proof after deletion, see [Starting values](#starting-values). Not in the first release: deletion keeps no proof (decisions.md, M8.5 Q5.4) |
@@ -72,8 +72,8 @@ Guests and accounts store the same things; a guest simply has no email. Retentio
 | Training exports | Deal logs joined to votes, with seat ids only | Train models | Legitimate interest, with an opt-out | Nobody | **New**: 24 months (the data model sets none) |
 | Room taste | The room's live taste and dropped genres | The deck during the game | Contract | Nobody | With the room |
 | Player reports | Who reported which seat in a room, a preset reason (offensive name, spam, other) and the time; no free text and no copy of the name | Let players flag an offensive name, as the app stores require | Legitimate interest (safety of other players, app store rules) | Harry only; the reported player is never told who reported | 12 months, then deleted. Kept when an account is deleted, since the seats are anonymous |
-| Rate limits | Counters keyed by player id, and by a client address stored as a sha256 hash (IPv6 keyed by its /64) | Stop room codes being guessed | Legitimate interest (security) | Nobody | 1 day |
-| Analytics (PostHog) | Anonymous events: screens, taps, timings; device model, OS, app version. No player id, no IP | Measure and fix the app | Exempt audience measurement, with an opt-out | Nobody | 25 months at most |
+| Rate limits | Counters keyed by an action and the player id, and for joining and room previews by a client address stored as a sha256 hash (IPv6 keyed by its /64) | Stop room codes being guessed, and limit repeated calls (exports, reports, solo games, My films edits and others) | Legitimate interest (security) | Nobody | 1 day |
+| Analytics (PostHog) | Events: screens, taps, timings; language, country, a games-played band, device model, OS, app version, time zone. In the EU, the UK and Switzerland a random install id and no player id; with "Detailed stats", or elsewhere, the player id. Never an IP | Measure and fix the app | Exempt audience measurement with an opt-out in the EU, the UK and Switzerland; consent for "Detailed stats"; legitimate interest with an opt-out elsewhere (M8.1) | Nobody | 25 months at most |
 | Crash reports (Sentry) | Stack traces, device model, OS, app version. No names, codes, emails or IP | Fix crashes | Legitimate interest (**Lawyer**) | Nobody | 90 days at most: Sentry keeps 30 days on its free plan, up to 90 on Team (checked 5 Nov 2026) |
 | Server and database logs | Requests, errors; Supabase's logs hold IP addresses, the server's hold ids only ([security.md](../architecture/security.md#logging-without-personal-data)) | Security and operations | Legitimate interest | Nobody | 7 days at most: Supabase keeps 1 day on Free and 7 on Pro ([operations.md](../architecture/operations.md#monitoring-and-alerts)); Fly.io's log search keeps 7 days (checked 5 Nov 2026) |
 | Support emails | What a player writes to support@flimme.com, and the address they write from | Answer them | Legitimate interest | Harry only | As long as it takes to answer, then 12 months at most after the last message. *Default taken for the policy (M8.1, 5 Nov 2026), for Harry to confirm* |
@@ -214,8 +214,9 @@ Obligations from [tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution
 | Object storage (Tigris, on Fly) | Processor | The encrypted weekly database dump ([operations.md](../architecture/operations.md#backups-and-restore)); later, models and training exports (seat ids) | Frankfurt | Its DPA (Tigris is a US company) |
 | GitHub (Actions) | Processor | Runs `backup.yml`: the dump exists in plain text on the runner until `age` encrypts it | US | Its DPA, the EU-US Data Privacy Framework |
 | Sentry | Processor | Crash reports | EU data region, Frankfurt. Sentry says some data types may still be stored in the US | Its DPA |
-| PostHog | Processor | Anonymous events | EU Cloud, Frankfurt (AWS `eu-central-1`) | Its DPA |
+| PostHog | Processor | Events: anonymous in the EU, the UK and Switzerland unless the player turns on "Detailed stats", tied to the player id elsewhere | EU Cloud, Frankfurt (AWS `eu-central-1`) | Its DPA |
 | Expo (EAS Update) | Processor | The OS and random tokens when the app checks for an update; no push tokens since we don't use Expo's push service | US | EU-US Data Privacy Framework and standard contractual clauses (Expo's policy of 21 October 2025) |
+| OVH | Processor | The mail servers of support@flimme.com (the domain's MX records), and the VPS that serves flimme.com, which keeps no access log | France (the VPS is in Gravelines). Where the support mailbox is stored, or whether it forwards elsewhere, is for Harry to confirm | None (a French company) |
 | Apple, Google | Independent controllers | The identity when a player saves an account; store data | | Their terms |
 | Letterboxd | Independent controller | Sees our server fetch the member's public feed | | |
 | TMDB | Not a processor | No personal data is sent; its image servers see the phone's IP address when it loads a poster or a logo | | |
@@ -287,9 +288,9 @@ The first release's text (M8.2) is in `mobile/src/content/legal/terms.fr.ts` (th
 
 ## French specifics
 
-- **The web join page** stores only the sign-in session, which is strictly necessary, so no banner is needed. If anything non-exempt is ever added there, it needs a consent banner first.
+- **The web pages** (the invite page and the legal pages) start no session and create no guest account (`mobile/src/app/_layout.web.tsx`), and carry no analytics, so no banner is needed. If anything non-exempt is ever added there, it needs a consent banner first.
 - **Record of processing** and **DPIA**: see [Who is responsible](#who-is-responsible).
-- **Breach notification**: the process (72 hours to tell the CNIL) is in [security.md](../architecture/security.md).
+- **Breach notification**: 72 hours to tell the CNIL (GDPR art. 33), and every breach goes in a breach register (art. 33(5)). Neither the process nor the register exists yet: security.md has none, and operations.md's incident steps point back here. An open point in the [record of processing](../legal/record-of-processing.md#points-ouverts).
 
 ## Questions for a lawyer
 
