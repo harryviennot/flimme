@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 115 of 265 tasks done.
+Progress: 116 of 265 tasks done.
 
 ```mermaid
 flowchart LR
@@ -509,7 +509,7 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: written from the outline.
 - [ ] **M8.3** Host the policy, the terms, a support page and an account deletion request page on the domain · ops · M · needs M8.1, M8.2, M0.2 · [store-listing](store-listing.md#release-checklist)
   Done when: all four URLs are live.
-- [ ] **M8.4** The server's HTTP API (FastAPI): token checks with ES256 against Supabase's signing keys, request limits, health check · server · L · needs M2.2, M1.12 · [server-structure](../architecture/server-structure.md#the-http-api), [security](../architecture/security.md#the-servers-http-api-and-letterboxd-uploads)
+- [x] **M8.4** The server's HTTP API (FastAPI): token checks with ES256 against Supabase's signing keys, request limits, health check · server · L · needs M2.2, M1.12 · [server-structure](../architecture/server-structure.md#the-http-api), [security](../architecture/security.md#the-servers-http-api-and-letterboxd-uploads)
   Done when: a bad or expired token is refused in tests; deployed with the worker.
 - [ ] **M8.5** Delete my data: an HTTP API route that deletes the guest's auth user (everything cascades) and their analytics person · server · M · needs M8.4 · [security](../architecture/security.md#account-deletion-and-data-export)
   Done when: after deletion, nothing about the player remains except anonymous seats.
