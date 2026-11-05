@@ -120,9 +120,9 @@ TMDB and Letterboxd only (IMDb and Rotten Tomatoes are in the Figma from the ori
 
 `EmptyState` gains an optional `children` slot between its body and its action in M6.17, for the swipe screen's done card (tonight's filters and the liked count, [swipe.md](screens/swipe.md#the-done-card-nothing-left)).
 
-## Proposed for slices 4 to 7
+## Proposed in the screen specs
 
-Specified in the screen specs (`docs/design/screens/`) of 30 October 2026, not built yet. App-dev builds each with its gallery entry.
+Specified in the screen specs (`docs/design/screens/`) from 30 October 2026 on, not built yet. App-dev builds each with its gallery entry.
 
 | Component | Tier | What changes | Spec |
 | --- | --- | --- | --- |
@@ -131,5 +131,7 @@ Specified in the screen specs (`docs/design/screens/`) of 30 October 2026, not b
 | `ServiceGrid` | shared | New: `ServiceTile`s in rows of three, with a loading state, used by host setup and the lobby's services sheet | [Host setup](screens/host-setup.md#new-component) |
 | `PinBox` | ui | Gains an `error` state: a 2-point `nope.default` border | [Join with a code](screens/join-code.md#design-system-change) |
 | `Icon` | ui | Gains `crown` (24 points, 2-point stroke) for the host's tag | [Lobby](screens/lobby.md#design-system-change) |
+| `ListRow` | ui | Gains `tone="danger"`, `loading`, `disabled`, a minimum height with a two-line label for large text, and a label hidden from screen readers when `trailing` is set | [Settings](screens/settings.md#design-system-changes) |
+| `Icon` | ui | Gains `volume` (24 points, 2-point stroke) for the Sound row | [Settings](screens/settings.md#design-system-changes) |
 
 Single-use pieces, in `components/screens/`: `splash/splash-view`, `welcome/hero`, `home/host-card`, `home/join-card`, `join/code-field`, `lobby/seat-row`, `lobby/shuffling-overlay`, `invite/qr-panel`. The QR panel adds the `react-native-qrcode-svg` dependency named in [app structure](../architecture/app-structure.md#invites-and-deep-links).
