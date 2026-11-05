@@ -100,7 +100,13 @@ export function FinalCutScreen({
     if (counting && !revealOn) AccessibilityInfo.announceForAccessibility(t('counting.title'));
   }, [counting, revealOn, t]);
 
-  const intro = ranked ? 'intro.rank' : model.vetoAllowed ? 'intro.veto' : 'intro.noVeto';
+  const intro = model.pickOne
+    ? 'intro.pickOne'
+    : ranked
+      ? 'intro.rank'
+      : model.vetoAllowed
+        ? 'intro.veto'
+        : 'intro.noVeto';
   const interactive = takesTaps(model.phase);
   const showFinalists = !model.loadFailed || !!playing;
   const loading = (model.phase === 'loading' && !model.postersFailed) || waiting;
@@ -144,7 +150,13 @@ export function FinalCutScreen({
             ref={heading}
             accessible
             accessibilityRole="header"
-            accessibilityLabel={t(ranked ? 'a11y.heading.ranked' : 'a11y.heading.finalCut')}
+            accessibilityLabel={t(
+              model.pickOne
+                ? 'a11y.heading.pickOne'
+                : ranked
+                  ? 'a11y.heading.ranked'
+                  : 'a11y.heading.finalCut',
+            )}
             className="flex-1"
           >
             {atWinner ? (
@@ -156,7 +168,13 @@ export function FinalCutScreen({
             ) : (
               <Animated.View key="vote" exiting={revealFadeOut}>
                 <Text variant="display-m" numberOfLines={2}>
-                  {t(ranked ? 'heading.ranked' : 'heading.finalCut')}
+                  {t(
+                    model.pickOne
+                      ? 'heading.pickOne'
+                      : ranked
+                        ? 'heading.ranked'
+                        : 'heading.finalCut',
+                  )}
                 </Text>
               </Animated.View>
             )}
@@ -195,6 +213,9 @@ export function FinalCutScreen({
           <Animated.View exiting={revealFadeOut}>
             <Text variant="body-m" tone="secondary">
               {t(intro)}
+            </Text>
+            <Text variant="body-s" tone="muted" className="pt-1">
+              {t('intro.source')}
             </Text>
           </Animated.View>
         )}
@@ -271,6 +292,7 @@ export function FinalCutScreen({
                       }
                       interactive={interactive}
                       vetoEnabled={model.vetoAllowed}
+                      pickOne={model.pickOne}
                       counting={counting}
                       hideNumber={model.numbersHidden}
                       popDelay={index * duration.instant}

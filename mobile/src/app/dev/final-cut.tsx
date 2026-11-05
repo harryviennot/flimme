@@ -16,6 +16,7 @@ import {
   placesOf,
   pressFinalist,
   tapFinalist,
+  tapPick,
   type Ballot,
 } from '@/features/finale/ballot';
 import { phaseOf, statusKey, takesTaps, ticks } from '@/features/finale/phase';
@@ -66,6 +67,14 @@ const FIXTURES: Fixture[] = [
     films: 2,
     kind: 'final_cut',
     vetoes: 1,
+    seats: 3,
+    seconds: 60,
+  },
+  {
+    label: 'Pick one, 2 finalists',
+    films: 2,
+    kind: 'ranked_vote',
+    vetoes: 0,
     seats: 3,
     seconds: 60,
   },
@@ -161,6 +170,7 @@ function RevealFixtured({ data, onExit }: { data: RevealData; onExit: () => void
   if (!ready) return null;
   const model: FinalCutModel = {
     kind: 'final_cut',
+    pickOne: false,
     phase: 'counting',
     loadFailed: false,
     postersFailed: false,
@@ -209,6 +219,7 @@ function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void })
       : film,
   );
   const seedOrder = films.map((f) => f.titleId);
+  const pickOne = fixture.kind === 'ranked_vote' && fixture.films === 2;
   const canVeto = fixture.kind === 'final_cut' && fixture.vetoes > 0;
 
   // The other seats lock in after this phone does, one every 2.5 seconds.
@@ -242,6 +253,7 @@ function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void })
 
   const model: FinalCutModel = {
     kind: fixture.kind,
+    pickOne,
     phase,
     loadFailed: false,
     postersFailed: false,
@@ -267,7 +279,7 @@ function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void })
     online: true,
     onTap: (id) => {
       if (!takesTaps(phase)) return;
-      const next = tapFinalist(ballot, id);
+      const next = pickOne ? tapPick(ballot, id) : tapFinalist(ballot, id);
       if (next === ballot) return setLiftVetoHint(true);
       haptics.press();
       setLiftVetoHint(false);

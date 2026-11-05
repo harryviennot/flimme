@@ -172,3 +172,29 @@ describe('countUpValue', () => {
     expect(Number.isInteger(countUpValue(0.37, 40))).toBe(true);
   });
 });
+
+describe('the reveal with 2 films', () => {
+  it('shows points only from 3 ballots, never knock-outs, and says top of swipes with none', () => {
+    expect(pointsShow(data({ finalists: [f(1, 1, 6), f(2, 2, 3)] }))).toBe(true);
+    expect(pointsShow(data({ finalists: [f(1, 1, 4), f(2, 2, 2)] }))).toBe(false);
+    expect(pointsShow(data({ finalists: [f(1, 1, 2), f(2, 2, 1)] }))).toBe(false);
+    expect(lineKey(data({ reason: 'no_ballots', finalists: [f(1, 1, 0), f(2, 2, 0)] }))).toBe(
+      'noBallots',
+    );
+  });
+
+  it('is read again from the candidates as points, or no ballots', () => {
+    const row = (title_id: number, seed: number, points: number) => ({
+      title_id,
+      seed,
+      points,
+      vetoed: false,
+    });
+    expect(revealFromViews({ winner_title_id: 1 }, [row(1, 1, 6), row(2, 2, 3)])?.reason).toBe(
+      'points',
+    );
+    expect(revealFromViews({ winner_title_id: 1 }, [row(1, 1, 0), row(2, 2, 0)])?.reason).toBe(
+      'no_ballots',
+    );
+  });
+});
