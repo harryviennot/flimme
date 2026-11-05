@@ -141,7 +141,7 @@ jobs:
   web:
     # The invite page's image (mobile/web.Dockerfile, roadmap M4.18), checked the way flimme.com
     # serves it: both /.well-known/ files as JSON with no redirect, the page for any path, and the
-    # 301s from flimme.fr, www.flimme.fr and www.flimme.com (through a Host header). Fingerprint
+    # redirects from flimme.fr, www.flimme.fr and www.flimme.com (through a Host header). Fingerprint
     # placeholders only warn here; the deploy check in production.yml refuses them.
     needs: changes
     if: needs.changes.outputs.web == 'true'

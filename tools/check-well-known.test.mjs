@@ -43,21 +43,23 @@ const json = (value) => ({
 });
 const html = { status: 200, headers: { 'content-type': 'text/html' }, body: HTML };
 
-/** A site that answers every check correctly, with `overrides` keyed by path. The redirect hosts
- * answer as nginx does: a 301 to https://flimme.com with the same path and query. */
+/** A site that answers every check correctly, with `overrides` keyed by path. The other names
+ * answer as nginx does: www to the bare domain (301), flimme.fr's invite links to flimme.com (301),
+ * and the rest of flimme.fr to flimme.com for now (302), path and query kept. */
 function site(overrides = {}) {
   const calls = [];
   const get = async (url, { host } = {}) => {
     const { hostname, pathname, search } = new URL(url);
     calls.push({ url, host });
     const name = host ?? hostname;
-    if (['flimme.fr', 'www.flimme.fr', 'www.flimme.com'].includes(name)) {
-      return {
-        status: 301,
-        headers: { location: `https://flimme.com${pathname}${search}` },
-        body: '',
-      };
-    }
+    const to = (status, domain) => ({
+      status,
+      headers: { location: `https://${domain}${pathname}${search}` },
+      body: '',
+    });
+    if (name === 'www.flimme.com') return to(301, 'flimme.com');
+    if (name === 'www.flimme.fr') return to(301, 'flimme.fr');
+    if (name === 'flimme.fr') return to(pathname.startsWith('/join/') ? 301 : 302, 'flimme.com');
     if (pathname in overrides) return overrides[pathname];
     if (pathname === '/.well-known/apple-app-site-association') return json(AASA);
     if (pathname === '/.well-known/assetlinks.json') return json(ASSETLINKS);
@@ -68,7 +70,7 @@ function site(overrides = {}) {
 
 const failures = (results) => results.filter((r) => r.problem);
 
-test('passes on 200 JSON for both files, 200 HTML for the pages and the three redirects', async () => {
+test('passes on 200 JSON for both files, 200 HTML for the pages and the four redirects', async () => {
   const { get } = site();
   const results = await checkSite('http://localhost:8080', { get });
   assert.deepEqual(failures(results), []);
@@ -80,9 +82,10 @@ test('passes on 200 JSON for both files, 200 HTML for the pages and the three re
       'http://localhost:8080/join/482913',
       'http://localhost:8080/',
       'http://localhost:8080/nothing',
-      'http://localhost:8080/join/123456?r=x (Host: flimme.fr)',
-      'http://localhost:8080/join/123456?r=x (Host: www.flimme.fr)',
       'http://localhost:8080/join/123456?r=x (Host: www.flimme.com)',
+      'http://localhost:8080/join/123456?r=x (Host: www.flimme.fr)',
+      'http://localhost:8080/join/123456?r=x (Host: flimme.fr)',
+      'http://localhost:8080/ (Host: flimme.fr)',
     ],
   );
 });
@@ -196,46 +199,61 @@ test('fails placeholders, unless allowed (then a warning)', async () => {
   assert.match(allowed.find((r) => r.warning).warning, /placeholder/);
 });
 
-test('fails a redirect that is not a 301 to the same path on https://flimme.com', async () => {
+test('fails a redirect with the wrong status or destination, naming what was expected', async () => {
   const { get: good } = site();
+  const moved = (status, location) => ({ status, headers: { location }, body: '' });
   const get = async (url, options = {}) => {
-    if (options.host === 'flimme.fr') {
-      return { status: 302, headers: { location: 'https://flimme.com/join/123456?r=x' }, body: '' };
+    const { pathname } = new URL(url);
+    // The path is lost.
+    if (options.host === 'www.flimme.com') return moved(301, 'https://flimme.com/');
+    // The French name skips its own bare domain.
+    if (options.host === 'www.flimme.fr') return moved(301, 'https://flimme.com/join/123456?r=x');
+    // An invite link sent on temporarily, and the root sent on for good: a 301 sticks in browsers
+    // and would hide the French site once it exists.
+    if (options.host === 'flimme.fr' && pathname.startsWith('/join/')) {
+      return moved(302, 'https://flimme.com/join/123456?r=x');
     }
-    if (options.host === 'www.flimme.com') {
-      return { status: 301, headers: { location: 'https://flimme.com/' }, body: '' };
-    }
-    if (options.host === 'www.flimme.fr') return html;
+    if (options.host === 'flimme.fr') return moved(301, 'https://flimme.com/');
     return good(url, options);
   };
   const found = failures(await checkSite('http://localhost:8080', { get }));
   assert.deepEqual(
-    found.map((r) => r.label),
+    found.map((r) => [r.label, r.problem.replace(/^.*, expected /, '')]),
     [
-      'http://localhost:8080/join/123456?r=x (Host: flimme.fr)',
-      'http://localhost:8080/join/123456?r=x (Host: www.flimme.fr)',
-      'http://localhost:8080/join/123456?r=x (Host: www.flimme.com)',
+      [
+        'http://localhost:8080/join/123456?r=x (Host: www.flimme.com)',
+        '301 to https://flimme.com/join/123456?r=x',
+      ],
+      [
+        'http://localhost:8080/join/123456?r=x (Host: www.flimme.fr)',
+        '301 to https://flimme.fr/join/123456?r=x',
+      ],
+      [
+        'http://localhost:8080/join/123456?r=x (Host: flimme.fr)',
+        '301 to https://flimme.com/join/123456?r=x',
+      ],
+      ['http://localhost:8080/ (Host: flimme.fr)', '302 to https://flimme.com/'],
     ],
   );
-  for (const r of found)
-    assert.match(r.problem, /expected 301 to https:\/\/flimme\.com\/join\/123456\?r=x/);
 });
 
 test('redirects go to the real hosts from https://flimme.com, else through a Host header', () => {
   assert.deepEqual(
     redirectRequests('https://flimme.com').map(({ url, host }) => [url, host]),
     [
-      ['https://flimme.fr/join/123456?r=x', undefined],
-      ['https://www.flimme.fr/join/123456?r=x', undefined],
       ['https://www.flimme.com/join/123456?r=x', undefined],
+      ['https://www.flimme.fr/join/123456?r=x', undefined],
+      ['https://flimme.fr/join/123456?r=x', undefined],
+      ['https://flimme.fr/', undefined],
     ],
   );
   assert.deepEqual(
     redirectRequests('http://localhost:8080').map(({ url, host }) => [url, host]),
     [
-      ['http://localhost:8080/join/123456?r=x', 'flimme.fr'],
-      ['http://localhost:8080/join/123456?r=x', 'www.flimme.fr'],
       ['http://localhost:8080/join/123456?r=x', 'www.flimme.com'],
+      ['http://localhost:8080/join/123456?r=x', 'www.flimme.fr'],
+      ['http://localhost:8080/join/123456?r=x', 'flimme.fr'],
+      ['http://localhost:8080/', 'flimme.fr'],
     ],
   );
 });

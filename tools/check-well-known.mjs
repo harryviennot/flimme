@@ -2,8 +2,8 @@
 // Checks that a host serves the invite page and the app-link files the way iOS and Android need
 // them (roadmap M4.18): both /.well-known/ files answer 200 as JSON with no redirect, hold the
 // production and preview apps and real fingerprints; /join/<code>, / and any other path answer the
-// page (200 HTML with its link preview tags); flimme.fr, www.flimme.fr and www.flimme.com answer a
-// 301 to https://flimme.com with the same path and query.
+// page (200 HTML with its link preview tags); the other names redirect as REDIRECTS says, with the
+// same path and query.
 //
 //   node tools/check-well-known.mjs https://flimme.com          the deploy check (production.yml)
 //   node tools/check-well-known.mjs http://localhost:8080 --allow-placeholders   (CI's web job)
@@ -19,7 +19,16 @@ import https from 'node:https';
 import { pathToFileURL } from 'node:url';
 
 export const DOMAIN = 'flimme.com';
-export const REDIRECT_HOSTS = ['flimme.fr', 'www.flimme.fr', 'www.flimme.com'];
+const INVITE = '/join/123456?r=x';
+// The other names: www goes to the bare domain for good; flimme.fr will be the French site and
+// flimme.com the English one, so flimme.fr sends its invite links to flimme.com for good and the
+// rest only for now (a 301 sticks in browsers and would hide the French site). Q18.2, Q18.8.
+export const REDIRECTS = [
+  { host: 'www.flimme.com', path: INVITE, status: 301, location: `https://flimme.com${INVITE}` },
+  { host: 'www.flimme.fr', path: INVITE, status: 301, location: `https://flimme.fr${INVITE}` },
+  { host: 'flimme.fr', path: INVITE, status: 301, location: `https://flimme.com${INVITE}` },
+  { host: 'flimme.fr', path: '/', status: 302, location: 'https://flimme.com/' },
+];
 // The bundle id and the Android package are the same for each app.
 export const APPS = ['com.harryviennot.flimme', 'com.harryviennot.flimme.preview'];
 
@@ -27,7 +36,6 @@ const AASA = '/.well-known/apple-app-site-association';
 const ASSETLINKS = '/.well-known/assetlinks.json';
 // An invite, the root and any other path: the page draws the invite or the broken-link state.
 const PAGES = ['/join/482913', '/', '/nothing'];
-const REDIRECT_PATH = '/join/123456?r=x';
 const FINGERPRINT = /^[0-9A-F]{2}(?::[0-9A-F]{2}){31}$/;
 const APP_ID = /^[A-Z0-9]{10}\.(.+)$/;
 const PLACEHOLDER = 'REPLACE_WITH';
@@ -95,14 +103,10 @@ export function httpGet(url, { host } = {}) {
  * with a Host header. */
 export function redirectRequests(base) {
   const fromDomain = new URL(base).hostname === DOMAIN;
-  return REDIRECT_HOSTS.map((name) =>
+  return REDIRECTS.map(({ host, path, ...expected }) =>
     fromDomain
-      ? { label: `https://${name}${REDIRECT_PATH}`, url: `https://${name}${REDIRECT_PATH}` }
-      : {
-          label: `${base}${REDIRECT_PATH} (Host: ${name})`,
-          url: `${base}${REDIRECT_PATH}`,
-          host: name,
-        },
+      ? { label: `https://${host}${path}`, url: `https://${host}${path}`, expected }
+      : { label: `${base}${path} (Host: ${host})`, url: `${base}${path}`, host, expected },
   );
 }
 
@@ -212,11 +216,10 @@ function pageProblem(response) {
   return null;
 }
 
-function redirectProblem(response) {
-  const expected = `https://${DOMAIN}${REDIRECT_PATH}`;
+function redirectProblem(response, expected) {
   const location = response.headers?.location;
-  if (response.status === 301 && location === expected) return null;
-  return `answers ${response.status}${location ? ` to ${location}` : ''}, expected 301 to ${expected}`;
+  if (response.status === expected.status && location === expected.location) return null;
+  return `answers ${response.status}${location ? ` to ${location}` : ''}, expected ${expected.status} to ${expected.location}`;
 }
 
 /**
@@ -256,8 +259,10 @@ export async function checkSite(
     );
   }
   if (redirects) {
-    for (const { label, url, host } of redirectRequests(base)) {
-      await ask(label, url, host, (response) => [redirectProblem(response)].filter(Boolean));
+    for (const { label, url, host, expected } of redirectRequests(base)) {
+      await ask(label, url, host, (response) =>
+        [redirectProblem(response, expected)].filter(Boolean),
+      );
     }
   }
   return results;
