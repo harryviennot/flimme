@@ -122,21 +122,16 @@ describe('the verification files', () => {
     }
   });
 
-  // A fingerprint is 32 uppercase hex pairs with colons, as `eas credentials` prints it. Until
-  // Harry sends them (M4.18, H2) each package keeps its own named placeholder; the deploy check
-  // (tools/check-well-known.mjs without --allow-placeholders) refuses a placeholder on the domain.
-  it('every assetlinks.json fingerprint is a SHA-256 or its package placeholder', () => {
+  // A fingerprint is 32 uppercase hex pairs with colons, as `eas credentials` prints it.
+  it('every assetlinks.json fingerprint is a SHA-256', () => {
     const fingerprint = /^[0-9A-F]{2}(?::[0-9A-F]{2}){31}$/;
-    const placeholder: Record<string, string> = {
-      'com.harryviennot.flimme': 'REPLACE_WITH_PRODUCTION_KEY_SHA256',
-      'com.harryviennot.flimme.preview': 'REPLACE_WITH_PREVIEW_KEY_SHA256',
-    };
-    const links: { target: { package_name: string; sha256_cert_fingerprints: string[] } }[] =
-      read('assetlinks.json');
+    const links: { target: { sha256_cert_fingerprints: string[] } }[] = read('assetlinks.json');
     for (const { target } of links) {
-      for (const value of target.sha256_cert_fingerprints) {
-        if (value !== placeholder[target.package_name]) expect(value).toMatch(fingerprint);
-      }
+      for (const value of target.sha256_cert_fingerprints) expect(value).toMatch(fingerprint);
     }
+  });
+
+  it('assetlinks.json has no placeholder left', () => {
+    expect(fs.readFileSync(path.join(dir, 'assetlinks.json'), 'utf8')).not.toMatch(/REPLACE_WITH/);
   });
 });
