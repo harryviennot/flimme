@@ -18,9 +18,9 @@ update public.room_members set display_name = 'Quuxell' where id = tests.member_
 
 insert into public.profile_providers (profile_id, provider_id) values (tests.uid('e1'), 9001)
   on conflict do nothing;
-insert into public.consents (profile_id, kind, version) values
-  (tests.uid('e1'), 'analytics', 'wording-e1'),
-  (tests.uid('e2'), 'analytics', 'wording-e2-secret');
+insert into public.consents (profile_id, kind, version, choice) values
+  (tests.uid('e1'), 'analytics', 'wording-e1', 'on'),
+  (tests.uid('e2'), 'analytics', 'wording-e2-secret', 'on');
 
 -- e1: like 1, nope 2, like 3 then undo it, seen 4.
 select tests.vote('e1', 1, 'like');

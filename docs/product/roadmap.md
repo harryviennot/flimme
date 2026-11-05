@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 117 of 265 tasks done.
+Progress: 118 of 265 tasks done.
 
 ```mermaid
 flowchart LR
@@ -525,7 +525,7 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: written from the data map.
 - [ ] **M8.11** Decide on a lawyer's review and a DPIA before launch · decision · S · [privacy](privacy.md#questions-for-a-lawyer)
   Done when: recorded in decisions.md (open today).
-- [ ] **M8.12** Settings' backend: `api.set_analytics_choice` and the legal links · backend · S · needs M1.5 · [privacy](privacy.md#consents)
+- [x] **M8.12** Settings' backend: `api.set_analytics_choice` and the legal links · backend · S · needs M1.5 · [privacy](privacy.md#consents)
   Done when: the choice is stored with its history, and the legal links are read from `app_config`.
 
 ## M9 Observability and analytics

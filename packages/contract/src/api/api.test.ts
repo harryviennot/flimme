@@ -12,6 +12,7 @@ import {
   ROOM_PREVIEW_ANSWERS,
   REPORT_MEMBER_ANSWERS,
   EXPORT_MY_DATA_ANSWERS,
+  SET_ANALYTICS_CHOICE_ANSWERS,
   LEAVE_ROOM_ANSWERS,
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
@@ -118,6 +119,13 @@ const cases = [
     call: (a: ReturnType<typeof createApi>) =>
       a.reportMember({ room_id: ROOM, member_id: MEMBER, reason: 'spam' }),
     full: {},
+  },
+  {
+    name: 'set_analytics_choice',
+    answers: SET_ANALYTICS_CHOICE_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) =>
+      a.setAnalyticsChoice({ choice: 'off', version: 'v1' }),
+    full: { ok: { choice: 'off' } },
   },
   {
     name: 'export_my_data',
@@ -322,6 +330,17 @@ describe('arguments', () => {
       status: 'rate_limited',
     });
     expect(calls[0]).toEqual({ fn: 'export_my_data', args: {} });
+  });
+
+  it('set_analytics_choice sends the SQL names and resolves invalid as a value', async () => {
+    const { client, calls } = fake(() => ok({ status: 'invalid' }));
+    await expect(
+      createApi(client, { validate: true }).setAnalyticsChoice({ choice: 'detailed', version: '' }),
+    ).resolves.toEqual({ status: 'invalid' });
+    expect(calls[0]).toEqual({
+      fn: 'set_analytics_choice',
+      args: { p_choice: 'detailed', p_version: '' },
+    });
   });
 
   it('report_member sends the room, the seat and the reason', async () => {
