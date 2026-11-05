@@ -464,6 +464,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | Solo and My films (Harry, question 10): My films lives in `user_titles`, with a `solo` source and the columns `liked_at`, `super_liked` and `picked_at`. It's exported by `api.export_my_data`, deleted with the account, and never touched by the retention job. Likes are never shown to anyone | 5 Nov 2026 | [Storage and privacy](product/solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [What we store](product/privacy.md#what-we-store-and-why) |
 | Solo and My films (Harry, question 11): the first release stays without accounts. My films says once, under the chips, that it's saved with this phone for now; the line becomes the save offer with M15 | 5 Nov 2026 | [Accounts](product/solo-and-my-films.md#11-accounts) |
 | Solo and My films (Harry, question 12): the new tasks (M6.39 to M6.46) land before the first store builds (M10.2) and don't block the M6.20 playtest, which adds the question "Would you use it on your own?". The closed beta date doesn't move | 5 Nov 2026 | [The new tasks](product/solo-and-my-films.md#new-tasks) |
+| Harry approved the five L briefs of the solo slice: M6.39 (the solo and My films specs and beats), M6.40 (the solo game mode), M6.41 (My films in `user_titles`), M6.44 (Play alone) and M6.45 (My films and the film sheet), and the planner's defaults | 5 Nov 2026 | [The new tasks](product/solo-and-my-films.md#new-tasks) |
 
 ## Defaults, not yet confirmed
 
@@ -522,6 +523,7 @@ Chosen while designing; each is easy to change.
 | Components in three tiers: `ui/` (primitives), `shared/` (reused pieces that know about films and rooms), `screens/<screen>/` (single use) | Screens never differ, and an agent finds a screen's pieces from its route | [Structure](architecture/groundwork.md#structure) |
 | Cloud sessions test SQL on their own Postgres 16 with stand-ins for Supabase's schemas; the full stack runs in CI and on the Mac | Image pulls are rate-limited in cloud containers | [Cloud sessions](architecture/groundwork.md#cloud-sessions) |
 | Starting values for the server, operations, security, privacy, analytics and the store listing | Placeholders until playtests | [Server](architecture/server-structure.md), [Operations](architecture/operations.md#starting-values), [Security](architecture/security.md), [Privacy](product/privacy.md#starting-values), [Analytics](product/analytics.md#every-metric) |
+| Noped solo films don't come back at launch (Q40.1): solo decks keep skipping films answered in an earlier solo room, as decided in Question 5, and card memory (M17) revisits it | Solo decks would run dry within a week or two at 100 cards a day, and card memory brings films back after 12 months | [Solo decks](product/solo-and-my-films.md#5-solo-and-the-decks), [The cap](product/solo-and-my-films.md#8-the-cap) |
 
 ## Open
 
