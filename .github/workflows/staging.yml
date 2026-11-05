@@ -73,7 +73,7 @@ jobs:
           filters: |
             server:
               - 'server/**'
-      - uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be # v1.5
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # v1.6
       # The worker cannot start without its database login. Until Harry has set the Fly secrets,
       # skip the deploy (the job stays green; the app itself must exist) instead of shipping a worker that crashes in a loop.
       - name: Check the app has its secrets
@@ -108,7 +108,7 @@ jobs:
           filters: |
             server:
               - 'server/**'
-      - uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be # v1.5
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # v1.6
       # Harry creates the app, its deploy token and its secrets (operations.md). Until all three
       # exist the job skips with a warning and stays green. Secret names only are printed.
       - name: Check the app exists and has its secrets
