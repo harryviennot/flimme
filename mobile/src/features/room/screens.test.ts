@@ -38,6 +38,12 @@ describe('isAllowed', () => {
     expect(isAllowed('done', 'winner')).toBe(true);
     expect(isAllowed('finale', 'recap')).toBe(false);
   });
+  it('lets the runner-up film sheet over the winner only', () => {
+    expect(isAllowed('done', 'film')).toBe(true);
+    expect(isAllowed('finale', 'film')).toBe(false);
+    expect(isAllowed('swiping', 'film')).toBe(false);
+    expect(isSheet('film')).toBe(true);
+  });
   it('refuses any other screen', () => {
     expect(isAllowed('swiping', 'lobby')).toBe(false);
     expect(isAllowed('swiping', 'invite')).toBe(false);

@@ -16,7 +16,8 @@ without holding it in memory. `run_popularity_daily` then:
    `fetch` messages (reason `candidate`), at most 100 to a message, all on one connection.
 
 The floor judges them when they are fetched (fetch.py): a candidate under it is not stored, so
-the few that fail are queued again each day (decision Q19, measured in M2.13). Running the job
+the ones that fail are queued again each day (decision Q19, measured in M2.13: about 37,000 a
+day; M2.16 remembers them). Running the job
 twice is safe: fetches are upserts and an unchanged popularity is not written again.
 """
 

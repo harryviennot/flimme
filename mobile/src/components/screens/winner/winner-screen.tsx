@@ -24,6 +24,7 @@ import { haptics } from '@/lib/haptics';
 import { layout, spring } from '@/theme/motion';
 
 import { NoPick } from './no-pick';
+import { RunnersUp } from './runners-up';
 import { ShareRecap } from './share-recap';
 import { SoloNotListed } from '@/components/screens/solo/not-listed';
 
@@ -45,6 +46,9 @@ export type WinnerScreenProps = {
   onHome: () => void;
   /** Opens the recap sheet (winner.md#share-recap). Shown for a group pick only. */
   onShareRecap?: () => void;
+  /** The room and the way to a runner-up's sheet (winner.md#the-runners-up). Group picks only. */
+  roomId?: string;
+  onOpenRunnerUp?: (titleId: number) => void;
 };
 
 export function WinnerScreen({
@@ -57,6 +61,8 @@ export function WinnerScreen({
   above,
   onHome,
   onShareRecap,
+  roomId,
+  onOpenRunnerUp,
 }: WinnerScreenProps) {
   const { t } = useTranslation('winner');
   const { t: ts } = useTranslation('solo');
@@ -188,6 +194,9 @@ export function WinnerScreen({
                   />
                 )}
                 {!solo && onShareRecap ? <ShareRecap onPress={onShareRecap} /> : null}
+                {!solo && roomId && onOpenRunnerUp ? (
+                  <RunnersUp roomId={roomId} language={language} onOpen={onOpenRunnerUp} />
+                ) : null}
               </Animated.View>
             ) : waiting ? (
               <View className="items-center gap-3 pt-2">

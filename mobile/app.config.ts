@@ -123,7 +123,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ],
     },
     web: {
-      // At launch the web build only serves the invite page (app-structure.md).
+      // The web build serves the invite page and the legal pages (app-structure.md).
       output: 'single',
       favicon: './assets/images/favicon.png',
     },

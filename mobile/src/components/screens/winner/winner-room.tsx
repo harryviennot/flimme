@@ -52,6 +52,8 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
       lands={lands}
       above={footer.kind ? <PlayAgainFooter state={footer} /> : undefined}
       onShareRecap={() => router.push(`/room/${roomId}/recap`)}
+      roomId={roomId}
+      onOpenRunnerUp={(titleId) => router.push(`/room/${roomId}/film/${titleId}`)}
       onHome={() => {
         releaseRoomGuards();
         exitToHome();

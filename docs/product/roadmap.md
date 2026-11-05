@@ -96,7 +96,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | **First release** | | | | |
 | [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | In progress |
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
-| [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
+| [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 16 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | Done |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 149 of 280 tasks done.
+Progress: 153 of 281 tasks done.
 
 ```mermaid
 flowchart LR
@@ -275,12 +275,15 @@ Done when: production holds France's watchable films, and the daily sweep has ru
   Done when: each job runs on schedule on staging.
 - [x] **M2.12** Deploy the pipeline worker on Fly.io next to each database (London for staging, Frankfurt for production), with its secrets · ops · M · needs M2.2, M1.15 · [server-structure](../architecture/server-structure.md#deploying), [operations](../architecture/operations.md#secrets)
   Done when: the worker runs in both environments and restarts on failure.
-- [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
-  Done when: about 40,000 to 60,000 films, and every listed French service has availability rows.
+- [x] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
+  Done when: the catalog holds France's watchable films (production measured 28,162 films on 5 November 2026, 14,043 watchable in France; the earlier estimate of 40,000 to 60,000 was wrong), and every listed French service has availability rows.
 - [ ] **M2.14** Spot-check 30 French films against TMDB's watch pages and JustWatch · test · S · needs M2.13 · [streaming-availability](../integrations/streaming-availability.md#the-sources-compared)
   Done when: mismatches are under 5% or explained.
 - [ ] **M2.15** Move the Supabase organization to Pro: Micro compute on both projects, the spend cap on · ops · S · needs M1.1 · [operations](../architecture/operations.md#environments)
   Done when: both projects are on Pro with Micro compute, and the spend cap is on. Do it when a database passes 400 MB, or before M10.3.
+
+- [ ] **M2.16** Remember the candidates that failed the floor, with a re-check date (weekly, or when the export shows a vote count that could have crossed 30), so the popularity job stops re-fetching about 37,000 rejects a day and a film that crosses the floor still gets in · server · M · needs M2.13 · [tmdb](../integrations/tmdb.md#which-films-are-in-the-catalog)
+  Done when: a second popularity run queues no film that was rejected within its re-check window, and a rejected film whose votes reach 30 is fetched and stored.
 
 ## M3 App foundation
 
@@ -476,7 +479,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: every state of the top bar's spec is shown, checked in a three-player touch run.
 - [x] **M6.31** The Final Cut's reveal · app · M · needs M6.15 · [game-modes](game-modes.md#the-finale)
   Done when: the reveal plays once per room on every phone, and a phone that missed the event plays it after reading the candidates.
-- [ ] **M6.32** The winner screen's runners-up, with who liked them in Party mode after the pick · app · M · needs M6.16, M6.47, M6.48 · [game-modes](game-modes.md#after-the-pick)
+- [x] **M6.32** The winner screen's runners-up, with who liked them in Party mode after the pick · app · M · needs M6.16, M6.47, M6.48 · [game-modes](game-modes.md#after-the-pick)
   Done when: the runners-up show after the pick, and in Party mode each one names who liked it.
 - [x] **M6.33** The shortlist's beat and specs: the shortlisted beat, the match overlay only for a pick, the swipe screen's shortlist, the Final Cut with 2 films and its intro line · design · M · [proposal](three-matches-and-fair-finalists.md#option-1a-a-shortlist-of-up-to-3-matches-recommended), [moments](../design/moments.md#the-match)
   Done when: the shortlisted beat is in moments.md, and the swipe, match and Final Cut specs cover it in French and English.
@@ -536,11 +539,11 @@ What the law and the stores ask of a guest-only app.
 
 Done when: the policy and terms are online, and players can download and delete their data from the app.
 
-- [ ] **M8.1** Privacy policy in French and English, for the first release's data only · legal · M · needs M0.1 · [privacy](privacy.md#privacy-policy-outline)
+- [x] **M8.1** Privacy policy in French and English, for the first release's data only · legal · M · needs M0.1 · [privacy](privacy.md#privacy-policy-outline)
   Done when: written from the outline and the data map.
 - [x] **M8.2** Terms of use in French and English · legal · M · needs M0.1 · [privacy](privacy.md#terms-of-use-outline)
   Done when: written from the outline.
-- [ ] **M8.3** Host the policy, the terms, a support page and an account deletion request page on the domain · ops · M · needs M8.1, M8.2, M0.2 · [store-listing](store-listing.md#release-checklist)
+- [x] **M8.3** Host the policy, the terms, a support page and an account deletion request page on the domain · ops · M · needs M8.1, M8.2, M0.2 · [store-listing](store-listing.md#release-checklist)
   Done when: all four URLs are live.
 - [x] **M8.4** The server's HTTP API (FastAPI): token checks with ES256 against Supabase's signing keys, request limits, health check · server · L · needs M2.2, M1.12 · [server-structure](../architecture/server-structure.md#the-http-api), [security](../architecture/security.md#the-servers-http-api-and-letterboxd-uploads)
   Done when: a bad or expired token is refused in tests; deployed with the worker.
