@@ -58,5 +58,26 @@
     "lockedRowNone": "Personne n'a encore validé. {{summary}}",
     "lockInHint": "Envoie ton classement. Impossible de le changer ensuite.",
     "loadingFinalists": "Chargement des finalistes"
+  },
+  "reveal": {
+    "reason": {
+      "points": "En tête des votes",
+      "tie": "Égalité, départagée par vos swipes",
+      "onlyUnvetoed": "Le seul film que personne n'a éliminé",
+      "noBallots": "Le préféré de vos swipes"
+    },
+    "points_one": "{{count}} pt",
+    "points_other": "{{count}} pts",
+    "a11y": {
+      "vetoed_one": "Éliminé : {{titles}}.",
+      "vetoed_other": "Éliminés : {{titles}}.",
+      "pick": "Le film du soir : {{title}}. {{reason}}",
+      "pickNoTitle": "Le film du soir. {{reason}}",
+      "points_one": "{{count}} point",
+      "points_other": "{{count}} points",
+      "winner": "Le film du soir",
+      "winnerPoints_one": "Le film du soir, {{count}} point",
+      "winnerPoints_other": "Le film du soir, {{count}} points"
+    }
   }
 }
