@@ -1,5 +1,5 @@
-# A fresh guest named Alice opens a room with four services and waits in the lobby with the
-# invite sheet closed. Starts on the welcome screen.
+# A fresh guest named Alice opens a room with four services and waits in the lobby.
+# Starts on the welcome screen.
 appId: com.harryviennot.flimme.dev
 ---
 - extendedWaitUntil:
@@ -20,14 +20,6 @@ appId: com.harryviennot.flimme.dev
 - tapOn: 'Disney Plus'
 - tapOn: 'Canal\+'
 - tapOn: '(?i)open the room'
-- extendedWaitUntil:
-    visible: '(?i)invite friends'
-    timeout: 20000
-# In a development build the floating dev tools button sits over the sheet's Close button.
-- swipe:
-    start: 91%,10%
-    end: 50%,70%
-- tapOn: '(?i)close'
 - extendedWaitUntil:
     visible: '(?i)in the room'
     timeout: 15000

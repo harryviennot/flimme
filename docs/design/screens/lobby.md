@@ -10,7 +10,7 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 
 `Screen` with `scroll`. Header: `TopBar` with back (leave, below), title `lobby:topBar`, and the action `share` (`lobby:a11y.invite`), which opens the [invite sheet](invite-sheet.md). Right under the `TopBar`, the `RoomBanner` ([Reconnecting](reconnecting.md#layout)).
 
-1. **`RoomTicket`**: the code, left detail `lobby:ticket.players` (the [present](#present-and-away) seats of the room's maximum), right detail `lobby:ticket.host`. While `api.rooms.locked` is true, `locked` draws its lock tag ([host menu](host-menu.md#lock-room)).
+1. **`RoomTicket`**: the code, left detail `lobby:ticket.players` (the [present](#present-and-away) seats of the room's maximum), right detail `lobby:ticket.host`. While `api.rooms.locked` is true, `locked` draws its lock tag ([host menu](host-menu.md#lock-room)). A long press on the ticket copies the six digits (no space) with `haptics.press()` and shows a `success` `Toast` `lobby:ticket.copied`; a screen reader gets the action `lobby:a11y.copyCode`. A tap does nothing. The host reaches this screen straight from setup, with no share step in between, so this ticket, **Share link** and **Show QR** are the ways to invite.
 2. **Two buttons** in a row, each half the width: `Button` secondary S, icon `link`, `lobby:shareLink` (the system share sheet straight away, with the [invite sheet's](invite-sheet.md) message); `Button` secondary S, icon `qr`, `lobby:showQr` (the invite sheet).
 3. **The rules line**, `body-s` tone `secondary`: `lobby:rules.quickMatch`. For guests who didn't choose the mode; everyone sees it.
 4. **Eyebrow** `lobby:inTheRoom`, then **the seats** in one `bg-bg-surface` group with a `border-border-default` hairline and `rounded-lg`, one `SeatRow` per seat with `left_at` null (`api.roomSeats` also returns seats that left; they never show), in join order (`joined_at`, then `member_id`). `SeatRow` is new: `screens/lobby/seat-row.tsx`, spec below.
@@ -131,6 +131,8 @@ The alert is the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`,
 | `ticket.players_one` | {{count}} joueur sur {{max}} | {{count}} of {{max}} players |
 | `ticket.players_other` | {{count}} joueurs sur {{max}} | {{count}} of {{max}} players |
 | `ticket.host` | Hôte · {{name}} | Host · {{name}} |
+| `ticket.copied` | Code copié | Code copied |
+| `a11y.copyCode` | Copier le code | Copy the code |
 | `shareLink` | Partager le lien | Share link |
 | `showQr` | Voir le QR code | Show QR |
 | `rules.quickMatch` | Partie rapide : on swipe jusqu'à tomber d'accord sur un film. Pas de match ? Un vote rapide tranche. | Quick Match: swipe until you agree on a film. No match? A quick final vote decides. |

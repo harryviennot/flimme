@@ -29,65 +29,76 @@ export type RoomTicketProps = {
 };
 
 /**
- * Figma "Room ticket": the room code as a cinema ticket, readable across a couch. The card does
- * not clip: the notches cover the border and bulge past the card edge, as in the Figma.
+ * Figma "Room ticket": the room code as a cinema ticket, readable across a couch. The outer view
+ * carries the shadow; the inner one clips, so each notch (a circle in the screen's canvas color,
+ * centred on the card edge) shows as the half circle cut into the side, like a real ticket. The
+ * hairline border is a layer under the content, so the notches cut it too.
  */
 export function RoomTicket({ code, leftDetail, rightDetail, locked, stamp }: RoomTicketProps) {
   const { t } = useTranslation();
   const spaced = code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code;
   return (
-    <View className="self-stretch rounded-lg border border-marquee-strong bg-bg-surface elevation-card">
-      {locked ? (
-        <Animated.View
-          entering={layout.fadeIn}
-          exiting={layout.fadeOut}
-          className="absolute top-3 right-3 z-10"
-        >
-          <Tag label={t('ticket.locked')} tone="neutral" icon="lock" />
-        </Animated.View>
-      ) : null}
-      <View className="items-center gap-1 px-5 pt-5.5 pb-2">
-        <Text variant="mono-eyebrow" tone="marquee">
-          {t('ticket.roomCode')}
-        </Text>
-        {/* Tracking is added after the last digit too: pull it back so the code is centred. */}
-        <View style={{ marginRight: -tokens.typography['display-ticket'].letterSpacing }}>
-          <Text
-            variant="display-ticket"
-            tone={stamp ? 'disabled' : 'primary'}
-            accessibilityLabel={code.split('').join(' ')}
+    <View className="self-stretch rounded-lg bg-bg-surface elevation-card">
+      <View className="overflow-hidden rounded-lg">
+        <View
+          className="absolute inset-0 rounded-lg border border-marquee-strong"
+          pointerEvents="none"
+        />
+        {locked ? (
+          <Animated.View
+            entering={layout.fadeIn}
+            exiting={layout.fadeOut}
+            className="absolute top-3 right-3 z-10"
           >
-            {spaced}
+            <Tag label={t('ticket.locked')} tone="neutral" icon="lock" />
+          </Animated.View>
+        ) : null}
+        <View className="items-center gap-1 px-5 pt-5.5 pb-2">
+          <Text variant="mono-eyebrow" tone="marquee">
+            {t('ticket.roomCode')}
+          </Text>
+          {/* Tracking is added after the last digit too: pull it back so the code is centred. */}
+          <View style={{ marginRight: -tokens.typography['display-ticket'].letterSpacing }}>
+            <Text
+              variant="display-ticket"
+              tone={stamp ? 'disabled' : 'primary'}
+              accessibilityLabel={code.split('').join(' ')}
+            >
+              {spaced}
+            </Text>
+          </View>
+          {stamp ? (
+            <View
+              className="absolute inset-0 items-center justify-center pt-4"
+              pointerEvents="none"
+            >
+              <Stamp label={stamp} />
+            </View>
+          ) : null}
+        </View>
+        <View className="h-6 justify-center">
+          <Svg height={2} width="100%">
+            <Line
+              x1="24"
+              y1="1"
+              x2="100%"
+              y2="1"
+              stroke={tokens.color['bg-sunken']}
+              strokeWidth={2}
+              strokeDasharray="6 6"
+            />
+          </Svg>
+          <View className="absolute -left-3 size-6 rounded-pill border border-marquee-strong bg-bg-canvas" />
+          <View className="absolute -right-3 size-6 rounded-pill border border-marquee-strong bg-bg-canvas" />
+        </View>
+        <View className="flex-row justify-between px-5 pt-2 pb-4.5">
+          <Text variant="mono-data" tone="secondary">
+            {leftDetail}
+          </Text>
+          <Text variant="mono-data" tone="secondary">
+            {rightDetail}
           </Text>
         </View>
-        {stamp ? (
-          <View className="absolute inset-0 items-center justify-center pt-4" pointerEvents="none">
-            <Stamp label={stamp} />
-          </View>
-        ) : null}
-      </View>
-      <View className="h-6 justify-center">
-        <Svg height={2} width="100%">
-          <Line
-            x1="24"
-            y1="1"
-            x2="100%"
-            y2="1"
-            stroke={tokens.color['bg-sunken']}
-            strokeWidth={2}
-            strokeDasharray="6 6"
-          />
-        </Svg>
-        <View className="absolute -left-3.25 size-6 rounded-pill border border-marquee-strong bg-bg-canvas" />
-        <View className="absolute -right-3.25 size-6 rounded-pill border border-marquee-strong bg-bg-canvas" />
-      </View>
-      <View className="flex-row justify-between px-5 pt-2 pb-4.5">
-        <Text variant="mono-data" tone="secondary">
-          {leftDetail}
-        </Text>
-        <Text variant="mono-data" tone="secondary">
-          {rightDetail}
-        </Text>
       </View>
     </View>
   );

@@ -35,9 +35,10 @@ appId: com.harryviennot.flimme.dev
 - tapOn: '12\+'
 - takeScreenshot: host-2-picked
 
-# Open the room: the lobby, with the invite sheet over it.
+# Open the room: straight to the lobby, with no full-screen share step.
 - tapOn: '(?i)open the room'
 - extendedWaitUntil:
-    visible: '(?i)invite friends'
+    visible: '(?i)in the room'
     timeout: 20000
+- assertNotVisible: 'Anyone with the link can join this room.'
 - takeScreenshot: host-3-room-opened
