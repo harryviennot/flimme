@@ -155,9 +155,10 @@ export function SwipeScreen({
   const checkpointOpen = useStore(swipe.soloSession, (s) => s.open !== null);
   const canAnswer = status === 'ready' && !swipe.locked && !(swipe.solo && checkpointOpen);
   // The shortlisted beat: the toast and the glow leave while it plays and come back after.
+  // Solo has no near miss at all.
   const shortlist = useShortlistView();
   const beating = shortlist.active;
-  const shownNearMiss = beating ? null : nearMiss;
+  const shownNearMiss = beating || swipe.solo ? null : nearMiss;
   const rowStyle = useAnimatedStyle(() => ({
     opacity: withTiming(held === null ? 1 : 0, timing.base),
   }));
