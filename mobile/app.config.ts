@@ -86,6 +86,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         NSPrivacyTracking: false,
         NSPrivacyTrackingDomains: [],
       },
+      // Standard HTTPS only, so App Store Connect doesn't ask about export compliance on each
+      // build (store-listing.md#setting-up-the-store-records).
+      config: { usesNonExemptEncryption: false },
       // Tablets get the phone layout until tablets are decided (decisions.md).
       supportsTablet: false,
       // No https:// here. EAS Build turns on the Associated Domains capability for the bundle id.

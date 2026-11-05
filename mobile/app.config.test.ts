@@ -68,6 +68,10 @@ describe('app config', () => {
     expect(config.ios?.privacyManifests?.NSPrivacyTrackingDomains).toEqual([]);
   });
 
+  it.each(variants)('%s declares standard encryption only, for export compliance', (variant) => {
+    expect(load(variant).ios?.config?.usesNonExemptEncryption).toBe(false);
+  });
+
   // Universal links and App Links (M4.18): preview and production claim flimme.com/join/*;
   // development builds keep their own scheme (decisions.md, Q14.5).
   it.each(['preview', 'production'])('%s claims flimme.com for universal links', (variant) => {
