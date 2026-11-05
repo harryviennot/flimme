@@ -832,7 +832,8 @@ Message budget: progress travels in presence updates every 5 swipes rather than 
 | --- | --- |
 | Every minute | `sweep_rooms` (`call internal.sweep_rooms()`, M6.6): finales by time, stage deadlines, abandon expired lobbies and empty games, host handover, a stuck deal (re-checking matches after a seat times out is M6.30) |
 | Hourly | `internal.enqueue_due_letterboxd_syncs()`: queue accounts with no successful sync in 14 days, for players who have played in the last 12 months. Any sync resets the clock, so frequent players never reach it |
-| 04:30 daily | Retention cleanup |
+| 04:30 daily | Retention cleanup (`internal.run_retention`) |
+| 04:45 daily | Guest cleanup (`internal.delete_inactive_guests`, M8.8): anonymous users inactive for 90 days, at most 1,000 a run, recorded in `ingest_runs` (kind `guest_cleanup`) |
 
 The catalog's six jobs (migration `catalog_schedule`, times in UTC, which is what Supabase Cron uses). Each one only queues a `job` message on `catalog_refresh`; the pipeline worker runs it ([tmdb.md](../integrations/tmdb.md#keeping-it-fresh)):
 
@@ -910,7 +911,7 @@ Every room also has the country's free services. Results: not run yet (staging, 
 
 Training exports carry seat ids, never profile ids, names or Letterboxd usernames.
 
-> How these rules run (one daily job, plus server jobs for guest accounts and TMDB content) is in [operations.md](operations.md#retention-jobs). [privacy.md](../product/privacy.md#what-we-store-and-why) adds retention for training exports (24 months) and for a minimal proof of consent after deletion (5 years).
+> How these rules run (two daily cron jobs, plus a server job for TMDB content) is in [operations.md](operations.md#retention-jobs). [privacy.md](../product/privacy.md#what-we-store-and-why) adds retention for training exports (24 months) and for a minimal proof of consent after deletion (5 years).
 
 ## Later: how each future feature lands
 
