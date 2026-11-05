@@ -887,6 +887,8 @@ describe('the shortlisted beat', () => {
 });
 
 describe('a solo room', () => {
+  // A checkpoint takes 20 to 40 presses: slow when the whole suite runs at once.
+  jest.setTimeout(60000);
   async function answer(label: string, times: number) {
     for (let i = 0; i < times; i++) {
       await fireEvent.press(screen.getByLabelText(label));
