@@ -3,7 +3,7 @@
 -- inserting swipe_log rows directly.
 
 begin;
-select plan(26);
+select plan(32);
 
 select tests.create_catalog(3);
 
@@ -129,8 +129,48 @@ select is(
   + (select count(*) from analytics.second_game where cohort_week = '2026-05-04'),
   0::bigint, 'a deleted player''s seat is in no per-player view');
 
+-- 6b. Solo rooms (M6.42): left out of the group views, shown on their own.
+create function pg_temp.solo_room(p_name text, p_start timestamptz, p_outcome text, p_cards integer, p_join timestamptz default null)
+returns void language plpgsql as $$
+declare v_room uuid;
+begin
+  if not exists (select 1 from auth.users where id = tests.uid(p_name)) then
+    perform tests.create_player(p_name);
+  end if;
+  insert into public.rooms (code, host_id, mode, country, max_players, seen_rule, state, started_at, decided_at, stats)
+  values (internal.new_room_code(), tests.uid(p_name), 'solo', 'FR', 1, 'hide_seen', 'done', p_start,
+          case when p_outcome = 'match' then p_start + interval '1 minute' end,
+          case when p_outcome is null then null else jsonb_build_object('outcome', p_outcome, 'players', 1) end)
+  returning id into v_room;
+  insert into public.room_members (room_id, profile_id, controlled_by, role, display_name, avatar_key, swipe_count, joined_at)
+  values (v_room, tests.uid(p_name), tests.uid(p_name), 'host', p_name, 'fox', p_cards, coalesce(p_join, p_start));
+  insert into public.swipe_log (room_id, room_member_id, title_id, action, answer, created_at)
+  select v_room, m.id, tests.film(1), 'vote', 'like', p_start + interval '20 seconds' from public.room_members m where m.room_id = v_room;
+end $$;
+select pg_temp.solo_room('so1', '2026-06-01 10:00+00', 'match', 10);
+select pg_temp.solo_room('so2', '2026-06-01 11:00+00', 'match', 20);
+select pg_temp.solo_room('so3', '2026-06-01 12:00+00', 'abandoned', 30);
+
+select is((select count(*) from analytics.time_to_pick where day = '2026-06-01'), 0::bigint, 'solo rooms are not in time_to_pick');
+select is((select count(*) from analytics.room_outcomes where day = '2026-06-01'), 0::bigint, 'solo rooms are not in room_outcomes');
+select is((select sessions || '/' || picks || '/' || median_cards || '/' || round(pick_share, 3)
+           from analytics.solo_sessions where day = '2026-06-01' and country = 'FR'),
+  '3/2/20/0.667', 'solo_sessions: 3 sessions, 2 picks, median 20 cards, a pick share of two thirds');
+update public.profiles set created_at = '2026-06-02 09:00+00' where id = tests.uid('so1');
+select is((select entry from analytics.onboarding_time where week = '2026-06-01' and entry = 'solo'), 'solo',
+  'onboarding_time: a first seat in a solo room is entry solo');
+
+-- A solo room is neither a first game nor a return.
+select pg_temp.room('sg', '2026-06-08 10:00+00', interval '2 minutes', pg_temp.stats('match'));
+update public.room_members set joined_at = '2026-06-08 10:00+00' where room_id = tests.room_id();
+select pg_temp.solo_room('sg1', '2026-06-09 10:00+00', 'match', 5);
+select is((select returned from analytics.second_game where cohort_week = '2026-06-08'), 0::bigint,
+  'second_game: a solo room is not a return');
+select is((select new_players from analytics.second_game where cohort_week = '2026-06-08'), 2::bigint,
+  'second_game: the two players of the group first game still count');
+
 -- 7. No ids, names, codes or titles in any column.
-select is((select count(*) from information_schema.views where table_schema = 'analytics'), 5::bigint, 'five views in analytics');
+select is((select count(*) from information_schema.views where table_schema = 'analytics'), 6::bigint, 'six views in analytics');
 select is((select array_agg(table_name || '.' || column_name) from information_schema.columns
            where table_schema = 'analytics'
              and (data_type = 'uuid' or column_name ~ '(^|_)(id|ids|name|code|title|email)(_|$)')),
@@ -138,7 +178,7 @@ select is((select array_agg(table_name || '.' || column_name) from information_s
 
 -- 8. Nobody reads them.
 select is((select count(*) from unnest(array['anon', 'authenticated', 'app_server', 'app_http']) r,
-                 unnest(array['time_to_pick', 'room_outcomes', 'onboarding_time', 'link_to_first_swipe', 'second_game']) v
+                 unnest(array['time_to_pick', 'room_outcomes', 'onboarding_time', 'link_to_first_swipe', 'second_game', 'solo_sessions']) v
            where has_table_privilege(r, format('analytics.%I', v), 'select') or has_schema_privilege(r, 'analytics', 'usage')),
   0::bigint, 'phones and the server logins can neither use the schema nor select from the views');
 

@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import Home from '@/app/home';
+import Home from '@/app/(tabs)/play';
 import i18n from '@/i18n';
 
 let mockOnline = true;

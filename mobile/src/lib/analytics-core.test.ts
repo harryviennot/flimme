@@ -115,19 +115,19 @@ describe('the choice', () => {
     const t = setup();
     t.analytics.setRegion({ deviceRegion: 'US', profileCountry: 'US' });
     t.analytics.setProfileId('p1');
-    t.analytics.screen('/home');
-    expect(sent(t.calls)).toEqual(['screen:/home']);
+    t.analytics.screen('/play');
+    expect(sent(t.calls)).toEqual(['screen:/play']);
 
     t.analytics.applyChoice('off');
     expect(t.calls.slice(-2)).toEqual(['reset', 'optOut']);
     t.analytics.screen('/settings');
     t.analytics.track('$screen');
-    expect(sent(t.calls)).toEqual(['screen:/home']);
+    expect(sent(t.calls)).toEqual(['screen:/play']);
 
     t.analytics.applyChoice('on');
     expect(t.calls).toContain('optIn');
     t.analytics.screen('/settings');
-    expect(sent(t.calls)).toEqual(['screen:/home', 'screen:/settings']);
+    expect(sent(t.calls)).toEqual(['screen:/play', 'screen:/settings']);
   });
 
   it('detailed in France identifies, and back to on resets without identifying again', () => {
@@ -182,8 +182,8 @@ describe('the kids rule', () => {
     expect(t.analytics.getEntries().filter((e) => e.kind === 'dropped')).toHaveLength(2);
 
     t.analytics.clearRoomCap();
-    t.analytics.screen('/home');
-    expect(sent(t.calls)).toEqual(['screen:/home']);
+    t.analytics.screen('/play');
+    expect(sent(t.calls)).toEqual(['screen:/play']);
   });
 
   it.each([13, 18, null])('sends in a room with a cap of %s', (cap) => {
@@ -256,19 +256,19 @@ describe('no key', () => {
     const t = setup({ key: null, dev: true });
     t.analytics.setRegion({ deviceRegion: 'FR', profileCountry: 'FR' });
     t.analytics.setProfileId('p1');
-    t.analytics.screen('/home');
+    t.analytics.screen('/play');
     expect(t.created).toEqual([]);
     expect(t.calls).toEqual([]);
     const events = t.analytics.getEntries().filter((e) => e.kind === 'event');
     expect(events).toEqual([
-      expect.objectContaining({ name: '$screen', mode: 'anonymous', props: { screen: '/home' } }),
+      expect.objectContaining({ name: '$screen', mode: 'anonymous', props: { screen: '/play' } }),
     ]);
   });
 
   it('records nothing in a production build', () => {
     const t = setup({ key: null, dev: false });
     t.analytics.setRegion({ deviceRegion: 'FR', profileCountry: 'FR' });
-    t.analytics.screen('/home');
+    t.analytics.screen('/play');
     expect(t.analytics.getEntries()).toEqual([]);
   });
 });
@@ -316,7 +316,7 @@ describe('forget, after a deletion', () => {
 
     t.analytics.applyChoice('on');
     t.analytics.setProfileId('p1');
-    t.analytics.screen('/home');
+    t.analytics.screen('/play');
     expect(t.created).toHaveLength(1);
     expect(sent(t.calls)).toEqual([]);
     expect(t.kv.has('analytics.state')).toBe(false);
@@ -328,10 +328,10 @@ describe('forget, after a deletion', () => {
     t.analytics.setProfileId('p1');
     t.analytics.forget();
     t.analytics.setProfileId('p2');
-    t.analytics.screen('/home');
+    t.analytics.screen('/play');
     expect(t.created).toHaveLength(2);
     expect(t.calls).toContain('identify:p2');
-    expect(sent(t.calls)).toEqual(['screen:/home']);
+    expect(sent(t.calls)).toEqual(['screen:/play']);
   });
 
   it('reaches PostHog again for the new guest, though the opt-out is kept by PostHog itself', () => {
@@ -341,8 +341,8 @@ describe('forget, after a deletion', () => {
     t.analytics.forget();
     expect(t.stored.optedOut).toBe(true);
     t.analytics.setProfileId('p2');
-    t.analytics.screen('/home');
+    t.analytics.screen('/play');
     expect(t.stored.optedOut).toBe(false);
-    expect(t.stored.delivered).toEqual(['/home']);
+    expect(t.stored.delivered).toEqual(['/play']);
   });
 });

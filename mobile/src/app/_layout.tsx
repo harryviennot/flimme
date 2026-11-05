@@ -24,7 +24,7 @@ export { ErrorScreen as ErrorBoundary } from '@/components/shared/error-screen';
 
 initSentry();
 
-// A link opens the join sheet on a cold start with `/` underneath: it redirects to Home or
+// A link opens the join sheet on a cold start with `/` underneath: it redirects to Play or
 // Welcome once the sheet closes, so closing always lands somewhere sensible (join-sheet.md).
 export const unstable_settings = { anchor: 'index' };
 

@@ -61,7 +61,7 @@ function Stub({ label }: { label: string }) {
 const routes = {
   index: () => <Stub label="index" />,
   welcome: () => <Stub label="welcome" />,
-  home: () => <Stub label="home" />,
+  play: () => <Stub label="play" />,
   join: () => <Stub label="join" />,
   name: require('@/app/name').default,
 };
@@ -132,7 +132,7 @@ describe('after ok', () => {
     await open('/name', '/welcome');
     await type('Léa');
     await submit();
-    await waitFor(() => expect(screen).toHavePathname('/home'));
+    await waitFor(() => expect(screen).toHavePathname('/play'));
     expect(router.canGoBack()).toBe(false);
   });
 
