@@ -76,6 +76,16 @@ class Settings(BaseSettings):
     # The project's URL, for the HTTP API: it finds the signing keys and the token issuer there.
     supabase_url: str | None = None
 
+    # The HTTP API's secret key, for Supabase's auth admin API (account deletion). Only the
+    # HTTP API process holds it.
+    supabase_secret_key: SecretStr | None = None
+
+    # PostHog, for forgetting a deleted player. The project id is a number; the personal API key
+    # is a secret. Without a key the step is skipped (no analytics run in local or staging).
+    posthog_personal_api_key: SecretStr | None = None
+    posthog_project_id: str | None = None
+    posthog_host: str = "https://eu.posthog.com"
+
     sentry_dsn: SecretStr | None = None
 
     @classmethod
@@ -113,6 +123,23 @@ class Settings(BaseSettings):
         except Exception:
             raise ValueError("is not a valid PostgreSQL connection URL") from None
         return value
+
+    def missing_for_api(self) -> str | None:
+        """The first setting the HTTP API needs and lacks (a variable name), or None.
+
+        The secret key is required outside local; PostHog's key and project id in production.
+        """
+        if self.supabase_url is None:
+            return "SUPABASE_URL"
+        if self.environment is not Environment.LOCAL and self.supabase_secret_key is None:
+            return "SUPABASE_SECRET_KEY"
+        if self.environment is Environment.PRODUCTION and self.posthog_personal_api_key is None:
+            return "POSTHOG_PERSONAL_API_KEY"
+        if self.posthog_personal_api_key is not None and self.posthog_project_id is None:
+            return "POSTHOG_PROJECT_ID"
+        if self.environment is Environment.PRODUCTION and self.posthog_project_id is None:
+            return "POSTHOG_PROJECT_ID"
+        return None
 
     @model_validator(mode="after")
     def _supabase_url_is_https(self) -> Self:

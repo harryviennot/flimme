@@ -228,10 +228,12 @@ Rules on kids' data (COPPA, parental consent under 15 in France, kid profiles la
 
 **Deleting an account** ([data model](data-model.md#deleting-an-account-exporting-data)):
 
-1. The phone calls the HTTP API with its token.
-2. The server deletes exactly the token's `sub` through Supabase's auth admin API, using the HTTP API's secret key. Nothing in the request names whom to delete.
-3. The database cascades: profile, services, consents, Letterboxd link, diary, film history, taste, card history. Past seats keep their votes, anonymous.
-4. The server also asks analytics to forget the user. Crash reports carry no user id, so there is nothing to delete there ([privacy.md](../product/privacy.md#crash-reports)).
+1. The phone calls `POST /v1/account/delete` on the HTTP API with its token (no body). A token is enough: a user without a profile can be deleted too.
+2. The server asks analytics to forget the user first: PostHog's person whose distinct id is the token's `sub`, with its events. No key set (local, staging) skips this step. Crash reports carry no user id, so there is nothing to delete there ([privacy.md](../product/privacy.md#crash-reports)).
+3. The server deletes exactly the token's `sub` through Supabase's auth admin API, using the HTTP API's secret key. Nothing in the request names whom to delete.
+4. The database cascades: profile, services, consents, Letterboxd link, diary, film history, taste, card history. Past seats keep their votes, anonymous (the name, avatar and controller go, also on seats the player controlled), and the player's per-profile `rate_limits` rows (`<action>:p:<profile id>`) are deleted. IP rows stay: they are hashed addresses, not the player.
+
+Each outside step has a 5 second timeout and one retry. If either fails the answer is `503 {"status":"try_again"}` and the phone offers to try again; a person or user that is already gone counts as done. No proof of consent is kept in the first release.
 5. The phone signs out and wipes its local data: the session, the vote queue, cached cards.
 
 Deletion is idempotent: a retry after a dropped connection succeeds quietly.
