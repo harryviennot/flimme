@@ -10,6 +10,7 @@ import { useMyProfile } from '@/features/profile';
 import { useKeptRoom } from '@/features/room/kept-room';
 import { startSession, useSession, useSessionFailed } from '@/features/session';
 
+import { useGoneUserRecovery } from './use-gone-user';
 import { launchStep, type LaunchStep, type ProfileRead, type RejoinRead } from './launch-step';
 
 /** After this long the splash says it is still working (splash.md, a starting value). */
@@ -43,7 +44,11 @@ export function useLaunch(): { step: LaunchStep; retry: () => void } {
     profile = { state: 'failed', network: error instanceof ApiError && error.kind === 'network' };
   }
 
-  const step = launchStep({ session, sessionFailed, profile, online, slow, kept, rejoin });
+  const { checking } = useGoneUserRecovery({ session, profile: { data, error } });
+
+  const step: LaunchStep = checking
+    ? { show: slow ? 'slow' : 'loading' }
+    : launchStep({ session, sessionFailed, profile, online, slow, kept, rejoin });
 
   // The kept room, given back its seat (splash.md#the-kept-room-m422): `ok` goes to the state's
   // screen, `rate_limited` or a failed call goes Home and keeps the room, any other answer

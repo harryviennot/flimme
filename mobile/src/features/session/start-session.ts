@@ -32,3 +32,38 @@ export async function startSessionWith(client: ApiClient): Promise<SessionAnswer
   if (!created.data.user) throw new Error('Sign-in answered without a user.');
   return { status: 'ok', userId: created.data.user.id, isNew: true };
 }
+
+export type UserCheck = 'ok' | 'gone' | 'unknown';
+
+// What Auth answers for a token whose user was deleted (by the player elsewhere, or by the
+// guest cleanup): the user is not found, or the token is no longer accepted.
+const goneStatuses = new Set([401, 403, 404]);
+
+function isGone(error: unknown): boolean {
+  return (
+    isAuthApiError(error) && (goneStatuses.has(error.status) || error.code === 'user_not_found')
+  );
+}
+
+/**
+ * Whether the user behind the stored session still exists (settings.md, a session whose user
+ * is gone). Asks Auth for the user; a refusal is given one session refresh before it counts,
+ * so an expired token that refreshes keeps its user. No connection, or any answer that is not
+ * a clear "gone", is `unknown`: the player keeps playing and the next launch asks again.
+ */
+export async function checkUserWith(client: ApiClient): Promise<UserCheck> {
+  const first = await client.auth.getUser();
+  if (!first.error) return 'ok';
+  if (isAuthRetryableFetchError(first.error)) return 'unknown';
+  if (!isGone(first.error)) return 'unknown';
+
+  const refreshed = await client.auth.refreshSession();
+  if (refreshed.error) {
+    if (isAuthRetryableFetchError(refreshed.error)) return 'unknown';
+    // The refresh token went with the user: nothing is left to refresh.
+    return isAuthApiError(refreshed.error) && refreshed.error.status !== 429 ? 'gone' : 'unknown';
+  }
+  const second = await client.auth.getUser();
+  if (!second.error) return 'ok';
+  return isGone(second.error) ? 'gone' : 'unknown';
+}

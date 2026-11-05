@@ -46,6 +46,12 @@ Every `api` function answers with a status (`packages/contract/src/answers.ts`).
 
 `npx expo export -p web` (single-page output) serves only the invite page: `app/_layout.web.tsx` is the web root layout (no session, update gate or Sentry, so a visitor never creates a guest account; it loads the fonts with `useFonts(webFonts)` from `src/theme/web-fonts.ts`) and `app/join/[code].web.tsx` is the invite route. Every other path shows the broken-link state. Files in `mobile/public/` ship as they are (`index.html` is the HTML template with the link preview tags; `.well-known/` holds the verification files). A static host must serve `/.well-known/apple-app-site-association` as `application/json` without a redirect, and fall back to `index.html` for other paths.
 
+## Settings, data rights and the server's HTTP API
+
+- `features/account/`: `server.ts` is the typed fetch for the recommendation server (`POST /v1/account/delete`, base `getConfig().serverUrl` from `EXPO_PUBLIC_SERVER_URL`, required; staging has `EXPO_PUBLIC_STAGING_SERVER_URL`). A new HTTP route gets its function there, answering the contract's status list or `failed`, never throwing.
+- `wipe.ts` / `wipe-app.ts`: signs out locally, resets every persisted store (a new one joins the list in `wipe-app.ts`), clears the query cache and starts a new guest. It runs after a deletion and when the stored session's user is gone (`launch/use-gone-user.ts`).
+- The analytics choice is kept in the settings store first and sent by `features/settings/analytics-sync.ts`; bump `ANALYTICS_WORDING_VERSION` when the `settings:analytics.*` copy changes.
+
 ## Session, profile and connection
 
 - `useSession()` / `useSessionFailed()` (`features/session`): the guest sign-in's answer, and whether it threw (reported once inside `startSession`; callers use `.catch(() => {})`). `useMyProfile()` (`features/profile`, key `['my_profile']`) is seeded from the copy kept on the device and stale from the start; `useOnline()` (`features/network`) comes from expo-network and also drives TanStack's `onlineManager`. A screen that needs the player's name reads `useMyProfile()`, never the api.

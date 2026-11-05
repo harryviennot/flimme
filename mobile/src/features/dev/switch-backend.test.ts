@@ -3,7 +3,11 @@ import { switchBackend } from './switch-backend';
 
 const available = {
   available: true,
-  config: { supabaseUrl: 'https://x.supabase.co', supabasePublishableKey: 'k' },
+  config: {
+    supabaseUrl: 'https://x.supabase.co',
+    supabasePublishableKey: 'k',
+    serverUrl: 'https://api.x.test',
+  },
 } as const;
 const missing = {
   available: false,
