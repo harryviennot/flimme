@@ -137,6 +137,8 @@ The two Supabase deploy workflows follow Supabase's own guide (`supabase/setup-c
 
 **Data API settings stay by hand.** Exposed schemas set to `api` only and "Automatically expose new tables" off are set once on each project in the dashboard, which keeps the access token's use to `db push`. The smoke step checks them on every deploy (`tools/smoke-data-api.mjs`): `public` is refused, `/graphql/v1` gives no data, and `api` answers.
 
+**Starting the local stack in CI.** The `database` and `server-contract` jobs first reserve the stack's ports (54320 to 54329), so no outgoing connection can hold one when the stack binds it. Then `tools/ci-supabase-start.sh` runs `supabase start` up to three times, with `supabase stop --no-backup` and a short wait before each retry. Amazon's public registry often answers "Rate exceeded" to the image pulls; the CLI retries those itself.
+
 **Migration order.** `supabase db push` refuses a local migration older than one already applied, so the pull request check fails a new migration that sorts before or with the latest one on `main`. Rename it with `git mv` to a fresh timestamp.
 
 GitHub's free plan includes $12 of compute a month for private repositories, which by our count is about 2,000 minutes on Linux runners: enough for one developer.
