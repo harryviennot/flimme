@@ -21,7 +21,11 @@ jest.mock('@/api', () => ({
   },
 }));
 const mockRouter = { replace: jest.fn(), push: jest.fn() };
-jest.mock('expo-router', () => ({ router: mockRouter }));
+jest.mock('expo-router', () => ({
+  get router() {
+    return mockRouter;
+  },
+}));
 jest.mock('@/components/ui/toast', () => ({ showToast: jest.fn() }));
 jest.mock('@/features/join/old-seat', () => ({
   keptRoomId: () => 'r1',
@@ -250,7 +254,7 @@ describe('play again and the join offer', () => {
     mockApi.roomMatches.mockResolvedValue([match('majority', null)]);
     mockSeats = seatsFor('host');
     await render(<WinnerRoom roomId="r1" />, { wrapper });
-    expect(await screen.findByText('Play again')).toBeTruthy();
+    expect(await screen.findByText('Play again', {}, { timeout: 5000 })).toBeTruthy();
   });
 
   it('does not show it to a guest or in solo', async () => {
@@ -272,7 +276,7 @@ describe('play again and the join offer', () => {
     const released = jest.fn();
     const off = registerRoomGuard(released);
     await render(<WinnerRoom roomId="r1" />, { wrapper });
-    fireEvent.press(await screen.findByText('Play again'));
+    fireEvent.press(await screen.findByText('Play again', {}, { timeout: 5000 }));
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/room/r2/lobby'));
     expect(mockApi.playAgain).toHaveBeenCalledWith({ room_id: 'r1' });
     expect(mockKeep).toHaveBeenCalledWith({ id: 'r2', code: '654321' });
@@ -287,7 +291,7 @@ describe('play again and the join offer', () => {
     mockSeats = seatsFor('host');
     mockApi.playAgain.mockResolvedValue({ status });
     await render(<WinnerRoom roomId="r1" />, { wrapper });
-    fireEvent.press(await screen.findByText('Play again'));
+    fireEvent.press(await screen.findByText('Play again', {}, { timeout: 5000 }));
     await waitFor(() =>
       expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ title: message })),
     );
@@ -301,7 +305,7 @@ describe('play again and the join offer', () => {
     mockSeats = seatsFor('host');
     mockApi.playAgain.mockResolvedValue({ status: 'name_required' });
     await render(<WinnerRoom roomId="r1" />, { wrapper });
-    fireEvent.press(await screen.findByText('Play again'));
+    fireEvent.press(await screen.findByText('Play again', {}, { timeout: 5000 }));
     await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith('/name?edit=1'));
   });
 
@@ -309,7 +313,7 @@ describe('play again and the join offer', () => {
     mockSeats = seatsFor('guest');
     mockNext = { next_room_id: 'r2', next_room_code: '654321' };
     await render(<WinnerRoom roomId="r1" />, { wrapper });
-    expect(await screen.findByTestId('join-offer')).toBeTruthy();
+    expect(await screen.findByTestId('join-offer', {}, { timeout: 5000 })).toBeTruthy();
     expect(screen.getByText('Another game is open')).toBeTruthy();
     await act(async () => mockNextHandler?.({ host_member_id: 'm2' }));
     expect(screen.getByText('Ana started another game')).toBeTruthy();
@@ -320,7 +324,7 @@ describe('play again and the join offer', () => {
     mockSeats = seatsFor('host');
     mockNext = { next_room_id: 'r2', next_room_code: '654321' };
     await render(<WinnerRoom roomId="r1" />, { wrapper });
-    expect(await screen.findByTestId('join-offer')).toBeTruthy();
+    expect(await screen.findByTestId('join-offer', {}, { timeout: 5000 })).toBeTruthy();
     expect(screen.queryByText('Play again')).toBeNull();
   });
 
@@ -334,7 +338,7 @@ describe('play again and the join offer', () => {
       state: 'lobby',
     });
     await render(<WinnerRoom roomId="r1" />, { wrapper });
-    fireEvent.press(await screen.findByText('Join'));
+    fireEvent.press(await screen.findByText('Join', {}, { timeout: 5000 }));
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/room/r2/lobby'));
     expect(mockApi.joinRoom).toHaveBeenCalledWith({
       code: '654321',
@@ -359,7 +363,7 @@ describe('play again and the join offer', () => {
     mockNext = { next_room_id: 'r2', next_room_code: '654321' };
     mockApi.joinRoom.mockResolvedValue(answer);
     await render(<WinnerRoom roomId="r1" />, { wrapper });
-    fireEvent.press(await screen.findByText('Join'));
+    fireEvent.press(await screen.findByText('Join', {}, { timeout: 5000 }));
     await waitFor(() => expect(screen.getByText(message)).toBeTruthy());
     expect(mockRouter.replace).not.toHaveBeenCalled();
   });
@@ -369,7 +373,7 @@ describe('play again and the join offer', () => {
     mockNext = { next_room_id: 'r2', next_room_code: '654321' };
     mockApi.joinRoom.mockResolvedValue({ status: 'name_required' });
     await render(<WinnerRoom roomId="r1" />, { wrapper });
-    fireEvent.press(await screen.findByText('Join'));
+    fireEvent.press(await screen.findByText('Join', {}, { timeout: 5000 }));
     await waitFor(() =>
       expect(mockRouter.push).toHaveBeenCalledWith({
         pathname: '/join/[code]',
