@@ -7,6 +7,7 @@ import { useWindowDimensions, View, type FlatList } from 'react-native';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
+import { trackMyFilmsGrid } from '@/features/analytics/solo-events';
 import { useAppConfig } from '@/features/app-config/use-app-config';
 import {
   gridState,
@@ -52,6 +53,22 @@ export function MyFilmsScreen({ onOpenFilm, onPlayAlone }: MyFilmsScreenProps) {
       focused.current = true;
     }, [refetch]),
   );
+
+  // The first page of each segment or chip, once per choice per visit.
+  const tracked = useRef<string | null>(null);
+  const firstPage = query.data?.pages[0];
+  useEffect(() => {
+    if (!firstPage) return;
+    const key = `${segment}:${segment === 'liked' ? filter : 'none'}`;
+    if (tracked.current === key) return;
+    tracked.current = key;
+    trackMyFilmsGrid({
+      segment,
+      filter,
+      count: firstPage.films.length,
+      hasMore: firstPage.next_cursor !== null,
+    });
+  }, [firstPage, segment, filter]);
 
   // The selected tab tapped again.
   useEffect(

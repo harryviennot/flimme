@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
@@ -23,6 +23,7 @@ import {
 } from '@/features/host/settings';
 import { useSetupForm } from '@/features/host/use-setup-form';
 import { keptRoomId, leaveOldSeat } from '@/features/join/old-seat';
+import { trackCapShow, trackSoloStart } from '@/features/analytics/solo-events';
 import { useOnline } from '@/features/network';
 import { markCapReached, useCapToday } from '@/features/solo/cap';
 import { startSoloGame } from '@/features/solo/start';
@@ -49,6 +50,11 @@ export default function SoloSetupScreen() {
   const [tooFew, setTooFew] = useState<number | null>(null);
   const busy = useRef(false);
 
+  const capShown = capToday || capHit;
+  useEffect(() => {
+    if (capShown) trackCapShow('play');
+  }, [capShown]);
+
   const unsupported =
     (!profile.isPending && !country) || refused || (providers.isSuccess && listed.length === 0);
   const canStart = ready && selection.length > 0 && online && !starting;
@@ -74,6 +80,7 @@ export default function SoloSetupScreen() {
     }
     switch (outcome.kind) {
       case 'started':
+        trackSoloStart({ serviceCount: selection.length, runtimeMax: form.settings.runtime_max });
         client.setQueryData(MY_PROVIDERS_KEY, selection);
         leaveOldSeat(outcome.roomId, oldRoomId);
         router.replace(`/room/${outcome.roomId}/swipe`);

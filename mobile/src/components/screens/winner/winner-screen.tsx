@@ -174,6 +174,7 @@ export function WinnerScreen({
                     watchLink={view.watchLink}
                     servicesLabel={servicesLabel(view.services, language)}
                     notListed={t('notListed')}
+                    isGroupWinner={!solo}
                   />
                 )}
               </Animated.View>

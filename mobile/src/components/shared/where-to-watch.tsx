@@ -45,9 +45,20 @@ export type WhereToWatchProps = {
   servicesLabel: string;
   /** The line when none of the player's services has the film (the room's, or the player's own). */
   notListed: string;
+  /**
+   * Whether "More details" is the group winner's event. A solo pick and the film sheet pass false:
+   * `winner:watch_page_open` stays a group measure.
+   */
+  isGroupWinner?: boolean;
 };
 
-export function WhereToWatch({ services, watchLink, servicesLabel, notListed }: WhereToWatchProps) {
+export function WhereToWatch({
+  services,
+  watchLink,
+  servicesLabel,
+  notListed,
+  isGroupWinner = true,
+}: WhereToWatchProps) {
   const { t } = useTranslation('winner');
   return (
     <View className="items-center gap-2 pt-2">
@@ -82,7 +93,7 @@ export function WhereToWatch({ services, watchLink, servicesLabel, notListed }: 
             size="s"
             icon="external-link"
             onPress={() => {
-              track('winner:watch_page_open');
+              if (isGroupWinner) track('winner:watch_page_open');
               void WebBrowser.openBrowserAsync(watchLink);
             }}
           />

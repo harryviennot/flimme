@@ -17,6 +17,7 @@ import { Text } from '@/components/ui/text';
 import { useAppConfig } from '@/features/app-config/use-app-config';
 import { useOnline } from '@/features/network';
 import { ROOM_KEY } from '@/features/room';
+import { trackSoloPick } from '@/features/analytics/solo-events';
 import { markJustPicked, pickFilm } from '@/features/solo/pick';
 import { likesOf, soloSessionOf, useSoloEntries, type SessionEntry } from '@/features/solo/session';
 import { voteQueue } from '@/features/swipe';
@@ -115,6 +116,7 @@ export function PickSheet({ roomId }: { roomId: string }) {
       case 'picked':
         // The room is `done` now: the layout closes this sheet and shows the pick. The tile stays lifted.
         markJustPicked(roomId);
+        trackSoloPick(soloSessionOf(roomId).getState().entries.length);
         void client.invalidateQueries({ queryKey: ROOM_KEY(roomId) });
         return;
       case 'closed':

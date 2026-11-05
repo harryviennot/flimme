@@ -6,4 +6,11 @@ export { useAnalyticsStrict } from './use-strict';
 export { useAnalyticsLog } from './use-log';
 export { gamesStore, useGamesPlayed } from './games';
 export { trackJoinAttempt } from './events';
+export {
+  trackCapShow,
+  trackCheckpointView,
+  trackMyFilmsGrid,
+  trackSoloPick,
+  trackSoloStart,
+} from './solo-events';
 export { msSinceLinkOpen, msSinceSwiping, rememberLinkJoin, roomSizeBucket } from './journey';

@@ -1,5 +1,6 @@
 import {
   ANALYTICS_EVENTS,
+  countBucket,
   createAnalytics,
   gamesPlayedBucket,
   type AnalyticsEvent,
@@ -44,7 +45,7 @@ function setup(options: { choice?: 'on' | 'off' | 'detailed'; dev?: boolean } = 
 }
 
 describe('the first release list', () => {
-  it('holds exactly the thirteen events (and the screen view)', () => {
+  it('holds exactly the first release events, the solo ones and the screen view', () => {
     expect(Object.keys(ANALYTICS_EVENTS).sort()).toEqual(
       [
         '$screen',
@@ -56,9 +57,14 @@ describe('the first release list', () => {
         'join:code_submit',
         'join:link_open',
         'lobby:services_submit',
+        'my_films:grid_view',
         'onboarding:name_submit',
         'room:create_finish',
         'room:invite_share',
+        'solo:cap_show',
+        'solo:checkpoint_view',
+        'solo:pick_submit',
+        'solo:session_start',
         'winner:view',
         'winner:watch_page_open',
       ].sort(),
@@ -71,7 +77,7 @@ describe('the first release list', () => {
     );
     for (const name of Object.keys(ANALYTICS_EVENTS)) {
       if (name === '$screen') continue;
-      expect(name).toMatch(/^[a-z]+:[a-z]+(_[a-z]+)*$/);
+      expect(name).toMatch(/^[a-z]+(_[a-z]+)*:[a-z]+(_[a-z]+)*$/);
       expect(verbs).toContain(name.split(':')[1]?.split('_').pop());
     }
   });
@@ -212,5 +218,93 @@ describe('when nothing is sent', () => {
     t.advance(60_000);
     t.analytics.setRoomCap(null);
     expect(t.sent).toEqual([]);
+  });
+});
+
+describe('the solo events', () => {
+  it.each([
+    [0, '0'],
+    [1, '1_4'],
+    [4, '1_4'],
+    [5, '5_9'],
+    [9, '5_9'],
+    [10, '10_19'],
+    [19, '10_19'],
+    [20, '20_plus'],
+    [100, '20_plus'],
+  ])('buckets %i as %s', (count, bucket) => {
+    expect(countBucket(count)).toBe(bucket);
+  });
+
+  it('sends each event with exactly its properties', () => {
+    const t = setup();
+    t.analytics.setRoomCap(null);
+    t.analytics.track('solo:checkpoint_view', { card_count: 20, like_count: '5_9' });
+    t.analytics.track('solo:pick_submit', { card_count: 40 });
+    t.analytics.track('solo:cap_show', { placement: 'deck' });
+    t.analytics.track('my_films:grid_view', { segment: 'seen', filter: 'none', film_count: '0' });
+    expect(t.sent.map((s) => s.event)).toEqual([
+      'solo:checkpoint_view',
+      'solo:pick_submit',
+      'solo:cap_show',
+      'my_films:grid_view',
+    ]);
+    expect(t.sent[0]?.props).toMatchObject({ card_count: 20, like_count: '5_9' });
+    expect(t.sent[3]?.props).toMatchObject({ segment: 'seen', filter: 'none', film_count: '0' });
+  });
+
+  it('refuses a misspelt name, an exact count and a film id', () => {
+    const { analytics } = setup({ dev: true });
+    // @ts-expect-error not an event
+    expect(() => analytics.track('solo:pick_submitted', { card_count: 1 })).toThrow();
+    // @ts-expect-error a bucket, not a number
+    expect(() =>
+      analytics.track('solo:checkpoint_view', { card_count: 20, like_count: 7 }),
+    ).toThrow();
+    // @ts-expect-error no film id
+    expect(() => analytics.track('solo:pick_submit', { card_count: 1, title_id: 3 })).toThrow();
+  });
+
+  it('sends nothing from a solo room capped under 13, and sends at 13 or none', () => {
+    for (const [cap, sends] of [
+      [12, false],
+      [13, true],
+      [null, true],
+    ] as const) {
+      const t = setup();
+      t.analytics.setRoomCap(cap);
+      t.analytics.track('solo:pick_submit', { card_count: 3 });
+      expect(t.sent).toHaveLength(sends ? 1 : 0);
+    }
+  });
+
+  it('holds the session start until the room cap is read, and drops it when capped', () => {
+    const open = setup();
+    open.analytics.trackWhenRoomKnown('solo:session_start', {
+      service_count: 2,
+      has_time_budget: false,
+    });
+    expect(open.sent).toHaveLength(0);
+    open.analytics.setRoomCap(null);
+    expect(open.sent.map((s) => s.event)).toEqual(['solo:session_start']);
+
+    const kids = setup();
+    kids.analytics.trackWhenRoomKnown('solo:session_start', {
+      service_count: 2,
+      has_time_budget: true,
+    });
+    kids.analytics.setRoomCap(12);
+    expect(kids.sent).toHaveLength(0);
+  });
+
+  it('sends nothing after the opt-out', () => {
+    const t = setup({ choice: 'off' });
+    t.analytics.setRoomCap(null);
+    t.analytics.track('my_films:grid_view', {
+      segment: 'liked',
+      filter: 'all',
+      film_count: '20_plus',
+    });
+    expect(t.sent).toHaveLength(0);
   });
 });
