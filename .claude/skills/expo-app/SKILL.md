@@ -65,6 +65,10 @@ Every `api` function answers with a status (`packages/contract/src/answers.ts`).
 - `EmptyState autoFocus` moves a screen reader's focus to the title of a screen that failed.
 - Home is two tabs (`app/(tabs)/`: `play`, `my-films`, bar = `ui/tab-bar`); every other route is a stack over them in the root layout, so the bar never shows in a room. Exits go to `/play`. A screen inside the tabs passes `insetBottom={false}` to `Screen` (the bar owns the home indicator space).
 
+## The recap share card
+
+`features/recap/`: the numbers come from `api.rooms` and `api.room_seats` (`numbers.ts`), the view from `view.ts`, the image from `react-native-view-shot` (`captureRef` on the full-size 360 by 640 copy, never the scaled preview) and `expo-sharing`. `expo-sharing` resolves the same for a share and a cancel on iOS and Android, so a sheet that closes without an error is tracked as `winner:recap_share`; a rejection is not. A new native module like this one needs a fresh dev build (`npx expo run:ios`).
+
 ## Solo (Play alone)
 
 - A solo room is never the kept room (no launch rejoin). Its queued votes carry `solo: true` so the vote queue keeps them without a kept room and sends them on the next launch (`useSettleSolo` on Play). The session's answers, likes count and checkpoint live in `features/solo/session.ts` (memory, one per room); Leave is `features/solo/leave.ts` (votes first, then `leave_room`, retried from a persisted list). The daily cap's Paris date is `features/solo/cap.ts`. `/dev/solo-cap` shows the end cards with fixture data.

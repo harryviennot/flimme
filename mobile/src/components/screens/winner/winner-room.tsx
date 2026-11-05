@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -46,6 +47,7 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
       fadeIn={fadeIn || lands}
       solo={solo}
       lands={lands}
+      onShareRecap={() => router.push(`/room/${roomId}/recap`)}
       onHome={() => {
         releaseRoomGuards();
         exitToHome();

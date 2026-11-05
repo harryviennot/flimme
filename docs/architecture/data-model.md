@@ -705,7 +705,7 @@ The veto, rank and stage-closing functions are described here but not yet in sch
 
 Every path to `done` fires a trigger that queues `room_finished`. The pipeline worker then:
 
-1. Writes `rooms.stats` for the recap card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes"). Built (M6.8): `internal.write_room_stats` holds `outcome`, `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median over seats that swiped), `players`, `finale_reason`, `matches` and `next_room_id` (copied from `rooms.next_room_id`, merged by `api.play_again` when it runs after the stats were written); the worker only calls it. The host-control fields wait for M18.9, M18.5 and M18.6; steps 2 and 3 wait for M19.
+1. Writes `rooms.stats` for analytics (the recap card "Paddington 2 in 3 min 42 s, 3 people, 41 swipes" computes its own numbers on the phone, M6.21). Built (M6.8): `internal.write_room_stats` holds `outcome`, `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median over seats that swiped), `players`, `finale_reason`, `matches` and `next_room_id` (copied from `rooms.next_room_id`, merged by `api.play_again` when it runs after the stats were written); the worker only calls it. The host-control fields wait for M18.9, M18.5 and M18.6; steps 2 and 3 wait for M19.
 2. Turns "seen it" swipes into `user_titles` rows with source `app`.
 3. Queues a taste refresh for every seat.
 

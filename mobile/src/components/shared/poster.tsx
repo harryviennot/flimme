@@ -12,16 +12,20 @@ export type PosterProps = {
   thumbhash?: string;
   /** What a screen reader says, usually the film's title. */
   accessibilityLabel?: string;
+  /** The image finished loading, or failed to: the recap's capture waits on it. */
+  onSettled?: () => void;
 };
 
 /**
  * A film's poster filling its parent, with its placeholder while loading. Posters come from
  * TMDB at w500 (w780 on large screens), never the original size (app-structure.md).
  */
-export function Poster({ source, thumbhash, accessibilityLabel }: PosterProps) {
+export function Poster({ source, thumbhash, accessibilityLabel, onSettled }: PosterProps) {
   return (
     <Image
       source={source}
+      onLoad={onSettled}
+      onError={onSettled}
       placeholder={thumbhash ? { thumbhash } : undefined}
       contentFit="cover"
       transition={duration.fast}

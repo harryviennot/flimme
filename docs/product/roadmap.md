@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 148 of 280 tasks done.
+Progress: 149 of 280 tasks done.
 
 ```mermaid
 flowchart LR
@@ -506,7 +506,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
 
 **Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
 
-- [ ] **M6.21** The recap share card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes") with the app link · app · L · needs M6.8, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
+- [x] **M6.21** The recap share card ("Paddington 2 in 3 min 42 s, 3 people, 41 swipes") with the app link · app · L · needs M6.8, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
   Done when: shareable from the winner screen.
 - [x] **M6.22** `api.play_again` and the `next_room` event · backend · M · needs M6.6 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tested.
