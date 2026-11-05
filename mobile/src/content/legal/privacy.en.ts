@@ -76,7 +76,7 @@ In a room, the other players see:
 - your services;
 - how far along you are during the game (for example "Sam is done");
 - whether you have locked in your Final Cut vote, but not what you voted;
-- counts for the room, for example "2 of 3 of you liked this", never who liked it;
+- during the game, counts for the room, for example "2 of 3 of you liked this", never who liked it;
 - after tonight's pick, who liked the other films in the running.
 
 They never see who said Nope to a film, your answers during the game, My films, your solo sessions or your games with other people. Only you can see a solo session. There is no messaging between players.
@@ -95,8 +95,6 @@ To see what gets in the way, we measure the screens you open, a few actions (cre
 - **To know where you are**, the app looks at the region set on your phone and your profile's country. If either one is in Europe or unknown, the European rule applies.
 - **In a room limited to films for under-13s**, no phone sends any stats.
 - **To turn everything off**, go to Settings and switch off "Help improve the app".
-
-Test versions of the app send no stats.
 
 ### Crash reports
 
@@ -126,7 +124,7 @@ These providers process your data on our behalf, following our instructions and 
 
 These providers are American companies. When data is sent to the United States or can be accessed from there, the transfer is covered by the European Commission's standard contractual clauses and, for the companies that have joined it, by the EU-US Data Privacy Framework.
 
-Some test versions, installed outside the app stores, use separate servers: the database in Ireland (European Union) and the server in London (United Kingdom, which the European Commission recognises as offering adequate protection).
+Some test versions, not the ones published in the app stores, use separate servers: the database in Ireland (European Union) and the server in London (United Kingdom, which the European Commission recognises as offering adequate protection).
 
 Posters and service logos come from TMDB's image servers. Like any website, they see your phone's IP address when it downloads an image. We send TMDB no data about you.
 
@@ -138,7 +136,7 @@ Our website, flimme.com, doesn't measure its audience and keeps no log of visits
 
 | Data | How long |
 | --- | --- |
-| Profile, services, My films, stats choice | As long as you keep your profile. It is deleted when you delete your data, or after 90 days without activity |
+| Profile, services, My films, stats choice | As long as you keep your profile. It is deleted when you delete your data, or after 90 days without activity. In that second case, any stats linked to your profile are not erased straight away: they go within 25 months at most |
 | Sign-in session, IP address included | Until the session ends, and at the latest until your profile is deleted |
 | Your games (seats, answers, votes) | As long as your profile exists. After that, your seats stay in their rooms without your name or colour, and are no longer linked to you: they count in other people's games. A room whose game never started is cleared a week later |
 | Card log | 13 months |
@@ -172,7 +170,7 @@ Flimme is a general audience app. It asks for no birth date or email, and shows 
 
 When the host limits a room to films for under-13s, no phone in the room sends any stats and cards have no trailer button.
 
-A profile with no activity for 90 days is deleted, with all its data.
+A profile with no activity for 90 days is deleted, as when you delete your data (see sections 9 and 10).
 
 ## 12. Changes
 

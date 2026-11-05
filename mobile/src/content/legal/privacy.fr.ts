@@ -77,7 +77,7 @@ Dans une salle, les autres joueurs voient :
 - tes plateformes ;
 - ta progression pendant la partie (par exemple « Sam a fini ») ;
 - si tu as validé ton vote au Final Cut, mais pas ce que tu as voté ;
-- des compteurs pour la salle, par exemple « 2 sur 3 ont aimé », jamais qui a aimé ;
+- pendant la partie, des compteurs pour la salle, par exemple « 2 sur 3 ont aimé », jamais qui a aimé ;
 - après le film du soir, qui a aimé les autres films en lice.
 
 Ils ne voient jamais qui a dit Bof à un film, tes réponses pendant la partie, Mes films, tes parties en solo ou tes parties avec d'autres personnes. Une partie en solo n'est visible que par toi. Il n'y a pas de messagerie entre joueurs.
@@ -96,8 +96,6 @@ Pour voir ce qui coince dans l'appli, nous mesurons les écrans ouverts, quelque
 - **Pour savoir où tu es**, l'appli regarde la région réglée sur ton téléphone et le pays de ton profil. Si l'un des deux est en Europe ou inconnu, la règle européenne s'applique.
 - **Dans une salle limitée aux films pour moins de 13 ans**, aucun téléphone n'envoie de statistiques.
 - **Pour tout couper**, va dans Réglages et désactive « Aider à améliorer l'appli ».
-
-Les versions de test de l'appli n'envoient aucune statistique.
 
 ### Rapports de plantage
 
@@ -127,7 +125,7 @@ Ces prestataires traitent tes données pour notre compte, selon nos instructions
 
 Ces prestataires sont des entreprises américaines. Quand des données sont envoyées aux États-Unis ou peuvent y être consultées, le transfert est encadré par les clauses contractuelles types de la Commission européenne et, pour les entreprises qui y adhèrent, par le cadre de protection des données UE-États-Unis (Data Privacy Framework).
 
-Certaines versions de test, installées en dehors des stores, utilisent des serveurs séparés : la base de données en Irlande (Union européenne) et le serveur à Londres (Royaume-Uni, que la Commission européenne reconnaît comme offrant une protection adéquate).
+Certaines versions de test, qui ne sont pas celles publiées dans les stores, utilisent des serveurs séparés : la base de données en Irlande (Union européenne) et le serveur à Londres (Royaume-Uni, que la Commission européenne reconnaît comme offrant une protection adéquate).
 
 Les affiches et les logos des plateformes viennent des serveurs d'images de TMDB. Comme n'importe quel site, ils voient l'adresse IP de ton téléphone quand il télécharge une image. Nous n'envoyons à TMDB aucune donnée sur toi.
 
@@ -139,7 +137,7 @@ Notre site, flimme.com, ne mesure pas l'audience et ne garde aucun journal des v
 
 | Données | Durée |
 | --- | --- |
-| Profil, plateformes, Mes films, choix sur les statistiques | Tant que tu gardes ton profil. Il est supprimé quand tu supprimes tes données, ou après 90 jours sans activité |
+| Profil, plateformes, Mes films, choix sur les statistiques | Tant que tu gardes ton profil. Il est supprimé quand tu supprimes tes données, ou après 90 jours sans activité. Dans ce second cas, les statistiques reliées à ton profil, s'il y en a, ne sont pas effacées tout de suite : elles disparaissent au bout de 25 mois au plus |
 | Session de connexion, adresse IP comprise | Jusqu'à la fin de la session, au plus tard jusqu'à la suppression de ton profil |
 | Tes parties (places, réponses, votes) | Tant que ton profil existe. Ensuite, tes places restent dans leurs salles sans ton prénom ni ta couleur, et ne sont plus reliées à toi : elles comptent dans les parties des autres. Une salle où la partie n'a jamais commencé est effacée une semaine après |
 | Journal des cartes | 13 mois |
@@ -173,7 +171,7 @@ Flimme est une appli grand public. Elle ne demande ni date de naissance ni e-mai
 
 Quand l'hôte limite une salle aux films pour moins de 13 ans, aucun téléphone de la salle n'envoie de statistiques et les cartes n'ont pas de bouton bande-annonce.
 
-Un profil sans activité pendant 90 jours est supprimé, avec toutes ses données.
+Un profil sans activité pendant 90 jours est supprimé, comme quand tu supprimes tes données (voir les points 9 et 10).
 
 ## 12. Modifications
 

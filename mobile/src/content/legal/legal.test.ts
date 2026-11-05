@@ -19,6 +19,9 @@ const DOCS: Doc[] = [
 ];
 
 const LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+// Built from code points: the repository keeps the characters themselves out of every file.
+const EN_DASH = String.fromCharCode(0x2013);
+const EM_DASH = String.fromCharCode(0x2014);
 
 /** The problems with one line, or an empty list when it keeps to the subset. */
 function lineProblems(line: string, index: number): string[] {
@@ -47,7 +50,7 @@ function lineProblems(line: string, index: number): string[] {
   if (prose.includes('_')) problems.push('an underscore (emphasis is out)');
   if ((prose.match(/\*\*/g) ?? []).length % 2 !== 0) problems.push('unbalanced **');
   if (prose.replace(/\*\*/g, '').includes('*')) problems.push('a single * (italics are out)');
-  if (/[–—]/.test(line)) problems.push('an em or en dash');
+  if (line.includes(EN_DASH) || line.includes(EM_DASH)) problems.push('an em or en dash');
   return problems;
 }
 
@@ -67,6 +70,18 @@ function tables(lines: string[]): string[][] {
 
 const cells = (row: string) => row.slice(1, -1).split('|').length;
 
+/** The problems with one table: a header, a separator, then rows as wide as the header. */
+function tableProblems(table: string[]): string[] {
+  const [header = '', separator = '', ...rows] = table;
+  const problems: string[] = [];
+  if (!rows.length) problems.push('no row under the header');
+  if (!/^\|( *:?-{3,}:? *\|)+$/.test(separator)) problems.push('no separator under the header');
+  const width = cells(header);
+  if ([separator, ...rows].some((row) => cells(row) !== width))
+    problems.push('rows of different widths');
+  return problems;
+}
+
 /** The date as the text writes it: "5 novembre 2026", "5 November 2026". */
 function longDate(iso: string, lang: Text['lang']): string {
   return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-GB', {
@@ -77,7 +92,12 @@ function longDate(iso: string, lang: Text['lang']): string {
   }).format(new Date(`${iso}T00:00:00Z`));
 }
 
-const headings = (body: string) => body.split('\n').filter((line) => /^#{2,3} /.test(line));
+/** Each heading's level and number ("## 4.", "###"): the same list in every language. */
+const outline = (body: string) =>
+  body
+    .split('\n')
+    .filter((line) => /^#{2,3} /.test(line))
+    .map((line) => line.match(/^#{2,3} (\d+\.)?/)?.[0].trim());
 
 describe.each(DOCS)('the $name text', ({ texts }) => {
   it('exists in French and in English', () => {
@@ -106,13 +126,7 @@ describe.each(DOCS)('the $name text', ({ texts }) => {
     it('has simple tables: a header, a separator, then rows of the same width', () => {
       const found = tables(lines);
       expect(found.length).toBeGreaterThan(0);
-      for (const table of found) {
-        expect(table.length).toBeGreaterThanOrEqual(3);
-        const [header = '', separator = ''] = table;
-        expect(separator).toMatch(/^\|( *:?-{3,}:? *\|)+$/);
-        const width = cells(header);
-        for (const row of table) expect(cells(row)).toBe(width);
-      }
+      expect(found.flatMap(tableProblems)).toEqual([]);
     });
 
     it('names the support address and the CNIL', () => {
@@ -132,9 +146,7 @@ describe.each(DOCS)('the $name text', ({ texts }) => {
     if (!first) throw new Error('no text');
     for (const other of others) {
       expect(other.updated).toBe(first.updated);
-      expect(headings(other.body).map((line) => line.match(/^#+/)?.[0])).toEqual(
-        headings(first.body).map((line) => line.match(/^#+/)?.[0]),
-      );
+      expect(outline(other.body)).toEqual(outline(first.body));
     }
   });
 });
@@ -151,10 +163,30 @@ describe('the subset check', () => {
     ['a [link](http://example.com)', 'a link that is not https or mailto'],
     ['*italic*', 'a single *'],
     ['use `code`', 'code'],
-    ['one — two', 'an em or en dash'],
+    [`one ${EM_DASH} two`, 'an em or en dash'],
+    [`one ${EN_DASH} two`, 'an em or en dash'],
+    ['# Another title', 'a second # title'],
+    ['##Heading', 'a heading without a space'],
+    ['> quoted', 'a quote'],
+    ['---', 'a horizontal rule'],
+    ['a line ', 'trailing whitespace'],
+    ['**open bold', 'unbalanced **'],
+    ['some _emphasis_', 'an underscore'],
     ['| open row', 'a table row not closed by |'],
   ])('refuses %s', (line, problem) => {
     expect(lineProblems(line, 3).join(' ')).toContain(problem);
+  });
+
+  it.each([
+    [['| a | b |', '| --- | --- |'], 'no row under the header'],
+    [['| a | b |', '| a | b |', '| c | d |'], 'no separator under the header'],
+    [['| a | b |', '| --- | --- |', '| c |'], 'rows of different widths'],
+  ])('refuses the table %j', (table, problem) => {
+    expect(tableProblems(table)).toContain(problem);
+  });
+
+  it('accepts a table of the subset', () => {
+    expect(tableProblems(['| a | b |', '| --- | --- |', '| c | d |'])).toEqual([]);
   });
 
   it('accepts a line of the subset', () => {
