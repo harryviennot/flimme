@@ -389,8 +389,8 @@ erDiagram
 | --- | --- | --- |
 | slug | text PK | `quick_match`, `final_cut`, `date_night` at launch |
 | min_players, max_players | smallint | Date Night is 2 and 2 |
-| ends_on_first_match | boolean | True for Quick Match and Date Night. In Final Cut, matches join the shortlist |
-| defaults | jsonb | Room setting defaults for the mode |
+| ends_on_first_match | boolean | False for every launch mode and read by nothing: `matches_to_end` in `defaults` decides (migrations only add, so the column stays) |
+| defaults | jsonb | Room setting defaults for the mode, and `matches_to_end` (3 at launch; a missing value reads as 3): the match that fills the shortlist starts the finale; 1 keeps the instant pick |
 | is_active, sort | | |
 
 **match_rules**: when a like becomes a match, and when the finale starts. Seeded with the plan's starting values:
@@ -500,7 +500,7 @@ erDiagram
 
 **swipe_log**: append-only record of every vote and undo, with the deck source, score, how long the card was on screen and whether it was flipped (`flipped`, never shown to a phone). Points at the seat, so it stays anonymous once an account is gone.
 
-**matches**: every film that met the room's rule, plus the night's pick. `kind` is `unanimous`, `majority` or `finale`; `like_count` and `present_count` give "3 of 3"; `pick_order` 1 is the pick (2 and 3 for a double feature later).
+**matches**: every film that met the room's rule, plus the night's pick. `kind` is `unanimous`, `majority` or `finale`; `like_count` and `present_count` give "3 of 3"; `matched_at` is when the whole room matched the film (null for the finale's own rows, and kept when a match wins the vote and its kind turns `finale`); `pick_order` 1 is the pick (2 and 3 for a double feature later).
 
 ### The finale
 

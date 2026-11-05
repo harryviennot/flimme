@@ -76,6 +76,10 @@ export type RoomEventPayloads = {
     likes: number;
     of: number;
     decided: boolean;
+    /** Matches on the shortlist, this one included; absent on a finale's result (M6.34). */
+    shortlisted?: number;
+    /** The mode's matches_to_end: the shortlist's size; absent on a finale's result (M6.34). */
+    shortlist_size?: number;
     /** `only_film` (M6.4, no finalists), or how a Final Cut was decided (M6.5). */
     reason?: 'only_film' | 'only_unvetoed' | 'points' | 'no_ballots';
     finalists?: FinalistResult[];

@@ -74,7 +74,7 @@ Deduplicated from the docs above. "DB" means the database through the nightly vi
 | Time from room to pick | The same from `created_at`, so it includes the lobby | DB: `rooms` | Watch | |
 | **Rooms that end with a pick** | Started rooms whose `rooms.stats.outcome` is `match` or `finale`, out of all started rooms; also the share ending `no_pick` and `abandoned` | DB: `rooms.stats` | 90% with a pick | Revival plan, game modes |
 | Pick within 5 minutes | Started rooms with a pick less than 5 minutes after `started_at`, out of all started rooms | DB: `rooms` | 60%, then rising | The A/B decision metric, see [Reading A/B tests](#reading-ab-tests) |
-| Instant matches | Picks with outcome `match`, out of all picks | DB: `rooms.stats` | Watch | Game modes |
+| Picks by a single match | Picks with outcome `match` (a mode with `matches_to_end` 1), out of all picks | DB: `rooms.stats` | Watch | Game modes |
 | **Swipes per pick** | Median, over present seats at the pick, of votes cast between `started_at` and `decided_at` | DB: `votes` | Under 40 | Revival plan, deck engine |
 | Time to first card | `started_at` minus `dealing_at` (the deal), and the share of starts dealt by the SQL fallback (`rec.requests.is_fallback`) | DB: `rooms`, `rec.requests` | Under 2 seconds; fallback under 5% | Revival plan |
 | First card on screen | Time from the room turning to swiping to the first card drawn on the phone | PostHog: `game:first_card_view` | Under 1 second | Revival plan |
@@ -281,7 +281,7 @@ Not all of these are applied yet.
 | Where | Change |
 | --- | --- |
 | `api.join_room` | Applied in M4.1. Two optional arguments, `via` (`link`, `code`, `qr`, `rejoin`, `play_again`) and `link_opened_at` (when the phone opened the link), stored on the seat as `room_members.joined_via` and `link_opened_at` |
-| `rooms.stats` | Alongside game modes' `outcome`: `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median), `players` (seats that swiped), `finale_reason` (`cards`, `time`, `vote_now`, `shortlist_full`, `all_done`; null without a finale), `used_keep_swiping`, `used_vote_now`, `changed_filters`, `next_room_id` (Play again). Written by `room_finished` (M6.8 writes `outcome`, `seconds_to_pick`, `present_at_pick`, `swipes_per_seat`, `players` and `finale_reason`; the host-control fields come with their tasks) |
+| `rooms.stats` | Alongside game modes' `outcome`: `seconds_to_pick`, `present_at_pick`, `swipes_per_seat` (median), `players` (seats that swiped), `matches` (films the whole room matched, counted through `matches.matched_at`), `finale_reason` (`cards`, `time`, `vote_now`, `shortlist_full`, `all_done`; null without a finale), `used_keep_swiping`, `used_vote_now`, `changed_filters`, `next_room_id` (Play again). Written by `room_finished` (M6.8 writes `outcome`, `seconds_to_pick`, `present_at_pick`, `swipes_per_seat`, `players`, `matches` and `finale_reason`; the host-control fields come with their tasks) |
 | New `analytics` schema | Aggregate-only views, refreshed nightly by the trainer: `daily_rooms`, `daily_cards`, `daily_players`, `weekly_cohorts`, `experiment_rooms`. No profile, seat or room ids. Read by a read-only role used by PostHog's Supabase source |
 | Account deletion | The server's deletion flow also deletes the person in PostHog, with a PostHog API key kept as a server secret ([operations.md](../architecture/operations.md)) |
 | The app's analytics wrapper | The typed event list above; drops every event while the phone is in a room with an age cap under 13; strips codes from route names |

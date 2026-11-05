@@ -9,8 +9,8 @@
 begin;
 select plan(56);
 
--- M6.34: this file is about a match that ends the game, so every mode picks at its first match.
-update public.game_modes set defaults = defaults || '{"matches_to_end": 1}';
+-- M6.34: Quick Match and Date Night pick at their first match here; Final Cut keeps its shortlist of 3.
+update public.game_modes set defaults = defaults || '{"matches_to_end": 1}' where slug <> 'final_cut';
 
 select tests.create_catalog(40);
 

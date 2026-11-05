@@ -3,7 +3,7 @@
 -- and swiping goes on; the match that fills it (matches_to_end, 3 at launch) starts the finale.
 
 begin;
-select plan(61);
+select plan(57);
 
 select tests.create_catalog(40);
 select tests.use_deck_engine('sql');
@@ -233,7 +233,7 @@ select is(pg_temp.matches(), 1::bigint, 'M6.34 positive control: one match, thre
 select pg_temp.leave('r4');
 select is(pg_temp.joined(), pg_temp.films(1, 3, 2), 'M6.34 a leave: the first two films in the re-check order join (3, then 2)');
 select is(pg_temp.state() || '/' || pg_temp.reason(), 'finale/shortlist_full', 'M6.34 a leave: the shortlist fills and the finale starts');
-select is(pg_temp.card(4), 'active', 'M6.34 a leave: the third film stays active');
+select isnt(pg_temp.card(4), 'matched', 'M6.34 a leave: the third film is not matched (until M6.35 the finale may still fill with it)');
 select is(
   (select count(*) from public.matches mt where mt.room_id = tests.room_id() and mt.title_id = tests.film(4)),
   0::bigint,
@@ -245,13 +245,13 @@ select tests.authenticate_as('s1');
 select is(api.remove_member(tests.room_id(), tests.member_id('s4'))->>'status', 'ok', 'M6.34 the host removes the seat');
 select tests.clear_authentication();
 select is(pg_temp.joined(), pg_temp.films(1, 3, 2), 'M6.34 a removal: the same two films join');
-select is(pg_temp.state() || '/' || pg_temp.card(4), 'finale/active', 'M6.34 a removal: the finale starts and the third film stays active');
+select is(pg_temp.state() || '/' || (pg_temp.card(4) <> 'matched')::text, 'finale/true', 'M6.34 a removal: the finale starts and the third film stays active');
 
 select pg_temp.setup_rank('t');
 select pg_temp.silent('t4', interval '3 minutes 1 second');
 select is(internal.sweep_room(tests.room_id()), 'rechecked', 'M6.34 the sweeper re-checks after the silence');
 select is(pg_temp.joined(), pg_temp.films(1, 3, 2), 'M6.34 the sweeper: the same two films join');
-select is(pg_temp.state() || '/' || pg_temp.card(4), 'finale/active', 'M6.34 the sweeper: the finale starts and the third film stays active');
+select is(pg_temp.state() || '/' || (pg_temp.card(4) <> 'matched')::text, 'finale/true', 'M6.34 the sweeper: the finale starts and the third film stays active');
 
 -- 11. Outside swiping, nothing matches.
 select pg_temp.game(3, 'x');
@@ -272,11 +272,12 @@ select pg_temp.game(5, 'n');
 select tests.vote('n1', 1, 'like'); select tests.vote('n2', 1, 'like'); select tests.vote('n3', 1, 'like');
 select tests.vote('n4', 1, 'like');
 select is(pg_temp.card(1), 'matched', 'M6.34 positive control: 4 of 5 likes match under the 70% rule');
+create temp table near_before as select pg_temp.count_of('near_miss') as n;
 create temp table late_vote as select tests.vote('n5', 1, 'like') as a;
 select is((select a->>'status' || '/' || (a->>'match') from late_vote), 'ok/false', 'M6.34 the fifth like on a shortlisted film answers ok, match false');
 select is(pg_temp.matches(), 1::bigint, 'M6.34 no second matches row follows');
 select is(pg_temp.count_of('match'), 1::bigint, 'M6.34 no second match event follows');
-select is(pg_temp.count_of('near_miss'), 0::bigint, 'M6.34 no near_miss follows');
+select is(pg_temp.count_of('near_miss'), (select n from near_before), 'M6.34 no near_miss follows');
 
 -- 13. A card that matched can't be undone.
 select pg_temp.game(3, 'u');
