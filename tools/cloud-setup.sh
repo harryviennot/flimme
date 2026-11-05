@@ -3,7 +3,11 @@
 # environment's settings (the environment menu in the session's title bar, then Edit,
 # then Setup script):
 #
-#   bash "$(find /home/user -maxdepth 3 -path '*/tools/cloud-setup.sh' | head -1)"
+#   bash "$(find /home/user -maxdepth 3 -path '*/tools/cloud-setup.sh' | head -1)" # cloud-setup 2
+#
+# The environment caches what this script writes and skips it in later sessions, until
+# the setup script text changes. So after changing this file, bump the number at the end
+# of that line, here and in docs/pipeline.md (section 5), and paste it into the environment.
 #
 # It installs what agents need to run every check in the container: mise and the tools
 # mise.toml pins (node, pnpm, python, uv, the Supabase CLI, lefthook and the rest), the
