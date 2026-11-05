@@ -198,7 +198,7 @@ The card count and Vote now are checked after every vote; the time limit by the 
 3. Films with at least one like, by likes + 2 × super likes - nopes, then by the deck's group score.
 4. If that gives fewer than the finalist count: films nobody has noped yet, by group score, until the list is full (decided on 30 October 2026: a full list gives a real choice).
 
-Built in M6.4 (`internal.start_finale`), before rule 2 was added (rules 3 and 4 were rules 2 and 3): rule 3 needs at least one like, rule 4 never takes a noped film (a plain "Seen it" in a room that allows rewatches counts as a nope), and dropped cards are never finalists. Ties go to the deck's group score, then the lowest film id. A film everyone noped is never a finalist.
+Built in M6.4 (`internal.start_finale`), with rule 2 added in M6.36 (a seat is present when it is not left and was heard from in the last 90 seconds; a like is `like`, `super_like` or `seen_rewatch`; a liked match counts as that player's finalist; the rule reads `votes` inside Postgres only): rule 3 needs at least one like, rule 4 never takes a noped film (a plain "Seen it" in a room that allows rewatches counts as a nope), and dropped cards are never finalists. Ties go to the deck's group score, then the lowest film id. A film everyone noped is never a finalist.
 
 If only one film qualifies, it's the pick without a vote ("The only film anyone liked"). If none qualifies, the game goes to [No pick](#how-a-game-ends).
 

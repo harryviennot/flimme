@@ -1,0 +1,44 @@
+# M6.19, the bot players with personalities: one phone hosts a room on staging, three bots
+# (tools/bots) fill it and play. The phone likes every film until the room ends in a match or in
+# the Final Cut, where the bots lock in a ballot.
+# Needs Metro started with the staging environment (see the expo-app skill). Start the flow, and
+# once the lobby shows read the room code on the phone and run
+#   FLIMME_STAGING_URL=... FLIMME_STAGING_KEY=... \
+#     mise run bots -- --code <code> --count 3 --target staging --seed 7
+# `-e ANSWER=Nope` makes the phone nope everything, which tends to end in the Final Cut.
+# Run: `maestro --device <sim> test mobile/.maestro/bots-game.yaml -e METRO_URL=http://localhost:<port>`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+# The dev menu's first-run sheet can cover the page for a while: close it before the switch.
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Continue|Staging'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: 'Continue'
+    commands:
+      - tapOn: 'Continue'
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/host-room.yaml
+- extendedWaitUntil:
+    visible: 'Bot 3.*'
+    timeout: 240000
+- takeScreenshot: bots-game-1-lobby
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- repeat:
+    while:
+      visible: 'Like'
+    times: 120
+    commands:
+      - tapOn:
+          text: ${ANSWER || 'Like'}
+          optional: true
+- extendedWaitUntil:
+    visible: '(?i)it.s a match.*|(?i)tonight.s pick|.*Pick one. Veto one..*|.*Rank them..*'
+    timeout: 120000
+- takeScreenshot: bots-game-2-ending

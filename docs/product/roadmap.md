@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 121 of 270 tasks done.
+Progress: 123 of 270 tasks done.
 
 ```mermaid
 flowchart LR
@@ -434,7 +434,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: each rule of "When it's a match" is tested, a mode with `matches_to_end` 1 included.
 - [ ] **M6.35** The finale with a shortlist: a vote between 2 or 3 matches (2 films without a veto), a single match is the pick in Quick Match and Date Night (`only_match`) · backend · L · needs M6.34, M6.5, M6.36 · [game-modes](game-modes.md#when-it-starts), [the finalists](game-modes.md#the-finalists)
   Done when: the vote between matches, the single-match pick, and rounds of 2 and 3 films closing are tested.
-- [ ] **M6.36** One seat each among the finalists: after the matches, the liked film that gives a seat to the most present players without one · backend · M · needs M6.4 · [game-modes](game-modes.md#the-finalists)
+- [x] **M6.36** One seat each among the finalists: after the matches, the liked film that gives a seat to the most present players without one · backend · M · needs M6.4 · [game-modes](game-modes.md#the-finalists)
   Done when: rule 2 of "The finalists" is tested, ties and a player who left included.
 
 **App**
@@ -478,7 +478,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
 
 **Tests**
 
-- [ ] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
+- [x] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
   Done when: bots can fill a room on staging.
 - [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, every way to a pick (a single match, a vote between matches, the Final Cut from swipes), leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12, M6.29, M6.30, M6.31, M6.37, M6.38 · [game-modes](game-modes.md#a-game-at-a-glance)
   Done when: every run ends with a pick within the limits; the swiping after the first match is timed, and every player is asked "was there a film for you in the vote?"; bugs become tasks.
