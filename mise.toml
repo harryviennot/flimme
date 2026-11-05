@@ -77,3 +77,7 @@ run = "node tools/next.mjs"
 [tasks.bots]
 description = "Bot players that join a room by code, swipe with personalities and lock in the Final Cut (--seed, --personality mixed|agreeable|picky): mise run bots -- --code 482913 --count 3"
 run = "pnpm --filter @flimme/bots start"
+
+[tasks.load]
+description = "The load runner (M9.7): bots play many rooms and a report says which targets held. Small run: mise run load -- --target local --rooms4 3 --rooms10 0 --ramp 20s --duration 3m"
+run = "pnpm --filter @flimme/load start"

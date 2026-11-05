@@ -41,6 +41,11 @@ npm-debug.*
 .claude/state/
 .claude/worktrees/
 
+# The load runner (tools/load): bot accounts, reports and the vote ledger never go in git
+load-accounts*.json
+load-report-*.md
+load-ledger-*.json
+
 # Raw TMDB recordings, never committed (TMDB data stays out of git)
 server/tests/fixtures/.recorded/
 
