@@ -9,24 +9,24 @@ appId: com.harryviennot.flimme.dev
     visible: '(?i)open a room'
     timeout: 30000
 # Play is the first tab, with the bar.
-- assertVisible: '^Play$'
-- assertVisible: '^My films$'
+- assertVisible: '(?i)^play$'
+- assertVisible: '(?i)^my films$'
 - takeScreenshot: tabs-1-play
 
 # My films shows its placeholder; Play is not on screen any more.
-- tapOn: '^My films$'
+- tapOn: '(?i)^my films$'
 - assertVisible: '(?i)nothing here yet'
 - assertNotVisible: '(?i)open a room'
 - takeScreenshot: tabs-2-my-films
 
 # Back to Play.
-- tapOn: '^Play$'
+- tapOn: '(?i)^play$'
 - assertVisible: '(?i)open a room'
 
 # Host setup covers the bar.
 - tapOn: '(?i)open a room'
-- assertVisible: '(?i)services.*'
-- assertNotVisible: '^My films$'
+- assertVisible: '(?i)new room'
+- assertNotVisible: '(?i)^my films$'
 - takeScreenshot: tabs-3-host-no-bar
 
 # The edge swipe goes back to Play, with the bar.
@@ -34,6 +34,6 @@ appId: com.harryviennot.flimme.dev
     start: 2%, 50%
     end: 80%, 50%
 - extendedWaitUntil:
-    visible: '^My films$'
+    visible: '(?i)^my films$'
     timeout: 10000
 - assertVisible: '(?i)open a room'
