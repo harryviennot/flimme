@@ -30,7 +30,7 @@ import {
 } from '@/features/host/settings';
 import { useOnline } from '@/features/network';
 import { useMyProfile } from '@/features/profile';
-import { trackWhenRoomKnown } from '@/lib/analytics';
+import { trackRoomCreated } from '@/features/analytics/events';
 import { haptics } from '@/lib/haptics';
 import { reportError } from '@/lib/sentry';
 
@@ -95,19 +95,9 @@ export default function HostScreen() {
     switch (outcome.kind) {
       case 'opened': {
         // The room's cap isn't read yet: both events wait for the room layout (kids' rule).
-        const room = toRoomSettings(time, age);
-        trackWhenRoomKnown('room:create_finish', {
-          mode: 'quick_match',
-          // The first release has no moods, and the seen rule and quality are the mode's defaults.
-          mood_count: 0,
-          has_time_budget: room.runtime_max !== null,
-          seen_rule: 'hide_seen',
-          quality: 'standard',
-          service_count: selection.length,
-        });
-        trackWhenRoomKnown('lobby:services_submit', {
-          service_count: selection.length,
-          step: 'room_setup',
+        trackRoomCreated({
+          serviceCount: selection.length,
+          runtimeMax: toRoomSettings(time, age).runtime_max,
         });
         client.setQueryData(MY_PROVIDERS_KEY, selection);
         leaveOldSeat(outcome.roomId, oldRoomId);

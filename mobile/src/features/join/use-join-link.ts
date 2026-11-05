@@ -12,10 +12,9 @@ import {
   useMyProfile,
   type SubmitOutcome,
 } from '@/features/profile';
-import { trackJoinAttempt } from '@/features/analytics/events';
+import { trackJoinAttempt, trackLinkOpen, trackNameSubmit } from '@/features/analytics/events';
 import { rememberLinkJoin } from '@/features/analytics/journey';
 import { releaseRoomGuards } from '@/features/room/leave-guard';
-import { track } from '@/lib/analytics';
 import { startSession, useSession, useSessionFailed } from '@/features/session';
 import { haptics } from '@/lib/haptics';
 
@@ -246,7 +245,7 @@ export function useJoinLink(params: Params) {
     // The link opened the app: once per sheet, after the session answered so analytics is ready.
     if (!opened.current) {
       opened.current = true;
-      track('join:link_open', { has_room_ref: !!ref });
+      trackLinkOpen(!!ref);
     }
     if (ref) void preview();
     else void attempt(false);
@@ -320,7 +319,7 @@ export function useJoinLink(params: Params) {
       switch (outcome.kind) {
         case 'saved':
           applySavedProfile(client, outcome);
-          track('onboarding:name_submit', { has_avatar: hasAvatar, source: 'invite' });
+          trackNameSubmit({ source: 'invite', hasAvatar });
           void attempt(false);
           break;
         case 'invalid':

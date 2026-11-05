@@ -22,7 +22,9 @@ export function useFirstCardView(roomId: string, cardDrawn: boolean): void {
   useEffect(() => {
     if (!cardDrawn || mode !== 'quick_match' || present === 0) return;
     if (!gamesStore.getState().markFirstCard(roomId)) return;
-    const sinceSwiping = msSinceSwiping(startedAt) ?? 0;
+    const sinceSwiping = msSinceSwiping(startedAt);
+    // A game with no start time can't say how long it had been swiping: nothing is sent.
+    if (sinceSwiping === undefined) return;
     const sinceLink = msSinceLinkOpen(roomId);
     track('game:first_card_view', {
       ms_since_swiping: sinceSwiping,

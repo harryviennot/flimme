@@ -21,7 +21,7 @@ import {
   useMyProfile,
 } from '@/features/profile';
 import { haptics } from '@/lib/haptics';
-import { track } from '@/lib/analytics';
+import { trackNameSubmit } from '@/features/analytics/events';
 
 type NameError = 'invalid' | 'notAllowed';
 
@@ -80,12 +80,11 @@ export default function NameScreen() {
       case 'saved':
         applySavedProfile(client, outcome);
         // Home's avatar edit is not onboarding; a name asked by a code (an invite) is.
-        if (!editing) {
-          track('onboarding:name_submit', {
-            has_avatar: pickedColor.current,
-            source: backToCode ? 'invite' : 'organic',
-          });
-        }
+        trackNameSubmit({
+          editing,
+          hasAvatar: pickedColor.current,
+          source: backToCode ? 'invite' : 'organic',
+        });
         if (editing || backToCode) {
           router.back();
         } else {

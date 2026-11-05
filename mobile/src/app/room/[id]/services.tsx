@@ -14,8 +14,7 @@ import { initialSelection } from '@/features/host/settings';
 import { MY_PROVIDERS_KEY, useCountryProviders } from '@/features/host/queries';
 import { saveServices } from '@/features/lobby/save-services';
 import { SEATS_KEY, useMySeat, useRoom } from '@/features/room';
-import { track } from '@/lib/analytics';
-import { selectionChanged } from '@/features/host/settings';
+import { trackServicesSaved } from '@/features/analytics/events';
 import { reportError } from '@/lib/sentry';
 
 /** The player's services for this room (lobby.md#the-services-sheet-done), over the lobby. */
@@ -62,10 +61,7 @@ export default function RoomServicesScreen() {
     setSaving(false);
     switch (outcome.kind) {
       case 'close':
-        // Only a saved choice counts: Done with nothing changed sets nothing.
-        if (selectionChanged(start, selection)) {
-          track('lobby:services_submit', { service_count: selection.length, step: 'lobby' });
-        }
+        trackServicesSaved(start, selection);
         client.setQueryData(MY_PROVIDERS_KEY, selection);
         void client.invalidateQueries({ queryKey: SEATS_KEY(id ?? '') });
         router.back();
