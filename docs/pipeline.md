@@ -86,10 +86,10 @@ In claude.ai/code, edit the cloud environment (the environment menu in the sessi
 
 A new session then runs every check except the full Supabase stack and the simulators.
 
-The environment caches the files the setup script wrote, and later sessions start from that cache without running the script. Two consequences:
+The environment can start a session from a cache of the files an earlier run of the setup script wrote, without running the script again. Claude Code's docs say the cache rebuilds when the setup script text changes, or after about seven days (on 5 Nov 2026 it also ran the script again for a session on another branch). Two consequences:
 
-- **Postgres isn't running when a session starts** (the cache keeps files, not processes). Start it with `pg_ctlcluster 16 main start`; `mise run db:lite` says so when it's needed.
-- **A change to `tools/cloud-setup.sh` reaches new sessions only once the cache rebuilds**, which happens when the setup script text in the environment changes (or after about seven days). So when the script changes, bump the number at the end of the line above, and paste the new line into the environment.
+- **Postgres may not be running when a session starts** (the cache keeps files, not processes). Start it with `pg_ctlcluster 16 main start`; `mise run db:lite` says so when it's needed.
+- **A change to `tools/cloud-setup.sh` may not reach new sessions until the cache rebuilds.** So when the script changes, bump the number at the end of the line above, and paste the new line into the environment.
 
 ### 6. Your day-one list (M0)
 

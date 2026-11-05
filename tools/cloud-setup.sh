@@ -5,9 +5,10 @@
 #
 #   bash "$(find /home/user -maxdepth 3 -path '*/tools/cloud-setup.sh' | head -1)" # cloud-setup 2
 #
-# The environment caches what this script writes and skips it in later sessions, until
-# the setup script text changes. So after changing this file, bump the number at the end
-# of that line, here and in docs/pipeline.md (section 5), and paste it into the environment.
+# The environment can start later sessions from a cache of what this script wrote, without
+# running it again; a change to the setup script text rebuilds that cache. So after
+# changing this file, bump the number at the end of that line, here and in
+# docs/pipeline.md (section 5), and paste it into the environment.
 #
 # It installs what agents need to run every check in the container: mise and the tools
 # mise.toml pins (node, pnpm, python, uv, the Supabase CLI, lefthook and the rest), the
@@ -94,17 +95,21 @@ if ! mise install --quiet; then
   exit 1
 fi
 
-# The shims put the pinned tools first on PATH in every later shell: login shells read
-# /etc/profile.d, and the line at the top of ~/.bashrc (before its "not interactive,
-# stop here" guard) covers the others. Outside the repository, a shim falls through to
-# the image's own tool. mise itself is in /usr/local/bin, on PATH everywhere.
-cat >/etc/profile.d/mise.sh <<EOF
+# mise itself is in /usr/local/bin, on PATH in every shell, so `mise run` always works and
+# always uses the pinned tools. The shims also put those tools first on PATH for commands
+# run directly: login shells read /etc/profile.d, where "zz-" sorts this file after the
+# image's nodejs.sh, nvm.sh and the rest (each of which puts its own directory first), and
+# the line at the top of ~/.bashrc (above its "not interactive, stop here" guard) covers
+# interactive shells. Outside the repository, a shim falls through to the image's own tool.
+rm -f /etc/profile.d/mise.sh # the name this file had before
+cat >/etc/profile.d/zz-mise.sh <<EOF
 # Written by tools/cloud-setup.sh: the tools mise.toml pins come first on PATH.
-case ":\$PATH:" in *":$mise_shims:"*) ;; *) export PATH="$mise_shims:\$PATH" ;; esac
+case "\$PATH" in "$mise_shims":*) ;; *) export PATH="$mise_shims:\$PATH" ;; esac
 EOF
-bashrc_line='if [ -f /etc/profile.d/mise.sh ]; then . /etc/profile.d/mise.sh; fi # tools/cloud-setup.sh'
+bashrc_line='if [ -f /etc/profile.d/zz-mise.sh ]; then . /etc/profile.d/zz-mise.sh; fi # tools/cloud-setup.sh'
 if ! grep -qxF "$bashrc_line" "$HOME/.bashrc" 2>/dev/null; then
-  { echo "$bashrc_line"; cat "$HOME/.bashrc" 2>/dev/null || true; } >"$HOME/.bashrc.cloud-setup"
+  touch "$HOME/.bashrc"
+  { echo "$bashrc_line"; grep -v ' # tools/cloud-setup.sh$' "$HOME/.bashrc" || true; } >"$HOME/.bashrc.cloud-setup"
   mv "$HOME/.bashrc.cloud-setup" "$HOME/.bashrc"
 fi
 export PATH="$mise_shims:$PATH"
