@@ -9,6 +9,8 @@ import { RoomTicket } from '@/components/shared/room-ticket';
 import { Button } from '@/components/ui/button';
 import { Spotlight } from '@/components/ui/gradients';
 import { Text } from '@/components/ui/text';
+import { LinkText } from '@/components/ui/link-text';
+import { legalPath } from '@/features/legal/pages';
 import { parseInviteLink } from '@/features/join/link';
 import { appLink, fullLink } from '@/features/invite/invite';
 import { logos } from '@/theme/generated/icons';
@@ -46,7 +48,7 @@ export function InvitePage({
   origin = globalThis.location?.origin ?? '',
   userAgent = globalThis.navigator?.userAgent ?? '',
 }: InvitePageProps) {
-  const { t } = useTranslation('web');
+  const { t, i18n } = useTranslation('web');
   const { t: tJoin } = useTranslation('join');
   const [copied, setCopied] = useState(false);
   const invite = parseInviteLink(link);
@@ -136,6 +138,14 @@ export function InvitePage({
             </Text>
             <Text variant="body-s" tone="muted" align="center">
               {t('credits.justwatch')}
+            </Text>
+            <Text variant="body-s" align="center">
+              <LinkText
+                href={legalPath(i18n.language === 'fr' ? 'fr' : 'en', 'privacy')}
+                variant="body-s"
+              >
+                {t('credits.privacy')}
+              </LinkText>
             </Text>
           </View>
         </View>

@@ -20,6 +20,20 @@
   },
   "credits": {
     "tmdb": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
-    "justwatch": "Streaming availability by JustWatch."
+    "justwatch": "Streaming availability by JustWatch.",
+    "privacy": "Privacy policy"
+  },
+  "legal": {
+    "updated": "Last updated {{date}}",
+    "switch": "Français",
+    "switchLabel": "Lire cette page en français",
+    "navLabel": "Other pages",
+    "pages": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "support": "Support",
+      "deletion": "Delete my account"
+    },
+    "metaDescription": "Flimme: privacy policy, terms of use, support and account deletion."
   }
 }

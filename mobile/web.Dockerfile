@@ -1,5 +1,5 @@
 # The invite page and the app-link files for flimme.com (roadmap M4.18): the app's web export
-# (only the invite page, app-structure.md#invites-and-deep-links) served by nginx.
+# (the invite page and the legal pages, app-structure.md#invites-and-deep-links) served by nginx.
 #
 #   docker build -f mobile/web.Dockerfile -t flimme-web .
 #   docker run --rm -p 8080:80 flimme-web
