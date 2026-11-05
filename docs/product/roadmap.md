@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 147 of 280 tasks done.
+Progress: 148 of 280 tasks done.
 
 ```mermaid
 flowchart LR
@@ -538,7 +538,7 @@ Done when: the policy and terms are online, and players can download and delete 
 
 - [ ] **M8.1** Privacy policy in French and English, for the first release's data only · legal · M · needs M0.1 · [privacy](privacy.md#privacy-policy-outline)
   Done when: written from the outline and the data map.
-- [ ] **M8.2** Terms of use in French and English · legal · M · needs M0.1 · [privacy](privacy.md#terms-of-use-outline)
+- [x] **M8.2** Terms of use in French and English · legal · M · needs M0.1 · [privacy](privacy.md#terms-of-use-outline)
   Done when: written from the outline.
 - [ ] **M8.3** Host the policy, the terms, a support page and an account deletion request page on the domain · ops · M · needs M8.1, M8.2, M0.2 · [store-listing](store-listing.md#release-checklist)
   Done when: all four URLs are live.

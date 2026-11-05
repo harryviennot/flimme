@@ -4,7 +4,7 @@
 
 export const updated = '2026-11-05';
 
-export default `# Privacy policy
+export default `# Flimme privacy policy
 
 Flimme helps you pick a film with friends, or on your own. This page explains what data the app uses, why, and how you stay in control of it. It describes the app as it is today, not what may come later.
 

@@ -5,7 +5,7 @@
 
 export const updated = '2026-11-05';
 
-export default `# Politique de confidentialité
+export default `# Politique de confidentialité de Flimme
 
 Flimme t'aide à choisir un film entre amis, ou seul. Cette page explique quelles données l'appli utilise, pourquoi, et comment tu gardes la main dessus. Elle décrit la version actuelle de l'appli, pas ce qui viendra plus tard.
 

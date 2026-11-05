@@ -283,6 +283,8 @@ In French and English, on the website, linked from the app's Settings and both s
 9. **Ending use and deletion.**
 10. **Changes, governing law, disputes.** **Lawyer**: consumer protections, and whether a consumer mediator must be named once paid plans exist.
 
+The first release's text (M8.2) is in `mobile/src/content/legal/terms.fr.ts` (the primary text) and `terms.en.ts`, as Markdown that `legal.test.ts` checks. It leaves out Letterboxd (item 5) and paid plans (item 7), which aren't in the first release. The cautious versions it takes on the lawyer's points are in [decisions.md](../decisions.md), until the lawyer's review (M8.11).
+
 ## French specifics
 
 - **The web join page** stores only the sign-in session, which is strictly necessary, so no banner is needed. If anything non-exempt is ever added there, it needs a consent banner first.
