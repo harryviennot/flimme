@@ -1,6 +1,6 @@
 # Production by hand, after checking staging (roadmap M1.15). Harry runs this workflow, and the
 # `production` environment's required approval holds the job until he approves it.
-# The pipeline worker joins with M2.12, the API and app later: the order is database, server, app.
+# The pipeline worker joins with M2.12 and the API with M8.4, the app later: the order is database, server and API, then app.
 # Needs the `production` GitHub environment: docs/architecture/operations.md#continuous-integration.
 name: Production
 
@@ -80,3 +80,40 @@ jobs:
         working-directory: server
         # One machine, never two (a second pipeline worker would only double the TMDB traffic).
         run: flyctl deploy --config fly.workers.production.toml --remote-only --ha=false --image-label "sha-$GITHUB_SHA"
+
+  api:
+    needs: database
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_API }}
+      FLY_APP: flimme-api-production
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be # v1.5
+      # Harry creates the app, its deploy token and its secrets (operations.md). Until all three
+      # exist the job skips with a warning and stays green. Secret names only are printed.
+      - name: Check the app exists and has its secrets
+        id: ready
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "::warning::No FLY_API_TOKEN_API secret yet, so the API deploy is skipped"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! secrets="$(flyctl secrets list --app "$FLY_APP" 2>/dev/null)"; then
+            echo "::warning::The Fly app $FLY_APP does not exist yet (or the token cannot see it), so the API deploy is skipped"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if grep -qw API_DATABASE_URL <<< "$secrets" && grep -qw SUPABASE_URL <<< "$secrets"; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::$FLY_APP is missing API_DATABASE_URL or SUPABASE_URL, so the deploy is skipped"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Deploy the API
+        if: steps.ready.outputs.ready == 'true'
+        working-directory: server
+        run: flyctl deploy --config fly.api.production.toml --remote-only --image-label "sha-$GITHUB_SHA"

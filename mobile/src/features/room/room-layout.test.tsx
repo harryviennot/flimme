@@ -7,6 +7,8 @@ import type { ReactNode } from 'react';
 
 import { showToast } from '@/components/ui/toast';
 
+import { revealStore } from '@/features/finale/reveal-store';
+
 import { keptRoomStore } from './kept-room';
 import { matchShownStore } from './match-shown';
 
@@ -34,6 +36,8 @@ jest.mock('@/api', () => ({
     roomSeats: jest.fn(),
     touchRoom: jest.fn(async () => undefined),
     roomMatches: jest.fn(async () => []),
+    rounds: jest.fn(async () => []),
+    roundCandidates: jest.fn(async () => []),
     titleCards: jest.fn(async () => ({ status: 'ok', cards: [] })),
     countryProviders: jest.fn(async () => []),
     gameModes: jest.fn(async () => []),
@@ -117,6 +121,8 @@ beforeEach(() => {
   api.roomSeats.mockReset().mockResolvedValue([mockSeat]);
   api.touchRoom.mockClear();
   api.roomMatches.mockReset().mockResolvedValue([]);
+  api.rounds.mockReset().mockResolvedValue([]);
+  revealStore.getState().reset();
 });
 
 describe('the room layout', () => {
@@ -129,6 +135,43 @@ describe('the room layout', () => {
     api.room.mockResolvedValue(roomOf(state));
     await renderRouter(routes, { initialUrl: from, wrapper: Providers });
     await waitFor(() => expect(screen).toHavePathname(to));
+  });
+
+  describe('the Final Cut reveal', () => {
+    const data = {
+      winnerId: 1,
+      reason: 'points' as const,
+      finalists: [
+        { titleId: 1, seed: 1, points: 12, vetoed: false },
+        { titleId: 2, seed: 2, points: 6, vetoed: false },
+        { titleId: 3, seed: 3, points: 0, vetoed: true },
+      ],
+    };
+
+    it('keeps the Final Cut screen of a done room while the reveal plays, then moves to the winner', async () => {
+      api.room.mockResolvedValue(roomOf('done'));
+      revealStore.getState().play('r1', data);
+      await renderRouter(routes, { initialUrl: '/room/r1/final-cut', wrapper: Providers });
+      await waitFor(() => expect(api.room).toHaveBeenCalled());
+      await act(async () => undefined);
+      expect(screen).toHavePathname('/room/r1/final-cut');
+      await act(async () => revealStore.getState().finish('r1'));
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/winner'));
+    });
+
+    it('brings a phone still on the swipe screen to the Final Cut once a reveal is there', async () => {
+      api.room.mockResolvedValue(roomOf('done'));
+      revealStore.getState().play('r1', data);
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/final-cut'));
+    });
+
+    it('leaves the swipe screen for the winner when a done room has no Final Cut round', async () => {
+      api.room.mockResolvedValue(roomOf('done'));
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/winner'));
+      expect(api.rounds).toHaveBeenCalled();
+    });
   });
 
   describe('the match overlay', () => {

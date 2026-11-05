@@ -43,3 +43,6 @@ npm-debug.*
 
 # Raw TMDB recordings, never committed (TMDB data stays out of git)
 server/tests/fixtures/.recorded/
+
+# Local Supabase JWT signing key (supabase gen signing-key): never commit.
+supabase/signing_keys.json

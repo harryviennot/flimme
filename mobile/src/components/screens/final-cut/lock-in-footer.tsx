@@ -1,30 +1,54 @@
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { FadeIn, ReduceMotion } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import type { Phase } from '@/features/finale/phase';
-import { layout } from '@/theme/motion';
+import { duration, layout } from '@/theme/motion';
 
-// The footer (final-cut.md#locking-in): one of four looks in the same space, then the status line.
-// Lock in, Sending, Locked in, Counting the votes. The height never changes.
+// The footer (final-cut.md#locking-in): one of five looks in the same space, then the status line.
+// Lock in, Sending, Locked in, Counting the votes, and from the reveal's winner step Where to
+// watch. The height never changes.
+
+const watchIn = FadeIn.duration(duration.base).reduceMotion(ReduceMotion.Never);
 
 export function LockInFooter({
   phase,
   status,
   onLockIn,
+  watch,
+  quiet = false,
 }: {
   phase: Phase;
   /** The status line's text, or an empty string. */
   status: string;
   onLockIn: () => void;
+  /** The reveal's winner step: Where to watch replaces the other looks. */
+  watch?: { accessibilityLabel: string; onPress: () => void };
+  /** The reveal's early steps: the look has faded out and leaves its space. */
+  quiet?: boolean;
 }) {
   const { t } = useTranslation('finale');
+  const { t: tm } = useTranslation('match');
   return (
     <View className="gap-2 pt-3">
-      {phase === 'locked' ? (
+      {quiet && !watch ? (
+        <View className="mt-1 h-14" />
+      ) : watch ? (
+        <Animated.View entering={watchIn} className="mt-1">
+          <Button
+            label={tm('cta')}
+            accessibilityLabel={watch.accessibilityLabel}
+            variant="marquee"
+            size="l"
+            icon="tv"
+            block
+            onPress={watch.onPress}
+          />
+        </Animated.View>
+      ) : phase === 'locked' ? (
         <Animated.View
           entering={layout.fadeIn}
           accessible
