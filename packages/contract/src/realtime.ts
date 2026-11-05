@@ -35,7 +35,7 @@ export type RoomState = (typeof ROOM_STATES)[number];
 
 /**
  * Payloads of the events the SQL sends today, as `internal.broadcast_room` builds them.
- * Events not listed here carry no payload the phone reads yet `match` has no `result`.
+ * Events not listed here carry no payload the phone reads yet. `match` has no `result`.
  */
 export type RoomEventPayloads = {
   member_joined: { member_id: string; display_name: string; avatar_key: string };
