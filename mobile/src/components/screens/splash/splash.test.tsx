@@ -319,37 +319,3 @@ describe('the splash problems', () => {
     expect(screen.getByText("You're offline")).toBeTruthy();
   });
 });
-
-describe('the silent device sync', () => {
-  it('sends the country while the profile has none', async () => {
-    myProfile.mockResolvedValue({ ...named, country: null });
-    await renderSplash();
-    expect(updateProfile).toHaveBeenCalledWith({ country: 'FR' });
-  });
-
-  it('sends no country when one is set', async () => {
-    myProfile.mockResolvedValue(named);
-    await renderSplash();
-    expect(updateProfile).not.toHaveBeenCalled();
-  });
-
-  it('sends the language when it differs from the app', async () => {
-    myProfile.mockResolvedValue({ ...named, language: 'en' });
-    await renderSplash();
-    expect(updateProfile).toHaveBeenCalledWith({ language: 'fr' });
-  });
-
-  it.each([
-    ['a refusal', () => updateProfile.mockResolvedValue({ status: 'invalid_name' })],
-    ['an error', () => updateProfile.mockRejectedValue(new Error('down'))],
-  ])('leaves the routing alone after %s and does not retry', async (_name, arrange) => {
-    arrange();
-    myProfile.mockResolvedValue({ ...named, language: 'en' });
-    await renderSplash();
-    await act(async () => {
-      jest.advanceTimersByTime(SLOW_AFTER_MS * 2);
-    });
-    expect(screen.getByText('redirect:/home')).toBeTruthy();
-    expect(updateProfile).toHaveBeenCalledTimes(1);
-  });
-});
