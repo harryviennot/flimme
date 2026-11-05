@@ -230,15 +230,15 @@ The data model's [Retention](data-model.md#retention) table runs as one daily jo
 | Deck entries never voted on | 1 day after the room ends | Cron |
 | Room cards nobody voted on | 7 days after the room ends | Cron |
 | `swipe_log`, `rec.requests` | 13 months | Cron |
-| `rec.request_items` | 90 days, after the monthly export to object storage | The trainer exports, then Cron deletes |
+| `rec.request_items` | 90 days, after the monthly export to object storage | The trainer exports, then Cron deletes (not in `run_retention` yet: it waits for the trainer, M22.1) |
 | `import_rows` unmatched | 30 days | Cron |
 | `rate_limits` | 1 day | Cron |
 | `member_reports` | 12 months after `created_at` (M8.9) | Cron |
-| `card_history` | 12 months after the last showing ([deck engine](deck-engine.md#changes-to-the-data-model)) | Cron |
+| `card_history` | 12 months after the last showing ([deck engine](deck-engine.md#changes-to-the-data-model)) | Cron (joins `run_retention` with the task that creates its table) |
 | TMDB content of films missing for 6 months | Cleared ([tmdb.md](../integrations/tmdb.md#keeping-it-fresh)) | Pipeline worker |
 | Guest accounts inactive for 90 days | Deleted with their data, through the same auth admin call as account deletion | Pipeline worker |
 
-Each run writes a row to `ingest_runs` (kind `retention`) with what it deleted, which the health check watches.
+Each run writes a row to `ingest_runs` (kind `retention`) with what it deleted, which the health check watches. "After the room ends" is `coalesce(ended_at, expires_at)` of a room in `done` or `abandoned`; a room in play is never touched. A rule deletes at most 50,000 rows a night and says `capped` when more wait for the next night. A failing rule raises: the whole run rolls back, `cron.job_run_details` shows it as failed and no `retention` row is written, so the health check sees a missing run.
 
 ## Load test
 
@@ -316,7 +316,7 @@ A short checklist for when something is wrong:
 | --- | --- |
 | `internal.ops_health()` | New: returns the numbers the health check watches (deal latency and fallback share over the last hour, queue metrics, the last runs of `sweep_rooms` and retention, unfinished `ingest_runs`, Letterboxd failures, the share of winners reported). Callable by `app_server` only |
 | `internal.run_retention()` | New: the daily retention job, writing its counts to `ingest_runs` |
-| `ingest_runs.kind` | Add `retention` |
+| `ingest_runs.kind` | Add `retention` and `guest_cleanup` |
 | Baseline migration | Drops `pg_graphql`; enables `vector`, `pg_trgm`, `pgmq`, `pg_cron` |
 | `docs/architecture/schema.sql` | Retired once the baseline migration exists; the 120 checks become pgTAP tests |
 
