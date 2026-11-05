@@ -32,7 +32,7 @@ describe('launchStep', () => {
   });
 
   it('goes to Home when the profile has a name', () => {
-    expect(step({ profile: { state: 'ready', profile: named } })).toEqual({ go: '/home' });
+    expect(step({ profile: { state: 'ready', profile: named } })).toEqual({ go: '/play' });
   });
 
   it('loads while the session or the profile is pending, and says so when slow', () => {
@@ -54,9 +54,9 @@ describe('launchStep', () => {
   it('goes to Home offline when a named profile is cached', () => {
     expect(
       step({ session: { status: 'offline' }, profile: { state: 'ready', profile: named } }),
-    ).toEqual({ go: '/home' });
+    ).toEqual({ go: '/play' });
     expect(step({ online: false, profile: { state: 'ready', profile: named } })).toEqual({
-      go: '/home',
+      go: '/play',
     });
   });
 
@@ -88,13 +88,13 @@ describe('launchStep with a kept room', () => {
     expect(
       step({ profile: ready, kept, rejoin: { state: 'route', route: '/room/room-1/swipe' } }),
     ).toEqual({ go: '/room/room-1/swipe' });
-    expect(step({ profile: ready, kept, rejoin: { state: 'home' } })).toEqual({ go: '/home' });
+    expect(step({ profile: ready, kept, rejoin: { state: 'home' } })).toEqual({ go: '/play' });
   });
 
   it('goes Home offline, without a rejoin', () => {
-    expect(step({ profile: ready, kept, online: false })).toEqual({ go: '/home' });
+    expect(step({ profile: ready, kept, online: false })).toEqual({ go: '/play' });
     expect(step({ profile: ready, kept, session: { status: 'offline' } })).toEqual({
-      go: '/home',
+      go: '/play',
     });
   });
 

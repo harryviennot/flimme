@@ -1,4 +1,8 @@
 {
+  "tabs": {
+    "play": "Play",
+    "myFilms": "My films"
+  },
   "actions": {
     "retry": "Try again",
     "close": "Close",

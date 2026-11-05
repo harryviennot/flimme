@@ -18,6 +18,7 @@ import { gallery as uiMotion } from './ui/motion.gallery';
 import { gallery as uiOptionCard } from './ui/option-card.gallery';
 import { gallery as uiPinBox } from './ui/pin-box.gallery';
 import { gallery as uiSkeleton } from './ui/skeleton.gallery';
+import { gallery as uiTabBar } from './ui/tab-bar.gallery';
 import { gallery as uiTag } from './ui/tag.gallery';
 import { gallery as uiText } from './ui/text.gallery';
 import { gallery as uiToast } from './ui/toast.gallery';
@@ -55,6 +56,7 @@ export const galleryEntries: GalleryEntry[] = [
   uiOptionCard,
   uiPinBox,
   uiSkeleton,
+  uiTabBar,
   uiTag,
   uiText,
   uiToast,

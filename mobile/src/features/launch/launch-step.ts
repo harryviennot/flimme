@@ -39,9 +39,9 @@ function route(input: LaunchInput, profile: MyProfile | null): LaunchStep {
   if (!profile || profile.display_name === '') return { go: '/welcome' };
   const { kept, rejoin, session, online, slow } = input;
   // Offline, or no session to call with: Home, and the kept room stays for the next launch.
-  if (!kept || !online || session?.status !== 'ok') return { go: '/home' };
+  if (!kept || !online || session?.status !== 'ok') return { go: '/play' };
   if (rejoin?.state === 'route') return { go: rejoin.route };
-  if (rejoin?.state === 'home') return { go: '/home' };
+  if (rejoin?.state === 'home') return { go: '/play' };
   return { rejoin: kept, show: slow ? 'slow' : 'loading' };
 }
 
