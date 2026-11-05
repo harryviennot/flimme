@@ -13,7 +13,7 @@ export function hash(a, b) {
 }
 
 // mulberry32: small, fast and good enough for a simulation.
-function stream(seed) {
+export function stream(seed) {
   let a = seed >>> 0;
   const next = () => {
     a = (a + 0x6d2b79f5) >>> 0;
@@ -29,7 +29,7 @@ function stream(seed) {
 }
 
 // The inverse of the standard normal distribution (Acklam's approximation).
-function probit(p) {
+export function probit(p) {
   const a = [-39.6968302866538, 220.946098424521, -275.928510446969, 138.357751867269];
   const a2 = [-30.6647980661472, 2.50662827745924];
   const b = [-54.4760987982241, 161.585836858041, -155.698979859887, 66.8013118877197];
