@@ -44,7 +44,7 @@ export function useDeleteAccount(): {
         if (outcome === 'done') {
           router.dismissAll();
           router.replace('/');
-          showToast({ tone: 'info', title: t('delete.done'), durationMs: 4500 });
+          showToast({ tone: 'info', title: t('delete.done'), duration: 4500 });
           return;
         }
         setStatus('try_again');

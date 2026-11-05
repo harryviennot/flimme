@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { requestScrollToTop } from '@/features/my-films/scroll-top';
 import { TabBar, type TabBarItem } from '@/components/ui/tab-bar';
 import { tokens } from '@/theme/generated/tokens';
 
@@ -27,6 +28,9 @@ export default function TabsLayout() {
             return item ? [{ key: route.name, ...item }] : [];
           })}
           selected={state.routes[state.index]?.name ?? 'play'}
+          onReselect={(key) => {
+            if (key === 'my-films') requestScrollToTop();
+          }}
           onSelect={(key) => navigateToTab(state.routes.find((r) => r.name === key)?.key ?? key)}
         />
       )}

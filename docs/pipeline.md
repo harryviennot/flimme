@@ -80,11 +80,16 @@ What it does: allows the check, test and read-only git commands without asking; 
 
 In claude.ai/code, edit the cloud environment (the environment menu in the session's title bar, then Edit):
 
-- **Setup script:** `bash "$(find /home/user -maxdepth 3 -path '*/tools/cloud-setup.sh' | head -1)"`. It installs the dependencies and Postgres with pgTAP, then loads the lite database. It needs no secrets.
-- **Network:** npm, PyPI and the Ubuntu package archive must be reachable (they are with the default policy).
+- **Setup script:** `bash "$(find /home/user -maxdepth 3 -path '*/tools/cloud-setup.sh' | head -1)" # cloud-setup 2`. It installs mise (a pinned release from GitHub, checksum checked) and every tool `mise.toml` pins (node, pnpm, python, uv, the Supabase CLI, lefthook and the rest), and trusts `mise.toml` (worktrees included). `mise` is on `PATH` in every shell, so `mise run` always uses the pinned tools; login and interactive shells also get those tools first on `PATH`. Then it installs the JavaScript and Python dependencies and Postgres with pgTAP, and loads the lite database. It needs no secrets. When the network blocks a download, it stops and names the download.
+- **Network:** npm, PyPI, the Ubuntu package archive, nodejs.org and GitHub releases must be reachable (they are with the default Trusted policy). `mise.run` isn't on that list, which is why the script fetches mise from GitHub.
 - **Secrets:** none for now. Later, read-only tokens only (staging Supabase, PostHog), never production.
 
 A new session then runs every check except the full Supabase stack and the simulators.
+
+The environment can start a session from a cache of the files an earlier run of the setup script wrote, without running the script again. Claude Code's docs say the cache rebuilds when the setup script text changes, or after about seven days (on 5 Nov 2026 it also ran the script again for a session on another branch). Two consequences:
+
+- **Postgres may not be running when a session starts** (the cache keeps files, not processes). Start it with `pg_ctlcluster 16 main start`; `mise run db:lite` says so when it's needed.
+- **A change to `tools/cloud-setup.sh` may not reach new sessions until the cache rebuilds.** So when the script changes, bump the number at the end of the line above, and paste the new line into the environment.
 
 ### 6. Your day-one list (M0)
 
@@ -199,9 +204,9 @@ Merge everything yourself for the first two weeks. After that, small backend tas
 | Two migrations changed the same function | The later merge undid the earlier change. Write a new migration that has both, with tests for both |
 | A brief turned out wrong | Stop the task, fix the brief (and the doc if it was the doc's fault), restart from the build step |
 | The agent asks about something already decided | decisions.md is missing it: have the scribe record it |
-| A cloud session can't run the database tests | Check the setup script ran (the session's first output); `mise run db:lite` by hand shows the error |
+| A cloud session can't run the database tests | Check the setup script ran (the session's first output ends with `cloud-setup: done`). `mise: command not found` means the session started from a cache built before the script installed mise: paste the setup line from [section 5](#5-cloud-sessions) into the environment, then start a new session. "Cannot connect to Postgres": `pg_ctlcluster 16 main start`. Otherwise `mise run db:lite` by hand shows the error |
 | The local stack won't start on the Mac | `supabase stop --no-backup`, then `mise run setup` again |
-| Types out of date in CI | `mise run typegen` with the local stack running, and commit the file. In a cloud session (no Docker): `mise run db:lite`, give a Postgres role a password, install the Supabase CLI (`npm i supabase`), then `TYPEGEN_DB_URL=postgresql://user:pass@localhost:5432/movie_swipe_lite node tools/typegen.mjs`. The CLI reads the lite `api` schema directly, which is the stack's. If CI still disagrees, its log prints the diff and the job uploads the generated file as an artifact |
+| Types out of date in CI | `mise run typegen` with the local stack running, and commit the file. In a cloud session (no Docker): `mise run db:lite`, give a Postgres role a password (the setup script already installed the pinned Supabase CLI), then `TYPEGEN_DB_URL=postgresql://user:pass@localhost:5432/movie_swipe_lite node tools/typegen.mjs`. The CLI reads the lite `api` schema directly, which is the stack's. If CI still disagrees, its log prints the diff and the job uploads the generated file as an artifact |
 | A component looks different on one screen | That's a review miss: add a variant to the component, never restyle it on the screen |
 
 ## Looking after the pipeline

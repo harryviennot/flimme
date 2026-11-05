@@ -1,0 +1,83 @@
+# M6.45, My films: the grid, Liked and Seen, the chips, the film sheet, Mark as seen, Remove with
+# Undo and Remove for good. Needs a phone on staging that has already played a group game with
+# bots (a pick, some likes, a Seen it): run shortlist.yaml first and finish its Final Cut, then
+# leave the app on Home or the winner screen and run
+#   maestro --device <sim> test mobile/.maestro/my-films.yaml
+appId: com.harryviennot.flimme.dev
+---
+- runFlow:
+    when:
+      visible: 'Back to Home'
+    commands:
+      - tapOn: 'Back to Home'
+- extendedWaitUntil:
+    visible: 'My films'
+    timeout: 30000
+- tapOn: 'My films'
+- extendedWaitUntil:
+    visible: 'Saved with this phone for now.'
+    timeout: 20000
+# The group's pick wears its badge.
+- assertVisible: '.*picked on a movie night.*'
+- takeScreenshot: my-films-liked
+# The chips each read their own list; Solo is empty until solo mode ships.
+- tapOn: 'With friends'
+- extendedWaitUntil:
+    visible: '.*picked on a movie night.*'
+    timeout: 15000
+- tapOn: 'Solo'
+- extendedWaitUntil:
+    visible: 'Films you like on your own land here.'
+    timeout: 15000
+- takeScreenshot: my-films-solo-empty
+- tapOn: 'All'
+# Seen has no chips and no badges.
+- tapOn: 'Seen'
+- assertNotVisible: 'With friends'
+- takeScreenshot: my-films-seen
+- tapOn: 'Liked'
+# The film sheet: the back, where to watch, the two edits.
+- tapOn:
+    text: '.*picked on a movie night.*'
+- extendedWaitUntil:
+    visible: 'Mark as seen'
+    timeout: 20000
+- scrollUntilVisible:
+    element: 'Where to watch'
+    timeout: 15000
+- takeScreenshot: my-films-sheet-where-to-watch
+- assertVisible: 'Remove'
+- tapOn: 'Mark as seen'
+- extendedWaitUntil:
+    visible: 'Not seen'
+    timeout: 10000
+- assertVisible: 'It stays out of your games.'
+- tapOn: 'Not seen'
+- extendedWaitUntil:
+    visible: 'Mark as seen'
+    timeout: 10000
+# Remove, then Undo: the tile comes back and nothing was sent.
+- tapOn: 'Remove'
+- extendedWaitUntil:
+    visible: 'Removed from My films'
+    timeout: 10000
+- assertNotVisible: '.*picked on a movie night.*'
+- takeScreenshot: my-films-removed-toast
+- tapOn: 'Undo'
+- extendedWaitUntil:
+    visible: '.*picked on a movie night.*'
+    timeout: 10000
+# Remove for good: let the toast close.
+- tapOn:
+    text: '.*picked on a movie night.*'
+- extendedWaitUntil:
+    visible: 'Remove'
+    timeout: 20000
+- tapOn: 'Remove'
+- extendedWaitUntil:
+    visible: 'Removed from My films'
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible: 'Removed from My films'
+    timeout: 15000
+- assertNotVisible: '.*picked on a movie night.*'

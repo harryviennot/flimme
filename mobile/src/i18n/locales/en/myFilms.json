@@ -1,7 +1,61 @@
 {
   "title": "My films",
+  "segments": {
+    "liked": "Liked",
+    "seen": "Seen"
+  },
+  "filters": {
+    "label": "Show",
+    "all": "All",
+    "friends": "With friends",
+    "solo": "Solo"
+  },
+  "accounts": "Saved with this phone for now.",
+  "tile": {
+    "picked": "Picked"
+  },
   "empty": {
     "title": "Nothing here yet",
-    "liked": "Films you like land here. Play alone or with friends."
+    "liked": "Films you like land here. Play alone or with friends.",
+    "friends": "Films you like with friends land here.",
+    "solo": "Films you like on your own land here.",
+    "seen": "Films you've seen land here.",
+    "playAlone": "Play alone"
+  },
+  "offline": {
+    "title": "You're offline",
+    "body": "Your films show when you're back."
+  },
+  "offlineBanner": "You're offline. Your list may be out of date.",
+  "error": {
+    "title": "We couldn't load your films.",
+    "more": "We couldn't load more."
+  },
+  "a11y": {
+    "tile": "{{title}}, {{year}}",
+    "picked": "picked on a movie night",
+    "superLiked": "super liked",
+    "tileHint": "Opens the film",
+    "loading": "Loading your films",
+    "loadingFilm": "Loading the film"
+  },
+  "sheet": {
+    "markSeen": "Mark as seen",
+    "notSeen": "Not seen",
+    "seenHelper": "It stays out of your games.",
+    "remove": "Remove",
+    "a11ySeen": "Marked as seen",
+    "a11yNotSeen": "No longer marked as seen. It can come back in your games.",
+    "failed": "We couldn't save that. Try again in a moment.",
+    "notFound": "This film isn't in My films any more.",
+    "error": "We couldn't load the film.",
+    "offline": "You're offline. The film shows when you're back.",
+    "offlineActions": "You're offline. Connect to change your films.",
+    "notListed": "None of your services has it."
+  },
+  "removed": {
+    "title": "Removed from My films",
+    "undo": "Undo",
+    "failed": "We couldn't remove that film. Try again."
   }
 }
