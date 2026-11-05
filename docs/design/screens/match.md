@@ -1,16 +1,21 @@
 # It's a match
 
-Screen 14 It's a match (`99:4149`) on the Figma's First release page. Not a route: `MatchOverlay` (`components/screens/room/match-overlay.tsx`) is mounted in the room layout (`/room/[id]/_layout.tsx`) above whichever room screen shows, so it shares no file with the swipe screen (Q0.4). Built in M6.14. Written on 4 November 2026 from [the match](../moments.md#the-match) (the beat, its sequence and edge cases), [realtime](../../architecture/app-structure.md#realtime), [what players see](../../product/game-modes.md#what-players-see-party-and-blind) and slices 10 and 11's plan; Harry accepted every default on 4 November 2026 ([decisions.md](../../decisions.md)).
+Screen 14 It's a match (`99:4149`) on the Figma's First release page. Not a route: `MatchOverlay` (`components/screens/room/match-overlay.tsx`) is mounted in the room layout (`/room/[id]/_layout.tsx`) above whichever room screen shows, so it shares no file with the swipe screen (Q0.4). Built in M6.14. Written on 4 November 2026 from [the match](../moments.md#the-match) (the beat, its sequence and edge cases), [realtime](../../architecture/app-structure.md#realtime), [what players see](../../product/game-modes.md#what-players-see-party-and-blind) and slices 10 and 11's plan; Harry accepted every default on 4 November 2026 ([decisions.md](../../decisions.md)). Updated on 5 November 2026 (M6.33): a match now joins the room's shortlist, so this overlay plays only for the night's pick ([when it's a match](../../product/game-modes.md#when-its-a-match)).
 
 ## Purpose
 
-Every phone in the room celebrates the same film at the same second, then hands over to where to watch it. It celebrates the group: nothing says who liked it last, or who didn't.
+Every phone in the room celebrates the night's film at the same second, then hands over to where to watch it. It celebrates the group: nothing says who liked it last, or who didn't.
 
 ## When it shows
 
-- **The first of two signals:** the `ok` answer to this phone's own vote with `match: true` (the film is the voted card), or the `match` event `{title_id, kind, likes, of, decided}`. In Quick Match, the only mode in the first release, `decided` is always true. A match with `decided` false (Final Cut mode, later) doesn't use this overlay.
+- **Only for the pick:** a `match` with `decided: true` and a kind other than `finale`. That is:
+  - **`only_match`**, in Quick Match and Date Night: swiping ended (the card count, the time limit, everyone out of cards) with exactly one film on the shortlist, so it's the pick with no vote. The event is `{title_id, kind, likes, of, decided: true, reason: 'only_match'}`, with the match row's own kind (`unanimous` or `majority`) and counts. Nothing else changes for the overlay: it reads the event as it reads any decided match. Nobody just swiped, so the event is the only signal.
+  - **Any match in a mode with `matches_to_end` 1** (none at launch).
+- **Not for a shortlisted match:** a `match` with `decided: false` plays [the shortlisted beat](swipe.md#the-shortlisted-beat) on the swipe screen; the overlay ignores it. Quick Match is no longer "always decided": its first and second matches are shortlisted, and its third starts the Final Cut.
+- **Not for a finale pick** (kind `finale`): the Final Cut's reveal is that celebration (Q15.1).
+- **The first of two signals:** the `ok` answer to this phone's own vote with `match: true` and `decided: true` (the film is the voted card; only in a mode with 1), or the `match` event.
 - **Once per room.** A second `match` event for a room already shown is ignored.
-- **Missed it** (offline, in the background, killed): when the room's re-read finds it `done` with a decided match in `api.room_matches`, and this room isn't marked as shown, the overlay plays once in full, haptic and sound included, then the winner screen.
+- **Missed it** (offline, in the background, killed): when the room's re-read finds it `done` with a pick (`pick_order` 1 in `api.room_matches`) of kind `unanimous` or `majority`, and this room isn't marked as shown, the overlay plays once in full, haptic and sound included, then the winner screen. The room's other shortlisted rows (no `pick_order`) never start it, and a pick of kind `finale` is the reveal's.
 - **"Already shown" is persisted per room** (Q14.3): `features/room/match-shown.ts`, a small persisted store like `kept-room.ts`, holding the ids of the last 20 rooms whose overlay played. A room is marked once its avatars have landed (about 1.6 seconds) or when the overlay leaves, whichever comes first. A phone that cold-starts in a marked room goes straight to the winner screen.
 - Phones that left the room never get it.
 
@@ -56,6 +61,8 @@ Times from the first signal. Tokens from `@/theme/motion`.
 | Offline when it started (its own `ok` came, then the network went) | The overlay plays the same; the count waits for the re-read |
 | A sheet was open (seat, report, invite) | The sheet closes as the room leaves `swiping` (the layout's `SHEETS` rule); the overlay covers what's left |
 | The match came from someone leaving | The same overlay: nobody just swiped |
+| `only_match` (the finale found one match) | The same overlay, from the event, over the swipe screen or the done card. The film is already in the top bar's shortlist; the poster still starts from a card-size frame centred where the stack is |
+| A shortlisted beat is playing | The beat's layer goes at once and the overlay starts from 0 |
 | A second `match` for this room | Ignored |
 | The room is `done` but marked as shown | No overlay; the winner screen |
 
@@ -73,7 +80,7 @@ A new file pair, `i18n/locales/fr/match.json` and `en/match.json`, added by M6.1
 | `a11y.avatars` | Toute la salle : {{names}} | Everyone in the room: {{names}} |
 | `a11y.cta` | Voir où regarder {{title}} | See where to watch {{title}} |
 
-The names are joined with `Intl.ListFormat`. The count is never "one more" or a name: likes of voters only.
+The names are joined with `Intl.ListFormat`. The count is never "one more" or a name: likes of voters only. `count.unanimous` and `count.majority` are also the shortlisted beat's vote count ([swipe.md](swipe.md#copy)), so both moments say it the same way.
 
 ## Motion, haptics, sound
 
@@ -100,7 +107,7 @@ The names are joined with `Intl.ListFormat`. The count is never "one more" or a 
 - The poster takes the whole screen (the beat and M6.14) instead of a tilted card-size poster with a green glow.
 - The title is in `marquee` with `glow-marquee`; the Figma's sunset gradient on the text would need a masked view, which the system doesn't have.
 - The bulbs stay a row above the title, as in the Figma, rather than around the edge.
-- No Keep swiping (M18.4) and no "Watch on" link; the Figma's caption already says so.
+- No Keep swiping and no "Watch on" link; the Figma's caption already says so. Keep swiping (M18.4) was dropped on 5 November 2026: swiping already goes on after a shortlisted match.
 
 ## Questions
 

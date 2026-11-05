@@ -223,7 +223,7 @@ Harry sets up once (step H5 of the slice plan): a private Tigris bucket, an `age
 
 ## Retention jobs
 
-The data model's [Retention](data-model.md#retention) table runs as one daily job (04:30, Supabase Cron), `internal.run_retention()`, plus two jobs on the server for what SQL can't do alone:
+The data model's [Retention](data-model.md#retention) table runs as one daily job (04:30, Supabase Cron), `internal.run_retention()`, plus one more cron job for guests and a server job for what SQL can't do alone:
 
 | Data | Rule | Run by |
 | --- | --- | --- |
@@ -237,7 +237,7 @@ The data model's [Retention](data-model.md#retention) table runs as one daily jo
 | `member_reports` | 12 months after `created_at` (M8.9) | Cron |
 | `card_history` | 12 months after the last showing ([deck engine](deck-engine.md#changes-to-the-data-model)) | Cron (joins `run_retention` with the task that creates its table) |
 | TMDB content of films missing for 6 months | Cleared ([tmdb.md](../integrations/tmdb.md#keeping-it-fresh)) | Pipeline worker |
-| Guest accounts inactive for 90 days | Deleted with their data, through the same auth admin call as account deletion | Pipeline worker |
+| Guest accounts inactive for 90 days | Deleted from `auth.users` with their data (M8.8): anonymous users only, at most 1,000 a run, at 04:45 UTC. Inactive is the latest of the account's and profile's `created_at`, `last_seen_at` and the seats' `last_active_at`. Past seats stay, anonymous | Cron (`internal.delete_inactive_guests`, job `guest_cleanup_daily`) |
 
 Each run writes a row to `ingest_runs` (kind `retention`) with what it deleted, which the health check watches. "After the room ends" is `coalesce(ended_at, expires_at)` of a room in `done` or `abandoned`; a room in play is never touched. A rule deletes at most 50,000 rows a night and says `capped` when more wait for the next night. A failing rule raises: the whole run rolls back, `cron.job_run_details` shows it as failed and no `retention` row is written, so the health check sees a missing run.
 

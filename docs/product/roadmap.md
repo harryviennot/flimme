@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 119 of 270 tasks done.
+Progress: 121 of 270 tasks done.
 
 ```mermaid
 flowchart LR
@@ -469,7 +469,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: the reveal plays once per room on every phone, and a phone that missed the event plays it after reading the candidates.
 - [ ] **M6.32** The winner screen's runners-up, with who liked them in Party mode after the pick, and a read for it · app · needs M6.16 · [game-modes](game-modes.md#after-the-pick)
   Done when: the runners-up show after the pick, and in Party mode each one names who liked it.
-- [ ] **M6.33** The shortlist's beat and specs: the shortlisted beat, the match overlay only for a pick, the swipe screen's shortlist, the Final Cut with 2 films and its intro line · design · M · [proposal](three-matches-and-fair-finalists.md#option-1a-a-shortlist-of-up-to-3-matches-recommended), [moments](../design/moments.md#the-match)
+- [x] **M6.33** The shortlist's beat and specs: the shortlisted beat, the match overlay only for a pick, the swipe screen's shortlist, the Final Cut with 2 films and its intro line · design · M · [proposal](three-matches-and-fair-finalists.md#option-1a-a-shortlist-of-up-to-3-matches-recommended), [moments](../design/moments.md#the-match)
   Done when: the shortlisted beat is in moments.md, and the swipe, match and Final Cut specs cover it in French and English.
 - [ ] **M6.37** The shortlist on the swipe screen: the shortlisted beat, the shortlist's posters in the top bar, the match overlay only for a pick · app · L · needs M6.33, M6.34, M6.14, M6.27 · [game-modes](game-modes.md#when-its-a-match), [swipe](../design/screens/swipe.md#the-top-bar)
   Done when: a touch run on simulators against staging with the bots plays each beat, fills the top bar to the Final Cut, and reads the shortlist back after a cold start.
@@ -529,7 +529,7 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: tested.
 - [ ] **M8.7** Settings: language, analytics opt-out, download my data, delete my data, About with the TMDB logo and notice and the JustWatch credit, policy, terms, support · app · L · needs M8.5, M8.6, M3.8, M8.12 · [privacy](privacy.md#players-rights-in-practice), [tmdb](../integrations/tmdb.md#terms-licence-and-attribution)
   Done when: every item works on both platforms.
-- [ ] **M8.8** Guest cleanup: guests inactive for 90 days are deleted from `auth.users` · backend · M · needs M1.5, M8.9 · [security](../architecture/security.md#guest-accounts)
+- [x] **M8.8** Guest cleanup: guests inactive for 90 days are deleted from `auth.users` · backend · M · needs M1.5, M8.9 · [security](../architecture/security.md#guest-accounts)
   Done when: a scheduled run deletes a test guest on staging.
 - [x] **M8.9** The daily retention job (`internal.run_retention`) · backend · M · needs M1.5 · [operations](../architecture/operations.md#retention-jobs)
   Done when: each retention rule is tested.
