@@ -432,7 +432,7 @@ Not yet in [data-model.md](../architecture/data-model.md) or [schema.sql](../arc
 | New functions | `api.cast_ballot` (whole ballot, done in M6.5), `api.close_round_stage` and `api.round_progress` (done in M6.5), `api.start_finale_now`, `api.play_again`, `internal.close_round_stage` (done in M6.5), `internal.sweep_rooms` |
 | Realtime | New `next_room` (code of the new room) and `host_changed`. `round_progress` carries which seats have locked in. `match` for a finale carries the points and vetoes |
 | Card payload | A `super_liked` flag in Party mode |
-| Who sees what | In Party mode, the winner screen may show who liked each runner-up, after the pick. Swipes still never reach phones while the game runs |
+| Who sees what | In Party mode, the winner screen may show who liked each runner-up, after the pick. Swipes still never reach phones while the game runs. Done in M6.48: `api.room_runners_up` names only the likers, in Party; Blind gets counts |
 | `rooms.expires_at` | Moved to 1 hour after the start when swiping begins |
 
 ## Starting values

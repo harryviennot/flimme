@@ -22,6 +22,7 @@ import {
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
   PLAY_AGAIN_ANSWERS,
+  ROOM_RUNNERS_UP_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
@@ -73,6 +74,8 @@ import {
   setRoomLockedResult,
   playAgainResult,
   type PlayAgainResult,
+  runnersUpResult,
+  type RunnersUpResult,
   myProfileRow,
   roomRow,
   roomSeatRow,
@@ -296,6 +299,21 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id },
         PLAY_AGAIN_ANSWERS,
         playAgainResult,
+      );
+    },
+
+    /**
+     * After the pick: the other finalists, or the most liked films after a single match. Party
+     * names who liked each, Blind has counts only. Before the pick: not_finished (M6.48).
+     */
+    roomRunnersUp(args: { room_id: string }): Promise<RunnersUpResult> {
+      return callAnswer(
+        client,
+        options,
+        'room_runners_up',
+        { p_room_id: args.room_id },
+        ROOM_RUNNERS_UP_ANSWERS,
+        runnersUpResult,
       );
     },
 

@@ -299,6 +299,9 @@ export type Database = {
 "room_preview":
 { Args: { "p_code": string,"p_ref": string }; Returns: Json
                            },
+"room_runners_up":
+{ Args: { "p_room_id": string }; Returns: Json
+                           },
 "round_progress":
 { Args: { "p_round_id": string }; Returns: Json
                            },

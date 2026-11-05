@@ -17,6 +17,7 @@ import {
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
   PLAY_AGAIN_ANSWERS,
+  ROOM_RUNNERS_UP_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
@@ -221,6 +222,24 @@ const cases = [
     answers: PLAY_AGAIN_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.playAgain({ room_id: ROOM }),
     full: { ok: { room_id: ROOM, code: '123456' } },
+  },
+  {
+    name: 'room_runners_up',
+    answers: ROOM_RUNNERS_UP_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.roomRunnersUp({ room_id: ROOM }),
+    full: {
+      ok: {
+        reveal: 'party',
+        source: 'finalists',
+        runners_up: [
+          {
+            title_id: 7,
+            likes: 1,
+            likers: [{ member_id: MEMBER, display_name: 'Camille', avatar_key: 'blue' }],
+          },
+        ],
+      },
+    },
   },
   {
     name: 'update_room_settings',
