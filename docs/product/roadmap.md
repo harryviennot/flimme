@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 125 of 270 tasks done.
+Progress: 126 of 270 tasks done.
 
 ```mermaid
 flowchart LR
@@ -432,7 +432,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: the silence rule is tested, with the sweeper's re-check row.
 - [x] **M6.34** Matches build a shortlist: `matches_to_end` per mode (3 at launch), the third match starts the finale (`shortlist_full`), several matches at once most liked first, `rooms.stats` counts the matches · backend · L · needs M6.4, M6.8, M6.30 · [game-modes](game-modes.md#when-its-a-match)
   Done when: each rule of "When it's a match" is tested, a mode with `matches_to_end` 1 included.
-- [ ] **M6.35** The finale with a shortlist: a vote between 2 or 3 matches (2 films without a veto), a single match is the pick in Quick Match and Date Night (`only_match`) · backend · L · needs M6.34, M6.5, M6.36 · [game-modes](game-modes.md#when-it-starts), [the finalists](game-modes.md#the-finalists)
+- [x] **M6.35** The finale with a shortlist: a vote between 2 or 3 matches (2 films without a veto), a single match is the pick in Quick Match and Date Night (`only_match`) · backend · L · needs M6.34, M6.5, M6.36 · [game-modes](game-modes.md#when-it-starts), [the finalists](game-modes.md#the-finalists)
   Done when: the vote between matches, the single-match pick, and rounds of 2 and 3 films closing are tested.
 - [x] **M6.36** One seat each among the finalists: after the matches, the liked film that gives a seat to the most present players without one · backend · M · needs M6.4 · [game-modes](game-modes.md#the-finalists)
   Done when: rule 2 of "The finalists" is tested, ties and a player who left included.
