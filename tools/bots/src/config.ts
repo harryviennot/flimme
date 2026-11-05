@@ -1,9 +1,13 @@
 // Reads the command line and the environment. Pure, so it is tested without a network.
 //   mise run bots -- --code 482913 --count 3
 //   mise run bots -- --code 482913 --swipe-ms 1500 --like-rate 0.4
+//   mise run bots -- --code 482913 --seed 7 --personality picky
+// Bots swipe at their own pace by default (`--swipe-ms off` keeps them present only).
 // Targets: `local` (the default) reads `supabase status -o env`; `staging` reads
 // FLIMME_STAGING_URL and FLIMME_STAGING_KEY from the environment (the publishable key,
 // never committed). Never point it at production.
+
+import { PERSONALITY_MODES, type PersonalityMode } from './personality';
 
 export type Target = 'local' | 'staging';
 
@@ -11,10 +15,13 @@ export type BotConfig = {
   code: string;
   count: number;
   target: Target;
-  /** Milliseconds between swipes once the game runs; null means the bots only stay present. */
-  swipeMs: number | null;
-  /** Share of swipes that are a like, from 0 to 1. */
-  likeRate: number;
+  /** Milliseconds between swipes: a number sets the base pace, null (`auto`) uses each bot's own, 'off' only stays present. */
+  swipeMs: number | null | 'off';
+  /** Share of swipes that are a like, from 0 to 1; null lets each bot's personality decide. */
+  likeRate: number | null;
+  /** Makes a game reproducible: personalities, tastes and choices follow from it. */
+  seed: number;
+  personality: PersonalityMode;
 };
 
 export const HEARTBEAT_MS = 30_000;
@@ -32,7 +39,7 @@ export function parseArgs(argv: string[]): BotConfig {
     flags.set(arg.slice(2), value);
     i += 1;
   }
-  const known = ['code', 'count', 'target', 'swipe-ms', 'like-rate'];
+  const known = ['code', 'count', 'target', 'swipe-ms', 'like-rate', 'seed', 'personality'];
   for (const key of flags.keys())
     if (!known.includes(key)) throw new UsageError(`Unknown option --${key}`);
 
@@ -49,13 +56,37 @@ export function parseArgs(argv: string[]): BotConfig {
     throw new UsageError('--target must be local or staging');
   }
   const swipe = flags.get('swipe-ms');
-  const swipeMs = swipe === undefined ? null : Number(swipe);
-  if (swipeMs !== null && (!Number.isFinite(swipeMs) || swipeMs < 200)) {
-    throw new UsageError('--swipe-ms must be a number of at least 200');
+  let swipeMs: number | null | 'off' = null;
+  if (swipe === 'off') swipeMs = 'off';
+  else if (swipe !== undefined && swipe !== 'auto') {
+    swipeMs = Number(swipe);
+    if (!Number.isFinite(swipeMs) || swipeMs < 200) {
+      throw new UsageError('--swipe-ms must be a number of at least 200, auto or off');
+    }
   }
-  const likeRate = Number(flags.get('like-rate') ?? 0.5);
-  if (!(likeRate >= 0 && likeRate <= 1)) throw new UsageError('--like-rate must be from 0 to 1');
-  return { code: code.toUpperCase(), count, target, swipeMs, likeRate };
+  const rate = flags.get('like-rate');
+  const likeRate = rate === undefined ? null : Number(rate);
+  if (likeRate !== null && !(likeRate >= 0 && likeRate <= 1)) {
+    throw new UsageError('--like-rate must be from 0 to 1');
+  }
+  const seedText = flags.get('seed');
+  const seed = seedText === undefined ? Math.floor(Math.random() * 2 ** 31) : Number(seedText);
+  if (!Number.isInteger(seed) || seed < 0) {
+    throw new UsageError('--seed must be a whole number, 0 or more');
+  }
+  const personality = flags.get('personality') ?? 'mixed';
+  if (!PERSONALITY_MODES.includes(personality as PersonalityMode)) {
+    throw new UsageError('--personality must be mixed, agreeable or picky');
+  }
+  return {
+    code: code.toUpperCase(),
+    count,
+    target,
+    swipeMs,
+    likeRate,
+    seed,
+    personality: personality as PersonalityMode,
+  };
 }
 
 export type Backend = { url: string; key: string };

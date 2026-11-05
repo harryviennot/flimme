@@ -120,7 +120,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 122 of 270 tasks done.
+Progress: 123 of 270 tasks done.
 
 ```mermaid
 flowchart LR
@@ -478,7 +478,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
 
 **Tests**
 
-- [ ] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
+- [x] **M6.19** The bot player script: signs in, joins by code, swipes · test · M · needs M6.5, M4.16 · [app-structure](../architecture/app-structure.md#testing)
   Done when: bots can fill a room on staging.
 - [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, every way to a pick (a single match, a vote between matches, the Final Cut from swipes), leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12, M6.29, M6.30, M6.31, M6.37, M6.38 · [game-modes](game-modes.md#a-game-at-a-glance)
   Done when: every run ends with a pick within the limits; the swiping after the first match is timed, and every player is asked "was there a film for you in the vote?"; bugs become tasks.

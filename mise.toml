@@ -75,5 +75,5 @@ description = "List roadmap tasks whose dependencies are done"
 run = "node tools/next.mjs"
 
 [tasks.bots]
-description = "Bot players that join a room by code and stay present: mise run bots -- --code 482913 --count 3"
+description = "Bot players that join a room by code, swipe with personalities and lock in the Final Cut (--seed, --personality mixed|agreeable|picky): mise run bots -- --code 482913 --count 3"
 run = "pnpm --filter @flimme/bots start"
