@@ -467,6 +467,7 @@ Everything decided so far, the defaults chosen while designing that still need a
 | Solo and My films specs (M6.39; Harry approved the brief and its defaults Q39.1 to Q39.6): out of films in solo shows a card with Pick one (with a like) and My films; a session the sweeper ended goes to Play with a toast; Seen tiles have no badge; the accounts line shows once per segment; a film that is only seen has Not seen and no Remove; the tab icons are `play` and `film` | 5 Nov 2026 | [Solo swipe](design/screens/swipe.md#solo), [My films](design/screens/my-films.md#decided), [The film sheet](design/screens/film-sheet.md#layout), [The tab bar](design/screens/tab-bar.md#decided) |
 | Q40.1, noped solo films: they don't come back at launch. Card memory (M17) revisits it | 5 Nov 2026 | [Solo decks](product/solo-and-my-films.md#5-solo-and-the-decks), [The cap](product/solo-and-my-films.md#8-the-cap) |
 | Harry approved the five L briefs of the solo slice: M6.39 (the solo and My films specs and beats), M6.40 (the solo game mode), M6.41 (My films in `user_titles`), M6.44 (Play alone) and M6.45 (My films and the film sheet), and the planner's defaults | 5 Nov 2026 | [The new tasks](product/solo-and-my-films.md#new-tasks) |
+| The touch run scales to the change. Today every app task does the full explore pass, which costs 20 to 50 minutes. Harry chose to make it proportional | 5 Nov 2026 | [The task skill, step 7](../.claude/skills/task/SKILL.md#7-check) |
 
 ## Defaults, not yet confirmed
 
