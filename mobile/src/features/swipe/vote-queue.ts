@@ -420,6 +420,16 @@ export function createVoteQueue(deps: VoteQueueDeps) {
       return () => void listeners.delete(listener);
     },
 
+    /** Forgets every waiting vote and stops retrying (the wipe after a deletion). */
+    clear(): void {
+      if (timer !== undefined) {
+        clearTimeout(timer);
+        timer = undefined;
+      }
+      failures = 0;
+      store.setState({ votes: [] });
+    },
+
     /** On start, on reconnect, on foreground: tries at once and starts the delays again. */
     flush(): Promise<void> {
       if (timer !== undefined) {

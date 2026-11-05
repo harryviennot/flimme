@@ -3,10 +3,12 @@ import { resolveConfig, stagingStatus } from './config';
 const local = {
   EXPO_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_abc',
+  EXPO_PUBLIC_SERVER_URL: 'http://127.0.0.1:8000',
 };
 const staging = {
   EXPO_PUBLIC_STAGING_SUPABASE_URL: 'https://abcd.supabase.co',
   EXPO_PUBLIC_STAGING_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_staging',
+  EXPO_PUBLIC_STAGING_SERVER_URL: 'https://flimme-api-staging.fly.dev',
 };
 const both = { ...local, ...staging };
 
@@ -27,6 +29,7 @@ describe('the backend choice', () => {
     expect(resolveConfig(both, { dev: true, backend: 'staging' })).toEqual({
       supabaseUrl: 'https://abcd.supabase.co',
       supabasePublishableKey: 'sb_publishable_staging',
+      serverUrl: 'https://flimme-api-staging.fly.dev',
     });
   });
 
@@ -36,13 +39,22 @@ describe('the backend choice', () => {
     );
   });
 
-  it('says why staging is unavailable, naming both variables', () => {
+  it('says why staging is unavailable, naming the variables', () => {
     const status = stagingStatus(local);
     expect(status.available).toBe(false);
     if (!status.available) {
       expect(status.reason).toContain('EXPO_PUBLIC_STAGING_SUPABASE_URL');
       expect(status.reason).toContain('EXPO_PUBLIC_STAGING_SUPABASE_PUBLISHABLE_KEY');
+      expect(status.reason).toContain('EXPO_PUBLIC_STAGING_SERVER_URL');
     }
+  });
+
+  it('stays unavailable without the staging server URL', () => {
+    const { EXPO_PUBLIC_STAGING_SERVER_URL: _omitted, ...withoutServer } = both;
+    const status = stagingStatus(withoutServer);
+    expect(status.available).toBe(false);
+    if (!status.available)
+      expect(status.reason).toBe('Set EXPO_PUBLIC_STAGING_SERVER_URL in .env.local or EAS.');
   });
 
   it('refuses a staging URL that is not a URL', () => {

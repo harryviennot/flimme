@@ -42,6 +42,10 @@ jest.mock('react-native-reanimated', () => {
   });
 });
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline }));
+// The gone-user check has its own tests (use-gone-user.test.tsx); here the splash just loads.
+jest.mock('@/features/launch/use-gone-user', () => ({
+  useGoneUserRecovery: () => ({ checking: false }),
+}));
 jest.mock('@/lib/storage', () => ({
   storage: {
     getItemSync: (key: string) => mockMemory.get(key) ?? null,

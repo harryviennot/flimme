@@ -4,6 +4,7 @@ import {
   placesOf,
   pressFinalist,
   tapFinalist,
+  tapPick,
   vetoAllowed,
 } from './ballot';
 
@@ -103,5 +104,23 @@ describe('the veto', () => {
     expect(vetoAllowed('final_cut', 0)).toBe(false);
     expect(vetoAllowed('final_cut', null)).toBe(false);
     expect(vetoAllowed('ranked_vote', 1)).toBe(false);
+  });
+});
+
+describe('picking one of 2 films', () => {
+  it('a tap picks, a tap on the other moves the pick, a tap on the picked film lifts it', () => {
+    const seeds = [10, 20];
+    const first = tapPick(EMPTY_BALLOT, 10);
+    expect(placesOf(seeds, first).get(10)).toEqual({ kind: 'ranked', rank: 1 });
+    expect(placesOf(seeds, first).get(20)).toEqual({ kind: 'faint', rank: 2 });
+    const moved = tapPick(first, 20);
+    expect(placesOf(seeds, moved).get(20)).toEqual({ kind: 'ranked', rank: 1 });
+    expect(placesOf(seeds, moved).get(10)).toEqual({ kind: 'faint', rank: 2 });
+    expect(tapPick(moved, 20)).toEqual(EMPTY_BALLOT);
+  });
+
+  it('sends the picked film first and no veto', () => {
+    expect(ballotToSend([10, 20], tapPick(EMPTY_BALLOT, 20))).toEqual({ ranking: [20, 10] });
+    expect(ballotToSend([10, 20], EMPTY_BALLOT)).toEqual({ ranking: [10, 20] });
   });
 });

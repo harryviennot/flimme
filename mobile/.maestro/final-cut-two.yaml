@@ -1,0 +1,36 @@
+# M6.38, the Final Cut with 2 films ("Pick one", no veto): the phone is in a Quick Match room on
+# staging with 3 bots at --like-rate 1 (`mise run bots -- --code <code> --count 3 --target staging
+# --like-rate 1`), after final-cut-host.yaml. It likes 2 cards and nopes the rest, so the card count
+# opens a 2-film round. It picks a film, moves the pick, long-presses (nothing happens), locks in and
+# reaches the reveal.
+# Run: `maestro --device <sim> test mobile/.maestro/final-cut-two.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- tapOn: 'Like'
+- tapOn: 'Like'
+- repeat:
+    while:
+      visible: 'Nope'
+    times: 70
+    commands:
+      - tapOn:
+          text: 'Nope'
+          optional: true
+- extendedWaitUntil:
+    visible: '.*Pick one.*'
+    timeout: 90000
+- assertVisible: 'From your likes, with one for each of you when we can.'
+- assertNotVisible: '.*Veto one.*'
+- takeScreenshot: final-cut-two-arrived
+- tapOn: '.*, 20[0-9][0-9]. (Ranked|Not ranked|Your pick|Not picked).*'
+- longPressOn: '.*, 20[0-9][0-9]. (Ranked|Not ranked|Your pick|Not picked).*'
+- takeScreenshot: final-cut-two-picked
+- tapOn: 'Lock in my vote'
+- extendedWaitUntil:
+    visible: '(?i).*tonight.s pick.*'
+    timeout: 90000
+- takeScreenshot: final-cut-two-reveal
