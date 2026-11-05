@@ -28,9 +28,16 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: () => ({ id: '0b9a7c3e-6a1d-4f6e-9a55-2b6f1e0c8d41' }),
 }));
 jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn(async () => true) }));
+// The build's scheme and variant (app.config.ts), switched per test. A getter, because the mock
+// factory runs before this file's constants exist.
+const mockExpoConfig = { scheme: 'flimme-dev', extra: { variant: 'development' } };
 jest.mock('expo-constants', () => ({
   __esModule: true,
-  default: { expoConfig: { scheme: 'flimme-dev' } },
+  default: {
+    get expoConfig() {
+      return mockExpoConfig;
+    },
+  },
 }));
 jest.mock('@/lib/sentry', () => ({ reportError: jest.fn() }));
 jest.mock('expo-haptics', () => ({
@@ -65,8 +72,15 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
+function buildIs(variant: 'development' | 'preview' | 'production') {
+  const schemes = { development: 'flimme-dev', preview: 'flimme-preview', production: 'flimme' };
+  mockExpoConfig.scheme = schemes[variant];
+  mockExpoConfig.extra.variant = variant;
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
+  buildIs('development');
   room.mockResolvedValue({ id: ID, code: '482913', state: 'lobby' });
   appConfig.mockResolvedValue({});
   (api.roomSeats as jest.Mock).mockResolvedValue([]);
@@ -83,20 +97,34 @@ describe('the invite sheet', () => {
     expect(screen.getByText(`flimme-dev://join/482913?r=${ID}`)).toBeTruthy();
   });
 
-  it('uses the https base without the scheme in the row', async () => {
-    appConfig.mockResolvedValue({ invite_base_url: 'https://flimme.app/' });
+  it.each(['preview', 'production'] as const)(
+    'a %s build uses the https base, shown without the scheme in the row',
+    async (variant) => {
+      buildIs(variant);
+      appConfig.mockResolvedValue({ invite_base_url: 'https://flimme.com/' });
+      await render(<RoomInviteScreen />, { wrapper });
+      expect(await screen.findByText(`flimme.com/join/482913?r=${ID}`)).toBeTruthy();
+      expect(mockQr.mock.calls[0][0].value).toBe(`https://flimme.com/join/482913?r=${ID}`);
+    },
+  );
+
+  // Universal links only reach preview and production builds (decisions.md, Q14.5), so a
+  // development build shares its own scheme even when its database has the base.
+  it('a development build keeps its scheme when the config has the https base', async () => {
+    appConfig.mockResolvedValue({ invite_base_url: 'https://flimme.com' });
     await render(<RoomInviteScreen />, { wrapper });
-    expect(await screen.findByText(`flimme.app/join/482913?r=${ID}`)).toBeTruthy();
-    expect(mockQr.mock.calls[0][0].value).toBe(`https://flimme.app/join/482913?r=${ID}`);
+    expect(await screen.findByText(`flimme-dev://join/482913?r=${ID}`)).toBeTruthy();
+    expect(mockQr.mock.calls[0][0].value).toBe(`flimme-dev://join/482913?r=${ID}`);
   });
 
   it('copies the full link and shows the toast call', async () => {
-    appConfig.mockResolvedValue({ invite_base_url: 'https://flimme.app' });
+    buildIs('preview');
+    appConfig.mockResolvedValue({ invite_base_url: 'https://flimme.com' });
     await render(<RoomInviteScreen />, { wrapper });
     fireEvent.press(await screen.findByLabelText('Copy the link'));
     await waitFor(() =>
       expect(Clipboard.setStringAsync).toHaveBeenCalledWith(
-        `https://flimme.app/join/482913?r=${ID}`,
+        `https://flimme.com/join/482913?r=${ID}`,
       ),
     );
   });

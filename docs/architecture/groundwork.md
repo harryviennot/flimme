@@ -156,7 +156,8 @@ The three environments are operations.md's: local, staging and production.
 | Fly.io | Week 1 | Two apps per environment, `flimme-api-<env>` and `flimme-workers-<env>`: staging in London, production in Frankfurt |
 | Sentry (EU) | Week 1 | Two projects (app and server), environments as tags |
 | PostHog (EU) | Before M9 | The free plan has one project, so staging and production share it: every event carries its environment, and development builds send nothing |
-| Domain and support email | The name is decided (M0.1, 4 November 2026); the support address is support@flimme.com (M0.2, 4 November 2026) | Blocks the domain hookup (M4.18), not the start |
+| Domain and support email | The name is decided (M0.1, 4 November 2026); the support address is support@flimme.com (M0.2, 4 November 2026) | flimme.com and flimme.fr at OVH, which keeps their DNS: A records to the VPS, and the mail records for the support address (M4.18) |
+| VPS with Dokploy | M4.18 | Harry's own server. Dokploy runs the invite page's container behind Traefik, which gets the Let's Encrypt certificates for the four domains. One application, `invite-page`, auto-deploy off; an API key for GitHub's `production` environment |
 
 Two-factor authentication on every account (M0.6). Harry opens them; an agent can write the checklist for each.
 
@@ -177,6 +178,8 @@ Every secret starts in the password manager; the places below hold copies. Nothi
 | The server's database logins, one per process | M2.12 | Fly secrets, set by `node tools/server-logins.mjs <env>` (they exist nowhere else); the local login in `server/.env.local` | Yes |
 | TMDB API token | M2.3 | Fly secrets (pipeline worker); your own key in `server/.env.local` | Yes |
 | Fly deploy tokens, one per app (`FLY_API_TOKEN_API`, `FLY_API_TOKEN_WORKERS`) | M2.12 | GitHub's `staging` and `production` environments | Yes |
+| `DOKPLOY_API_KEY`, the Dokploy API key that deploys the invite page (Dokploy, profile, API) | M4.18 | GitHub's `production` environment | Yes |
+| `DOKPLOY_URL` (the panel's https address) and `DOKPLOY_APPLICATION_ID` (the `invite-page` application) | M4.18 | GitHub's `production` environment, as variables | No |
 | A Supabase secret key, for account deletion only | M8.5 | Fly secrets, the HTTP API process only | Yes |
 | Sentry DSN for the server | M9.4 | Fly secrets | No |
 | App Store Connect API key, Google Play service account | M10.2 | EAS credentials | Yes |

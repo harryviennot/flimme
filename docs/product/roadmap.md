@@ -98,7 +98,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
 | [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
-| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | In progress |
+| [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | Done |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 46 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 139 of 278 tasks done.
+Progress: 141 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -367,7 +367,7 @@ Done when: three phones join one room by code, link and QR code, see each other 
   Done when: `mise run bots` fills a local room with three present players.
 - [x] **M4.17** Name and color: the name screen with its three entry points, `NameForm` and `AvatarPicker` · app · M · needs M4.3, M4.6 · [onboarding](onboarding.md#first-launch)
   Done when: Home is three taps from a fresh install.
-- [ ] **M4.18** The domain hookup: Associated Domains, Android intent filters, `invite_base_url`, and hosting the invite page and verification files on the domain · ops · S · needs M0.2, M4.14 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
+- [x] **M4.18** The domain hookup: Associated Domains, Android intent filters, `invite_base_url`, and hosting the invite page and verification files on the domain · ops · S · needs M0.2, M4.14 · [app-structure](../architecture/app-structure.md#invites-and-deep-links), [store-listing](store-listing.md#invite-links-and-the-web-page)
   Done when: a link opens the app when installed and the invite page when not, checked on a device.
 - [x] **M4.19** `api.room_preview(code, ref)`: who invited you, before joining · backend · M · needs M4.1 · [security](../architecture/security.md#room-codes-joining-and-the-host), [data-model](../architecture/data-model.md#the-apps-api)
   Done when: `api.room_preview` answers a link's code and reference with the host's name and avatar, the seated count and whether the room can be joined; a wrong or missing reference reveals nothing; pgTAP covers every rule.
@@ -439,7 +439,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: rule 2 of "The finalists" is tested, ties and a player who left included.
 - [x] **M6.40** The solo game mode: a `solo` mode with one seat, `api.start_solo` and `api.solo_pick`, no join, no match and no finale, an idle solo room ended after 30 minutes, solo decks without films answered in earlier solo rooms · backend · L · needs M6.29, M6.30, M6.34 · [solo](solo-and-my-films.md#4-a-room-with-one-seat-or-a-separate-flow), [game-modes](game-modes.md#the-modes)
   Done when: each rule of the solo mode in "The modes" is tested, the 30-minute end and a pick included.
-- [ ] **M6.41** My films in `user_titles`: the `solo` source, `liked_at`, `super_liked`, `picked_at` and `seen_at`, likes written by `api.cast_vote` and taken back by undo, a group's pick marked for every seated player, `api.my_films`, `api.my_film_card`, `api.set_film_seen`, `api.remove_my_film`, and the export · backend · L · needs M6.40, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [data-model](../architecture/data-model.md#4-film-history-and-taste)
+- [x] **M6.41** My films in `user_titles`: the `solo` source, `liked_at`, `super_liked`, `picked_at` and `seen_at`, likes written by `api.cast_vote` and taken back by undo, a group's pick marked for every seated player, `api.my_films`, `api.my_film_card`, `api.set_film_seen`, `api.remove_my_film`, and the export · backend · L · needs M6.40, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [data-model](../architecture/data-model.md#4-film-history-and-taste)
   Done when: undo, both sources, a pick, the reads and edits, deletion and retention are tested, and nothing in a room reads a like.
 - [x] **M6.42** The solo daily cap, and solo in the metric views: 100 solo cards a day per player (`app_config.solo_daily_cards`, Paris day), the deal stops at the cap, `daily_limit` from `api.start_solo` and `api.request_cards`; solo rooms left out of the group metrics, with solo sessions, cards per session and solo picks · backend · M · needs M6.40, M9.3 · [solo](solo-and-my-films.md#8-the-cap), [analytics](analytics.md#game)
   Done when: the cap, undo giving nothing back, group rooms never counted, and the metric views are tested.

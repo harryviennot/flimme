@@ -100,7 +100,7 @@ select is((select count(*) from public.rate_limits where key like '%:p:' || test
 select is((select count(*) from public.profiles where id = tests.uid('d2')), 1::bigint, 'd2 keeps the profile');
 select is((select count(*) from public.profile_providers where profile_id = tests.uid('d2')), 1::bigint, 'd2 keeps the services');
 select is((select count(*) from public.consents where profile_id = tests.uid('d2')), 1::bigint, 'd2 keeps the consent');
-select is((select count(*) from public.user_titles where profile_id = tests.uid('d2')), 1::bigint, 'd2 keeps the film history');
+select is((select count(*) from public.user_titles where profile_id = tests.uid('d2')), 2::bigint, 'd2 keeps the film history');   -- the fixture and d2's like of film 1 (M6.41)
 select is((select display_name from public.room_members where id = (select d2 from seat)), 'Quuxell', 'd2 keeps the seat name');
 select is((select profile_id from public.room_members where id = (select d2 from seat)), tests.uid('d2'), 'd2 keeps the seat''s profile');
 

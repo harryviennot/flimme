@@ -93,8 +93,9 @@ select is((select count(*) from public.user_titles where profile_id = tests.uid(
 select tests.vote('p3', 8, 'like');
 select tests.vote('p3', 9, 'nope');
 select tests.vote('p3', 10, 'super_like');
-select is((select count(*) from public.user_titles where profile_id = tests.uid('p3')), 0::bigint,
-  'T7 a like, a nope and a super like write no user_titles row');
+-- M6.41: a like and a super like write liked_at (790-my-films), still no seen mark and no watchlist.
+select is((select count(*) from public.user_titles where profile_id = tests.uid('p3') and (seen or on_watchlist)), 0::bigint,
+  'T7 a like, a nope and a super like write no seen mark and no watchlist');
 
 -- T8: a seat with no profile saves nothing.
 select set_config('tests.seat_p3', tests.member_id('p3', tests.room_id())::text, true);

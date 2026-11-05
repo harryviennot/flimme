@@ -28,6 +28,7 @@ jobs:
       server: ${{ steps.filter.outputs.server }}
       database: ${{ steps.filter.outputs.database }}
       docs: ${{ steps.filter.outputs.docs }}
+      web: ${{ steps.filter.outputs.web }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
@@ -50,6 +51,12 @@ jobs:
               - '.github/workflows/**'
             docs:
               - '**/*.md'
+              - '.github/workflows/**'
+            web:
+              - 'mobile/web*'
+              - 'mobile/web/**'
+              - 'mobile/public/**'
+              - 'tools/check-well-known*'
               - '.github/workflows/**'
 
   title:
@@ -131,6 +138,38 @@ jobs:
       - name: Contract tests
         run: pnpm --filter @flimme/contract run test
 
+  web:
+    # The invite page's image (mobile/web.Dockerfile, roadmap M4.18), checked the way flimme.com
+    # serves it: both /.well-known/ files as JSON with no redirect, the page for any path, and the
+    # redirects from flimme.fr, www.flimme.fr and www.flimme.com (through a Host header). Fingerprint
+    # placeholders only warn here; the deploy check in production.yml refuses them.
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Build the image
+        run: docker build --file mobile/web.Dockerfile --tag flimme-web .
+      - name: Start it
+        run: |
+          docker run --detach --name web --publish 8080:80 flimme-web
+          for _ in $(seq 1 30); do curl -fs -o /dev/null http://localhost:8080/ && break; sleep 1; done
+      - name: The files, the page and the redirects
+        run: node tools/check-well-known.mjs http://localhost:8080 --allow-placeholders
+      - name: Nothing about the requests is logged (CLAUDE.md rule 7)
+        run: |
+          if docker logs web 2>&1 | grep -E 'GET |HEAD |/join/|/\.well-known/'; then
+            echo "The container logged a request: nginx must keep no access log."
+            exit 1
+          fi
+      - name: The container's output
+        if: failure()
+        run: docker logs web
+
   server:
     needs: changes
     if: needs.changes.outputs.server == 'true'
@@ -158,13 +197,18 @@ jobs:
     if: needs.changes.outputs.server == 'true' || needs.changes.outputs.database == 'true'
     runs-on: ubuntu-latest
     steps:
+      # First, before any download: see the database job.
+      - name: Keep the stack's ports away from outgoing connections
+        run: |
+          current=$(sysctl -n net.ipv4.ip_local_reserved_ports)
+          sudo sysctl -w net.ipv4.ip_local_reserved_ports="${current:+$current,}54320-54329"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
           # Pinned with mise.toml: the same version as the database job.
           version: 2.122.0
-      - name: Start only the services the tests need
-        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
+      - name: Start only the services the tests need (up to three tries)
+        run: bash tools/ci-supabase-start.sh -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
       - run: supabase db reset
       - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - run: uv sync --frozen
@@ -204,6 +248,14 @@ jobs:
     if: needs.changes.outputs.database == 'true'
     runs-on: ubuntu-latest
     steps:
+      # Linux picks local ports for outgoing connections from 32768 to 60999, so one of the
+      # image downloads can hold 54322 just as the database binds it ("address already in use",
+      # PRs #191 and #195). Reserved ports are never picked for that, and binding them on
+      # purpose still works. It runs first, before any download.
+      - name: Keep the stack's ports away from outgoing connections
+        run: |
+          current=$(sysctl -n net.ipv4.ip_local_reserved_ports)
+          sudo sysctl -w net.ipv4.ip_local_reserved_ports="${current:+$current,}54320-54329"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
@@ -211,8 +263,8 @@ jobs:
         with:
           # Pinned with mise.toml: the generated api types depend on the CLI version.
           version: 2.122.0
-      - name: Start only the services the tests need
-        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
+      - name: Start only the services the tests need (up to three tries)
+        run: bash tools/ci-supabase-start.sh -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
       - run: supabase db reset
       - run: supabase test db
       - name: New migrations are safe (Squawk)

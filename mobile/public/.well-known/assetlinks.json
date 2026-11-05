@@ -4,7 +4,9 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.harryviennot.flimme",
-      "sha256_cert_fingerprints": ["REPLACE_WITH_PRODUCTION_KEY_SHA256"]
+      "sha256_cert_fingerprints": [
+        "4C:CC:BA:B4:E7:C2:1E:D0:4D:B0:BF:66:E4:CC:B3:81:13:80:D7:56:72:5C:AF:17:A3:87:23:B4:84:E6:D9:9B"
+      ]
     }
   },
   {
@@ -12,7 +14,9 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.harryviennot.flimme.preview",
-      "sha256_cert_fingerprints": ["REPLACE_WITH_PREVIEW_KEY_SHA256"]
+      "sha256_cert_fingerprints": [
+        "C1:AF:AE:40:EE:B2:B8:1D:B3:28:FD:32:1F:F7:2F:B4:6A:02:D1:C5:61:63:AF:C6:47:50:AD:CA:97:81:62:BB"
+      ]
     }
   }
 ]
