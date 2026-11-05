@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 143 of 278 tasks done.
+Progress: 144 of 278 tasks done.
 
 ```mermaid
 flowchart LR
@@ -490,7 +490,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on the simulator against staging plays alone past two checkpoints, picks a film and sees where to watch, leaves a session, and meets the cap card, in French and English.
 - [x] **M6.45** My films and the film sheet: the grid, Liked and Seen, the chips, the badges, the empty, loading and offline states; the film sheet with the card back, where to watch, Mark as seen and Remove · app · L · needs M6.39, M6.41, M6.43 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles)
   Done when: a touch run on the simulator against staging shows likes, a group's pick with its badge and a seen film, removes a film and undoes it, and marks one as seen, in French and English.
-- [ ] **M6.46** Analytics for solo and My films: `solo:session_start`, `solo:checkpoint_view`, `solo:pick_submit`, `solo:cap_show` and `my_films:grid_view`, with no film ids · app · S · needs M9.2, M6.44, M6.45 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [analytics](analytics.md#events)
+- [x] **M6.46** Analytics for solo and My films: `solo:session_start`, `solo:checkpoint_view`, `solo:pick_submit`, `solo:cap_show` and `my_films:grid_view`, with no film ids · app · S · needs M9.2, M6.44, M6.45 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [analytics](analytics.md#events)
   Done when: each event shows in PostHog from a test device, and none leaves a phone in a solo session with an age cap under 13.
 
 **Tests**
