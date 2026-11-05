@@ -11,7 +11,7 @@ export const BEAT_SHOW_MS = duration['shortlist-hold'];
 export const BEAT_FLIGHT_MS = duration.slow;
 /** The scrim fades out after the landing. */
 export const BEAT_TAIL_MS = duration.fast;
-/** The room layout never holds its route longer than this (a stuck beat must not trap a player). */
+/** The room layout never holds its route longer than this (a stuck beat must not trap a player). Not a motion token: a safety limit, not a feel value (the spec fixes it at 3 seconds). */
 export const HOLD_LIMIT_MS = 3000;
 /** The size until the mode or an event says otherwise. */
 export const DEFAULT_SIZE = 3;

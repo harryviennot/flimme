@@ -176,27 +176,38 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
   const canUndo = lastId !== undefined && !locked && !undoShortlisted;
 
   /**
+   * The server kept this phone's vote for the film although Undo took it back on the phone (the
+   * vote was in flight, or the undo came back `locked`): it counts as answered again and its super
+   * like as spent. Only the two signals that mean the vote stands call this (the phone's own
+   * `match` answer, and `undo_locked`): a match another phone completed, after an undo the server
+   * accepted, leaves the count as it is.
+   */
+  const voteStands = useCallback(
+    (titleId: number) => {
+      if (!thrown.has(titleId) || answered.has(titleId)) return;
+      const spent = refunded.delete(titleId);
+      answered.add(titleId);
+      answerer.redone(spent);
+      setSuperLikesLeft(answerer.superLikesLeft());
+      setCount(answerer.count());
+    },
+    [thrown, answered, refunded, answerer],
+  );
+
+  /**
    * Films that matched leave this phone: gone from the stack at once if behind the mounted
-   * cards, under the scrim if mounted. A film this phone had answered (an undo brought it back,
-   * or the vote was still in flight) counts as answered again, and its super like as spent.
+   * cards, under the scrim if mounted. The card stays in `thrown` so the beat and the top bar find
+   * its poster.
    */
   const leave = useCallback(
     (ids: readonly number[]) => {
       const { mounted, buffer } = stack.getState();
       for (const card of [...mounted, ...buffer]) {
-        if (!ids.includes(card.title_id)) continue;
-        if (thrown.has(card.title_id) && !answered.has(card.title_id)) {
-          const spent = refunded.delete(card.title_id);
-          answered.add(card.title_id);
-          answerer.redone(spent);
-          setSuperLikesLeft(answerer.superLikesLeft());
-          setCount(answerer.count());
-        }
-        thrown.set(card.title_id, card);
+        if (ids.includes(card.title_id)) thrown.set(card.title_id, card);
       }
       stack.getState().removeTitles(ids);
     },
-    [stack, thrown, answered, refunded, answerer],
+    [stack, thrown],
   );
   useEffect(() => {
     const ids = [...shortlist.known];
@@ -247,11 +258,16 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       voteQueue.onAnswer((event) => {
         if (event.room_id !== roomId) return;
         if (event.type === 'match') {
+          // This phone's own vote matched: the vote stands, even if Undo took the card back.
+          voteStands(event.title_id);
           if (event.decided !== false) lock();
         } else if (event.type === 'undo_locked') {
           // The card that came back matched: it leaves again, with no message. After the room
           // moved on the layout follows the room instead.
-          if (!live.getState().locked) leave([event.title_id]);
+          if (!live.getState().locked) {
+            voteStands(event.title_id);
+            leave([event.title_id]);
+          }
         } else if (event.type === 'finale' || event.type === 'closed') lock();
         else if (event.type === 'no_super_likes') {
           // The server has no vote for this film: Undo has nothing to take back there.
@@ -269,7 +285,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
           stack.getState().onDeckUpdated();
         }
       }),
-    [roomId, answerer, stack, lock, undoer, refunded, leave, live],
+    [roomId, answerer, stack, lock, undoer, refunded, leave, voteStands, live],
   );
 
   // Connection: the stack waits offline and refills on return; the queue sends what waited.

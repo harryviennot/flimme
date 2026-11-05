@@ -235,6 +235,37 @@ describe('the room layout', () => {
       expect(screen).toHavePathname('/room/r1/swipe');
     });
 
+    it('shows the same shortlist and beat in a Blind room as in a Party one', async () => {
+      api.room.mockResolvedValue({ ...roomOf('swiping'), reveal: 'blind' });
+      api.roomMatches.mockResolvedValue([matchRow(4, '1')]);
+      await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });
+      await waitFor(() => expect(screen.getByText('1/3')).toBeTruthy());
+      api.castVote.mockResolvedValue({
+        status: 'ok',
+        match: true,
+        kind: 'majority',
+        decided: false,
+      });
+      await act(async () => {
+        voteQueue.enqueue({
+          room_id: 'r1',
+          member_id: 'm1',
+          title_id: 8,
+          answer: 'like',
+          dwell_ms: 500,
+          client_at: '2026-11-05T10:00:00.000Z',
+          flipped: false,
+        });
+      });
+      await waitFor(() => expect(screen.getByTestId('shortlisted')).toBeTruthy());
+      expect(screen).toHavePathname('/room/r1/swipe');
+      await act(async () => {
+        jest.advanceTimersByTime(1800);
+      });
+      await waitFor(() => expect(screen.getByText('2/3')).toBeTruthy());
+      expect(screen.queryByTestId('shortlisted')).toBeNull();
+    });
+
     it('holds the swipe screen on the third match until the beat ends, then goes to the Final Cut', async () => {
       api.room.mockResolvedValue(roomOf('swiping'));
       await renderRouter(routes, { initialUrl: '/room/r1/swipe', wrapper: Providers });

@@ -525,6 +525,37 @@ describe('the shortlist', () => {
     expect(view.result.current.canUndo).toBe(false);
   });
 
+  it('leaves the count and the super like alone when another phone completes the match after an accepted undo', async () => {
+    const shortlist = controller();
+    const view = await openWith(shortlist);
+    await act(async () => void view.result.current.answer('super_like'));
+    await act(async () => mockQueue.store.setState({ votes: [] }));
+    await act(async () => void view.result.current.undo());
+    expect(view.result.current.count).toBe(0);
+    expect(view.result.current.superLikesLeft).toBe(2);
+    // The card is back on top and the server has no vote from this phone for it.
+    await act(async () => shortlist.signal(matched(1)));
+    await act(async () => void jest.advanceTimersByTime(200));
+    expect(ids(view)).not.toContain(1);
+    expect(view.result.current.count).toBe(0);
+    expect(view.result.current.superLikesLeft).toBe(2);
+  });
+
+  it('counts the vote again when its own answer says match after an undo in flight', async () => {
+    const shortlist = controller();
+    const view = await openWith(shortlist);
+    await act(async () => void view.result.current.answer('like'));
+    await act(async () => mockQueue.store.setState({ votes: [] }));
+    await act(async () => void view.result.current.undo());
+    expect(view.result.current.count).toBe(0);
+    await act(async () =>
+      mockQueue.listeners.forEach((l) =>
+        l({ type: 'match', room_id: ROOM, title_id: 1, kind: 'unanimous', decided: false }),
+      ),
+    );
+    expect(view.result.current.count).toBe(1);
+  });
+
   it('keeps the card when the undo is locked after the room moved on: the layout follows the room', async () => {
     const shortlist = controller();
     const view = await openWith(shortlist);
