@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 149 of 280 tasks done.
+Progress: 150 of 280 tasks done.
 
 ```mermaid
 flowchart LR
@@ -536,7 +536,7 @@ What the law and the stores ask of a guest-only app.
 
 Done when: the policy and terms are online, and players can download and delete their data from the app.
 
-- [ ] **M8.1** Privacy policy in French and English, for the first release's data only · legal · M · needs M0.1 · [privacy](privacy.md#privacy-policy-outline)
+- [x] **M8.1** Privacy policy in French and English, for the first release's data only · legal · M · needs M0.1 · [privacy](privacy.md#privacy-policy-outline)
   Done when: written from the outline and the data map.
 - [x] **M8.2** Terms of use in French and English · legal · M · needs M0.1 · [privacy](privacy.md#terms-of-use-outline)
   Done when: written from the outline.
