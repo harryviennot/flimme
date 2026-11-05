@@ -255,6 +255,9 @@
 @utility gradient-card-scrim {
   background-image: linear-gradient(180deg, #0a0b0f00 0%, #0a0b0feb 42%, #0a0b0f 100%);
 }
+@utility gradient-card-front-scrim {
+  background-image: linear-gradient(180deg, #0a0b0f00 0%, #0a0b0f05 20%, #0a0b0f14 35%, #0a0b0f33 50%, #0a0b0f5c 60%, #0a0b0f94 70%, #0a0b0fbd 80%, #0a0b0fd6 90%, #0a0b0fe0 100%);
+}
 @utility gradient-marquee-sunset {
   background-image: linear-gradient(90deg, #ffd84d 0%, #ffa552 55%, #ff8ad4 100%);
 }

@@ -1,5 +1,8 @@
+import type { Card } from '@flimme/contract';
+import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { FinalCutScreen } from '@/components/screens/final-cut/final-cut-screen';
@@ -16,7 +19,11 @@ import {
   type Ballot,
 } from '@/features/finale/ballot';
 import { phaseOf, statusKey, takesTaps, ticks } from '@/features/finale/phase';
+import { finalistCardsQuery } from '@/features/finale/queries';
+import type { RevealData } from '@/features/finale/reveal';
+import { revealStore, useRevealOf } from '@/features/finale/reveal-store';
 import type { FinalistView } from '@/features/finale/rounds';
+import { useRevealView } from '@/features/finale/use-reveal';
 import type { FinalCutModel, LockInSeat } from '@/features/finale/use-final-cut';
 import { LeaveContext } from '@/features/lobby/leave-context';
 import { haptics } from '@/lib/haptics';
@@ -82,6 +89,108 @@ const FIXTURES: Fixture[] = [
     seconds: 60,
   },
 ];
+
+const f = (titleId: number, seed: number, points: number, vetoed = false) => ({
+  titleId,
+  seed,
+  points,
+  vetoed,
+});
+
+// The reveal on fixture data (final-cut.md#the-reveal): the round has just closed.
+const REVEALS: { label: string; data: RevealData }[] = [
+  {
+    label: 'Reveal: knock-out, points, 4 films',
+    data: {
+      winnerId: 1,
+      reason: 'points',
+      finalists: [f(1, 1, 40), f(2, 2, 30), f(3, 3, 20), f(4, 4, 0, true)],
+    },
+  },
+  {
+    label: 'Reveal: 2 players, no points',
+    data: { winnerId: 2, reason: 'points', finalists: [f(1, 1, 2, true), f(2, 2, 2)] },
+  },
+  {
+    label: 'Reveal: only unvetoed',
+    data: {
+      winnerId: 3,
+      reason: 'only_unvetoed',
+      finalists: [f(1, 1, 0, true), f(2, 2, 0, true), f(3, 3, 0)],
+    },
+  },
+  {
+    label: 'Reveal: nobody voted',
+    data: { winnerId: 1, reason: 'no_ballots', finalists: [f(1, 1, 0), f(2, 2, 0), f(3, 3, 0)] },
+  },
+  {
+    label: 'Reveal: a tie',
+    data: {
+      winnerId: 1,
+      reason: 'points',
+      finalists: [f(1, 1, 20), f(2, 2, 20), f(3, 3, 10), f(4, 4, 10)],
+    },
+  },
+];
+
+function RevealFixtured({ data, onExit }: { data: RevealData; onExit: () => void }) {
+  const { i18n } = useTranslation();
+  const queryClient = useQueryClient();
+  const [ready] = useState(() => {
+    // The cards are seeded, so the reveal needs no room; the posters are the gallery's.
+    const ids = data.finalists.map((x) => x.titleId);
+    const cards = ids.map((id) => {
+      const film = FILMS.find((x) => x.titleId === id);
+      return {
+        title_id: id,
+        title: film?.title ?? '',
+        year: film?.year ?? null,
+      } as unknown as Card;
+    });
+    queryClient.setQueryData(finalistCardsQuery('dev', ids, i18n.language).queryKey, cards);
+    revealStore.getState().reset();
+    revealStore.getState().play('dev', data);
+    return true;
+  });
+  const posters = Object.fromEntries(FILMS.map((film) => [film.titleId, film.poster]));
+  const reveal = useRevealView('dev', i18n.language, posters as never);
+  const phase = useRevealOf('dev').phase;
+  useEffect(() => {
+    if (phase === 'over') onExit();
+  }, [phase, onExit]);
+  if (!ready) return null;
+  const model: FinalCutModel = {
+    kind: 'final_cut',
+    phase: 'counting',
+    loadFailed: false,
+    postersFailed: false,
+    slots: data.finalists.length,
+    finalists: [],
+    places: new Map(),
+    vetoAllowed: false,
+    deadline: null,
+    countdownOn: false,
+    tick: false,
+    seats: [],
+    count: 0,
+    of: 0,
+    status: null,
+    meLocked: false,
+    numbersHidden: false,
+    online: true,
+    onTap: () => undefined,
+    onLongPress: () => undefined,
+    onLockIn: () => undefined,
+    onEnd: () => undefined,
+    retryLoad: () => undefined,
+    retryPosters: () => undefined,
+  };
+  return (
+    <LeaveContext.Provider value={onExit}>
+      <FinalCutScreen roomId="dev" model={model} reveal={reveal} />
+    </LeaveContext.Provider>
+  );
+}
 
 function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void }) {
   const [deadline] = useState(() => new Date(Date.now() + fixture.seconds * 1000).toISOString());
@@ -186,10 +295,12 @@ function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void })
 
 export default function DevFinalCutScreen() {
   const [fixture, setFixture] = useState<Fixture | null>(null);
+  const [revealing, setRevealing] = useState<RevealData | null>(null);
   if (!__DEV__) return <Redirect href="/" />;
+  if (revealing) return <RevealFixtured data={revealing} onExit={() => setRevealing(null)} />;
   if (fixture) return <Fixtured fixture={fixture} onExit={() => setFixture(null)} />;
   return (
-    <Screen header={<TopBar title="Final Cut" onBack={() => router.back()} />}>
+    <Screen scroll header={<TopBar title="Final Cut" onBack={() => router.back()} />}>
       <View className="flex-1 justify-center gap-4">
         <Text tone="secondary">
           The Final Cut on fixture data. The other seats lock in after you do; the leave button
@@ -201,6 +312,14 @@ export default function DevFinalCutScreen() {
             label={item.label}
             variant="secondary"
             onPress={() => setFixture(item)}
+          />
+        ))}
+        {REVEALS.map((item) => (
+          <Button
+            key={item.label}
+            label={item.label}
+            variant="secondary"
+            onPress={() => setRevealing(item.data)}
           />
         ))}
       </View>

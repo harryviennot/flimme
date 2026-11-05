@@ -349,6 +349,48 @@ export const tokens = {
       "kind": "linear",
       "angle": 180
     },
+    "card-front-scrim": {
+      "stops": [
+        {
+          "color": "#0a0b0f00",
+          "position": 0
+        },
+        {
+          "color": "#0a0b0f05",
+          "position": 0.2
+        },
+        {
+          "color": "#0a0b0f14",
+          "position": 0.35
+        },
+        {
+          "color": "#0a0b0f33",
+          "position": 0.5
+        },
+        {
+          "color": "#0a0b0f5c",
+          "position": 0.6
+        },
+        {
+          "color": "#0a0b0f94",
+          "position": 0.7
+        },
+        {
+          "color": "#0a0b0fbd",
+          "position": 0.8
+        },
+        {
+          "color": "#0a0b0fd6",
+          "position": 0.9
+        },
+        {
+          "color": "#0a0b0fe0",
+          "position": 1
+        }
+      ],
+      "kind": "linear",
+      "angle": 180
+    },
     "marquee-sunset": {
       "stops": [
         {
@@ -375,6 +417,10 @@ export const tokens = {
     "slow": 400,
     "celebrate": 800,
     "match-hold": 4000,
+    "reveal-lead": 300,
+    "reveal-vetoes": 500,
+    "reveal-points": 1000,
+    "reveal-hold": 2500,
     "hint-delay": 600
   },
   "easing": {
