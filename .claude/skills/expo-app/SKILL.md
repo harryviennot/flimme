@@ -52,6 +52,12 @@ Every `api` function answers with a status (`packages/contract/src/answers.ts`).
 - `wipe.ts` / `wipe-app.ts`: signs out locally, resets every persisted store (a new one joins the list in `wipe-app.ts`), clears the query cache and starts a new guest. It runs after a deletion and when the stored session's user is gone (`launch/use-gone-user.ts`).
 - The analytics choice is kept in the settings store first and sent by `features/settings/analytics-sync.ts`; bump `ANALYTICS_WORDING_VERSION` when the `settings:analytics.*` copy changes.
 
+## Analytics
+
+- `lib/analytics.ts` is the only door to PostHog: `track(event, props)`, `screen(pattern)`, `setRoomCap`, `configure`, `forget`. `analytics-core.ts` holds the rules (testable with a fake client), `analytics-region.ts` the strict regions. An event and its properties are declared in `ANALYTICS_EVENTS` (strings are closed lists; dev builds throw on anything else, production drops it). M9.2 adds events there.
+- No `EXPO_PUBLIC_POSTHOG_KEY` (everything but EAS production) means no client; development builds record what would be sent in the dev menu's "Analytics log". `posthog-react-native` is built with `personProfiles` fixed per client, so a change of mode makes a new client after a `reset`.
+- The room layout calls `useRoomCap(room.data)`: nothing is sent while the cap is under 13 or unknown. The wipe calls `forget` first.
+
 ## Session, profile and connection
 
 - `useSession()` / `useSessionFailed()` (`features/session`): the guest sign-in's answer, and whether it threw (reported once inside `startSession`; callers use `.catch(() => {})`). `useMyProfile()` (`features/profile`, key `['my_profile']`) is seeded from the copy kept on the device and stale from the start; `useOnline()` (`features/network`) comes from expo-network and also drives TanStack's `onlineManager`. A screen that needs the player's name reads `useMyProfile()`, never the api.

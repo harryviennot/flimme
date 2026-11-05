@@ -269,6 +269,20 @@ From the revival plan's checklist: 50 rooms at once.
 
 If a target is missed: find the slow queries in Supabase's query performance report first; then try Small compute; then the data model's own fixes (a precomputed eligible set per room, or an HNSW pre-filter).
 
+**How to run it** (M9.7 built the runner in `tools/load/`; the full run is M9.9, Harry's).
+
+- Bot accounts: email and password accounts on staging, kept in a git-ignored JSON file (name it `load-accounts.json`, or keep it outside the repository), a list of `{ "email": ..., "password": ... }` (about 230 for the full run). `LOAD_ACCOUNTS_FILE` points to it. Staging's anonymous sign-in limit would stop one machine, so the local stack is the only place bots sign in as guests.
+- Staging's public values in the environment: `FLIMME_STAGING_URL` and `FLIMME_STAGING_KEY` (the publishable key).
+- A small dry run: `mise run load -- --target staging --rooms4 2 --rooms10 1 --ramp 30s --duration 5m`. The scenario above is the default: `mise run load -- --target staging --full`. More than 20 bots needs `--full` (the dry run above is 18 bots), and the runner refuses any URL that is not staging's (or, for `--target local`, this machine's).
+- Ctrl-C or the end of the time stops new games, gives running rooms 60 seconds (`--grace`) to finish, makes every bot leave its room and writes the report.
+- The report (`load-report-<date>-<time>.md`) and the vote ledger (`load-ledger-<date>-<time>.json`, seat ids inside) are git-ignored. The report has no account, id or room code and goes into the pull request as it is.
+- The runner measures the `cast_vote` round trip, a match reaching the other bots and the fallback deals it sees. A match is timed from the matching vote's answer to each other bot's Realtime event.
+- Read by hand, with the queries the report prints: `internal.deck_candidates` (`pg_stat_statements`), the deal time and fallback deals (`rec.requests`), database CPU (Supabase reports) and new Sentry issues.
+- Lost or duplicated votes: after the run, count the rows of `votes` per seat as a JSON object (`select jsonb_object_agg(room_member_id, n) from (select room_member_id, count(*) n from public.votes where created_at >= '<start of the run>' group by 1) s`), then `mise run load -- check --ledger <ledger file> --counts <counts file>`.
+- **One machine hits the join limits.** `api.join_room` allows 30 joins per IP address and 10 per profile in 10 minutes (security.md#starting-values), and every bot joins once per game. The full run joins 230 bots in its first 5 minutes from one address, so the report lists `join:rate_limited` under "Games that could not be played" and the run is invalid until the limit is relaxed for the hour (or the bots come from several addresses). That choice is Harry's, before M9.9. The local dry run clears the `join` counters in its own database; staging has no such shortcut.
+- Locally there is no deck worker, so every `rec.requests` row is a baseline deal (`is_fallback`): the fallback line is only meaningful on staging.
+- Bots swipe about every 3 seconds, scaled by their personality (fast 0.5, slow 2), and like about 30% of cards.
+
 **What it says about capacity.** Assuming one Realtime connection per phone, Pro's 500 included connections cover about 125 four-player rooms at the same moment; beyond that, connections cost $10 per 1,000. The data model's estimate of about 350 Realtime messages per 4-player game means the 5 million included messages cover about 14,000 games a month.
 
 ## Monthly costs

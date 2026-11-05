@@ -1,0 +1,33 @@
+# Slice 15, PostHog by region (M9.1): in a room capped under 13, no analytics event leaves the phone
+# until it leaves the room. A curl host creates the room with `{"max_age": 12}` and its code goes in
+# CODE. The dev menu's Analytics log shows the lobby as DROPPED ("kids room"), then events resume on
+# Home once the player leaves.
+# Run: `maestro test mobile/.maestro/settings-analytics-kids.yaml -e CODE=<code> -e METRO_URL=http://localhost:<port>`.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/settle-dev-menu.yaml
+- runFlow: subflows/join-room.yaml
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 15000
+- openLink: flimme-dev:///dev/analytics
+- extendedWaitUntil:
+    visible: 'DROPPED.*kids room'
+    timeout: 10000
+- assertNotVisible: 'EVENT.*/room.*'
+- takeScreenshot: kids-room-dropped
+- tapOn: 'Clear the log'
+- tapOn: 'Back'
+- tapOn: 'Back'
+- assertVisible: '(?i)leave the room\?'
+- tapOn: 'Leave'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- openLink: flimme-dev:///dev/analytics
+- extendedWaitUntil:
+    visible: 'EVENT.*home.*'
+    timeout: 10000
+- assertNotVisible: 'EVENT.*/room.*'
+- takeScreenshot: kids-room-left

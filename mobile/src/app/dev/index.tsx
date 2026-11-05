@@ -113,6 +113,7 @@ export default function DevScreen() {
             icon="ticket"
             onPress={() => router.push('/dev/final-cut')}
           />
+          <ListRow label="Analytics log" icon="eye" onPress={() => router.push('/dev/analytics')} />
           <ListRow
             label="Realtime spike"
             icon="zap"

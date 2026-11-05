@@ -1,0 +1,53 @@
+# Slice 15, PostHog by region (M9.1): the Settings switches against the dev menu's Analytics log.
+# Starts from a fresh install. Run with the simulator region set to France
+# (`xcrun simctl spawn <udid> defaults write .GlobalPreferences AppleLanguages -array en-FR`, then
+# a restart of the simulator):
+# - France is anonymous, and the "Detailed stats" switch shows;
+# - turning detailed stats on identifies, and off goes back to anonymous;
+# - turning "Help improve the app" off stops everything: events are dropped as "opted out".
+# Run: `maestro test mobile/.maestro/settings-analytics-choice.yaml -e METRO_URL=http://localhost:<port>`.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/settle-dev-menu.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Maestro'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- tapOn: 'Settings'
+- extendedWaitUntil:
+    visible: 'Detailed stats'
+    timeout: 10000
+- tapOn: 'Detailed stats'
+- openLink: flimme-dev:///dev/analytics
+- extendedWaitUntil:
+    visible: 'CALL identified identify'
+    timeout: 10000
+- takeScreenshot: detailed-on
+- tapOn: 'Clear the log'
+- openLink: flimme-dev:///settings
+- tapOn: 'Detailed stats'
+- openLink: flimme-dev:///dev/analytics
+- extendedWaitUntil:
+    visible: 'Mode: anonymous'
+    timeout: 10000
+- takeScreenshot: detailed-off
+- openLink: flimme-dev:///settings
+- tapOn: 'Help improve the app'
+- openLink: flimme-dev:///dev/analytics
+- extendedWaitUntil:
+    visible: 'Mode: off'
+    timeout: 10000
+- assertVisible: 'CALL .* optOut'
+- takeScreenshot: opted-out
+- tapOn: 'Clear the log'
+- openLink: flimme-dev:///settings
+- openLink: flimme-dev:///dev/analytics
+- assertVisible: 'DROPPED.*opted out'
+- assertNotVisible: 'EVENT.*'
+- takeScreenshot: opted-out-dropped
