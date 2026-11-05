@@ -15,6 +15,11 @@ alter table public.user_titles
   add column if not exists picked_at timestamptz,
   add column if not exists seen_at timestamptz;
 
+-- Marks made before this column existed get the time they were last written, so undo never mistakes
+-- an old mark for the one a vote makes now.
+update public.user_titles set seen_at = updated_at
+where seen and seen_at is null and source in ('app', 'solo');
+
 -- Deletes the player's app and solo rows for a film that hold nothing any more.
 create function internal.prune_film_rows(p_profile_id uuid, p_title_id bigint) returns void
 language sql volatile security definer set search_path = ''
@@ -488,7 +493,7 @@ begin
     set seen = false, seen_at = null, updated_at = now()
     where ut.profile_id = v_member.profile_id and ut.title_id = v_vote.title_id and ut.source = 'app'
       and v_vote.answer in ('seen', 'seen_rewatch') and ut.seen
-      and (ut.seen_at = v_vote.created_at or (ut.seen_at is null and ut.updated_at = v_vote.created_at));
+      and ut.seen_at = v_vote.created_at;
 
     if v_vote.answer in ('like', 'super_like', 'seen_rewatch') then
       v_source := case when v_room.mode = 'solo' then 'solo' else 'app' end;

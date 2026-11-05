@@ -6,7 +6,7 @@
 -- The catalog holds exactly 25 films, so a fresh solo player is dealt all of them.
 
 begin;
-select plan(101);
+select plan(103);
 
 select tests.create_catalog(40);
 update public.titles set is_active = false where original_title not like 'Catalog Film %';
@@ -224,6 +224,20 @@ select pg_temp.undo('a1');
 -- (the vote above was seen_rewatch on film 5: both marks go with it)
 select ok(not pg_temp.has('a1', tests.film(5), 'app'),
           'M6.41 rule 3: undoing seen_rewatch removes the seen mark and the like, and the empty row goes');
+
+-- seen_rewatch on a film whose seen mark is older (no seen_at, a rating on the row): undo keeps the mark.
+insert into public.user_titles (profile_id, title_id, source, seen, rating, updated_at)
+values (tests.uid('a1'), tests.film(13), 'app', true, 4, now() - interval '9 days');
+select tests.vote('a1', 13, 'seen_rewatch');
+select pg_temp.undo('a1');
+select ok(pg_temp.col('a1', tests.film(13), 'app', 'seen') = 'true' and pg_temp.col('a1', tests.film(13), 'app', 'liked_at') is null,
+          'M6.41 rule 3: undoing seen_rewatch keeps a seen mark that was there before');
+insert into public.user_titles (profile_id, title_id, source, seen, updated_at)
+values (tests.uid('a1'), tests.film(14), 'app', true, now() - interval '9 days');
+select tests.vote('a1', 14, 'seen_rewatch');
+select pg_temp.undo('a1');
+select ok(pg_temp.col('a1', tests.film(14), 'app', 'seen') = 'true',
+          'M6.41 rule 3: the same with nothing else on the row, the row stays');
 
 -- A like, undone: the row goes.
 select tests.vote('a1', 9, 'like');
