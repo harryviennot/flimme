@@ -204,6 +204,7 @@ What Supabase Pro gives:
 What we add:
 
 - **A weekly logical dump** of production (`backup.yml`, with the Supabase CLI) to private, encrypted storage, kept 4 weeks (starting value). How long backups holding personal data may be kept, and how deletions reach them, is for [privacy.md](../product/privacy.md).
+- **A restore drill before the closed beta, then every 6 months:** restore the latest daily backup into a new project, reset the four server logins, point a staging server at it, run the pgTAP suite and one bot game, and write down how long it took.
 
 The weekly dump, as built (M9.6):
 
@@ -218,7 +219,6 @@ The weekly dump, as built (M9.6):
 - **Not yet proven:** a restore into a real Supabase project and a staging server running on it. That drill is M9.8 (Harry, after M2.15).
 
 Harry sets up once (step H5 of the slice plan): a private Tigris bucket, an `age` key pair (`age-keygen`, public key into `BACKUP_AGE_RECIPIENT`, private key into the password manager only), and a Tigris access key limited to that bucket. Then run `backup.yml` by hand with `staging` and check the objects appear.
-- **A restore drill before the closed beta, then every 6 months:** restore the latest daily backup into a new project, reset the four server logins, point a staging server at it, run the pgTAP suite and one bot game, and write down how long it took.
 
 ## Retention jobs
 

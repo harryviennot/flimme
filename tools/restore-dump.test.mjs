@@ -53,6 +53,17 @@ for (const host of [
   });
 }
 
+test('restore: refuses a host= parameter that would override the host check', () => {
+  const dir = dumpFolder();
+  try {
+    const r = run(dir, 'postgresql://u@localhost/db?host=db.x.supabase.co');
+    assert.notEqual(r.status, 0);
+    assert.match(r.stderr, /host=/);
+  } finally {
+    rmSync(dir, { recursive: true });
+  }
+});
+
 test('restore: usage without arguments', () => {
   const r = run();
   assert.notEqual(r.status, 0);

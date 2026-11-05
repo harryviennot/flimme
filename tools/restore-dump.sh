@@ -39,6 +39,11 @@ roles=$(part roles)
 schema=$(part schema)
 data=$(part data)
 
+# libpq lets a query parameter override the host, which would get past the guard below.
+case $url in
+  *host=* | *hostaddr=*) echo "restore-dump: a host= or hostaddr= parameter in the URL is not accepted" >&2; exit 1 ;;
+esac
+
 # The host, lowercased, without credentials, port or query.
 host=${url#*://}
 host=${host#*@}
@@ -82,6 +87,7 @@ echo "restore-dump: data"
 q --single-transaction --command 'set session_replication_role = replica' --file "$data" > /dev/null
 
 echo "restore-dump: row counts"
+# This list must follow the schema: a renamed table fails here, after the data is loaded.
 tables='auth.users public.profiles public.rooms public.room_members public.room_cards public.votes
 public.matches public.rounds public.titles public.user_titles public.swipe_log public.consents
 public.app_config public.genres public.providers rec.requests rec.models internal.name_blocklist'
