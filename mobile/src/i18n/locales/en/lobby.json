@@ -1,6 +1,7 @@
 {
   "topBar": "Lobby",
   "ticket": {
+    "copied": "Code copied",
     "players_one": "{{count}} of {{max}} players",
     "players_other": "{{count}} of {{max}} players",
     "host": "Host · {{name}}"
@@ -65,6 +66,7 @@
     "seat": "Open options for {{name}}",
     "report": "Report {{name}}",
     "invite": "Invite friends",
+    "copyCode": "Copy the code",
     "joined": "{{name}} is here",
     "left": "{{name}} left",
     "leave": "Leave the room",

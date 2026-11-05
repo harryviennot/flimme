@@ -96,7 +96,6 @@ export default function HostScreen() {
         client.setQueryData(MY_PROVIDERS_KEY, selection);
         leaveOldSeat(outcome.roomId, oldRoomId);
         router.replace(`/room/${outcome.roomId}/lobby`);
-        router.push(`/room/${outcome.roomId}/invite`);
         return;
       case 'name_required':
         router.push('/name?edit=1');
