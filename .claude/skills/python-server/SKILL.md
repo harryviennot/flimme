@@ -24,7 +24,7 @@ Postgres decides the game; the server decides the deck, learns, and makes every 
 - Types everywhere; pyright must pass. Pydantic models for payloads crossing the database or HTTP.
 - **No network in tests.** TMDB and Letterboxd responses are replayed from `tests/fixtures/`, which holds synthetic files only (TMDB's response shape, movie ids from 60,000,001; a test fails on any other id). Record a real one into the git-ignored `tests/fixtures/.recorded/` and run `tools/scrub_fixture.py` before committing. The TMDB client is `catalog/tmdb.py`: one per process, it owns the rate limiter.
 - **TMDB:** a polite request rate, retries with backoff, 429 handling (tmdb.md#failures-and-retries). Its data never goes into git.
-- **No personal data in logs**: ids only, never names, room codes or emails.
+- **No personal data in logs**: ids only, never names, room codes or emails. Logs are JSON through `observability.py`: attach only allow-listed `extra` fields (`room_id`, `member_id`, `profile_id`, `queue`, `msg_id`, `job`, `status`, `duration_ms`, `error_kind`, `count`, `method`, `route`, `sqlstate`); never log an exception's text from a database or validation error. Sentry gets no user, request data or ids; each command calls `observability.setup`.
 - The HTTP API checks the Supabase token (ES256, against the project's signing keys) on every route but `/healthz`. A route declares `Depends(require_player)` (profile must exist) or `require_token` (M8.5 deletion); body limit 16 KB; `GET /healthz` is the only open route.
 - Each process has its own database login; only the HTTP API holds the Supabase secret key.
 

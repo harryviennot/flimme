@@ -69,7 +69,7 @@ The rest of this doc is written for Python, and the layout holds either way: if 
 | Embeddings | onnxruntime and tokenizers, with the `Supabase/gte-small` ONNX weights |
 | Outside calls | httpx, with one shared client per process |
 | RSS | defusedxml before parsing, since feeds are outside input |
-| Errors | Sentry (set up in [operations.md](operations.md)) |
+| Errors and logs | Sentry with no user, ids, headers or bodies; logs as JSON lines with an allow-list of fields, in `server/src/server/observability.py` ([security.md](security.md#logging-without-personal-data)). `server sentry-check` sends a test event |
 | Python version | The newest release that psycopg, onnxruntime and LightGBM all publish wheels for |
 
 ## Principles

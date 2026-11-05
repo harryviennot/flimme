@@ -247,8 +247,9 @@ Deletion is idempotent: a retry after a dropped connection succeeds quietly.
 | Where | Logs | Never logs |
 | --- | --- | --- |
 | The server | Room, seat and profile ids, timings, status codes, error kinds | Tokens, request bodies (Letterboxd uploads especially), Letterboxd usernames, display names |
+| The server, how | One JSON object per line on stdout. Only allow-listed fields (`room_id`, `member_id`, `profile_id`, `queue`, `msg_id`, `job`, `status`, `duration_ms`, `error_kind`, `count`, plus `method`, `route` and `sqlstate`); a scrubber redacts bearer tokens, JWTs, Supabase and PostHog keys and emails. Exceptions log their type, SQLSTATE and stack, never their arguments. The API logs one line per request with the route template | Headers, bodies, query strings, raw paths |
 | Database function errors | Fixed messages ("not a member of this room") | Values from the request. The current messages already follow this |
-| Sentry, app and server | Crashes with device and app version | Personal data: default PII off, breadcrumbs without request bodies ([app structure](app-structure.md#analytics-and-crash-reports)) |
+| Sentry, app and server | Crashes with device and app version. On the server: the error type, stack, environment, release (`sha-<commit>`) and queue and message id for a poisoned message | Personal data: default PII off, breadcrumbs without request bodies ([app structure](app-structure.md#analytics-and-crash-reports)). On the server also no user, request, headers, ids, exception text or local variables |
 | PostHog | Product events, after consent | Names, film history ([analytics.md](../product/analytics.md)) |
 | Supabase's own logs | API and auth requests, with IP addresses | Retention and disclosure are in [privacy.md](../product/privacy.md) |
 | `swipe_log`, `rec`, training exports | Seat ids | Profile ids, names, usernames (already the design) |

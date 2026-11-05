@@ -140,6 +140,8 @@ class QueueRunner:
                 spec.name,
                 message.msg_id,
                 message.read_ct,
+                # The queue and the id only: this line becomes a Sentry event.
+                extra={"queue": spec.name, "msg_id": message.msg_id},
             )
             await self._acknowledge(self._client.archive, message.msg_id)
             return
