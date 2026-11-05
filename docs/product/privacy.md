@@ -79,6 +79,8 @@ Guests and accounts store the same things; a guest simply has no email. Retentio
 | On the phone | Sign-in session, vote queue, settings | Keep you signed in, keep offline votes | Strictly necessary | Stays on the phone | Until sign-out or uninstall |
 | "Did you watch it?" reminder | A local notification scheduled on the phone; no push token at launch | The follow-up | OS permission | Stays on the phone | Until it fires |
 
+**Backups.** A deleted account's data leaves backups when they expire, not before: the weekly dump after 4 weeks, Supabase's daily backups after 7 days. Dumps are not rewritten. *Default taken while Harry was away (4 Nov 2026): for the lawyer's review.*
+
 Not personal: `rec.title_stats` (per-film totals of in-app reactions) and `letterboxd_film_map` (Letterboxd film to TMDB film).
 
 **What rooms reveal.** Inside a room, players see each other's names, avatars, services, whether Letterboxd is linked, a seated player's Letterboxd rating of the film on screen, watchlist labels, and after the pick in Party mode who liked the runners-up. Never anyone's swipes during the game, taste check answers, taste profile or games played with other people (the deck engine's [label rule](../architecture/deck-engine.md#reason-labels)).
