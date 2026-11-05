@@ -432,6 +432,8 @@ Everything decided so far, the defaults chosen while designing that still need a
 | Settings spec (M8.7): a new `volume` icon (24 points, 2-point stroke) for the Sound row; Haptics uses `zap`. Default taken while Harry was away (night of 4 Nov 2026); he can reverse it | 5 Nov 2026 | [Settings](design/screens/settings.md#questions) |
 | Settings spec (M8.7): the support mail carries the app version and the platform, and no id. Default taken while Harry was away (night of 4 Nov 2026); he can reverse it | 5 Nov 2026 | [Settings](design/screens/settings.md#questions) |
 | Settings spec (M8.7): the labels "Vibrations" and "Vibration" for haptics, "Supprimer mes données" for the delete row, and the spec's French TMDB notice, to confirm in the lawyer's review. Default taken while Harry was away (night of 4 Nov 2026); he can reverse it | 5 Nov 2026 | [Settings](design/screens/settings.md#questions) |
+| The host lands on the lobby after setup, with no full-screen share step. The code is used more often than sharing, and the host shares from the lobby (Share link, Show QR) | 5 Nov 2026 | [Host setup](design/screens/host-setup.md), [Lobby](design/screens/lobby.md) |
+| A long press on the room code in the lobby copies it, with a green success toast (Harry's feel check, 5 Nov 2026) | 5 Nov 2026 | [Lobby](design/screens/lobby.md) |
 
 ## Defaults, not yet confirmed
 

@@ -24,7 +24,7 @@ Sections are 24 points apart (`gap-6`); eyebrow to content 8. Each chip row is a
 
 1. Only if the selection changed: `api.set_my_providers` with the selection (saved to the profile, so they're asked once). It replaces the saved list, so saved ids the country no longer lists go then. Any answer but `ok`, or a failed call, stops here and no room is created: the host's seat copies the profile's services when the room is created, so the order matters.
 2. `api.create_room` with `quick_match`, `profile.country` and `{ runtime_max, max_age }` (one call, M4.4).
-3. `ok`: `router.replace('/room/[id]/lobby')`, then `router.push('/room/[id]/invite')`, so closing the [invite sheet](invite-sheet.md) lands on the lobby. Both routes stay placeholders until their tasks ([lobby](lobby.md) in M4.11, the invite sheet in M4.12): M4.9 wires the flow and those tasks fill the screens.
+3. `ok`: `router.replace('/room/[id]/lobby')` and nothing else: no full-screen share step (decided on 5 November 2026). The host shares from the lobby with the code, **Share link** and **Show QR** ([lobby](lobby.md), [invite sheet](invite-sheet.md)).
 
 Opening a room leaves the kept room: after `ok`, if the phone keeps another room, it calls `api.leave_room` on it once, without waiting or retrying (see [leaving the old seat](join-sheet.md#leaving-the-old-seat)).
 
@@ -38,7 +38,7 @@ Opening a room leaves the kept room: after `ok`, if the phone keeps another room
 | Services failed to load (either query) | Inline `EmptyState` `error` in the services section, `host:errors.services` | `common:actions.retry` refetches both |
 | No service picked | Open the room disabled, `host:services.required` | Pick one |
 | Opening | `Button` `loading`; the form stays visible | |
-| `ok` | The lobby with the invite sheet | |
+| `ok` | The lobby | |
 | `set_my_providers` `too_many` (a bug: the grid lists 18 at most, the cap is 50) | `showToast` warn `common:errors.generic.title`, reported to Sentry; no room is created, the choices are kept | |
 | `set_my_providers` failed (network or server) | As "The call failed" below; no room is created | Open again |
 | `name_required` (only through a race: Home needs a name) | Pushes [the name screen](name.md) as `/name?edit=1`, which goes back here after a save; the choices are kept | The host taps Open again |
@@ -79,7 +79,7 @@ The two durations are written as copy, not built with `Intl`: `Intl.DurationForm
 ## Motion, haptics, sound
 
 - Tiles and chips change state with their own transitions (`timing.toggle`) and `haptics.press()`.
-- Open the room: the `Button` press, then the lobby comes in and the invite sheet slides up with the system's sheet motion. No celebration: the room isn't full yet.
+- Open the room: the `Button` press, then the lobby replaces this screen. No celebration: the room isn't full yet.
 
 ## Accessibility
 
@@ -117,7 +117,7 @@ Harry accepted every default of slice 5's plan on 3 November 2026; this spec now
 5. **Duration labels** are fixed copy (`time.under105`, `time.under120`), not `Intl`.
 6. **Radio chips:** `Chip` gets `role` (`checkbox` by default, `radio`), and each single-choice row is a `radiogroup` labelled by its eyebrow ([components](../components.md#chip-uichip)).
 7. **`name_required`** pushes `/name?edit=1`; the choices are kept and the host taps Open again ([name](name.md)).
-8. **After `ok`:** replace to the lobby, then push the invite sheet, both placeholders until M4.11 and M4.12.
+8. **After `ok`:** replace to the lobby. The invite sheet is not pushed (decided on 5 November 2026).
 9. **`set_my_providers`** runs first and only on a change; any failure stops before `create_room`.
 10. **Prefill:** the saved ids the country lists; "changed" compares against that.
 11. **No country on the profile:** the unsupported state at once, without querying services.

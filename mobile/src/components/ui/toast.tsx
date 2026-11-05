@@ -13,11 +13,12 @@ import { Text } from './text';
 // Figma "Toast": a live room event ("Sam joined"), the near miss ("2 of 3 liked this"),
 // or a warning ("Reconnecting"). showToast() from anywhere; ToastHost in the root layout.
 
-export type ToastTone = 'info' | 'like' | 'warn';
+export type ToastTone = 'info' | 'like' | 'success' | 'warn';
 
 const tones: Record<ToastTone, { border: string; icon: IconName; color: ColorToken }> = {
   info: { border: 'border-accent-text', icon: 'info', color: 'accent-text' },
   like: { border: 'border-like-default', icon: 'heart', color: 'like-default' },
+  success: { border: 'border-like-default', icon: 'check', color: 'like-default' },
   warn: { border: 'border-marquee-default', icon: 'wifi-off', color: 'marquee-default' },
 };
 
