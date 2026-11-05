@@ -508,6 +508,8 @@ Chosen while designing; each is easy to change.
 | "Reading the room" banner after the warm-up | Optional fun beat built from the room's leanings; needs a realtime event | [How a game unfolds](architecture/deck-engine.md#how-a-game-unfolds) |
 | Hosting cap month | "Resets on the 1st" in UTC or in the host's time zone. Only matters once Pro exists | [Monetization](product/monetization.md) |
 | Re-export reminder | Watchlist changes and films marked watched without a diary entry only refresh with a new export. Suggest one every 6 months, before Watchlist Showdown, or only when a gap is found | [Keeping it fresh](integrations/letterboxd.md#keeping-it-fresh) |
+| Up to 3 matches before the game ends (Harry's feedback, 5 Nov 2026) | Recommended: in Quick Match and Date Night a match joins a shortlist and swiping goes on; the third match starts a vote between the matches; at the card count, the time limit or everyone done, 1 match is the pick, 2 go to a vote, 0 to today's finale. New M6 tasks before M6.20; M18.2 shrinks, M18.4 is dropped, Vote now also works after a match. Questions 1 to 6 | [The proposal](product/three-matches-and-fair-finalists.md#1-the-first-match-ends-the-game) |
+| Every player gets a finalist they liked (Harry's feedback, 5 Nov 2026) | Not a bug: `internal.start_finale` follows Q4.1 and Q4.2. Recommended: after the matches, the liked film that covers the most players without a seat, until everyone with a like has one; a fixed line on the Final Cut says how the films were chosen. Questions 7 and 8 | [The proposal](product/three-matches-and-fair-finalists.md#2-my-likes-werent-in-the-final-cut) |
 
 ## Dropped
 
