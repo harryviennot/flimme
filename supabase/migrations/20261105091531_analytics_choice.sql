@@ -30,14 +30,18 @@ begin
   if p_version is null or char_length(p_version) not between 1 and 40 then
     return jsonb_build_object('status', 'invalid');
   end if;
-  if not internal.rate_limit('analytics_choice:p:' || v_me, 20, interval '1 hour') then
-    return jsonb_build_object('status', 'rate_limited');
-  end if;
+  -- One change at a time per player, so a double tap cannot break the one-active-row index.
+  perform pg_advisory_xact_lock(hashtextextended('analytics_choice:' || v_me, 0));
 
   select * into v_active from public.consents
   where profile_id = v_me and kind = 'analytics' and revoked_at is null;
   if found and v_active.choice = p_choice then
     return jsonb_build_object('status', 'ok', 'choice', p_choice);
+  end if;
+
+  -- Only a real change counts against the limit, so repeating the stored choice can't lock out an opt-out.
+  if not internal.rate_limit('analytics_choice:p:' || v_me, 20, interval '1 hour') then
+    return jsonb_build_object('status', 'rate_limited');
   end if;
 
   update public.consents set revoked_at = now()
@@ -59,4 +63,5 @@ insert into public.app_config (key, value) values
     "terms": {"fr": "https://flimme.com/fr/conditions", "en": "https://flimme.com/en/terms"},
     "deletion": {"fr": "https://flimme.com/fr/suppression", "en": "https://flimme.com/en/delete-account"},
     "support_email": "support@flimme.com"
-  }'::jsonb);
+  }'::jsonb)
+on conflict (key) do nothing;
