@@ -6,7 +6,7 @@ import { api } from '@/api';
 import { showToast } from '@/components/ui/toast';
 import { roomRouteFor } from '@/features/join/link';
 import { useOnline } from '@/features/network';
-import { useDeviceSync, useMyProfile } from '@/features/profile';
+import { useMyProfile } from '@/features/profile';
 import { useKeptRoom } from '@/features/room/kept-room';
 import { startSession, useSession, useSessionFailed } from '@/features/session';
 
@@ -16,9 +16,9 @@ import { launchStep, type LaunchStep, type ProfileRead, type RejoinRead } from '
 export const SLOW_AFTER_MS = 3000;
 
 /**
- * Everything the splash decides: waits for the session and the profile, saves the device's
- * language and country on the side, and answers where to go or what to show. `retry` starts
- * again; it also runs by itself when the connection comes back while the offline state shows.
+ * Everything the splash decides: waits for the session and the profile and answers where to go
+ * or what to show. `retry` starts again; it also runs by itself when the connection comes back
+ * while the offline state shows.
  */
 export function useLaunch(): { step: LaunchStep; retry: () => void } {
   const session = useSession();
@@ -36,8 +36,6 @@ export function useLaunch(): { step: LaunchStep; retry: () => void } {
     const timer = setTimeout(() => setSlow(true), SLOW_AFTER_MS);
     return () => clearTimeout(timer);
   }, []);
-
-  useDeviceSync(data, query.dataUpdatedAt > 0 && !query.isError);
 
   let profile: ProfileRead = { state: 'pending' };
   if (data !== undefined) profile = { state: 'ready', profile: data };

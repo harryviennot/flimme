@@ -11,8 +11,9 @@ import { UpdateGate } from '@/components/screens/update/update-gate';
 import { ToastHost } from '@/components/ui/toast';
 import { registerDevMenu } from '@/features/dev/dev-menu';
 import { watchNetwork } from '@/features/network';
+import { useDeviceProfileSync } from '@/features/profile';
 import '@/features/settings';
-import { startSession } from '@/features/session';
+import { startSession, useSession } from '@/features/session';
 import { watchDeviceLanguage } from '@/i18n';
 import { queryClient } from '@/lib/query-client';
 import { initSentry, wrapRoot } from '@/lib/sentry';
@@ -25,6 +26,13 @@ initSentry();
 // A link opens the join sheet on a cold start with `/` underneath: it redirects to Home or
 // Welcome once the sheet closes, so closing always lands somewhere sensible (join-sheet.md).
 export const unstable_settings = { anchor: 'index' };
+
+// Inside the QueryClientProvider: saves the device's language and country, once per launch.
+function DeviceProfileSync() {
+  const session = useSession();
+  useDeviceProfileSync(session?.status === 'ok');
+  return null;
+}
 
 function RootLayout() {
   // Fonts are embedded at build time (the expo-font plugin): the first frame has them, so the
@@ -54,6 +62,7 @@ function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="light" />
+          <DeviceProfileSync />
           <UpdateGate>
             <Stack
               screenOptions={{
