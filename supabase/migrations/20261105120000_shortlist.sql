@@ -15,7 +15,7 @@ where slug in ('quick_match', 'final_cut', 'date_night');
 
 -- When the whole room matched the film. Null for the finale's own rows. The stats count matches
 -- through it, because a match that wins the vote has its kind overwritten to finale.
-alter table public.matches add column matched_at timestamptz;
+alter table public.matches add column if not exists matched_at timestamptz;
 
 update public.matches set matched_at = created_at where kind in ('unanimous', 'majority');
 
