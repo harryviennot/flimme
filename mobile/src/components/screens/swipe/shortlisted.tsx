@@ -28,6 +28,8 @@ const RADIUS_FROM = 12;
 const RADIUS_TO = 4;
 /** Room the two title lines and the count need above and below the poster. */
 const COLUMN_EXTRA = 168;
+/** Over the flying cards (20) and under nothing else on the screen. */
+const LAYER_Z = 40;
 
 export type ShortlistedBeatProps = {
   roomId: string;
@@ -104,7 +106,8 @@ export function ShortlistedBeat({
 
   return (
     <View
-      style={StyleSheet.absoluteFill}
+      // Above the cards (zIndex 10, 20 in flight): Fabric compares zIndex across flattened views.
+      style={[StyleSheet.absoluteFill, { zIndex: LAYER_Z }]}
       pointerEvents="box-none"
       onLayout={onLayout}
       testID="shortlisted"
