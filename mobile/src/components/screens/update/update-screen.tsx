@@ -3,10 +3,12 @@ import { View } from 'react-native';
 
 import { EmptyState } from '@/components/ui/empty-state';
 import { Screen } from '@/components/ui/screen';
+import { useTrackErrorView } from '@/lib/use-track-error';
 
 /** Full screen, replaces the app when this build is older than `min_app_version`. */
 export function UpdateScreen({ onUpdate }: { onUpdate: () => void }) {
   const { t } = useTranslation('onboarding');
+  useTrackErrorView('update_required');
   return (
     <Screen>
       <View className="flex-1 justify-center">

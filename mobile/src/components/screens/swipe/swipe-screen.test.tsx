@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createStore } from 'zustand/vanilla';
 
 import { useHintsStore } from '@/features/swipe/hints';
+import { track } from '@/lib/analytics';
 import { clearNearMisses, recordNearMiss } from '@/features/swipe/near-miss';
 import { createAnswerer, type Answerer } from '@/features/swipe/answer';
 import { createCardStack, type CardStack } from '@/features/swipe/card-stack';
@@ -43,6 +44,7 @@ jest.mock('@/features/shortlist/use-shortlist-cards', () => ({
   useShortlistCards: (_room: string, ids: number[]) =>
     new Map(ids.map((id) => [id, { title: `Film ${id}`, posterUri: null }])),
 }));
+jest.mock('@/lib/analytics', () => ({ track: jest.fn() }));
 jest.mock('./top-bar', () => ({ SwipeTopBar: () => null }));
 jest.mock('@/features/swipe/index', () => ({ voteQueue: { has: () => false } }));
 const mockRoomEvents = new Map<string, (payload: unknown) => void>();
@@ -68,6 +70,8 @@ jest.mock('@/features/room', () => ({
       ...mockRoom.data,
     },
   }),
+  useRoomSeats: () => ({ data: [] }),
+  useMySeat: () => ({ role: 'guest' }),
   useRoomEvent: (_room: string, event: string, handler: (payload: unknown) => void) => {
     mockRoomEvents.set(event, handler);
   },
@@ -583,6 +587,7 @@ describe('the done card', () => {
       await new Promise((resolve) => setImmediate(resolve));
     });
     expect(screen.getByText("That's all your cards")).toBeTruthy();
+    expect(track).toHaveBeenCalledWith('game:nothing_left_view', { is_host: false });
     expect(screen.getByText("Tonight's filters")).toBeTruthy();
     expect(screen.getByText('Netflix')).toBeTruthy();
     expect(screen.getByText('Prime Video')).toBeTruthy();
@@ -648,6 +653,19 @@ describe('the first-game hints', () => {
     await fireEvent.press(screen.getByLabelText('Like'));
     expect(screen.queryByText(SEEN_HINT)).toBeNull();
     expect(screen.getByText(FLIP_HINT)).toBeTruthy();
+  });
+
+  it('report each hint once, as game:hint_show, in the order they show', async () => {
+    jest.mocked(track).mockClear();
+    await setup();
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    await fireEvent.press(screen.getByLabelText('Like'));
+    const hints = jest
+      .mocked(track)
+      .mock.calls.filter(([name]) => name === 'game:hint_show')
+      .map(([, props]) => props);
+    expect(hints).toEqual([{ hint: 'swipe' }, { hint: 'seen_it' }, { hint: 'flip' }]);
   });
 
   it('drop the Seen it hint at the first Seen it', async () => {

@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
+import { gamesStore } from '@/features/analytics/games';
 import { PROFILE_CACHE_KEY, saveCachedProfile } from '@/features/profile/cache';
 import { keptRoomStore } from '@/features/room/kept-room';
 import { matchShownStore } from '@/features/room/match-shown';
@@ -35,6 +36,7 @@ describe('wipeLocalData, on the real stores', () => {
     keptRoomStore.getState().keep({ id: 'r1', code: '123456' });
     matchShownStore.getState().mark('r1');
     useHintsStore.getState().finish('swipe');
+    gamesStore.getState().countGame('r1');
     saveCachedProfile({
       id: 'u1',
       display_name: 'Léa',
@@ -54,17 +56,26 @@ describe('wipeLocalData, on the real stores', () => {
     expect(keptRoomStore.getState().room).toBeNull();
     expect(matchShownStore.getState().rooms).toEqual([]);
     expect(useHintsStore.getState().done.swipe).toBe(false);
+    expect(gamesStore.getState().played).toBe(0);
     expect(voteQueue.pending('r1')).toBe(0);
     expect(storage.getItemSync(PROFILE_CACHE_KEY)).toBeNull();
     expect(queryClient.getQueryData(['my_profile'])).toBeUndefined();
-    for (const name of ['settings', 'room', 'match-shown', 'hints']) {
+    for (const name of ['settings', 'room', 'match-shown', 'hints', 'games']) {
       expect(storage.getItemSync(`flimme.${name}`)).toBeNull();
     }
     expect(startSession).toHaveBeenCalledTimes(1);
   });
 
   it('knows every persisted store: a new one must join the wipe', () => {
-    const wiped = new Set(['settings', 'room', 'match-shown', 'hints', 'vote-queue', 'dev']);
+    const wiped = new Set([
+      'settings',
+      'room',
+      'match-shown',
+      'hints',
+      'games',
+      'vote-queue',
+      'dev',
+    ]);
     const root = join(__dirname, '..');
     const found: string[] = [];
     const walk = (dir: string) => {

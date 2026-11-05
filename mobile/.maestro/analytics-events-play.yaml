@@ -1,0 +1,27 @@
+# M9.2, the first release's events, part 2 of 2 (the host's phone, after analytics-events-host.yaml):
+# bots join the room, the host shows the QR code, copies the link and the code, starts the game and
+# is left on the swipe screen. The dev menu's Analytics log must show, once each:
+# room:invite_share (qr_show, code_copy twice), then after the play steps game:first_card_view,
+# game:hint_show (swipe, seen_it, flip), winner:view and winner:watch_page_open.
+# Run the bots first: `mise run bots -- --code <code> --count 3 --target staging --personality agreeable`
+# Run: `maestro --device <sim> test mobile/.maestro/analytics-events-play.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- tapOn: '(?i)show qr'
+- extendedWaitUntil:
+    visible: '(?i)invite friends'
+    timeout: 10000
+- tapOn:
+    point: 85%,76%
+- tapOn: 'Close'
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 10000
+- longPressOn: '(?i)room code.*'
+- extendedWaitUntil:
+    visible: '(?i)start swiping'
+    timeout: 60000
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000

@@ -21,7 +21,7 @@ import {
   useRoomChannels,
   useRoomSeats,
 } from '@/features/room';
-import { useRoomCap } from '@/features/analytics';
+import { useCountGame, useRoomCap } from '@/features/analytics';
 import { useFinalePreload } from '@/features/finale/use-finale-preload';
 import { useRevealOf } from '@/features/finale/reveal-store';
 import { useRevealHold } from '@/features/finale/use-reveal-hold';
@@ -58,6 +58,7 @@ export default function RoomLayout() {
   const state = notSeated ? undefined : room.data?.state;
   const code = room.data?.code;
 
+  useCountGame(id, state);
   useHeartbeat(id, room.data !== null);
   useRefreshOnForeground(id);
   const realtime = useRoomChannels(id);

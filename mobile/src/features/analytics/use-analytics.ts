@@ -1,13 +1,15 @@
 import { getLocales } from 'expo-localization';
 import { useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 
 import { useMyProfile } from '@/features/profile';
 import { useAnalyticsChoice } from '@/features/settings';
 import { analytics } from '@/lib/analytics';
+import { screenPattern } from '@/lib/screen-pattern';
 
-import { screenPattern } from './screen-pattern';
+import { useGamesPlayed } from './games';
 
 const readDeviceRegion = () => getLocales()[0]?.regionCode ?? null;
 
@@ -30,6 +32,22 @@ export function useAnalyticsSetup(enabled: boolean): void {
 
   const profileId = profile?.id ?? null;
   const profileCountry = profile?.country ?? null;
+
+  // What every event carries and the person is set with (analytics.md#events). Before `configure`
+  // below, so the first identify already has them. No account or Letterboxd link exists yet.
+  const { i18n } = useTranslation();
+  const language = i18n.language.startsWith('fr') ? 'fr' : 'en';
+  const gamesPlayed = useGamesPlayed();
+  const country = profileCountry && /^[A-Z]{2}$/.test(profileCountry) ? profileCountry : undefined;
+  useEffect(() => {
+    analytics.setRegistered({
+      language,
+      ...(country ? { country } : {}),
+      has_account: false,
+      has_letterboxd: false,
+      games_played: gamesPlayed,
+    });
+  }, [language, country, gamesPlayed]);
   useEffect(() => {
     analytics.configure({ choice, region: { deviceRegion, profileCountry }, profileId });
   }, [choice, deviceRegion, profileCountry, profileId]);

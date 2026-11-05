@@ -8,6 +8,7 @@ import { Share } from 'react-native';
 import { showToast } from '@/components/ui/toast';
 import { useAppConfig } from '@/features/app-config/use-app-config';
 import { useRoom } from '@/features/room/queries';
+import { track } from '@/lib/analytics';
 
 /**
  * The invite link. With an `invite_base_url` (from M4.18) it is `<base>/join/<code>?r=<id>`;
@@ -51,8 +52,10 @@ export async function shareInvite({
   link: string;
   code: string;
   t: TFunction<'lobby'>;
-}): Promise<void> {
-  await Share.share({ message: shareMessage(t, link, code) });
+}): Promise<boolean> {
+  const result = await Share.share({ message: shareMessage(t, link, code) });
+  // Closing the sheet without picking anything shares nothing.
+  return result.action === Share.sharedAction;
 }
 
 /** The build's own scheme (`flimme-dev`, `flimme-preview`, `flimme`). */
@@ -87,12 +90,13 @@ export function useInvite(roomId: string | undefined): Invite {
 
   const share = useCallback(async () => {
     if (!link || !code) return;
-    await shareInvite({ link, code, t });
+    if (await shareInvite({ link, code, t })) track('room:invite_share', { method: 'share_sheet' });
   }, [link, code, t]);
 
   const copy = useCallback(async () => {
     if (!link) return;
     await Clipboard.setStringAsync(link);
+    track('room:invite_share', { method: 'code_copy' });
     showToast({ title: t('invite.copied'), tone: 'info' });
   }, [link, t]);
 
