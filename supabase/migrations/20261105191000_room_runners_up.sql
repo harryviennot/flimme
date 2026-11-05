@@ -53,8 +53,9 @@ begin
         where c.round_id = v_round.id and c.vetoed_at is null and c.title_id <> v_pick.title_id;
       elsif v_pick.kind <> 'finale' then
         v_source := 'most_liked';
-        select coalesce(array_agg(x.title_id order by x.likes desc, x.score desc, x.title_id), '{}') into v_ids
+        select coalesce(array_agg(y.title_id order by y.likes desc, y.score desc, y.title_id), '{}') into v_ids
         from (
+         select x.* from (
           select k.title_id, k.group_score as score,
             (select count(*) from public.votes v
              join public.room_members m on m.id = v.room_member_id and m.removed_at is null
@@ -63,8 +64,10 @@ begin
           from public.room_cards k
           where k.room_id = p_room_id and k.state <> 'dropped' and k.title_id <> v_pick.title_id
         ) x
-        where x.likes >= 1
-        limit 3;
+         where x.likes >= 1
+         order by x.likes desc, x.score desc, x.title_id
+         limit 3
+        ) y;
       end if;
     end if;
   end if;

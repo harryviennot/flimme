@@ -4,7 +4,7 @@
 -- not_finished and holds nothing. Nopes, seens and the seats that did not like never appear.
 
 begin;
-select plan(66);
+select plan(61);
 
 select tests.create_catalog(40);
 select tests.use_deck_engine('sql');
