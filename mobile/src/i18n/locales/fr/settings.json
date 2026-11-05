@@ -1,0 +1,79 @@
+{
+  "title": "Réglages",
+  "sections": {
+    "preferences": "Préférences",
+    "privacy": "Confidentialité",
+    "help": "Aide",
+    "about": "À propos"
+  },
+  "language": {
+    "label": "Langue",
+    "current": "Français"
+  },
+  "haptics": {
+    "label": "Vibrations"
+  },
+  "sound": {
+    "label": "Sons"
+  },
+  "preferences": {
+    "helper": "Les sons ne jouent qu'au match et à la révélation du film."
+  },
+  "analytics": {
+    "label": "Aider à améliorer l'appli",
+    "helper": "Des stats sur les écrans que tu ouvres, pour voir ce qui coince. Jamais tes swipes ni tes films.",
+    "detailed": "Stats détaillées",
+    "helperStrict": "Elles sont anonymes. Les stats détaillées les relient à ton profil."
+  },
+  "export": {
+    "label": "Télécharger mes données",
+    "preparing": "Préparation de tes données",
+    "shareTitle": "Tes données Flimme",
+    "rateLimited": {
+      "title": "Un téléchargement par heure",
+      "message": "Tu viens de télécharger tes données. Réessaie un peu plus tard."
+    },
+    "failed": {
+      "title": "Téléchargement impossible",
+      "message": "Réessaie dans un instant."
+    }
+  },
+  "legal": {
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation"
+  },
+  "support": {
+    "label": "Contacter le support",
+    "subject": "Support Flimme",
+    "copied": {
+      "title": "Adresse copiée",
+      "message": "Écris-nous à {{email}}."
+    }
+  },
+  "about": {
+    "tmdb": "Cette application utilise TMDB et les API de TMDB, mais n'est ni approuvée, ni certifiée, ni validée d'aucune autre manière par TMDB.",
+    "version": "Version {{version}} ({{build}})"
+  },
+  "delete": {
+    "label": "Supprimer mes données",
+    "title": "Supprimer tes données ?",
+    "body": "Ton prénom, tes plateformes et ton historique de soirées seront effacés. Tes votes passés restent dans leurs salles, sans ton prénom. Tu repars de zéro, comme à la première ouverture. C'est définitif.",
+    "confirm": "Tout supprimer",
+    "done": "Tes données sont supprimées",
+    "errors": {
+      "tryAgain": "Impossible de supprimer tes données pour l'instant. Rien n'a changé, réessaie.",
+      "offline": "Tu es hors ligne. Rien n'a été supprimé."
+    }
+  },
+  "offline": "Tu es hors ligne. Le téléchargement et la suppression de tes données attendent ton retour.",
+  "errors": {
+    "offline": "Tu es hors ligne. Reconnecte-toi pour télécharger tes données."
+  },
+  "a11y": {
+    "languageHint": "Ouvre les réglages du téléphone",
+    "opensBrowser": "S'ouvre dans le navigateur",
+    "opensMail": "Ouvre ton appli mail",
+    "deleteHint": "Demande une confirmation",
+    "tmdb": "Logo TMDB. {{notice}}"
+  }
+}

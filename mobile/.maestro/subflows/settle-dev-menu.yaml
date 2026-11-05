@@ -1,0 +1,19 @@
+# After the app starts: the development build's first-run menu opens once the first bundle has
+# loaded, which can be well after connect-metro returned. Close it, then park the floating dev
+# tools button in the bottom corner, where it floats over Home's settings button otherwise.
+appId: com.harryviennot.flimme.dev
+---
+- extendedWaitUntil:
+    visible: 'This is the developer menu.*'
+    timeout: 60000
+    optional: true
+- runFlow:
+    when:
+      visible: 'This is the developer menu.*'
+    commands:
+      - tapOn: 'Continue'
+      - tapOn:
+          point: 90%,49%
+- swipe:
+    start: 91%,9%
+    end: 6%,97%

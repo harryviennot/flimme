@@ -201,7 +201,7 @@ export function CardStack({
               dragProgress={dragProgress}
               lit={lit}
               dragging={dragging}
-              locked={swipe.locked}
+              locked={swipe.locked || swipe.beating}
               a11y={{ label: labelOf(card), actions, onAction }}
               asksSeen={asksSeen}
               onHold={onHold}

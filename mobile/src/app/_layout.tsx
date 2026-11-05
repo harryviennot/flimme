@@ -12,7 +12,7 @@ import { ToastHost } from '@/components/ui/toast';
 import { registerDevMenu } from '@/features/dev/dev-menu';
 import { watchNetwork } from '@/features/network';
 import { useDeviceProfileSync } from '@/features/profile';
-import '@/features/settings';
+import { useAnalyticsSyncOnLaunch } from '@/features/settings';
 import { startSession, useSession } from '@/features/session';
 import { watchDeviceLanguage } from '@/i18n';
 import { queryClient } from '@/lib/query-client';
@@ -27,10 +27,13 @@ initSentry();
 // Welcome once the sheet closes, so closing always lands somewhere sensible (join-sheet.md).
 export const unstable_settings = { anchor: 'index' };
 
-// Inside the QueryClientProvider: saves the device's language and country, once per launch.
+// Inside the QueryClientProvider: saves the device's language and country, and sends a pending
+// analytics choice, once per launch.
 function DeviceProfileSync() {
   const session = useSession();
   useDeviceProfileSync(session?.status === 'ok');
+  // An analytics choice the server has not confirmed yet is sent once per launch (settings.md).
+  useAnalyticsSyncOnLaunch(session?.status === 'ok');
   return null;
 }
 
@@ -76,6 +79,14 @@ function RootLayout() {
                   presentation: 'formSheet',
                   sheetGrabberVisible: true,
                   sheetAllowedDetents: [0.7, 1],
+                }}
+              />
+              <Stack.Screen
+                name="settings/delete"
+                options={{
+                  presentation: 'formSheet',
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: 'fitToContents',
                 }}
               />
             </Stack>

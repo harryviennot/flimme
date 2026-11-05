@@ -66,6 +66,8 @@ Deduplicated from the docs above. "DB" means the database through the nightly vi
 - **A started room** has `started_at` set (swiping began). **A pick** is the room's `matches` row with `pick_order` 1.
 - **A guest** joined a room someone else hosts. **Without an account** means a Supabase anonymous user (`is_anonymous` on the auth user); the two aren't the same.
 
+**The views (M9.3).** In the `analytics` schema, by UTC day (week for the two player metrics), country, mode and group size (`2`, `3_4`, `5_10`, `unknown`): `time_to_pick`, `room_outcomes` (also pick within 5 minutes and instant matches), `onboarding_time`, `link_to_first_swipe` and `second_game`. Each has its columns in a comment on the view. Rates are over settled rooms (started rooms with stats). No minimum group count is applied yet: only Harry reads them.
+
 ### Game
 
 | Metric | Definition | Source | Starting target | Named in |

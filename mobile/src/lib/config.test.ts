@@ -3,14 +3,23 @@ import { parseConfig } from './config';
 const valid = {
   EXPO_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_abc',
+  EXPO_PUBLIC_SERVER_URL: 'http://127.0.0.1:8000',
 };
 
 describe('configuration', () => {
-  it('reads the two Supabase values', () => {
+  it('reads the two Supabase values and the server URL', () => {
     expect(parseConfig(valid)).toEqual({
       supabaseUrl: 'http://127.0.0.1:54321',
       supabasePublishableKey: 'sb_publishable_abc',
+      serverUrl: 'http://127.0.0.1:8000',
     });
+  });
+
+  it('names the variable when the server URL is missing or not a URL', () => {
+    const name = 'EXPO_PUBLIC_SERVER_URL';
+    expect(() => parseConfig({ ...valid, [name]: undefined })).toThrow(name);
+    expect(() => parseConfig({ ...valid, [name]: '' })).toThrow(name);
+    expect(() => parseConfig({ ...valid, [name]: 'nope' })).toThrow(name);
   });
 
   it('names the variable when the URL is missing', () => {

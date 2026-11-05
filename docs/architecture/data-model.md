@@ -115,6 +115,7 @@ Why the game stays in Postgres: a vote must save, count, check the match rule an
 | `api` | 17 views and 18 functions: the app's whole surface | Phones (it is the only schema exposed through Supabase's Data API) |
 | `internal` | Game logic and helpers: match check, propagation, finale, dealing, retrieval, card payloads, broadcasting, queueing | api functions, triggers, the server |
 | `rec` | Recommendation requests, ranked items, models, title stats | The server only |
+| `analytics` | Aggregate-only views of the headline metrics (M9.3), no ids or names | Nobody yet: no grants. M14.1 adds a read-only role |
 
 Two roles matter besides Supabase's own: `authenticated` (every phone, guests included) and `app_server` (the recommendation server's database login).
 

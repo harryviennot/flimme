@@ -2,12 +2,13 @@ import { useDevStore } from '@/features/dev';
 
 // The app's configuration, read once. Only public values live here (security.md#the-app).
 // A missing or malformed value stops the app at start with a message naming the variable
-// (groundwork.md#secrets). The server URL is not checked yet: the first task that calls
-// the server adds it.
+// (groundwork.md#secrets). The server URL is the recommendation server's HTTP API
+// (account deletion, M8.7).
 
 export type AppConfig = {
   supabaseUrl: string;
   supabasePublishableKey: string;
+  serverUrl: string;
 };
 
 type Env = Record<string, string | undefined>;
@@ -36,6 +37,7 @@ export function parseConfig(env: Env): AppConfig {
   return {
     supabaseUrl: requireUrl(env, 'EXPO_PUBLIC_SUPABASE_URL'),
     supabasePublishableKey: requireValue(env, 'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
+    serverUrl: requireUrl(env, 'EXPO_PUBLIC_SERVER_URL'),
   };
 }
 
@@ -43,13 +45,14 @@ export type Backend = 'local' | 'staging';
 
 const STAGING_URL = 'EXPO_PUBLIC_STAGING_SUPABASE_URL';
 const STAGING_KEY = 'EXPO_PUBLIC_STAGING_SUPABASE_PUBLISHABLE_KEY';
+const STAGING_SERVER = 'EXPO_PUBLIC_STAGING_SERVER_URL';
 
 export type StagingStatus =
   { available: true; config: AppConfig } | { available: false; reason: string };
 
 /** Whether the staging backend can be used, and if not, which variables to set. */
 export function stagingStatus(env: Env): StagingStatus {
-  const missing = [STAGING_URL, STAGING_KEY].filter((name) => !env[name]?.trim());
+  const missing = [STAGING_URL, STAGING_KEY, STAGING_SERVER].filter((name) => !env[name]?.trim());
   if (missing.length > 0) {
     return { available: false, reason: `Set ${missing.join(' and ')} in .env.local or EAS.` };
   }
@@ -59,6 +62,7 @@ export function stagingStatus(env: Env): StagingStatus {
       config: {
         supabaseUrl: requireUrl(env, STAGING_URL),
         supabasePublishableKey: requireValue(env, STAGING_KEY),
+        serverUrl: requireUrl(env, STAGING_SERVER),
       },
     };
   } catch (error) {
@@ -84,6 +88,8 @@ function readEnv(): Env {
   return {
     EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
     EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    EXPO_PUBLIC_SERVER_URL: process.env.EXPO_PUBLIC_SERVER_URL,
+    [STAGING_SERVER]: process.env.EXPO_PUBLIC_STAGING_SERVER_URL,
     [STAGING_URL]: process.env.EXPO_PUBLIC_STAGING_SUPABASE_URL,
     [STAGING_KEY]: process.env.EXPO_PUBLIC_STAGING_SUPABASE_PUBLISHABLE_KEY,
   };

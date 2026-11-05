@@ -42,5 +42,9 @@ export function parseAppConfig(raw: unknown, report: Report = () => {}): AppConf
     }
   }
 
+  // Kept as it came: `parseLegalUrls` (the contract) reads it where the links are used, and a
+  // malformed value hides the rows instead of failing the read.
+  if (raw.legal_urls !== undefined) config.legal_urls = raw.legal_urls;
+
   return config;
 }
