@@ -105,7 +105,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 12 | In progress |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 9 | In progress |
 | [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | Not started |
-| [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the review notes are ready on both stores, and Play alone reaches a pick on one device | 8 | Not started |
+| [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the review notes are ready on both stores, and Play alone reaches a pick on one device | 10 | Not started |
 | [M12](#m12-closed-beta) | Closed beta | Friend groups and families play, Google's 12 testers have run 14 days, and the go decision is made | 7 | Not started |
 | [M13](#m13-public-launch) | Public launch | Live on both stores in France | 6 | Not started |
 | **After launch** | | | | |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 154 of 281 tasks done.
+Progress: 154 of 283 tasks done.
 
 ```mermaid
 flowchart LR
@@ -614,11 +614,13 @@ M11.7 (the reviewers' demo room: a reserved code that `api.create_room` never dr
 
 - [ ] **M11.1** Listing copy in French and English: subtitle, descriptions, keywords, within limits, no "for kids", the TMDB and JustWatch credits · content · M · needs M0.1 · [store-listing](store-listing.md#the-listing-in-english-and-french)
   Done when: entered in both consoles.
-- [ ] **M11.2** The icon, and Play's feature graphic · design · M · needs M0.1 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [ ] **M11.2** The icon, and Play's feature graphic · design · S · needs M0.1 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: exported at every size the stores ask.
-- [ ] **M11.3** Screenshots with fictional posters, captioned in French and English · design · M · needs M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [ ] **M11.3** Screenshots with fictional posters, captioned in French and English · design · L · needs M6.44, M6.21 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: uploaded at the sizes required today.
-- [ ] **M11.4** A 15 to 30-second preview video from screen captures (optional) · design · M · needs M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [ ] **M11.10** Final screenshots from the alpha build: re-run M11.3's rig after M10.4 and replace what changed · design · S · needs M10.4, M11.3 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+  Done when: the changed screenshots are uploaded to both stores, from the alpha build.
+- [ ] **M11.4** A 15 to 30-second preview video from screen captures (optional) · design · M · needs M11.3, M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: uploaded, or skipped in decisions.md.
 - [ ] **M11.5** The age rating questionnaires (Apple, IARC) and Play's 13-and-over audience · publishing · S · needs M10.1 · [store-listing](store-listing.md#age-ratings)
   Done when: both ratings issued.
@@ -626,8 +628,10 @@ M11.7 (the reviewers' demo room: a reserved code that `api.create_room` never dr
   Done when: both submitted.
 - [ ] **M11.8** Review notes: Play alone on one device, a group game on two devices, no account needed, deletion in Settings · publishing · S · needs M6.44 · [store-listing](store-listing.md#passing-review)
   Done when: entered in both consoles.
-- [ ] **M11.9** Support, privacy and deletion URLs; content rights; the encryption exemption; Android target API 36 · publishing · S · needs M8.3, M10.1 · [store-listing](store-listing.md#release-checklist)
+- [ ] **M11.9** Support, privacy and deletion URLs; content rights; the encryption exemption; Android target API 36 · publishing · M · needs M8.3, M10.1 · [store-listing](store-listing.md#release-checklist)
   Done when: both consoles show no missing item.
+- [ ] **M11.11** Choose a country: when the phone's region has no catalog, "Not in your country yet" offers the French catalog, and Settings gets a Country row listing the countries with a catalog; also mends a profile whose country was saved once at first launch · app · M · needs M8.7 · [store-listing](store-listing.md#price-and-countries), [onboarding](onboarding.md#empty-and-error-states)
+  Done when: a phone with a US region plays alone and hosts on the French catalog after one tap, and Settings changes the country.
 
 ## M12 Closed beta
 
@@ -662,7 +666,7 @@ Done when: the app is live on both stores in France.
   Done when: granted.
 - [ ] **M13.3** Production readiness: spend cap off, alerts on, backups checked, the incident checklist at hand · ops · S · needs M9.5, M9.6 · [operations](../architecture/operations.md#incidents)
   Done when: each item checked.
-- [ ] **M13.4** Submit the release build to App Review and Play review, for France · publishing · M · needs M12.7, M13.1, M13.2, M11.1, M11.2, M11.3, M11.5, M11.6, M11.9 · [store-listing](store-listing.md#release-checklist)
+- [ ] **M13.4** Submit the release build to App Review and Play review, for France · publishing · M · needs M12.7, M13.1, M13.2, M11.1, M11.2, M11.3, M11.5, M11.6, M11.9, M11.11 · [store-listing](store-listing.md#release-checklist)
   Done when: both accepted.
 - [ ] **M13.5** Release: a phased release on iOS, a staged rollout on Play · publishing · S · needs M13.3, M13.4 · [operations](../architecture/operations.md#releasing)
   Done when: at 100% on both.
