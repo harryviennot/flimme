@@ -1,0 +1,56 @@
+# M4.16, the early bot player: one phone hosts a room and three bots (tools/bots) fill it. The
+# lobby shows the three present players and Start swiping works. Needs the local stack.
+# The flow waits up to 3 minutes in the lobby for the bots, so start them once the room is open:
+#   1. maestro test mobile/.maestro/bots-lobby.yaml -e METRO_URL=http://localhost:<port>
+#   2. when the lobby shows, read the room code on the phone (or from the database) and run
+#      `mise run bots -- --code <code> --count 3`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Maestro'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- tapOn: '(?i)open a room'
+- extendedWaitUntil:
+    visible: 'Lumo'
+    timeout: 15000
+- tapOn: 'Lumo'
+- tapOn: '(?i)open the room'
+- extendedWaitUntil:
+    visible: '(?i)invite friends'
+    timeout: 20000
+# The dev tools button sits over the sheet's Close button: drag it out of the way first.
+- swipe:
+    start: 91%,10%
+    end: 50%,70%
+- tapOn: '(?i)close'
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 15000
+- takeScreenshot: bots-lobby-1-alone
+
+# The bots join and stay present.
+- extendedWaitUntil:
+    visible: 'Bot 1.*'
+    timeout: 180000
+- extendedWaitUntil:
+    visible: 'Bot 2.*'
+    timeout: 30000
+- extendedWaitUntil:
+    visible: 'Bot 3.*'
+    timeout: 30000
+- assertNotVisible: '(?i)you need 2 players here to start.'
+- takeScreenshot: bots-lobby-2-three-bots
+
+# Start works: the room moves to swiping and the first card shows.
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- takeScreenshot: bots-lobby-3-swiping

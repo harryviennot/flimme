@@ -337,6 +337,15 @@ describe('arguments', () => {
   });
 });
 
+describe('start_game request id', () => {
+  it('accepts the number the database sends once a start went through', async () => {
+    const { client } = fake(() => ok({ status: 'ok', request_id: 958, started: true, seats: 4 }));
+    await expect(
+      createApi(client, { validate: true }).startGame({ room_id: ROOM }),
+    ).resolves.toMatchObject({ status: 'ok', request_id: 958 });
+  });
+});
+
 describe('only bugs reject', () => {
   it('an answer outside the list is unexpected', async () => {
     const { client } = fake(() => ok({ status: 'teapot' }));
