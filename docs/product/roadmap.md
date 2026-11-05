@@ -96,7 +96,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | **First release** | | | | |
 | [M0](#m0-groundwork) | Groundwork | The name is chosen, every account is open, TMDB is emailed, the game rules are confirmed, the repository and the agents are set up | 11 | In progress |
 | [M1](#m1-backend-foundation) | Backend foundation | Migrations and the test suite run from CI on staging and production | 17 | Done |
-| [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 15 | In progress |
+| [M2](#m2-catalog-for-france) | Catalog for France | Production holds France's watchable films, swept daily for a week without help | 16 | In progress |
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | Done |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 152 of 280 tasks done.
+Progress: 153 of 281 tasks done.
 
 ```mermaid
 flowchart LR
@@ -275,7 +275,7 @@ Done when: production holds France's watchable films, and the daily sweep has ru
   Done when: each job runs on schedule on staging.
 - [x] **M2.12** Deploy the pipeline worker on Fly.io next to each database (London for staging, Frankfurt for production), with its secrets · ops · M · needs M2.2, M1.15 · [server-structure](../architecture/server-structure.md#deploying), [operations](../architecture/operations.md#secrets)
   Done when: the worker runs in both environments and restarts on failure.
-- [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
+- [x] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
   Done when: the catalog holds France's watchable films (production measured 28,162 films on 5 November 2026, 14,043 watchable in France; the earlier estimate of 40,000 to 60,000 was wrong), and every listed French service has availability rows.
 - [ ] **M2.14** Spot-check 30 French films against TMDB's watch pages and JustWatch · test · S · needs M2.13 · [streaming-availability](../integrations/streaming-availability.md#the-sources-compared)
   Done when: mismatches are under 5% or explained.
