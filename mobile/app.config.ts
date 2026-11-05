@@ -15,8 +15,11 @@ const DISPLAY_NAME = 'Flimme';
 // domain serves the files that prove the claim (mobile/public/.well-known/, roadmap M4.18).
 const INVITE_HOST = 'flimme.com';
 
+// The Android adaptive icon's background: the corner colour of Flimme's icon (scripts/make-app-icons.swift).
+const ANDROID_BACKGROUND = '#121319';
+
 // Development and preview wear a badge so the builds can't be confused with each other or with the
-// store app. They are placeholders until the designer exports the real ones (roadmap M11.2).
+// store app. Their icons are Flimme's own, with the band drawn by scripts/make-app-icons.swift.
 const variants = {
   development: {
     idSuffix: '.dev',
@@ -36,7 +39,7 @@ const variants = {
     idSuffix: '',
     name: DISPLAY_NAME,
     scheme: 'flimme',
-    iosIcon: './assets/expo.icon',
+    iosIcon: './assets/flimme.icon',
     androidForeground: './assets/images/android-icon-foreground.png',
   },
 } as const;
@@ -91,9 +94,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android: {
       package: BUNDLE_ID + current.idSuffix,
       adaptiveIcon: {
-        backgroundColor: '#0f1014',
+        backgroundColor: ANDROID_BACKGROUND,
         foregroundImage: current.androidForeground,
-        backgroundImage: './assets/images/android-icon-background.png',
         monochromeImage: './assets/images/android-icon-monochrome.png',
       },
       predictiveBackGestureEnabled: false,
