@@ -4,7 +4,7 @@
 -- not_finished and holds nothing. Nopes, seens and the seats that did not like never appear.
 
 begin;
-select plan(61);
+select plan(62);
 
 select tests.create_catalog(40);
 select tests.use_deck_engine('sql');
@@ -200,6 +200,14 @@ select pg_temp.v('f1', 9, 'like'); select pg_temp.v('f1', 5, 'like'); select pg_
 update public.room_cards set group_score = 1 where room_id = tests.room_id();
 select pg_temp.done(1, 'unanimous');
 select is(pg_temp.ids(pg_temp.read('f2')), pg_temp.films(array[5, 6, 8]), 'T6 equal likes and score: the lowest film id first, 3 at most');
+
+-- A film whose only like came from a removed seat is not listed, a seat that left still counts.
+select pg_temp.game(3, 'q');
+select pg_temp.v('q1', 2, 'like'); select pg_temp.v('q2', 3, 'like');
+update public.room_members set removed_at = now() where id = tests.member_id('q1');
+update public.room_members set left_at = now() where id = tests.member_id('q2');
+select pg_temp.done(1, 'unanimous');
+select is(pg_temp.ids(pg_temp.read('q3')), pg_temp.films(array[3]), 'T6 most liked: a removed seat like does not count, one from a seat that left does');
 
 -- A pick with a match kind and no one else liked: an empty list, still ok.
 select pg_temp.game(2, 'g');
