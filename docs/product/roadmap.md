@@ -276,11 +276,14 @@ Done when: production holds France's watchable films, and the daily sweep has ru
 - [x] **M2.12** Deploy the pipeline worker on Fly.io next to each database (London for staging, Frankfurt for production), with its secrets · ops · M · needs M2.2, M1.15 · [server-structure](../architecture/server-structure.md#deploying), [operations](../architecture/operations.md#secrets)
   Done when: the worker runs in both environments and restarts on failure.
 - [ ] **M2.13** First full load on staging, then production · ops · M · needs M2.9, M2.10, M2.12 · [tmdb](../integrations/tmdb.md#the-first-full-load)
-  Done when: about 40,000 to 60,000 films, and every listed French service has availability rows.
+  Done when: the catalog holds France's watchable films (production measured 28,162 films on 5 November 2026, 14,043 watchable in France; the earlier estimate of 40,000 to 60,000 was wrong), and every listed French service has availability rows.
 - [ ] **M2.14** Spot-check 30 French films against TMDB's watch pages and JustWatch · test · S · needs M2.13 · [streaming-availability](../integrations/streaming-availability.md#the-sources-compared)
   Done when: mismatches are under 5% or explained.
 - [ ] **M2.15** Move the Supabase organization to Pro: Micro compute on both projects, the spend cap on · ops · S · needs M1.1 · [operations](../architecture/operations.md#environments)
   Done when: both projects are on Pro with Micro compute, and the spend cap is on. Do it when a database passes 400 MB, or before M10.3.
+
+- [ ] **M2.16** Remember the candidates that failed the floor, with a re-check date (weekly, or when the export shows a vote count that could have crossed 30), so the popularity job stops re-fetching about 37,000 rejects a day and a film that crosses the floor still gets in · server · M · needs M2.13 · [tmdb](../integrations/tmdb.md#which-films-are-in-the-catalog)
+  Done when: a second popularity run queues no film that was rejected within its re-check window, and a rejected film whose votes reach 30 is fetched and stored.
 
 ## M3 App foundation
 

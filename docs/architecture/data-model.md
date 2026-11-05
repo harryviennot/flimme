@@ -174,7 +174,7 @@ erDiagram
 
 ## 2. Catalog
 
-About 40,000 popular movies at launch, written only by the server's ingest jobs. Nothing here is personal. Phones never read these tables; they get ready-made cards from `api.my_next_cards` and `api.title_cards`.
+About 28,000 movies at launch (28,162 on production after the first full load), written only by the server's ingest jobs. Nothing here is personal. Phones never read these tables; they get ready-made cards from `api.my_next_cards` and `api.title_cards`.
 
 ```mermaid
 erDiagram
@@ -585,7 +585,7 @@ sequenceDiagram
   W->>DB: upsert title_vectors
 ```
 
-- The first load of 40,000 titles is a one-off run of the same worker code from a laptop or CI, about 35 to 45 minutes at a polite rate.
+- The first load is a one-off run of the same worker code from a one-off machine: the backfill took 37 minutes at about 18 films a second (production, 5 November 2026), then the sweeps added the watchable films.
 - Availability rows a refresh no longer sees are deleted. Titles that drop out of TMDB are marked `is_active = false`, and 6 months later the monthly job clears them to a bare row (id, `media_type`, `tmdb_id`, `is_active`, `tmdb_missing_since`).
 - The jobs and their times: [Queues and scheduled jobs](#queues-and-scheduled-jobs). What each one fetches: [tmdb.md](../integrations/tmdb.md#keeping-it-fresh).
 
@@ -862,7 +862,7 @@ The trainer's nightly run (title stats, training data export, training) is sched
 
 | What | Rough size |
 | --- | --- |
-| `titles` | 40,000 rows |
+| `titles` | About 28,000 rows (measured; the starting estimate was 40,000) |
 | `title_translations` | 80,000 rows (English and French) |
 | `title_vectors` | 40,000 × 384 × 4 bytes, about 60 MB before the index |
 | `title_availability` | About 50,000 to 100,000 rows per enabled country |
