@@ -1,8 +1,10 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import * as Sharing from 'expo-sharing';
+import { PixelRatio } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
 import i18n from '@/i18n';
+import { recapCaptureSize } from '@/features/recap/use-recap-share';
 import { track } from '@/lib/analytics';
 import { showToast } from '@/components/ui/toast';
 
@@ -130,7 +132,7 @@ describe('sharing (recap.md#sharing)', () => {
     expect(track).toHaveBeenCalledWith('winner:recap_share', { method: 'share_sheet' });
     expect(captureRef).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ format: 'png', width: 1080, height: 1920 }),
+      expect.objectContaining({ format: 'png', ...recapCaptureSize(PixelRatio.get()) }),
     );
     expect(Sharing.shareAsync).toHaveBeenCalledWith(
       'file:///cache/recap.png',
@@ -223,6 +225,13 @@ describe('the sheet states (recap.md#states)', () => {
     await render(<RecapSheet roomId="r1" />);
     fireEvent.press(screen.getByRole('button', { name: 'Close' }));
     expect(mockBack).toHaveBeenCalled();
+  });
+});
+
+describe('the image size', () => {
+  it('is 1080 by 1920 pixels on any screen scale', () => {
+    expect(recapCaptureSize(3)).toEqual({ width: 360, height: 640 });
+    expect(recapCaptureSize(2)).toEqual({ width: 540, height: 960 });
   });
 });
 

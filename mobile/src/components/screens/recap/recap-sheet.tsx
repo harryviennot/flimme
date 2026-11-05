@@ -101,7 +101,7 @@ export function RecapSheet({ roomId }: { roomId: string }) {
           ref={cardRef}
           collapsable={false}
           pointerEvents="none"
-          className="absolute top-0 -left-90"
+          className="absolute top-0 -left-100"
           importantForAccessibility="no-hide-descendants"
           accessibilityElementsHidden
           testID="recap-capture"

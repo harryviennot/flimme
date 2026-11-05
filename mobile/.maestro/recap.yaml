@@ -1,0 +1,73 @@
+# M6.21, the recap share card. One phone hosts a room on staging, three bots (tools/bots) fill it
+# and play, the phone likes every film until the pick, then shares the recap from the winner
+# screen: the sheet shows the card, Share opens the system share sheet.
+# Needs Metro started with the staging environment (see the expo-app skill). Start the flow, and
+# once the lobby shows read the room code on the phone and run
+#   FLIMME_STAGING_URL=... FLIMME_STAGING_KEY=... \
+#     mise run bots -- --code <code> --count 3 --target staging --seed 7
+# Run: `maestro --device <sim> test mobile/.maestro/recap.yaml -e METRO_URL=http://localhost:<port>`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Continue|Staging'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: 'Continue'
+    commands:
+      - tapOn: 'Continue'
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/host-room.yaml
+- extendedWaitUntil:
+    visible: 'Bot 3.*'
+    timeout: 240000
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- repeat:
+    while:
+      visible: 'Like'
+    times: 120
+    commands:
+      - tapOn:
+          text: 'Like'
+          optional: true
+- extendedWaitUntil:
+    visible: '(?i)tonight.s pick|(?i)it.s a match.*'
+    timeout: 120000
+# A match overlay may come first: Continue goes on to the winner screen.
+- runFlow:
+    when:
+      visible: '(?i)it.s a match.*'
+    commands:
+      - extendedWaitUntil:
+          visible: '(?i)tonight.s pick'
+          timeout: 60000
+- extendedWaitUntil:
+    visible: 'Share recap'
+    timeout: 40000
+- takeScreenshot: recap-1-winner
+- tapOn: 'Share recap'
+- extendedWaitUntil:
+    visible: 'Your recap'
+    timeout: 15000
+- assertVisible: 'Made with Flimme.*flimme.com'
+- assertVisible: 'We picked'
+- assertNotVisible: 'Alice'
+- takeScreenshot: recap-2-sheet
+- tapOn: 'Share'
+- extendedWaitUntil:
+    visible: '(?i)copy|save image|airdrop|messages'
+    timeout: 20000
+- takeScreenshot: recap-3-share-sheet
+# The system sheet closes by tapping above it; the recap sheet is ready to share again.
+- tapOn:
+    point: 50%,8%
+- extendedWaitUntil:
+    visible: 'Your recap'
+    timeout: 10000
+- tapOn: 'Close'
+- assertVisible: "Tonight's pick"

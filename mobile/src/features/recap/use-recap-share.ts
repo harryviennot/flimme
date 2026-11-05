@@ -2,6 +2,7 @@ import { File } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { useCallback, useRef, useState, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
+import { PixelRatio } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
 import { showToast } from '@/components/ui/toast';
@@ -14,6 +15,12 @@ import { runRecapShare } from './share';
 
 /** The image's size in pixels: a story's shape, three pixels to each point of the 360 by 640 card. */
 export const RECAP_IMAGE = { width: 1080, height: 1920 } as const;
+
+/** view-shot sizes the file in points and multiplies by the screen scale: ask for 1080 by 1920 pixels. */
+export const recapCaptureSize = (pixelRatio: number) => ({
+  width: RECAP_IMAGE.width / pixelRatio,
+  height: RECAP_IMAGE.height / pixelRatio,
+});
 
 /**
  * Share on the recap sheet: one share at a time, `busy` while the image is made. The card in
@@ -38,7 +45,7 @@ export function useRecapShare(
         return captureRef(cardRef.current as Parameters<typeof captureRef>[0], {
           format: 'png',
           result: 'tmpfile',
-          ...RECAP_IMAGE,
+          ...recapCaptureSize(PixelRatio.get()),
         });
       },
       share: (uri) =>
