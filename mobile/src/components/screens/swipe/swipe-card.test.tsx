@@ -422,6 +422,17 @@ describe('the finger', () => {
     expect(mockToggleSaved).not.toHaveBeenCalled();
   });
 
+  it('shows a bookmark in a group room', async () => {
+    await render(<Card />);
+    expect(screen.getAllByTestId('movie-card-bookmark').length).toBeGreaterThan(0);
+  });
+
+  it('shows no bookmark in a solo room, where a like is the save', async () => {
+    await render(<Card solo />);
+    expect(screen.queryByTestId('movie-card-bookmark')).toBeNull();
+    expect(screen.queryByTestId('movie-card-bookmark-slot')).toBeNull();
+  });
+
   it('saves as a solo like from the bookmark without flipping or answering', async () => {
     const onFlip = jest.fn();
     const onRelease = jest.fn();

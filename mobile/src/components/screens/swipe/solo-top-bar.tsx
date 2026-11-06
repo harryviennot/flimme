@@ -20,7 +20,10 @@ export function SoloTopBar({ roomId, likes }: { roomId: string; likes: number })
     <View className="flex-row items-center gap-2 px-5 pt-2 pb-2" testID="solo-top-bar">
       <IconButton icon="x" accessibilityLabel={t('a11y.leave')} onPress={leave} />
       <View className="h-11 min-w-0 flex-1 flex-row items-center gap-3" testID="solo-top-bar-row">
-        <Tag label={t('topBar.label')} icon="user" />
+        {/* Tag is `self-start`, which would pin it to the row's top: its own wrapper is centred. */}
+        <View testID="solo-badge">
+          <Tag label={t('topBar.label')} icon="user" />
+        </View>
         <View
           className="ml-auto flex-row items-center gap-1.5"
           accessible

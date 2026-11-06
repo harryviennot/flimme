@@ -15,6 +15,9 @@ describe('the solo top bar', () => {
     const row = screen.getByTestId('solo-top-bar-row');
     expect(row.props.className).toContain('h-11');
     expect(row.props.className).toContain('items-center');
+    // The badge sits in a wrapper the row centres: Tag itself is `self-start` and would stick to the top.
+    expect(screen.getByTestId('solo-badge')).toBeOnTheScreen();
+    expect(screen.getByTestId('solo-badge').props.className).toBeUndefined();
     expect(screen.getByTestId('solo-likes')).toBeOnTheScreen();
   });
 });
