@@ -88,7 +88,7 @@ Done saves only what changed: `api.set_my_providers` when the selection differs 
 
 ## Your genres tonight
 
-Each player can pick up to 3 TMDB movie genres for tonight's deck. It is optional and never blocks Start. Decided by Harry on 6 November 2026 ([decisions](../../decisions.md)); the rules are the simulation's verdict ([simulations](../../product/simulations.md)). M6.54, on M6.53's backend.
+Each player can pick up to 3 TMDB movie genres for tonight's deck. It is optional and never blocks Start. Players are first asked on [the genre step](genre-step.md), a full-screen step right after they join or open the room (design pass (b), M6.64); the row and the sheet below stay for changes until Start. Decided by Harry on 6 November 2026 ([decisions](../../decisions.md)); the rules are the simulation's verdict ([simulations](../../product/simulations.md)). M6.54, on M6.53's backend.
 
 **The rules the screen keeps**
 

@@ -122,7 +122,7 @@ After Join (Confirm or First time), or at once for a seated player or a link wit
 
 | Answer | Sheet shows | Icon | Haptic | Next |
 | --- | --- | --- | --- | --- |
-| `ok` | | | None | Enters the room by [the stack](#a-link-to-a-room-you-are-in): the lobby, or straight into swiping |
+| `ok` | | | None | Enters the room by [the stack](#a-link-to-a-room-you-are-in): [the genre step](genre-step.md) then the lobby (a fresh join calls `askGenres(roomId)` first, M6.64), or straight into swiping |
 | `name_required` | First time | | None | Join |
 | `starting` | Joining with `join:shuffling` (Confirm: under the loading Join) | | None | Retries every second for up to 10 seconds, then `join:errors.starting` with Retry |
 | `closed` | Refused, `join:errors.closed` | `ticket` | `haptics.error()` | Host, or another code |
