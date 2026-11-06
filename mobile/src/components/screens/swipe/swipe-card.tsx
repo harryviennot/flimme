@@ -396,6 +396,7 @@ export function SwipeCard(props: SwipeCardProps) {
   const saved = useIsSaved(titleId);
   const bookmark = {
     saved,
+    alreadySaved: card.saved === true,
     // Not an answer: the card stays on top and is still swiped.
     onToggle: () => {
       if (isLanding(landedAt.current)) return;

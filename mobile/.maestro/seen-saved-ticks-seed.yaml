@@ -1,0 +1,57 @@
+# M6.66: gives a fresh phone on staging some seen and liked films, from a solo session, so the
+# ticks of seen-saved-ticks-group.yaml have films to show. Solo shows the Seen it tick too, and no
+# bookmark. Starts on the welcome screen of a phone already pointed at staging (the dev menu's
+# Staging row), in French or English.
+#   maestro --device <sim> test mobile/.maestro/seen-saved-ticks-seed.yaml
+appId: com.harryviennot.flimme.dev
+---
+# A phone that finished a group game comes back to its winner screen.
+- runFlow:
+    when:
+      visible: 'Accueil|Back to Home'
+    commands:
+      - tapOn: 'Accueil|Back to Home'
+- extendedWaitUntil:
+    visible: '(?i)get started|c.est parti|play alone|jouer seul'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: '(?i)get started|c.est parti'
+    commands:
+      - tapOn: '(?i)get started|c.est parti'
+      - inputText: 'Alice'
+      - tapOn: '(?i)continue|continuer'
+- extendedWaitUntil:
+    visible: '(?i)play alone|jouer seul'
+    timeout: 30000
+- tapOn: '(?i)play alone|jouer seul'
+- extendedWaitUntil:
+    visible: '(?i)^start$|c.est parti|lancer'
+    timeout: 20000
+- runFlow:
+    when:
+      visible: '(?i).*(pick at least one|choisis au moins).*'
+    commands:
+      # The tiles are logos: Netflix, Prime Video, Disney+ and Canal+ by position.
+      - tapOn:
+          point: 15%,30%
+      - tapOn:
+          point: 38%,30%
+      - tapOn:
+          point: 84%,30%
+      - tapOn:
+          point: 38%,40%
+- tapOn: '(?i)^start$|c.est parti|lancer'
+- extendedWaitUntil:
+    visible: 'Undo|Annuler'
+    timeout: 60000
+# A film nobody has marked: Seen it is a normal button, and solo has no bookmark.
+- assertNotVisible: 'Seen it, already marked|Déjà vu, déjà noté'
+- assertNotVisible: 'Add to My films|Ajouter à Mes films'
+- takeScreenshot: ticks-seed-1-fresh-card
+- repeat:
+    times: ${PAIRS || 6}
+    commands:
+      - tapOn: 'Seen it|Déjà vu'
+      - tapOn: 'Like|J.aime'
+- takeScreenshot: ticks-seed-2-after
