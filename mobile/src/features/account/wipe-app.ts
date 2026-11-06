@@ -1,5 +1,6 @@
 // The wipe wired to the app's real stores (see wipe.ts). A new persisted store joins the list.
 import { gamesStore } from '@/features/analytics/games';
+import { pendingSaves, savedSession, saveSettler } from '@/features/later';
 import { soloCapStore } from '@/features/solo/cap';
 import { pendingLeaves } from '@/features/solo/leave';
 import { keptRoomStore } from '@/features/room/kept-room';
@@ -26,6 +27,9 @@ export function wipeLocalData(): Promise<void> {
     },
     clearLocal: [
       () => voteQueue.clear(),
+      () => saveSettler.clear(),
+      () => savedSession.getState().reset(),
+      () => resetPersistedStore(pendingSaves as never),
       () => resetPersistedStore(useSettingsStore as never),
       () => resetPersistedStore(keptRoomStore as never),
       () => resetPersistedStore(matchShownStore as never),

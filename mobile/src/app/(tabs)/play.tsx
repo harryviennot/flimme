@@ -8,6 +8,7 @@ import { SoloCard } from '@/components/screens/home/solo-card';
 import { Banner } from '@/components/ui/banner';
 import { Screen } from '@/components/ui/screen';
 import { greetingFor } from '@/features/home/greeting';
+import { useSettleSaves } from '@/features/later';
 import { useOnline } from '@/features/network';
 import { useMyProfile } from '@/features/profile';
 import { useSettleSolo } from '@/features/solo/leave';
@@ -17,6 +18,7 @@ export default function HomeScreen() {
   const online = useOnline();
   const { data } = useMyProfile();
   useSettleSolo();
+  useSettleSaves();
   const profile = data ? { displayName: data.display_name, avatarKey: data.avatar_key } : null;
 
   return (
