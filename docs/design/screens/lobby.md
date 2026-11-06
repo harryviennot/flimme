@@ -92,7 +92,7 @@ Each player can pick up to 3 TMDB movie genres for tonight's deck. It is optiona
 
 **The rules the screen keeps**
 
-- **Cap 3.** The sheet stops a 4th pick with a quiet note, not an error: no toast, no buzz, no call. The note takes the helper line's place (the chips never jump). Dropping a pick makes room again.
+- **Cap 3.** The sheet stops a 4th pick with a quiet note, not an error: no toast, no buzz, no call. The note takes the helper line's place (the chips can move up or down by a line when the two texts differ in length). Dropping a pick makes room again.
 - **Counts, never names.** A chip shows how many [present](#present-and-away) players picked the genre ("Comedy 3"), your own pick included. The phone never shows or learns who picked what, and genre ids never reach analytics or logs (privacy rule 7: counts only, like "2 of 3 of you liked this").
 - **Only genres with 30 films or more tonight** are offered (`api.room_genres.options`, in genre id order). The phone does not filter, and sorts the chips by the genre's name in the player's language (`localeCompare`), in the sheet and in the row.
 - **Picks lock at Start.** The row is dimmed and shut while the room is dealing; the sheet only exists over the lobby (`isAllowed`). A late joiner plays the room's deck as it is.

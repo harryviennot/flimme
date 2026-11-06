@@ -134,7 +134,7 @@ export default function RoomGenresScreen() {
             <View accessible accessibilityRole="header">
               <Text variant="display-s">{t('genresSheet.title')}</Text>
             </View>
-            {/* The cap note takes the helper's place, so the chips never jump. */}
+            {/* The cap note takes the helper's place (one text, no extra block). */}
             <Text
               variant="body-s"
               tone={capped ? 'secondary' : 'muted'}
