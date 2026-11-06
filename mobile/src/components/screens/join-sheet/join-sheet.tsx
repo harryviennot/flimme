@@ -100,7 +100,7 @@ function Confirm({
       </Text>
       <HostLine host={host} centered />
       <View className="w-full gap-3">
-        <Button label={t('link.join')} size="l" block loading={busy} onPress={onJoin} />
+        <Button label={t('link.join')} size="l" block sound="tap" loading={busy} onPress={onJoin} />
         {leaveLine ? <LeaveLine line={leaveLine} /> : null}
         {shuffling ? (
           <Text variant="body-m" tone="secondary" align="center" accessibilityLiveRegion="polite">
@@ -195,6 +195,7 @@ function FirstTime({
         label={t('link.join')}
         size="l"
         block
+        sound="tap"
         disabled={!valid}
         loading={saving}
         onPress={() => void join()}

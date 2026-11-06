@@ -22,3 +22,4 @@ export { leaveRoom } from './leave';
 export { registerRoomGuard, releaseRoomGuards } from './leave-guard';
 export { mySeatOf, ROOM_KEY, SEATS_KEY, useMySeat, useRoom, useRoomSeats } from './queries';
 export { isAllowed, isSheet, roomScreenFor, type RoomScreen, type RoomSheet } from './screens';
+export { useRoomSounds } from './use-room-sounds';

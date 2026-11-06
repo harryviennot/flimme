@@ -85,6 +85,8 @@ export type ButtonProps = {
   accessibilityHint?: string;
   /** Lets a screen move a screen reader's focus here (the lobby does after a refused Start). */
   focusRef?: Ref<PressableNode>;
+  /** The button tick on press-in (Join, Start swiping, Lock in only). */
+  sound?: 'tap';
 };
 
 export function Button({
@@ -99,6 +101,7 @@ export function Button({
   accessibilityLabel,
   accessibilityHint,
   focusRef,
+  sound,
 }: ButtonProps) {
   const [pressed, setPressed] = useState(false);
   const offset = useSharedValue(0);
@@ -130,6 +133,7 @@ export function Button({
       accessibilityHint={accessibilityHint}
       accessibilityState={{ busy: loading }}
       disabled={inactive}
+      sound={sound}
       onPress={onPress}
       onPressIn={() => {
         setPressed(true);

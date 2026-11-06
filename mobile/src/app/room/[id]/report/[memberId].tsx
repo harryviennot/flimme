@@ -16,7 +16,7 @@ import { showToast } from '@/components/ui/toast';
 import { runReport } from '@/features/lobby/report';
 import { useOnline } from '@/features/network';
 import { SEATS_KEY, useMySeat, useRoomSeats } from '@/features/room';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 import { layout } from '@/theme/motion';
 
 const REASON_KEYS = {
@@ -62,7 +62,7 @@ export default function RoomReportSheet() {
         return;
       case 'rate_limited':
         setLimited(true);
-        haptics.error();
+        errorFeedback();
         return;
       case 'not_in_room':
         void client.invalidateQueries({ queryKey: SEATS_KEY(id ?? '') });

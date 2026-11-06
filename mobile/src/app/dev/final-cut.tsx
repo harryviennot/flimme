@@ -158,7 +158,7 @@ function RevealFixtured({ data, onExit }: { data: RevealData; onExit: () => void
     });
     queryClient.setQueryData(finalistCardsQuery('dev', ids, i18n.language).queryKey, cards);
     revealStore.getState().reset();
-    revealStore.getState().play('dev', data);
+    revealStore.getState().play('dev', data, true);
     return true;
   });
   const posters = Object.fromEntries(FILMS.map((film) => [film.titleId, film.poster]));

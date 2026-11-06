@@ -18,7 +18,7 @@ export type SheetRow =
       kind: 'refused';
       message: JoinMessage;
       icon: IconName;
-      /** `haptics.error()` once, when the refusal appears. */
+      /** `errorFeedback()` once (haptic and sound), when the refusal appears. */
       haptic: boolean;
       /** The error look (red icon): not for being offline. */
       error: boolean;

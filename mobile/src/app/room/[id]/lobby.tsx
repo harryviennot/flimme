@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { showToast } from '@/components/ui/toast';
 import { TopBar } from '@/components/ui/top-bar';
+import { claimStartSound } from '@/features/room/live-moments';
 import { useCountryProviders } from '@/features/host/queries';
 import { useInvite } from '@/features/invite/invite-link';
 import { useSeatAnnouncements } from '@/features/lobby/announce';
@@ -48,7 +49,8 @@ import {
   useRoomPresence,
   useRoomSeats,
 } from '@/features/room';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
+import { playSound } from '@/lib/sound';
 
 /** The lobby (docs/design/screens/lobby.md): who is here, live, and the host starts when ready. */
 export default function RoomLobbyScreen() {
@@ -106,7 +108,14 @@ export default function RoomLobbyScreen() {
     [client, id],
   );
   const callStart = useCallback(async () => {
-    const outcome = await runStart(() => api.startGame({ room_id: id ?? '' }));
+    let dealingAnswer = false;
+    const outcome = await runStart(async () => {
+      const answer = await api.startGame({ room_id: id ?? '' });
+      dealingAnswer = answer.status === 'dealing';
+      return answer;
+    });
+    // The host's own `dealing` answer is a live start: the sound, once (the event claims it too).
+    if (dealingAnswer && claimStartSound(id ?? '')) void playSound('start');
     if (outcome.kind === 'reread' || outcome.kind === 'too_few') await reread();
     return outcome;
   }, [id, reread]);
@@ -130,7 +139,7 @@ export default function RoomLobbyScreen() {
     // While the host's own Start is in flight its answer says the same: one buzz, one announcement.
     if (eligible === null || !isHost || busy.current) return;
     setTooFew(eligible);
-    haptics.error();
+    errorFeedback();
     refused(tooFewLine(eligible));
   });
 
@@ -145,11 +154,11 @@ export default function RoomLobbyScreen() {
     setStarting(false);
     if (outcome.kind === 'need_players') {
       setNeedFromServer(outcome.need);
-      haptics.error();
+      errorFeedback();
       refused(t('start.needPlayers', { count: outcome.need }));
     } else if (outcome.kind === 'too_few') {
       setTooFew(outcome.eligible);
-      haptics.error();
+      errorFeedback();
       refused(tooFewLine(outcome.eligible));
     } else if (outcome.kind === 'failed') {
       // The call may have gone through (or the room moved on under a retry): look again first.

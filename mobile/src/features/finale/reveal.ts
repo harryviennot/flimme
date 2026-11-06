@@ -159,6 +159,17 @@ export function revealPlan(data: RevealData): RevealPlan {
   return { knockouts, points, winner: t, handOver: t + duration['reveal-hold'] };
 }
 
+/** Where the ta-dum sits in `reveal.wav` (docs/design/sounds.md#the-reveal), in ms from its start. */
+export const REVEAL_TADUM_MS = 894;
+
+/**
+ * When `reveal.wav` starts, in ms from time 0, so its ta-dum lands on the winner's lift: the
+ * winner's time minus the ta-dum's place in the file, or 0 (Clear) when that would be earlier.
+ */
+export function revealSoundStart(plan: RevealPlan): number {
+  return Math.max(0, plan.winner - REVEAL_TADUM_MS);
+}
+
 /** The knocked-out films' ids, in seed order. */
 export const knockedOut = (data: RevealData): number[] =>
   data.finalists.filter((x) => x.vetoed).map((x) => x.titleId);

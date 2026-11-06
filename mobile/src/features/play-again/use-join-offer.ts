@@ -14,7 +14,7 @@ import {
   type JoinMessage,
 } from '@/features/join/rows';
 import { keptRoomStore, releaseRoomGuards } from '@/features/room';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 
 import { OFFER_ROWS } from './join-rows';
 import type { NextRoom } from './offer';
@@ -87,14 +87,14 @@ export function useJoinOffer(next: NextRoom | null) {
         result = await api.joinRoom({ code: target.code, ref: target.roomId, via: 'play_again' });
       } catch {
         if (id !== runId.current) return;
-        haptics.error();
+        errorFeedback();
         setView({ message: NETWORK_ROW.message, shuffling: false, button: 'retry' });
         return;
       }
       if (id !== runId.current) return;
       const row = OFFER_ROWS[result.status as keyof typeof OFFER_ROWS];
       if (!row) {
-        haptics.error();
+        errorFeedback();
         setView({ message: NETWORK_ROW.message, shuffling: false, button: 'retry' });
         return;
       }
@@ -112,7 +112,7 @@ export function useJoinOffer(next: NextRoom | null) {
       }
       if (row.kind === 'wait') {
         if (tries >= STARTING_RETRIES) {
-          haptics.error();
+          errorFeedback();
           setView({ message: STARTING_GAVE_UP.message, shuffling: false, button: 'retry' });
           return;
         }
@@ -124,7 +124,7 @@ export function useJoinOffer(next: NextRoom | null) {
         continue;
       }
       if (row.kind === 'line') {
-        haptics.error();
+        errorFeedback();
         setView({
           message: row.message,
           params: result.status === 'full' ? { max: result.max_players } : undefined,
