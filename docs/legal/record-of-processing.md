@@ -26,13 +26,13 @@ Ce registre décrit ce que fait la première version, pas ce qui viendra (voir [
 | Représentant dans l'Union (article 27) | Sans objet si le responsable est établi dans l'Union. À confirmer avec l'adresse postale |
 | Responsables conjoints | Aucun |
 | Analyse d'impact (AIPD) | Recommandée avant le lancement (profilage, et des enfants peuvent jouer). Pas encore faite : c'est la décision M8.11 |
-| Registre des violations de données | Pas encore tenu, et la procédure n'est pas écrite. Voir les [points ouverts](#points-ouverts) |
+| Registre des violations de données | Pas encore tenu, et la procédure n'est pas écrite (tâche M8.13). Voir les [points ouverts](#points-ouverts) |
 
 ## Les activités
 
 | N° | Activité | Base légale | Mise à jour |
 | --- | --- | --- | --- |
-| 1 | [Profil invité et connexion](#fiche-1-profil-invité-et-connexion) | Contrat | 5 nov. 2026 |
+| 1 | [Profil invité et connexion](#fiche-1-profil-invité-et-connexion) | Contrat (intérêt légitime pour le journal d'audit) | 6 nov. 2026 |
 | 2 | [Parties en groupe et salles](#fiche-2-parties-en-groupe-et-salles) | Contrat | 5 nov. 2026 |
 | 3 | [Parties en solo et Mes films](#fiche-3-parties-en-solo-et-mes-films) | Contrat | 5 nov. 2026 |
 | 4 | [Journal des cartes et statistiques de jeu](#fiche-4-journal-des-cartes-et-statistiques-de-jeu) | Intérêt légitime | 5 nov. 2026 |
@@ -43,7 +43,7 @@ Ce registre décrit ce que fait la première version, pas ce qui viendra (voir [
 | 9 | [Rapports de plantage et alertes (Sentry)](#fiche-9-rapports-de-plantage-et-alertes-sentry) | Intérêt légitime | 5 nov. 2026 |
 | 10 | [Mises à jour de l'appli (Expo)](#fiche-10-mises-à-jour-de-lappli-expo) | Contrat | 5 nov. 2026 |
 | 11 | [Sauvegardes](#fiche-11-sauvegardes) | Intérêt légitime | 5 nov. 2026 |
-| 12 | [Support et demandes d'exercice des droits](#fiche-12-support-et-demandes-dexercice-des-droits) | Intérêt légitime, obligation légale | 5 nov. 2026 |
+| 12 | [Support et demandes d'exercice des droits](#fiche-12-support-et-demandes-dexercice-des-droits) | Intérêt légitime, obligation légale | 6 nov. 2026 |
 
 ## Ce qui vaut pour toutes les fiches
 
@@ -70,11 +70,11 @@ Ce registre décrit ce que fait la première version, pas ce qui viendra (voir [
 | Finalité | Créer un profil sans compte à la première ouverture, reconnaître le joueur d'une ouverture à l'autre, le montrer dans les salles, choisir le catalogue de son pays et la langue des cartes, retenir ses plateformes de streaming |
 | Base légale | L'exécution du service que le joueur demande (contrat, article 6(1)(b) du RGPD). La session gardée sur le téléphone est strictement nécessaire au service (article 82 de la loi Informatique et Libertés) |
 | Personnes concernées | Les joueurs |
-| Données | **Identification** : un identifiant aléatoire (compte invité Supabase Auth et profil), le prénom ou le pseudo choisi (24 caractères au plus, filtré), un avatar pris dans une liste. **Préférences** : la langue, le pays réglé sur le téléphone, les plateformes de streaming. **Connexion** : les dates de création du profil et de dernier passage ; pour chaque session, l'adresse IP et l'identification technique de l'appli que Supabase Auth enregistre. Supabase Auth tient aussi un journal d'audit (`auth.audit_log_entries`) : l'action (connexion, rafraîchissement du jeton), l'identifiant du compte, la date et l'adresse IP. **Sur le téléphone** : la session, chiffrée |
+| Données | **Identification** : un identifiant aléatoire (compte invité Supabase Auth et profil), le prénom ou le pseudo choisi (24 caractères au plus, filtré), un avatar pris dans une liste. **Préférences** : la langue, le pays réglé sur le téléphone, les plateformes de streaming. **Connexion** : les dates de création du profil et de dernier passage ; pour chaque session, l'adresse IP et l'identification technique de l'appli que Supabase Auth enregistre. Supabase Auth tient aussi un journal d'audit (`auth.audit_log_entries`, « le journal des connexions » dans la politique) : l'action (inscription, connexion, rafraîchissement ou révocation du jeton, déconnexion, suppression du compte), l'identifiant du compte, l'e-mail ou le téléphone s'il y en a un, le fournisseur et la date. Sa colonne `ip_address` n'est remplie que pour certaines actions (double authentification, clés d'accès, liaison d'identités, codes de secours) qu'un invité n'utilise pas : la version 2.197 de Supabase Auth n'y met aucune adresse pour les inscriptions, connexions, rafraîchissements et déconnexions. La politique dit qu'il peut en contenir une, par prudence. **Sur le téléphone** : la session, chiffrée |
 | Données sensibles | Aucune |
 | Destinataires | Harry. Supabase (base de données et connexion). Fly.io (le serveur supprime le compte à la demande, fiche 12). Les autres joueurs d'une salle voient le prénom, l'avatar et les plateformes, copiés sur la place (fiche 2) |
 | Transferts hors UE | Données hébergées à Francfort. Supabase et Fly.io sont américains : clauses contractuelles types dans leurs DPA |
-| Durée de conservation | Tant que le profil existe. Il est supprimé quand le joueur supprime ses données, ou après 90 jours sans activité. Une session, adresse IP comprise, est gardée jusqu'à sa fin, au plus tard jusqu'à la suppression du profil. Le journal d'audit de Supabase Auth n'a aujourd'hui aucune règle d'effacement, même après la suppression du compte : voir les [points ouverts](#points-ouverts). Sur le téléphone, jusqu'à la suppression des données ou de l'appli |
+| Durée de conservation | Tant que le profil existe. Il est supprimé quand le joueur supprime ses données, ou après 90 jours sans activité. Une session, adresse IP comprise, est gardée jusqu'à sa fin, au plus tard jusqu'à la suppression du profil. Le journal d'audit de Supabase Auth : 90 jours au plus, même après la suppression du compte (promis par la politique du 6 novembre 2026, sur la base de notre intérêt légitime : la sécurité). Rien ne l'efface encore : la tâche M8.14 ajoute un effacement quotidien ou coupe sa copie dans la base, avant qu'une ligne de la production ait 90 jours (voir les [points ouverts](#points-ouverts)). Sur le téléphone, jusqu'à la suppression des données ou de l'appli |
 | Sécurité | Les mesures communes. Prénoms normalisés et filtrés (liste de mots interdits en français et en anglais). Jetons d'accès valables une heure et détection de la réutilisation des jetons de rafraîchissement. Supabase limite les créations de comptes invités par adresse IP (30 par heure, la valeur que prévoit [operations.md](../architecture/operations.md#supabase-settings)) |
 
 ## Fiche 2. Parties en groupe et salles
@@ -226,8 +226,8 @@ Ce registre décrit ce que fait la première version, pas ce qui viendra (voir [
 | Personnes concernées | Toute personne qui écrit (joueurs, parents), et les joueurs qui utilisent les boutons de l'appli |
 | Données | **Par e-mail** : l'adresse de l'expéditeur, son message, les dates. Le message préparé par l'appli porte la version de l'appli et le système du téléphone, sans identifiant. **Dans l'appli** : le téléchargement produit un fichier JSON avec les données du joueur, remis au téléphone et pas gardé sur le serveur ; la suppression efface le compte invité, et tout ce qui en dépend suit (fiches 1 à 3 et 8) |
 | Données sensibles | Aucune n'est demandée. Un message peut en contenir si son auteur l'écrit |
-| Destinataires | Harry. OVH (les serveurs de courrier de support@flimme.com). Fly.io (le serveur exécute la suppression), Supabase et PostHog (fiches 1 et 8) |
-| Transferts hors UE | Aucun pour les e-mails si la boîte reste chez OVH, à confirmer (voir les [points ouverts](#points-ouverts)). Pour la suppression, comme les fiches 1 et 8 |
+| Destinataires | Harry. OVH (la boîte de support@flimme.com : les enregistrements MX du domaine pointent vers le service de courrier d'OVH, et l'enregistrement SPF ne laisse qu'OVH envoyer pour le domaine, vérifié le 6 novembre 2026). Fly.io (le serveur exécute la suppression), Supabase et PostHog (fiches 1 et 8) |
+| Transferts hors UE | Aucun pour les e-mails : OVH est français, ses serveurs de courrier sont en France. Harry confirme que la boîte n'est pas renvoyée ailleurs (voir les [points ouverts](#points-ouverts)). Pour la suppression, comme les fiches 1 et 8 |
 | Durée de conservation | Les e-mails : le temps de répondre, puis 12 mois au plus après le dernier échange (choix pris pour la politique, M8.1, à confirmer par Harry). Le fichier téléchargé n'est pas gardé sur le serveur. Une suppression laisse une ligne avec des identifiants dans les journaux du serveur, 7 jours au plus (fiche 7) |
 | Sécurité | Les mesures communes. Un invité n'a pas d'e-mail et ne peut pas être retrouvé par ce moyen : il est renvoyé aux boutons de l'appli. Le téléchargement ne rend que les données de celui qui le demande, une fois par heure au plus. La suppression ne vise que le compte du jeton qui la demande. Réponse dans un délai d'un mois |
 

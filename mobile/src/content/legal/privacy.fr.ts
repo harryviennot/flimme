@@ -3,7 +3,7 @@
 // in the small subset legal.test.ts allows, so the website (M8.3) can render it simply.
 // The English version (privacy.en.ts) says the same thing.
 
-export const updated = '2026-11-05';
+export const updated = '2026-11-06';
 
 export default `# Politique de confidentialité de Flimme
 
@@ -31,13 +31,14 @@ Tu n'as pas de compte à créer. À la première ouverture, l'appli crée un pro
 | --- | --- |
 | Ton profil | Un identifiant aléatoire, le prénom ou le pseudo que tu choisis, ta couleur (choisie dans une liste, jamais une photo), ta langue et le pays réglé sur ton téléphone |
 | Ta connexion | La date de création de ton profil et de ton dernier passage. Pour chaque session, notre base de données enregistre aussi l'adresse IP de ton téléphone et l'identification technique de l'appli |
+| Le journal des connexions | Pour la sécurité, Supabase, qui gère la connexion, note chaque connexion, chaque renouvellement de ta session et la suppression de ton profil : l'action, ton identifiant et l'heure. Selon l'action, il peut aussi noter l'adresse IP de ton téléphone |
 | Tes plateformes | Les services de streaming que tu as |
 | Tes parties | Les salles que tu crées ou rejoins et leurs réglages. Ta place dans chaque salle : ton prénom, ta couleur et tes plateformes ce soir-là, et comment tu es arrivé (lien, code, QR code). Tes réponses à chaque film (J'aime, Bof, Coup de cœur, Déjà vu) et leur heure, tes votes au Final Cut et le film du soir. Une partie en solo est une salle à une seule place |
-| Le journal des cartes | Pour chaque carte : sa place et son score dans le paquet, ta réponse, une annulation éventuelle et le temps passé dessus. Il est relié à ta place dans la salle, jamais à ton prénom |
+| Le journal des cartes | Pour chaque carte : le film, comment il est arrivé dans ton paquet, sa place, son score et ce qui a servi à le choisir, ta réponse et son heure, une annulation éventuelle, si tu as retourné la carte et le temps passé dessus. Il est relié à ta place dans la salle, jamais à ton prénom |
 | Mes films | Les films que tu as aimés et quand, tes coups de cœur, les films choisis avec ton groupe, et ceux que tu as marqués comme déjà vus |
 | Ton choix sur les statistiques | Ta réponse au réglage « Aider à améliorer l'appli » (activé, désactivé ou stats détaillées), sa date et la version du texte affiché |
 | Les signalements | Si tu signales un joueur : quelle place a signalé quelle place, dans quelle salle, le motif choisi dans une liste (prénom choquant, spam ou sabotage, autre chose) et la date. Jamais de texte libre |
-| Les limites anti-abus | Des compteurs liés à ton profil et à ton adresse IP, enregistrée sous forme d'empreinte (hachée), pour empêcher de deviner les codes de salle |
+| Les limites anti-abus | Des compteurs par action, liés à ton profil, qui limitent les appels répétés : rejoindre une salle, voir l'aperçu d'une salle, lancer une partie en solo, afficher la carte d'un film en dehors du paquet (par exemple un match ou un film de Mes films), modifier Mes films, changer ton choix sur les statistiques, signaler un joueur et télécharger tes données. Pour rejoindre une salle et voir son aperçu, d'autres compteurs sont liés à ton adresse IP, enregistrée sous forme d'empreinte (hachée), pour empêcher de deviner les codes de salle |
 | Les statistiques d'usage | Voir le point 6 |
 | Les rapports de plantage | Voir le point 6 |
 | Les journaux techniques | Les requêtes reçues par notre base de données, avec l'adresse IP, pour la sécurité et le bon fonctionnement. Les journaux de notre serveur ne contiennent que des identifiants, jamais ton prénom, un code de salle ou ton adresse IP |
@@ -54,7 +55,7 @@ Cette version ne propose ni compte Apple ou Google, ni connexion à Letterboxd, 
 | Faire tourner le jeu : créer les salles, servir des films disponibles sur vos plateformes, compter les votes, trouver le film du soir, jouer seul | L'exécution du service que tu demandes (contrat) |
 | Mes films, et écarter des prochains paquets les films que tu as déjà vus | Contrat |
 | Améliorer les paquets : voir quelles cartes plaisent, comparer des façons de construire le paquet, et limiter le solo à 100 cartes par jour | Notre intérêt légitime |
-| Protéger les joueurs et le service : signalements, limites anti-abus, journaux techniques | Notre intérêt légitime (sécurité, règles des stores d'applis) |
+| Protéger les joueurs et le service : signalements, limites anti-abus, journal des connexions, journaux techniques | Notre intérêt légitime (sécurité, règles des stores d'applis) |
 | Corriger les plantages | Notre intérêt légitime |
 | Mesurer l'audience de l'appli, de façon anonyme | Mesure d'audience exemptée de consentement, selon les conditions de la CNIL, avec la possibilité de la refuser |
 | Les stats détaillées, si tu les actives | Ton consentement |
@@ -122,8 +123,9 @@ Ces prestataires traitent tes données pour notre compte, selon nos instructions
 | Sentry | Rapports de plantage | Francfort (Union européenne). Sentry indique que certains types de données peuvent être stockés aux États-Unis |
 | PostHog | Statistiques d'usage | Francfort (Union européenne) |
 | Expo | Mises à jour de l'appli. Quand l'appli en cherche une, Expo reçoit le système de ton téléphone, un identifiant aléatoire et ton adresse IP | États-Unis |
+| OVH | Le serveur de notre site, flimme.com, et la boîte e-mail de support@flimme.com : il reçoit et garde les e-mails que tu nous envoies | France (le serveur du site est à Gravelines) |
 
-Ces prestataires sont des entreprises américaines. Quand des données sont envoyées aux États-Unis ou peuvent y être consultées, le transfert est encadré par les clauses contractuelles types de la Commission européenne et, pour les entreprises qui y adhèrent, par le cadre de protection des données UE-États-Unis (Data Privacy Framework).
+À part OVH, qui est une entreprise française, ces prestataires sont des entreprises américaines. Quand des données sont envoyées aux États-Unis ou peuvent y être consultées, le transfert est encadré par les clauses contractuelles types de la Commission européenne et, pour les entreprises qui y adhèrent, par le cadre de protection des données UE-États-Unis (Data Privacy Framework).
 
 Certaines versions de test, qui ne sont pas celles publiées dans les stores, utilisent des serveurs séparés : la base de données en Irlande (Union européenne) et le serveur à Londres (Royaume-Uni, que la Commission européenne reconnaît comme offrant une protection adéquate).
 
@@ -143,6 +145,7 @@ Notre site, flimme.com, ne mesure pas l'audience et ne garde aucun journal des v
 | Journal des cartes | 13 mois |
 | Signalements | 12 mois, même si un des joueurs supprime ses données |
 | Limites anti-abus | 1 jour |
+| Journal des connexions | 90 jours au plus, même après la suppression de ton profil |
 | Journaux techniques | 7 jours au plus |
 | Rapports de plantage | 90 jours au plus |
 | Statistiques d'usage | 25 mois au plus. L'identifiant anonyme est remplacé tous les 13 mois |
@@ -155,7 +158,7 @@ Notre site, flimme.com, ne mesure pas l'audience et ne garde aucun journal des v
 Tu peux accéder à tes données, les corriger, les supprimer, les récupérer, t'opposer à leur utilisation ou la limiter, et retirer ton consentement. La plupart se font directement dans l'appli.
 
 - **Télécharger tes données** : Réglages, « Télécharger mes données ». Tu reçois un fichier JSON avec ton profil, tes plateformes, ton choix sur les statistiques, Mes films et, pour chaque partie, ta place, tes réponses, tes votes et le film du soir. Jamais les données des autres joueurs. Une fois par heure au plus.
-- **Supprimer tes données** : Réglages, « Supprimer mes données ». Ton profil, tes plateformes, Mes films, ton choix sur les statistiques et les statistiques reliées à ton profil sont effacés. Tes votes passés restent dans leurs salles, sans ton prénom. Sans l'appli, la page [flimme.com/fr/suppression](https://flimme.com/fr/suppression) explique comment faire.
+- **Supprimer tes données** : Réglages, « Supprimer mes données ». Ton profil, tes plateformes, Mes films, ton choix sur les statistiques et les statistiques reliées à ton profil sont effacés. Tes votes passés restent dans leurs salles, sans ton prénom. Le journal des connexions disparaît au bout de 90 jours au plus. Sans l'appli, la page [flimme.com/fr/suppression](https://flimme.com/fr/suppression) explique comment faire.
 - **Corriger** : change ton prénom et ta couleur depuis l'accueil, et tes plateformes en préparant une partie. Dans Mes films, retire un film ou marque-le comme vu ou pas vu.
 - **T'opposer** : désactive « Aider à améliorer l'appli ». Pour le journal des cartes, écris-nous.
 - **Retirer ton consentement** : désactive « Stats détaillées ».
@@ -175,7 +178,7 @@ Un profil sans activité pendant 90 jours est supprimé, comme quand tu supprime
 
 ## 12. Modifications
 
-Cette politique date du 5 novembre 2026. Si nous la modifions, cette date change. Si un changement touche à ce que nous collectons ou à ce que nous en faisons, nous le signalerons dans l'appli avant qu'il s'applique.
+Cette politique date du 6 novembre 2026. Si nous la modifions, cette date change. Si un changement touche à ce que nous collectons ou à ce que nous en faisons, nous le signalerons dans l'appli avant qu'il s'applique.
 
 Voir aussi nos [conditions d'utilisation](https://flimme.com/fr/conditions).
 `;

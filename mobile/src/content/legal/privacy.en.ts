@@ -2,7 +2,7 @@
 // written for English readers rather than translated word for word. Same Markdown subset, checked
 // by legal.test.ts.
 
-export const updated = '2026-11-05';
+export const updated = '2026-11-06';
 
 export default `# Flimme privacy policy
 
@@ -30,13 +30,14 @@ There is no account to create. The first time you open the app, it creates a pro
 | --- | --- |
 | Your profile | A random id, the name or nickname you choose, your colour (picked from a list, never a photo), your language and the country set on your phone |
 | Your sign-in | When your profile was created and when you last used the app. For each session, our database also records your phone's IP address and the app's technical identification |
+| The sign-in log | For security, Supabase, which runs sign-in, records each sign-in, each renewal of your session and the deletion of your profile: the action, your id and the time. Depending on the action, it may also record your phone's IP address |
 | Your services | The streaming services you have |
 | Your games | The rooms you create or join and their settings. Your seat in each room: your name, your colour and your services that night, and how you arrived (link, code, QR code). Your answer to each film (Like, Nope, Super like, Seen it) and when, your Final Cut votes and tonight's pick. A solo session is a room with one seat |
-| The card log | For each card: its place and score in the deck, your answer, any undo and how long you looked at it. It is linked to your seat in the room, never to your name |
+| The card log | For each card: the film, how it got into your deck, its place, its score and what was used to pick it, your answer and when, any undo, whether you flipped the card and how long you looked at it. It is linked to your seat in the room, never to your name |
 | My films | The films you liked and when, your super likes, the films your group picked with you, and the ones you marked as seen |
 | Your stats choice | Your answer to the "Help improve the app" setting (on, off or detailed stats), its date and the version of the text you saw |
 | Reports | If you report a player: which seat reported which seat, in which room, the reason picked from a list (offensive name, spam or sabotage, something else) and the date. Never free text |
-| Abuse limits | Counters tied to your profile and to your IP address, stored as a fingerprint (a hash), to stop people guessing room codes |
+| Abuse limits | Counters per action, tied to your profile, that limit repeated calls: joining a room, previewing a room, starting a solo session, showing a film's card outside the deck (for example a match or a film in My films), changing My films, changing your stats choice, reporting a player and downloading your data. For joining a room and previewing it, other counters are tied to your IP address, stored as a fingerprint (a hash), to stop people guessing room codes |
 | Usage stats | See section 6 |
 | Crash reports | See section 6 |
 | Technical logs | Requests to our database, with the IP address, for security and to keep things running. Our server's logs hold ids only, never your name, a room code or your IP address |
@@ -53,7 +54,7 @@ This version has no Apple or Google account, no Letterboxd connection and no not
 | Running the game: creating rooms, dealing films on your group's services, counting votes, finding tonight's pick, playing alone | Providing the service you ask for (contract) |
 | My films, and keeping films you have seen out of your next decks | Contract |
 | Making decks better: seeing which cards people like, comparing ways of building the deck, and capping solo play at 100 cards a day | Our legitimate interest |
-| Protecting players and the service: reports, abuse limits, technical logs | Our legitimate interest (security, app store rules) |
+| Protecting players and the service: reports, abuse limits, the sign-in log, technical logs | Our legitimate interest (security, app store rules) |
 | Fixing crashes | Our legitimate interest |
 | Measuring the app's audience, anonymously | Audience measurement exempt from consent under the CNIL's conditions, which you can refuse |
 | Detailed stats, if you turn them on | Your consent |
@@ -121,8 +122,9 @@ These providers process your data on our behalf, following our instructions and 
 | Sentry | Crash reports | Frankfurt (European Union). Sentry says some types of data may be stored in the United States |
 | PostHog | Usage stats | Frankfurt (European Union) |
 | Expo | App updates. When the app checks for one, Expo receives your phone's operating system, a random id and your IP address | United States |
+| OVH | The server behind our website, flimme.com, and the mailbox for support@flimme.com: it receives and keeps the emails you send us | France (the website's server is in Gravelines) |
 
-These providers are American companies. When data is sent to the United States or can be accessed from there, the transfer is covered by the European Commission's standard contractual clauses and, for the companies that have joined it, by the EU-US Data Privacy Framework.
+Apart from OVH, a French company, these providers are American companies. When data is sent to the United States or can be accessed from there, the transfer is covered by the European Commission's standard contractual clauses and, for the companies that have joined it, by the EU-US Data Privacy Framework.
 
 Some test versions, not the ones published in the app stores, use separate servers: the database in Ireland (European Union) and the server in London (United Kingdom, which the European Commission recognises as offering adequate protection).
 
@@ -142,6 +144,7 @@ Our website, flimme.com, doesn't measure its audience and keeps no log of visits
 | Card log | 13 months |
 | Reports | 12 months, even if one of the players deletes their data |
 | Abuse limits | 1 day |
+| Sign-in log | 90 days at most, even after your profile is deleted |
 | Technical logs | 7 days at most |
 | Crash reports | 90 days at most |
 | Usage stats | 25 months at most. The anonymous id is replaced every 13 months |
@@ -154,7 +157,7 @@ Our website, flimme.com, doesn't measure its audience and keeps no log of visits
 You can access your data, correct it, delete it, take a copy, object to or restrict its use, and withdraw your consent. Most of this happens right in the app.
 
 - **Download your data**: Settings, "Download my data". You get a JSON file with your profile, your services, your stats choice, My films and, for each game, your seat, your answers, your votes and tonight's pick. Never other players' data. Once an hour at most.
-- **Delete your data**: Settings, "Delete my data". Your profile, your services, My films, your stats choice and any stats linked to your profile are erased. Your past votes stay in their rooms, without your name. Without the app, the page [flimme.com/en/delete-account](https://flimme.com/en/delete-account) explains how.
+- **Delete your data**: Settings, "Delete my data". Your profile, your services, My films, your stats choice and any stats linked to your profile are erased. Your past votes stay in their rooms, without your name. The sign-in log goes within 90 days at most. Without the app, the page [flimme.com/en/delete-account](https://flimme.com/en/delete-account) explains how.
 - **Correct it**: change your name and colour from the home screen, and your services when you set up a game. In My films, remove a film or mark it as seen or not seen.
 - **Object**: switch off "Help improve the app". For the card log, write to us.
 - **Withdraw your consent**: switch off "Detailed stats".
@@ -174,7 +177,7 @@ A profile with no activity for 90 days is deleted, as when you delete your data 
 
 ## 12. Changes
 
-This policy is dated 5 November 2026. If we change it, this date changes. If a change affects what we collect or what we do with it, we will say so in the app before it applies.
+This policy is dated 6 November 2026. If we change it, this date changes. If a change affects what we collect or what we do with it, we will say so in the app before it applies.
 
 See also our [terms of use](https://flimme.com/en/terms).
 `;
