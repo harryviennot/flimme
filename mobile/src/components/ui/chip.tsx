@@ -38,9 +38,9 @@ export function Chip({
       onPress={onPress}
       disabled={disabled}
       className={cn(
-        'h-9 flex-row items-center self-start rounded-pill',
+        'h-9 flex-row items-center gap-1.5 self-start rounded-pill',
         selected
-          ? 'gap-1.5 bg-accent-default pr-3.5 pl-2.5'
+          ? 'bg-accent-default pr-3.5 pl-2.5'
           : 'border border-border-default bg-bg-raised px-3.5',
         disabled && 'opacity-disabled',
       )}

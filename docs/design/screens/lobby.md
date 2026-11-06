@@ -92,7 +92,7 @@ Each player can pick up to 3 TMDB movie genres for tonight's deck. It is optiona
 
 **The rules the screen keeps**
 
-- **Cap 3.** The sheet stops a 4th pick with a quiet note, not an error: no toast, no buzz, no call. Dropping a pick makes room again.
+- **Cap 3.** The sheet stops a 4th pick with a quiet note, not an error: no toast, no buzz, no call. The note takes the helper line's place (the chips never jump). Dropping a pick makes room again.
 - **Counts, never names.** A chip shows how many [present](#present-and-away) players picked the genre ("Comedy 3"), your own pick included. The phone never shows or learns who picked what, and genre ids never reach analytics or logs (privacy rule 7: counts only, like "2 of 3 of you liked this").
 - **Only genres with 30 films or more tonight** are offered (`api.room_genres.options`, in genre id order). The phone does not filter, and sorts the chips by the genre's name in the player's language (`localeCompare`), in the sheet and in the row.
 - **Picks lock at Start.** The row is dimmed and shut while the room is dealing; the sheet only exists over the lobby (`isAllowed`). A late joiner plays the room's deck as it is.
@@ -109,7 +109,7 @@ Each player can pick up to 3 TMDB movie genres for tonight's deck. It is optiona
 | Dealing (after Start) | as above | no (dimmed, picks are locked) |
 | Offline or the read failed | the last value, or none | yes (the sheet explains) |
 
-**The sheet.** `Screen` with `scroll` and `footer`, as the services sheet. Title `display-s` `genresSheet.title`, helper `body-s` muted `genresSheet.helper`, the chips in a wrapping row (`gap-2`), `Button` primary L `genresSheet.done` in the footer. A chip is the `Chip` with `count`: the name, then the count in `mono-data`; selected shows the check and the accent fill. Its screen reader label is `genresSheet.chip` ("Comedy, 3 players"), role checkbox. The counts include your own unsaved tap at once (the sheet adds or removes 1 locally), so a tap answers without waiting for the network; the server's number replaces it after Done.
+**The sheet.** `Screen` with a `footer` and, inside, Gesture Handler's `ScrollView` under a `GestureHandlerRootView` (a plain `ScrollView` paints nothing in a form sheet on iOS, found on the simulator for this sheet). Title `display-s` `genresSheet.title`, helper `body-s` muted `genresSheet.helper`, the chips in a wrapping row (`gap-2`), `Button` primary L `genresSheet.done` in the footer. A chip is the `Chip` with `count`: the name, then the count in `mono-data`; selected shows the check and the accent fill. Its screen reader label is `genresSheet.chip` ("Comedy, 3 players"), role checkbox. A count of 0 is not drawn (a bare "0" on every chip is noise); the label still says it. The counts include your own unsaved tap at once (the sheet adds or removes 1 locally), so a tap answers without waiting for the network; the server's number replaces it after Done.
 
 Done sends only the genre ids, alone (a genres-only call sends `genres_changed` and no `seat_updated`, which would name the seat: never bundle genres with services), only when the selection changed (`api.set_seat_prefs` with `p_genre_ids`), then closes. The sheet starts on your saved picks that are still offered; a saved pick that left the offer takes no place in the cap and is dropped on the next save.
 
@@ -117,7 +117,7 @@ Done sends only the genre ids, alone (a genres-only call sends `genres_changed` 
 | --- | --- |
 | Loading | Six `Skeleton` chips (`h-9`, `rounded-pill`); Done disabled |
 | Loaded, none offered | `body-m` secondary `genresSheet.none`; Done closes with no call |
-| Cap reached (a 4th tap) | `body-s` secondary `genresSheet.cap` under the helper, announced politely; the chip stays off; no haptic, no toast |
+| Cap reached (a 4th tap) | `body-s` secondary `genresSheet.cap` in place of the helper, announced politely; the chip stays off; no haptic, no toast |
 | `ok` | The sheet closes; the row shows the names; other phones' counts follow `genres_changed` |
 | Nothing changed | The sheet closes, with no call |
 | `closed` (the room is done) | The sheet closes; the layout follows the room's state |

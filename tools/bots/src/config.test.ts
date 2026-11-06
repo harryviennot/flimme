@@ -14,7 +14,15 @@ describe('parseArgs', () => {
       likeRate: null,
       seed: 5,
       personality: 'mixed',
+      genres: [],
+      leaveOnStop: false,
     });
+  });
+
+  it('takes up to three genres and a leave on stop', () => {
+    const config = parseArgs(['--code', '482913', '--genres', '35,27', '--leave-on-stop', 'yes']);
+    expect(config.genres).toEqual([35, 27]);
+    expect(config.leaveOnStop).toBe(true);
   });
 
   it('draws a seed when none is given, and takes off, picky and agreeable', () => {
@@ -54,6 +62,8 @@ describe('parseArgs', () => {
       likeRate: 0.2,
       seed: 9,
       personality: 'mixed',
+      genres: [],
+      leaveOnStop: false,
     });
   });
 
@@ -69,6 +79,9 @@ describe('parseArgs', () => {
     [['--code', '482913', '--seed', '-1'], 'seed'],
     [['--code', '482913', '--seed', 'abc'], 'seed'],
     [['--code', '482913', '--personality', 'grumpy'], 'personality'],
+    [['--code', '482913', '--genres', '1,2,3,4'], 'genres'],
+    [['--code', '482913', '--genres', 'x'], 'genres'],
+    [['--code', '482913', '--leave-on-stop', 'maybe'], 'leave-on-stop'],
     [['--code'], 'code'],
   ])('refuses %j', (argv, word) => {
     expect(() => parseArgs(argv)).toThrow(UsageError);

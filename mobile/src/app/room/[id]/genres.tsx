@@ -3,6 +3,8 @@ import { router, useLocalSearchParams, useSegments } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, Platform, View } from 'react-native';
+// Gesture Handler's ScrollView: a plain one paints nothing inside a formSheet (see the film sheet).
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 
 import { api } from '@/api';
 import { Button } from '@/components/ui/button';
@@ -115,7 +117,6 @@ export default function RoomGenresScreen() {
 
   return (
     <Screen
-      scroll
       footer={
         <Button
           label={t('genresSheet.done')}
@@ -127,53 +128,60 @@ export default function RoomGenresScreen() {
         />
       }
     >
-      <View className="gap-4 pt-8 pb-4">
-        <View accessible accessibilityRole="header">
-          <Text variant="display-s">{t('genresSheet.title')}</Text>
-        </View>
-        <Text variant="body-s" tone="muted">
-          {t('genresSheet.helper')}
-        </Text>
-        {capped ? (
-          <Text variant="body-s" tone="secondary" accessibilityLiveRegion="polite">
-            {t('genresSheet.cap')}
-          </Text>
-        ) : null}
-        {ready && chips.length > 0 ? (
-          <View accessibilityRole="list" className="flex-row flex-wrap gap-2">
-            {chips.map((chip) => (
-              <Chip
-                key={chip.id}
-                label={chip.name}
-                count={chip.count}
-                accessibilityLabel={t('genresSheet.chip', { name: chip.name, count: chip.count })}
-                selected={chip.selected}
-                onPress={() => toggle(chip.id)}
+      <GestureHandlerRootView className="flex-1">
+        <ScrollView contentContainerClassName="grow">
+          <View className="gap-4 pt-4 pb-4">
+            <View accessible accessibilityRole="header">
+              <Text variant="display-s">{t('genresSheet.title')}</Text>
+            </View>
+            {/* The cap note takes the helper's place, so the chips never jump. */}
+            <Text
+              variant="body-s"
+              tone={capped ? 'secondary' : 'muted'}
+              accessibilityLiveRegion="polite"
+            >
+              {capped ? t('genresSheet.cap') : t('genresSheet.helper')}
+            </Text>
+            {ready && chips.length > 0 ? (
+              <View accessibilityRole="list" className="flex-row flex-wrap gap-2">
+                {chips.map((chip) => (
+                  <Chip
+                    key={chip.id}
+                    label={chip.name}
+                    count={chip.count > 0 ? chip.count : undefined}
+                    accessibilityLabel={t('genresSheet.chip', {
+                      name: chip.name,
+                      count: chip.count,
+                    })}
+                    selected={chip.selected}
+                    onPress={() => toggle(chip.id)}
+                  />
+                ))}
+              </View>
+            ) : null}
+            {ready && chips.length === 0 ? (
+              <Text variant="body-m" tone="secondary">
+                {t('genresSheet.none')}
+              </Text>
+            ) : null}
+            {failed ? (
+              <EmptyState
+                icon={online ? 'alert' : 'wifi-off'}
+                error={online}
+                title={online ? t('genresSheet.failed') : t('genresSheet.offline')}
+                action={{ label: t('genresSheet.retry'), onPress: retry }}
               />
-            ))}
+            ) : null}
+            {!ready && !failed ? (
+              <View className="flex-row flex-wrap gap-2">
+                {[0, 1, 2, 3, 4, 5].map((n) => (
+                  <Skeleton key={n} className="h-9 w-24 rounded-pill" />
+                ))}
+              </View>
+            ) : null}
           </View>
-        ) : null}
-        {ready && chips.length === 0 ? (
-          <Text variant="body-m" tone="secondary">
-            {t('genresSheet.none')}
-          </Text>
-        ) : null}
-        {failed ? (
-          <EmptyState
-            icon={online ? 'alert' : 'wifi-off'}
-            error={online}
-            title={online ? t('genresSheet.failed') : t('genresSheet.offline')}
-            action={{ label: t('genresSheet.retry'), onPress: retry }}
-          />
-        ) : null}
-        {!ready && !failed ? (
-          <View className="flex-row flex-wrap gap-2">
-            {[0, 1, 2, 3, 4, 5].map((n) => (
-              <Skeleton key={n} className="h-9 w-24 rounded-pill" />
-            ))}
-          </View>
-        ) : null}
-      </View>
+        </ScrollView>
+      </GestureHandlerRootView>
     </Screen>
   );
 }
