@@ -292,7 +292,7 @@ Removed once unused: `card.tmdbRating` (the box's label) and `card.flipBack`. "L
 
 ### The bookmark
 
-M6.51 (PR #275), moved by design pass (b) (M6.60) after Harry's feel test of 6 November 2026 ("too far away from the thumb"); M6.58 builds the move with Later in the app. It saves the film to My films, Later. With Later becoming a solo like (Harry, 6 November 2026), a save records a solo like that never counts for tonight. **It is not an answer:** the card stays on top, is still swiped, and the save counts for nothing tonight: nothing is broadcast, no other phone and no count shows it, and it touches no room deck.
+M6.51 (PR #275), moved by design pass (b) (M6.60) after Harry's feel test of 6 November 2026 ("too far away from the thumb"); M6.58 builds the move with Later in the app. With Later becoming a solo like (Harry, 6 November 2026), a save records a solo like that never counts for tonight. **It is not an answer:** the card stays on top, is still swiped, and the save counts for nothing tonight: nothing is broadcast, no other phone and no count shows it, and it touches no room deck.
 
 **Options weighed** (for Harry, question 9):
 

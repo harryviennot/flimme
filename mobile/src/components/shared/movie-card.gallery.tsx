@@ -84,7 +84,7 @@ export const gallery: GalleryEntry = {
   name: 'Movie card',
   tier: 'shared',
   description:
-    'The swipe card. Tap to flip; the like, nope, seen it and super stamps show while it is dragged. The bookmark (top left, front and back) saves the film for Later: empty, then filled. The back: the poster crop and fade, the score in the meta line, "Read more" under a cut synopsis, one row of logos with "+n".',
+    'The swipe card. Tap to flip; the like, nope, seen it and super stamps show while it is dragged. The bookmark (low on the right, front and back) saves the film as a solo like in My films: empty, then filled. The back: the poster crop and fade, the score in the meta line, "Read more" under a cut synopsis, one row of logos with "+n".',
   render: () => (
     <View className="gap-6">
       <Demo card={film} />
