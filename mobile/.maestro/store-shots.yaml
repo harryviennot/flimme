@@ -1,0 +1,48 @@
+# M11.3: opens each store screenshot scene (docs/store/screenshots.md) in a development build and
+# checks what it shows, in French and then English. No backend. scripts/store-shots.sh makes the
+# images; this flow is the touch run that proves the scenes open, and a base for the video (M11.4).
+# Run: `maestro --device <sim> test mobile/.maestro/store-shots.yaml -e METRO_URL=http://localhost:<port>`
+appId: com.harryviennot.flimme.dev
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- runFlow: subflows/connect-metro.yaml
+- openLink: flimme-dev:///dev/store/swipe?lang=fr
+- extendedWaitUntil:
+    visible: '(?i)j.aime'
+    timeout: 20000
+- openLink: flimme-dev:///dev/store/match?lang=fr
+- extendedWaitUntil:
+    visible: '(?i)c.est un match.*'
+    timeout: 20000
+- openLink: flimme-dev:///dev/store/lobby?lang=fr
+- extendedWaitUntil:
+    visible: '(?i)partager le lien'
+    timeout: 20000
+- assertVisible: '(?i)voir le qr code'
+- openLink: flimme-dev:///dev/store/card-back?lang=fr
+- extendedWaitUntil:
+    visible: '(?i)synopsis'
+    timeout: 20000
+- openLink: flimme-dev:///dev/store/final-cut?lang=fr
+- extendedWaitUntil:
+    visible: '(?i)valider mon vote'
+    timeout: 20000
+- openLink: flimme-dev:///dev/store/recap?lang=fr
+- extendedWaitUntil:
+    visible: '(?i)on a choisi'
+    timeout: 20000
+- openLink: flimme-dev:///dev/store/lobby?lang=en
+- extendedWaitUntil:
+    visible: '(?i)share link'
+    timeout: 20000
+- openLink: flimme-dev:///dev/store/final-cut?lang=en
+- extendedWaitUntil:
+    visible: '(?i)lock in.*'
+    timeout: 20000
+# A path that is not a scene leaves the scene (it goes home).
+- openLink: flimme-dev:///dev/store/nope?lang=fr
+- extendedWaitUntil:
+    notVisible: '(?i)lock in.*'
+    timeout: 20000
