@@ -25,6 +25,8 @@ function card(id: number): NextCard {
     reason_code: null,
     reason_params: {},
     member_ratings: [],
+    seen: false,
+    saved: false,
   };
 }
 const cards = (from: number, to: number) =>

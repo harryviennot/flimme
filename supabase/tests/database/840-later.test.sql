@@ -327,7 +327,10 @@ select tests.authenticate_as('x1');
 select set_config('tests.x_cards', (api.my_next_cards(tests.room_id()))::text
                   || (api.title_cards(tests.room_id(), array[tests.film(1), tests.film(5)]))::text, true);
 select tests.clear_authentication();
-select ok(current_setting('tests.x_cards') !~ 'saved', 'Later as a like: room cards carry nothing of a save');
+-- M6.65 (decisions.md, 6 Nov 2026) changed M6.50's "room cards never carry the saved state": a room card
+-- now carries the caller's own saved boolean (860-card-own-flags), and still nothing else of a save.
+select ok(regexp_replace(current_setting('tests.x_cards'), '"saved": (true|false)', '', 'g') !~ 'saved',
+          'Later as a like: room cards carry nothing of a save but the caller''s own saved flag (M6.65)');
 
 -- A group deck still deals a film a seat saved, with no watchlist weight.
 select tests.deal_game(2, 'g', 'dealing');
