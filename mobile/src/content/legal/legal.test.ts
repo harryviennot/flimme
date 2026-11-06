@@ -44,7 +44,8 @@ const documents: LegalDocument[] = [
     markdown: privacyFr,
     updated: privacyFrUpdated,
     mustLink: ['https://flimme.com/fr/conditions', 'https://flimme.com/fr/suppression'],
-    mustSay: ['CNIL'],
+    // The sign-in log is Supabase Auth's audit log; M8.14 keeps this promise.
+    mustSay: ['CNIL', '| Journal des connexions | 90 jours au plus'],
     datedIn: 'fr-FR',
   },
   {
@@ -52,7 +53,7 @@ const documents: LegalDocument[] = [
     markdown: privacyEn,
     updated: privacyEnUpdated,
     mustLink: ['https://flimme.com/en/terms', 'https://flimme.com/en/delete-account'],
-    mustSay: ['CNIL'],
+    mustSay: ['CNIL', '| Sign-in log | 90 days at most'],
     datedIn: 'en-GB',
   },
   // M8.3: the support page and the deletion request page, hosted next to the policy and terms.
@@ -286,5 +287,33 @@ describe.each(pairs)('%s and %s', (first, second) => {
   it('share the same outline, section by section', () => {
     expect(outline(a.markdown).length).toBeGreaterThan(0);
     expect(outline(a.markdown)).toEqual(outline(b.markdown));
+  });
+
+  // How many rows each table has, in order: a line added to a table in one language shows.
+  const tables = (markdown: string) => {
+    const found: number[] = [];
+    let rows = 0;
+    for (const line of [...markdown.split('\n'), '']) {
+      if (/^\|.*\|$/.test(line)) rows += 1;
+      else if (rows > 0) {
+        found.push(rows);
+        rows = 0;
+      }
+    }
+    return found;
+  };
+
+  it('share the same tables, row by row', () => {
+    expect(tables(a.markdown)).toEqual(tables(b.markdown));
+  });
+});
+
+// Section 8 names every processor of docs/product/privacy.md#who-processes-data-for-us, in both
+// languages. OVH carries the support mailbox and the website (the record of processing, M8.10).
+const PROCESSORS = ['Supabase', 'Fly.io', 'Tigris', 'GitHub', 'Sentry', 'PostHog', 'Expo', 'OVH'];
+
+describe.each(['privacy.fr', 'privacy.en'])('%s', (name) => {
+  it.each(PROCESSORS)('names %s as a processor', (processor) => {
+    expect(byName(name).markdown).toContain(`\n| ${processor} | `);
   });
 });

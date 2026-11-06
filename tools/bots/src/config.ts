@@ -12,6 +12,10 @@ import { PERSONALITY_MODES, type PersonalityMode } from './personality';
 export type Target = 'local' | 'staging';
 
 export type BotConfig = {
+  /** `play-again` (M6.23): bots that follow `next_room`, or a bot host that plays and then calls Play again. */
+  action: 'play' | 'play-again';
+  /** With `play-again`: `host` makes the first bot create the room, `guest` joins `code`. */
+  as: 'host' | 'guest';
   code: string;
   count: number;
   target: Target;
@@ -28,7 +32,9 @@ export const HEARTBEAT_MS = 30_000;
 
 export class UsageError extends Error {}
 
-export function parseArgs(argv: string[]): BotConfig {
+export function parseArgs(input: string[]): BotConfig {
+  const action = input[0] === 'play-again' ? 'play-again' : 'play';
+  const argv = action === 'play-again' ? input.slice(1) : input;
   const flags = new Map<string, string>();
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]!;
@@ -39,11 +45,17 @@ export function parseArgs(argv: string[]): BotConfig {
     flags.set(arg.slice(2), value);
     i += 1;
   }
-  const known = ['code', 'count', 'target', 'swipe-ms', 'like-rate', 'seed', 'personality'];
+  const known = ['code', 'count', 'target', 'swipe-ms', 'like-rate', 'seed', 'personality', 'as'];
   for (const key of flags.keys())
     if (!known.includes(key)) throw new UsageError(`Unknown option --${key}`);
 
-  const code = flags.get('code');
+  const as = flags.get('as') ?? 'guest';
+  if (as !== 'host' && as !== 'guest') throw new UsageError('--as must be host or guest');
+  if (as === 'host' && action !== 'play-again') {
+    throw new UsageError('--as host belongs to the play-again action');
+  }
+  // A bot host opens its own room: the code is printed, not given.
+  const code = as === 'host' ? (flags.get('code') ?? 'HOSTED') : flags.get('code');
   if (!code || !/^[A-Za-z0-9]{4,8}$/.test(code)) {
     throw new UsageError('--code is required: the room code, 4 to 8 letters or digits');
   }
@@ -79,6 +91,8 @@ export function parseArgs(argv: string[]): BotConfig {
     throw new UsageError('--personality must be mixed, agreeable or picky');
   }
   return {
+    action,
+    as,
     code: code.toUpperCase(),
     count,
     target,
