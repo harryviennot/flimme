@@ -47,23 +47,23 @@ Five rules shape everything below:
 ```mermaid
 flowchart TD
   inst["Installs from the store"] --> wel["Welcome"] --> name["Name and color"] --> home["Home"]
-  home --> host["Open a room:<br/>mode, vibe, services"] --> lobby["Lobby"]
-  home --> code["Enter a code"] --> lobby
+  home --> host["Open a room:<br/>mode, vibe, services"] --> genres["Your genres tonight<br/>(skippable)"] --> lobby["Lobby"]
+  home --> code["Enter a code"] --> genres
   link["Taps an invite link<br/>or scans the QR with the camera"] --> has{"App installed?"}
   has -->|yes| sheet["Join sheet:<br/>name and color the first time"]
   has -->|no| page["Invite page in the browser:<br/>the code and the store buttons"]
   page -->|get the app| store["Store, install"] --> again["Tap the link again<br/>or type the code"] --> sheet
-  sheet -->|room in the lobby| lobby
+  sheet -->|room in the lobby| genres
   sheet -->|swiping already started| game["Swiping"]
   lobby -->|host starts| game
 ```
 
 | Path | Steps before the first card | Rough time |
 | --- | --- | --- |
-| Invited, app installed, first time | Tap the link, type a name, pick a color, Join | About 15 seconds |
-| Invited, app installed, played before | Tap the link, Join | About 5 seconds |
+| Invited, app installed, first time | Tap the link, type a name, pick a color, Join, genres or **Any genre** | About 20 seconds |
+| Invited, app installed, played before | Tap the link, Join, genres or **Any genre** | About 10 seconds |
 | Invited, no app, installs | Tap the link, store, install, open, tap the link again | A minute or more, mostly the store |
-| New player, hosting | Welcome, name, Open a room, mode, vibe and services, Open the room | About a minute, plus waiting for friends |
+| New player, hosting | Welcome, name, Open a room, mode, vibe and services, Open the room, genres or **Any genre** | About a minute, plus waiting for friends |
 
 The times are estimates for playtests to check, not measurements.
 
@@ -127,7 +127,8 @@ The link opens the invite page in the browser (that is what universal links do w
 | --- | --- | --- |
 | 1. Mode | Quick Match (preselected), Final Cut or Date Night, plus a time budget | The modes are in `product/game-modes.md` |
 | 2. Vibe and services | Up to 3 moods (host only), the services they have, the seen rule | Services come prefilled from the profile. The first time, at least one must be picked before **Open the room**, and the choice is saved to the profile. Moods are in the [deck engine](../architecture/deck-engine.md#moods) |
-| 3. Lobby | The invite sheet opens over the lobby: QR code, link, **Share invite** | The room code stays readable behind it, for a couch |
+| 3. Your genres tonight | Up to 3 genres, or **Any genre** | A full-screen step once the room exists, since it needs the room's offer ([the genre step](../design/screens/genre-step.md)) |
+| 4. Lobby | The invite sheet opens over the lobby: QR code, link, **Share invite** | The room code stays readable behind it, for a couch |
 
 - **A returning host** needs three taps: **Open a room**, **Next**, **Open the room**, since the mode is preselected and their services are remembered.
 - **Country** comes from the host's profile. If it isn't a country we have availability for, see [Empty and error states](#empty-and-error-states).
@@ -144,7 +145,7 @@ What everyone sees:
 
 **A guest's services.** A row "Your services", prefilled from their profile, empty the first time. Under the default rule, where the room uses every service anyone has (one screen), it's optional and says so: "Optional: adds more films." Under the long-distance rule, where only services everyone has count, it says "Needed: tonight only shows films everyone can watch." It never blocks the start.
 
-**Everyone's genres.** A row "Your genres tonight" under "Your services" (for the host too): up to 3 genres, optional, never blocking Start. Chips show how many players picked each genre, never who. Only genres with 30 films or more tonight are offered; picks lock at Start; no picks means today's deck. The spec is in [the lobby screen](../design/screens/lobby.md#your-genres-tonight).
+**Everyone's genres.** Asked first on a full-screen step as each player arrives (a guest right after Join, the host right after **Open the room**), with one tap to skip ([the genre step](../design/screens/genre-step.md), decided by Harry on 6 November 2026). Then a row "Your genres tonight" under "Your services" (for the host too) for changes until Start: up to 3 genres, optional, never blocking Start. Chips show how many players picked each genre, never who. Only genres with 30 films or more tonight are offered; picks lock at Start; no picks means today's deck. The spec is in [the lobby screen](../design/screens/lobby.md#your-genres-tonight).
 
 ### The taste check
 

@@ -122,7 +122,7 @@ After Join (Confirm or First time), or at once for a seated player or a link wit
 
 | Answer | Sheet shows | Icon | Haptic | Next |
 | --- | --- | --- | --- | --- |
-| `ok` | | | None | Enters the room by [the stack](#a-link-to-a-room-you-are-in): the lobby, or straight into swiping |
+| `ok` | | | None | Enters the room by [the stack](#a-link-to-a-room-you-are-in): [the genre step](genre-step.md) then the lobby (a fresh join calls `askGenres(roomId)` first, M6.64), or straight into swiping |
 | `name_required` | First time | | None | Join |
 | `starting` | Joining with `join:shuffling` (Confirm: under the loading Join) | | None | Retries every second for up to 10 seconds, then `join:errors.starting` with Retry |
 | `closed` | Refused, `join:errors.closed` | `ticket` | `haptics.error()` | Host, or another code |
@@ -171,7 +171,7 @@ The code is shown with a space in the middle ("482 913"), as `RoomTicket` does. 
 
 - The sheet uses the system's presentation; on `ok` the room screen comes in with `layout.fadeIn`.
 - Loading to Confirm: the ticket stays put; the title, the host line and Join replace the skeletons with `layout.fadeIn`. No haptic: the preview isn't a moment.
-- Join: `haptics.press()` (Pressable's default) and the button tick on press-in ([sounds.md](../sounds.md#key-buttons)), then `loading` on the button. No celebration until the room.
+- Join: `haptics.press()` (Pressable's default) and the button tick on press-in ([sounds.md](../sounds.md#key-buttons)), then `loading` on the button. When `join_room` answers `ok`, the ticket tears (`playSound('join')`, [sounds.md](../sounds.md#joining-a-room)) as the room comes in. No haptic and no other celebration until the room.
 - Refusals: `haptics.error()` once, when the `EmptyState` appears (`layout.fadeIn`), on open for a preview refusal.
 
 ## Accessibility

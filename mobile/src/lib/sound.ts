@@ -5,7 +5,8 @@ import {
   type AudioSource,
 } from 'expo-audio';
 
-// Every in-app sound, its moment and its phones: docs/design/sounds.md (6 November 2026).
+// Every in-app sound, its moment and its phones: docs/design/sounds.md (6 November 2026, widened
+// the same evening with join, lock in, the shortlist, the veto, the winner and the solo pick).
 // Mixed with other audio so it never pauses the TV or music, played even when the phone is set
 // to silent (Harry, 6 November 2026), nothing in the background. Every button press ticks. The Sound switch in Settings turns all of them off. The
 // files carry their own levels, so the volume is always 1 and is never set here. `notify.wav`
@@ -17,8 +18,21 @@ export const ARRIVE_MAX = 10;
 
 export type ArriveSound = `arrive-${2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`;
 export type CountdownSound = 'countdown' | 'countdown-last';
+/** The sounds a button plays on press-in, with its haptic: the tick, and Lock in's latch. */
+export type ButtonSound = 'tap' | 'lock-in';
 export type SoundName =
-  'match' | 'reveal' | 'start' | 'error' | 'tap' | CountdownSound | ArriveSound;
+  | 'match'
+  | 'reveal'
+  | 'start'
+  | 'error'
+  | 'join'
+  | 'shortlist'
+  | 'veto'
+  | 'winner'
+  | 'solo-pick'
+  | ButtonSound
+  | CountdownSound
+  | ArriveSound;
 
 const sources: Record<SoundName, AudioSource> = {
   match: require('../../assets/sounds/match.wav'),
@@ -26,6 +40,12 @@ const sources: Record<SoundName, AudioSource> = {
   start: require('../../assets/sounds/start.wav'),
   error: require('../../assets/sounds/error.wav'),
   tap: require('../../assets/sounds/tap.wav'),
+  join: require('../../assets/sounds/join.wav'),
+  'lock-in': require('../../assets/sounds/lock-in.wav'),
+  shortlist: require('../../assets/sounds/shortlist.wav'),
+  veto: require('../../assets/sounds/veto.wav'),
+  winner: require('../../assets/sounds/winner.wav'),
+  'solo-pick': require('../../assets/sounds/solo-pick.wav'),
   countdown: require('../../assets/sounds/countdown.wav'),
   'countdown-last': require('../../assets/sounds/countdown-last.wav'),
   'arrive-2': require('../../assets/sounds/arrive-2.wav'),
@@ -43,11 +63,15 @@ const sources: Record<SoundName, AudioSource> = {
 export type SoundGroup = 'launch' | 'room' | 'finale';
 
 export const GROUPS: Record<SoundGroup, readonly SoundName[]> = {
-  launch: ['tap', 'error'],
+  // Join plays before any room layout is up, so it is made at launch with the tick and the error.
+  launch: ['tap', 'error', 'join'],
   room: [
     'match',
     'reveal',
     'start',
+    'shortlist',
+    'winner',
+    'solo-pick',
     'arrive-2',
     'arrive-3',
     'arrive-4',
@@ -58,7 +82,7 @@ export const GROUPS: Record<SoundGroup, readonly SoundName[]> = {
     'arrive-9',
     'arrive-10',
   ],
-  finale: ['countdown', 'countdown-last'],
+  finale: ['countdown', 'countdown-last', 'lock-in', 'veto'],
 };
 
 /** The arrival note for the seats the lobby lists after it (2 to 10; more or fewer clamp). */

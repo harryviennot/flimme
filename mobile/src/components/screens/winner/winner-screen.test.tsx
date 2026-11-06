@@ -1,17 +1,21 @@
 import '@/i18n';
 
 import type { Card } from '@flimme/contract';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import * as WebBrowser from 'expo-web-browser';
 
 import type { WinnerView } from '@/features/winner/use-winner';
 import { serviceLogos } from '@/features/winner/services';
 
 import { track } from '@/lib/analytics';
+import { haptics } from '@/lib/haptics';
+import { playSound } from '@/lib/sound';
 
 import { WinnerScreen } from './winner-screen';
 
 jest.mock('@/lib/analytics', () => ({ track: jest.fn() }));
+jest.mock('@/lib/haptics', () => ({ haptics: { match: jest.fn(), press: jest.fn() } }));
+jest.mock('@/lib/sound', () => ({ playSound: jest.fn(async () => undefined) }));
 // The runners-up have their own tests (runners-up.test.tsx); here the section only has to mount.
 let mockRunnersUp: unknown = null;
 jest.mock('@/features/winner/use-runners-up', () => ({
@@ -249,12 +253,49 @@ describe('the watch page event', () => {
     const group = await render(
       <WinnerScreen view={ready()} language="en" online onHome={jest.fn()} />,
     );
-    fireEvent.press(screen.getByRole('button', { name: /details/i }));
+    await fireEvent.press(screen.getByRole('button', { name: /details/i }));
     expect(track).toHaveBeenCalledWith('winner:watch_page_open');
-    group.unmount();
+    await group.unmount();
     jest.mocked(track).mockClear();
     await render(<WinnerScreen view={ready()} language="en" online solo onHome={jest.fn()} />);
-    fireEvent.press(screen.getByRole('button', { name: /details/i }));
+    await fireEvent.press(screen.getByRole('button', { name: /details/i }));
     expect(track).not.toHaveBeenCalled();
+  });
+});
+
+describe('the winner sounds (sounds.md#the-winner-screen, sounds.md#the-solo-pick)', () => {
+  const props = { language: 'en', online: true, onHome: jest.fn() };
+
+  it('chimes once when a live pick is ready, even after a re-render', async () => {
+    const view = await render(<WinnerScreen {...props} view={ready()} chime />);
+    await waitFor(() => expect(playSound).toHaveBeenCalled());
+    await view.rerender(<WinnerScreen {...props} view={ready()} chime />);
+    await waitFor(() => expect(jest.mocked(playSound).mock.calls).toEqual([['winner']]));
+    expect(haptics.match).not.toHaveBeenCalled();
+  });
+
+  it('waits for the film before it chimes', async () => {
+    const view = await render(<WinnerScreen {...props} view={{ status: 'loading' }} chime />);
+    expect(playSound).not.toHaveBeenCalled();
+    await view.rerender(<WinnerScreen {...props} view={ready()} chime />);
+    await waitFor(() => expect(jest.mocked(playSound).mock.calls).toEqual([['winner']]));
+  });
+
+  it('has no sound without the chime, and none for Nothing fits tonight', async () => {
+    await show(ready());
+    await render(<WinnerScreen {...props} view={{ status: 'no_pick' }} chime />);
+    expect(playSound).not.toHaveBeenCalled();
+  });
+
+  it('plays the solo pick with its buzz when the pick lands', async () => {
+    await render(<WinnerScreen {...props} view={ready()} solo lands />);
+    await waitFor(() => expect(haptics.match).toHaveBeenCalledTimes(1));
+    expect(jest.mocked(playSound).mock.calls).toEqual([['solo-pick']]);
+  });
+
+  it('is silent for a solo pick seen again', async () => {
+    await render(<WinnerScreen {...props} view={ready()} solo />);
+    expect(playSound).not.toHaveBeenCalled();
+    expect(haptics.match).not.toHaveBeenCalled();
   });
 });

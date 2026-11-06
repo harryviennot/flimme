@@ -14,6 +14,7 @@ import {
   useRoomSeats,
 } from '@/features/room';
 import { haptics } from '@/lib/haptics';
+import { playSound } from '@/lib/sound';
 import { reportError } from '@/lib/sentry';
 
 import {
@@ -245,8 +246,11 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
   function onLongPress(titleId: number) {
     if (!takesTaps(phase) || !canVeto) return;
     const next = pressFinalist(ballot, titleId, canVeto);
-    // `veto()` is for a veto landing on a poster that had none anywhere.
-    if (ballot.veto === null && next.veto !== null) haptics.veto();
+    // `veto()` and the stamp's sound are for a veto landing on a poster that had none anywhere.
+    if (ballot.veto === null && next.veto !== null) {
+      haptics.veto();
+      void playSound('veto');
+    }
     setLiftVetoHint(false);
     setBallot(next);
   }

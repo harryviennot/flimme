@@ -77,6 +77,7 @@ export function LockInFooter({
         <Button
           label={phase === 'sending' ? t('sending') : t('lockIn')}
           accessibilityHint={t('a11y.lockInHint')}
+          sound="lock-in"
           icon={phase === 'sending' ? undefined : 'lock'}
           loading={phase === 'sending'}
           disabled={phase === 'loading'}

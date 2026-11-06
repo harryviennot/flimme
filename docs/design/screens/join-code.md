@@ -21,7 +21,7 @@ Six digits and you're in. The app tries to join as soon as the sixth digit is ty
 
 | Answer | Message (status line) | Boxes | Haptic | Next |
 | --- | --- | --- | --- | --- |
-| `ok` | | Stay filled | None: arriving is the reward | `replace` with `/room/[id]`; the room layout shows the lobby or the swipe screen |
+| `ok` | | Stay filled | None: arriving is the reward | `askGenres(roomId)`, then `replace` with `/room/[id]`; the room layout shows [the genre step](genre-step.md) then the lobby, or the swipe screen (M6.64) |
 | `not_found` | `join:errors.notFound` | Shake, then clear; the caret goes back to the first box | `haptics.error()` | Type again |
 | `rate_limited` | `join:errors.rateLimited` | Clear, no shake | `haptics.error()` | Paste a link, or wait |
 | `full` | `join:errors.full` (`{{max}}` is `max_players`) | Stay filled | `haptics.error()` | Host a movie night |
@@ -72,6 +72,7 @@ The messages are shared with the [join sheet](join-sheet.md).
 - **The wrong-code shake:** the row moves 8 points left, right, left and back (`space.8`), each step `duration.instant` with `easing.standard` (320 ms in all), with `haptics.error()` at the start. The digits clear when it ends. It should read as "try again", not as a crash.
 - `PinBox` shows its new `error` state (below) from the answer until the next keystroke.
 - The keypad's own clicks are the system's; no haptic per digit.
+- When `join_room` answers `ok`, the ticket tears (`playSound('join')`, [sounds.md](../sounds.md#joining-a-room)) as the room comes in. No haptic.
 
 ## Accessibility
 

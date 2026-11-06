@@ -100,7 +100,7 @@ An invisible input that owns a value and draws nothing: it fills its `relative` 
 
 - **Front:** the poster fills the card; the `card-front-scrim` gradient over the bottom 92% (clear at the top, 88% `bg.sunken` at the bottom, nine eased stops; the back header, the match poster and the Final Cut bands keep `card-scrim`); a 36-point `bg.sunken` flip badge (info icon) top right; at the bottom, the reason tag (accent, zap), title `title-l`, meta `mono-data` `text.primary`, service tags.
 - **Like / Nope:** a 3-point `like.default` or `nope.default` border, and a stamp rotated -14 or 14 degrees: `bg.sunken`, 4-point border, `radius.sm`, Staatliches 52 (raw, `display-stamp`).
-- **Back:** a 132-point header with the poster, scrim, flip badge (refresh icon), title and meta; then the ratings (TMDB: star and `display-m` in `marquee.default`; a seated player's Letterboxd rating with their avatar), the synopsis (`mono-eyebrow` label, `body-m`), credits (`body-s`), service tags and the Trailer button (secondary S, play icon), and "Tap the card to flip back".
+- **Back:** a 132-point header with the poster, scrim, flip badge (refresh icon), title and meta; then the ratings (TMDB: star and `display-m` in `marquee.default`; a seated player's Letterboxd rating with their avatar), the synopsis (`mono-eyebrow` label, `body-m`), credits (`body-s`), service tags and the Trailer button (secondary S, play icon), and "Tap the card to flip back". Reworked from 6 November 2026 (M6.61): the header shows the poster's middle under `card-front-scrim`, the TMDB score joins the meta line, the synopsis gets the room and a "Read more" to a sheet, the services are one row of 32-point logos with "+n", and the flip-back line goes ([swipe](screens/swipe.md#the-card-back-reworked)).
 
 ## Poster thumb (`shared/poster`)
 
@@ -136,7 +136,7 @@ Specified in the screen specs (`docs/design/screens/`) from 30 October 2026 on, 
 | `TabBar` | ui | New: two tabs (icon and label), the selected one in `marquee` | [The tab bar](screens/tab-bar.md#new-component) |
 | `SegmentedControl` | ui | New: two or three segments in one track, a sliding thumb (My films' Liked and Seen) | [My films](screens/my-films.md#new-components) |
 | `FilmTile` | shared | New: a film's poster as a grid tile, its placeholder, one badge (Picked or the star), used by My films and the pick sheet | [My films](screens/my-films.md#new-components) |
-| `MovieCard` | shared | Gains `bookmark` (M6.51): the Later bookmark, top left, front and back ([swipe](screens/swipe.md#the-card)). Gains `still`: the back with no flip badge and no flip-back line (the film sheet) | [The film sheet](screens/film-sheet.md#design-system-changes) |
+| `MovieCard` | shared | Gains `bookmark` (M6.51): the Later bookmark, top left, front and back ([swipe](screens/swipe.md#the-card)). Gains `still`: the back with no flip badge and no flip-back line (the film sheet); since M6.62 a still back grows with its content and shows the whole synopsis. The back's rework (M6.61): `back.meta`, `back.onReadMore`, `back.onControlTouch`, one row of logos | [The film sheet](screens/film-sheet.md#design-system-changes), [swipe](screens/swipe.md#the-card-back-reworked) |
 | `WhereToWatch` | shared | Moves from `screens/winner/` to `shared/`, and takes the "not listed" line as a prop | [The film sheet](screens/film-sheet.md#design-system-changes) |
 | `Toast` | ui | Gains an optional `action` (Undo) and `duration` | [The film sheet](screens/film-sheet.md#design-system-changes) |
 
