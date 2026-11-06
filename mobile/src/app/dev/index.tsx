@@ -114,6 +114,11 @@ export default function DevScreen() {
             icon="ticket"
             onPress={() => router.push('/dev/final-cut')}
           />
+          <ListRow
+            label="Store screenshot scenes (swipe)"
+            icon="film"
+            onPress={() => router.push('/dev/store/swipe')}
+          />
           <ListRow label="Solo cap card" icon="user" onPress={() => router.push('/dev/solo-cap')} />
           <ListRow
             label="Forget today's solo cap"
