@@ -1,6 +1,6 @@
 # Rules simulations
 
-Bot games played under the match rules, to give Harry evidence for roadmap task M0.7: confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards). It covers how to run the simulation, the model and every made-up number in it, the results by group size, and what they suggest. Written on 30 October 2026 by the game designer agent.
+Bot games played under the match rules, to give Harry evidence for roadmap task M0.7: confirm the finale (one 45-second round) and the time limits (6 minutes, 7 for 5 to 10 players, 40 cards). It covers how to run the simulation, the model and every made-up number in it, the results by group size, and what they suggest. Written on 30 October 2026 by the game designer agent. [Per-player genres](#per-player-genres) was added on 6 November 2026 for roadmap task M6.52: it checks whether each player picking genres in the lobby keeps the time to a pick under 5 minutes.
 
 It builds on [Time to a pick](game-modes.md#time-to-a-pick), [When it's a match](game-modes.md#when-its-a-match), [The finale](game-modes.md#the-finale) and [How a game ends](game-modes.md#how-a-game-ends) in the game modes, the deck engine's [How a game unfolds](../architecture/deck-engine.md#how-a-game-unfolds) and [Weighted shuffle](../architecture/deck-engine.md#weighted-shuffle), and [Like propagation and refills](../architecture/data-model.md#like-propagation-and-refills) in the data model. The values under test are defaults waiting for a yes in [decisions.md](../decisions.md#defaults-not-yet-confirmed). Nothing here is decided: every change below is a proposal for Harry.
 
@@ -14,6 +14,7 @@ It builds on [Time to a pick](game-modes.md#time-to-a-pick), [When it's a match]
 4. [What it means for M0.7](#what-it-means-for-m07)
 5. [Gaps the model had to fill](#gaps-the-model-had-to-fill)
 6. [What playtests should measure](#what-playtests-should-measure)
+7. [Per-player genres](#per-player-genres) (M6.52)
 
 ## How to run it
 
@@ -29,7 +30,7 @@ It prints every table in [Results](#results) as Markdown, in about 5 minutes (2,
 | `--seed 7` | Another seed (default 1). Numbers should move by a point or two, no more |
 | `--only finale` | One section: `headline`, `cards`, `limits`, `finale`, `majority`, `suggested`, `sensitivity`, `nearmiss` |
 
-A second script, [tools/sim/shortlist.mjs](../../tools/sim/shortlist.mjs), plays a shortlist of up to 3 matches and fairer finalists for [a proposal](three-matches-and-fair-finalists.md#the-simulation). The rules and the bots are in [tools/sim/game.mjs](../../tools/sim/game.mjs); the rule sets and tables in [tools/sim/run.mjs](../../tools/sim/run.mjs). To try another value, add a rule set to `RULES` in `run.mjs`, or change a made-up number in `WORLD` in `game.mjs`. Every rule set plays the same groups and decks, so differences between rows come from the rules, not from luck.
+A second script, [tools/sim/shortlist.mjs](../../tools/sim/shortlist.mjs), plays a shortlist of up to 3 matches and fairer finalists for [a proposal](three-matches-and-fair-finalists.md#the-simulation). A third, [tools/sim/genres.mjs](../../tools/sim/genres.mjs), plays [per-player genres](#per-player-genres) against today's deck through the second one's game. The rules and the bots are in [tools/sim/game.mjs](../../tools/sim/game.mjs); the rule sets and tables in [tools/sim/run.mjs](../../tools/sim/run.mjs). To try another value, add a rule set to `RULES` in `run.mjs`, or change a made-up number in `WORLD` in `game.mjs`. Every rule set plays the same groups and decks, so differences between rows come from the rules, not from luck.
 
 ## The model
 
@@ -43,7 +44,7 @@ Only Quick Match is simulated: it's the mode the first release ships ([decisions
 | Card count | The finale starts when every player has answered the rule's number of cards, so the slowest player decides | [When it starts](game-modes.md#when-it-starts) |
 | Time limit | The finale starts at the limit, if nothing happened first | [When it starts](game-modes.md#when-it-starts) |
 | Shared warm-up | The same 10 cards for everyone, in the same order | [How a game unfolds](../architecture/deck-engine.md#how-a-game-unfolds) |
-| Personal decks | A weighted shuffle of the remaining films, odds ∝ e^(score / 0.3), the same group score for every player (the first release's SQL deck has no taste profiles) | [Weighted shuffle](../architecture/deck-engine.md#weighted-shuffle), [Building a deal](../architecture/deck-engine.md#building-a-deal) |
+| Personal decks | A weighted shuffle of the remaining films, odds ∝ e^(score / 0.3), the same group score for every player (the first release's SQL deck has no taste profiles). The SQL deal built since (M5) goes further: every seat walks the same order, which [Per-player genres](#the-genre-model) models | [Weighted shuffle](../architecture/deck-engine.md#weighted-shuffle), [Building a deal](../architecture/deck-engine.md#building-a-deal) |
 | Like propagation | The first like on a film moves it into every other player's upcoming cards, just behind the 3 mounted ones, unless it was already closer | [Like propagation and refills](../architecture/data-model.md#like-propagation-and-refills) |
 | Close phase | From 60% of the card count, a film one like short of a match moves up the same way for the players who haven't answered it | [How a game unfolds](../architecture/deck-engine.md#how-a-game-unfolds) |
 | Super likes | 2 per player, on films a bot loves; they count as likes, and double for seeding and ties | [The answers](game-modes.md#the-answers) |
@@ -452,3 +453,195 @@ Each of these replaces a made-up number in the model. Once a playtest gives one,
 | Time from the finale's start to each lock-in | The voting time | Ballot timestamps |
 | Instant matches against finales, by group size | Group agreement | `rooms.stats` outcome |
 | What fast players do after the card count, and whether they mind | The "keep swiping" assumption | Watching (the [playtest skill](../../.claude/skills/playtest/SKILL.md)) |
+
+## Per-player genres
+
+Added on 6 November 2026 for roadmap task M6.52, by the game designer agent. The question: if each player picks up to 3 TMDB genres in the lobby and the deck leans toward them, does the median time to a pick stay under 5 minutes, including when picks are split? [decisions.md](../decisions.md#decided) (6 November 2026) ships per-player genres in the first release only if it does, and right after launch otherwise. The feature is M6.53 and M6.54 in the [roadmap](roadmap.md#m6-the-game); the lobby row is in [The lobby](onboarding.md#the-lobby).
+
+> **Bots with made-up tastes, on a made-up catalog.** Every number in this section comes from bot games. How much genres matter to a player, how split a room is and the catalog's genre mix are all made up. They test the mechanics (time to a pick, matches, the vote), never the fun.
+
+### The verdict
+
+**The gate passes.** With split picks, the median time to a pick with genres is within 2 seconds of today's deck at every size (3 seconds with another seed), from 2:21 for 2 players to 3:34 for 4, and the 90th percentile stays under 4:50. So, under the 6 November decision, per-player genres can ship in the first release.
+
+**Split picks: time to a pick, today's deck against the genre deck**
+
+| Players | Median, today | Median, with genres | 90th pct, today | 90th pct, with genres | Within 5 min, today / with genres |
+| --- | --- | --- | --- | --- | --- |
+| 2 | 2:19 | 2:21 | 3:19 | 3:19 | 100% / 100% |
+| 3 | 3:13 | 3:13 | 4:14 | 4:16 | 97% / 97% |
+| 4 | 3:35 | 3:34 | 4:43 | 4:43 | 94% / 94% |
+| 6 | 3:22 | 3:23 | 4:22 | 4:23 | 97% / 97% |
+| 8 | 3:27 | 3:28 | 4:40 | 4:41 | 94% / 94% |
+
+Read it with two cautions:
+
+- **The gate is easy to pass.** Under the launch rules a game runs until the third match or the card count (40 cards, 30 from 5 players), then a vote of at most 60 seconds. So for 3 or more players the time is set mostly by the card count and the pace, whatever the deck. The deck shows in matches and in games that end with no match, below.
+- **Genres don't make split rooms faster, nor slower.** A split room is slow with today's deck too: with 4 players, 63% of games end with no match and a vote from the swipes. Genres don't cause that and don't fix it. Where picks overlap, they help: with 8 players and shared picks, games without a match fall from 13% to 9% and the median from 2:59 to 2:41.
+
+### How to run the genre simulation
+
+```sh
+node tools/sim/genres.mjs
+```
+
+It prints every table below, and a few more, in about 8 minutes (1,000 games per cell). `--games`, `--seed` and `--only` work as for the main script; the sections are `catalog`, `main`, `cap`, `share`, `guard` and `sensitivity`. Every variant of a cell plays the same rooms (same catalog, same players, same paces), so a difference between today's deck and the genre deck comes from the deck. With `--seed 2`, medians move by up to 6 seconds and shares by up to 3 points. The tests are in [tools/sim/genres.test.mjs](../../tools/sim/genres.test.mjs).
+
+### The genre model
+
+**What follows the docs and the code**
+
+| Rule | In the simulation | Source |
+| --- | --- | --- |
+| The game | The launch rules: a match joins the shortlist and the third ends swiping; a single match is the pick; 2 or 3 go to a vote between them; with none, finalists from the swipes, one seat each; 40 cards for 2 to 4 players, 30 from 5, or 6 minutes; one 60-second round. Played by [tools/sim/shortlist.mjs](../../tools/sim/shortlist.mjs) | [When it's a match](game-modes.md#when-its-a-match), [When it starts](game-modes.md#when-it-starts), [The finalists](game-modes.md#the-finalists) |
+| Today's deck | The SQL deal: group score 5 × the crowd's percentile among tonight's films, the top 300 above a score of 1, a weighted shuffle at 0.3. **Every seat walks the same order**: `internal.shuffle_key` hashes the room's seed and the film, not the seat, and a refill deals a seat the films others already had first. The first 10 cards are the shared opening | [The SQL fallback](../architecture/deck-engine.md#the-sql-fallback), `internal.deal_baseline` |
+| A film's weight | The share of players with picks whose picks include one of its genres. Players with no picks don't count; with no picks at all, the deck is today's, card for card (a test checks it) | The proposal, [M6.53](roadmap.md#m6-the-game) |
+| The pick pool | Films with a weight above 0. About 3 slots in 4, the first one among them, draw from it by a weighted shuffle whose odds are the usual ones times the weight. The other slots follow today's order. The shared opening follows the same mix (8 of 10) | The proposal |
+| The cap | 3 genres a player | [decisions.md](../decisions.md#decided), 6 November 2026 |
+| Genres offered | Every genre but TV Movie with at least 30 films tonight | The proposal |
+| The guard | A pick pool under 100 films gets a share of 3 in 4 × its size / 100; a pool that runs dry hands its slots to the open order | The proposal |
+
+**What is made up**
+
+| Number | Value | Why |
+| --- | --- | --- |
+| The catalog | A synthetic night of **1,500 eligible films** (a room's services, age cap, time budget and quality filter applied to France's 14,043 watchable films), 2.5 genres a film. Genre shares are shaped like TMDB's popular films: Drama 40%, Comedy 28%, Thriller 26%, Action 23%, down to War 3% and Western 1%; genres of a kind come together (Crime with Thriller). A narrow night has 400 | Not measured. The local stack holds only the seed's 500 films with made-up genres, and production is never queried. `node tools/sim/genres.mjs --only catalog` prints the mix |
+| What genres explain | **30%** of a player's taste for a film comes from its genres (the average of the player's tastes for them); the rest is the main model's (agreement 0.25 with the group) | Made up. Sensitivity: 15% and 45% |
+| Like rate | 15% of random eligible films, with pickier and easier players, as in the main model. On dealt cards it comes to 26 to 34% | As in [What is made up](#what-is-made-up) |
+| The rooms | **Split**: two camps of opposite genre tastes (what one camp loves, the other likes least), the worst case. **Everyone different**: unrelated tastes. **Shared**: 80% of genre taste in common. **One player picks**: unrelated tastes, only one player picks. **No picks** | Made up |
+| The picks | A player who picks takes their 3 strongest genres among those offered, with a little noise (0.5) | Made up. Sensitivity: noise 1.0 |
+| Swipe pace | **3 s a card for 2 players, 3.5 s for 3 or 4, 4 s for 5 to 10**, with the same spread and pauses as the main model, identical in every variant | The placeholders in [Time to a pick](game-modes.md#time-to-a-pick) |
+| Voting time, reveal | As in [tools/sim/shortlist.mjs](../../tools/sim/shortlist.mjs): about 16 s to order 4 posters at the median, a 3-second beat per match, a 4-second reveal | Made up |
+
+**What it leaves out:** the fun, and whether a player who didn't pick minds seeing a room's genres; the server deck (M17), which learns during the game; the quality gap between genres (horror rates lower on TMDB); undo, presence, Vote now and late joiners.
+
+### Genre results
+
+**Every case: median / 90th percentile, today's deck, then with genres**
+
+| Players | Split picks | Everyone different | Shared picks | One player picks |
+| --- | --- | --- | --- | --- |
+| 2 | 2:19 / 3:19, 2:21 / 3:19 | 2:04 / 3:07, 1:59 / 3:06 | 1:52 / 2:59, 1:36 / 2:46 | 2:04 / 3:07, 1:56 / 3:02 |
+| 3 | 3:13 / 4:14, 3:13 / 4:16 | 3:08 / 4:16, 3:05 / 4:12 | 2:50 / 4:00, 2:35 / 3:53 | 3:08 / 4:16, 3:05 / 4:12 |
+| 4 | 3:35 / 4:43, 3:34 / 4:43 | 3:32 / 4:41, 3:31 / 4:40 | 3:14 / 4:25, 3:04 / 4:22 | 3:32 / 4:41, 3:30 / 4:45 |
+| 6 | 3:22 / 4:22, 3:23 / 4:23 | 3:20 / 4:23, 3:18 / 4:22 | 2:55 / 4:00, 2:43 / 3:52 | 3:20 / 4:23, 3:18 / 4:24 |
+| 8 | 3:27 / 4:40, 3:28 / 4:41 | 3:24 / 4:34, 3:24 / 4:34 | 2:59 / 4:07, 2:41 / 4:05 | 3:24 / 4:34, 3:22 / 4:32 |
+
+With no picks, the genre deck plays exactly today's games (2:04 / 3:07 for 2 players, 3:24 / 4:34 for 8).
+
+**What the deck changes: today's deck / with genres**
+
+| Picks | Players | Matches a game | No match (a vote from the swipes) | Players who like the pick | Cards in your own genres |
+| --- | --- | --- | --- | --- | --- |
+| Split | 2 | 2.0 / 2.0 | 14% / 13% | 94% / 94% | 37% / 51% |
+| Split | 4 | 0.5 / 0.5 | 63% / 64% | 81% / 81% | 37% / 48% |
+| Split | 8 | 0.8 / 0.8 | 47% / 48% | 70% / 70% | 37% / 46% |
+| Everyone different | 2 | 2.3 / 2.5 | 9% / 7% | 96% / 97% | 38% / 56% |
+| Everyone different | 4 | 0.7 / 0.8 | 53% / 50% | 85% / 86% | 37% / 48% |
+| Everyone different | 8 | 1.0 / 1.1 | 38% / 37% | 72% / 73% | 37% / 45% |
+| Shared | 2 | 2.6 / 2.7 | 4% / 3% | 98% / 99% | 38% / 63% |
+| Shared | 4 | 1.6 / 1.9 | 24% / 17% | 93% / 96% | 39% / 57% |
+| Shared | 8 | 2.1 / 2.3 | 13% / 9% | 82% / 84% | 38% / 56% |
+| One player picks | 2 | 2.3 / 2.5 | 9% / 5% | 96% / 98% | 38% / 76% |
+| One player picks | 4 | 0.7 / 0.8 | 53% / 52% | 85% / 85% | 37% / 75% |
+| One player picks | 8 | 1.0 / 1.0 | 38% / 36% | 72% / 73% | 37% / 75% |
+
+"Cards in your own genres" is the share of a picking player's cards that carry one of their own picks; for one picker, it's that player's.
+
+- **The pick pool is most of the night.** Three genres of one player cover about 530 of the 1,500 films; a group's picks cover 750 to 1,390 (63 to 93% of the night from 4 players up). With today's deck, 52 to 92% of a group's cards already come from its pick pool. So "3 cards in 4 from the pool" alone changes little from 4 players up: the weight does most of the work (see the tuning below).
+- **The overlap weight helps where there is overlap.** Shared picks gain 0.1 to 0.3 matches a game and 1 to 7 points fewer games without a match. Split camps have few films in both camps' genres, so there's little to lean on.
+- **One player who picks steers the room.** Three cards in four for everyone come from that player's genres (75%, against 37%). It costs nothing in time or in how many like the pick, in the bots.
+- **No room starves** on a night of 1,500 films: the guard never fires.
+
+### Tuning
+
+**The cap: no match, then cards in your own genres (median time in brackets)**
+
+| Picks | Players | Today | Cap 1 | Cap 2 | Cap 3 | Cap 5 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Split | 4 | 63%, 37% (3:35) | 68%, 29% (3:35) | 64%, 39% (3:33) | 64%, 48% (3:34) | 63%, 62% (3:33) |
+| Split | 8 | 47%, 37% (3:27) | 51%, 25% (3:27) | 49%, 37% (3:26) | 48%, 46% (3:28) | 47%, 61% (3:26) |
+| Shared | 4 | 24%, 39% (3:14) | 15%, 40% (2:58) | 16%, 50% (3:03) | 17%, 57% (3:04) | 19%, 69% (3:09) |
+| Shared | 8 | 13%, 38% (2:59) | 7%, 35% (2:32) | 8%, 47% (2:36) | 9%, 56% (2:41) | 10%, 68% (2:46) |
+
+Fewer genres sharpen a shared room's lean (1 genre is fastest) but leave split rooms a little worse; more genres dilute it toward today's deck. 3 sits in between. (With a cap of 1, your own genres are naturally rarer, hence the lower share.)
+
+**The share and the weight: no match, then cards in your own genres**
+
+| Variant | Split, 4 | Split, 8 | Shared, 4 | Shared, 8 |
+| --- | --- | --- | --- | --- |
+| Today's deck | 63%, 37% | 47%, 37% | 24%, 39% | 13%, 38% |
+| 1 in 2, weight as odds | 63%, 43% | 47%, 42% | 19%, 49% | 10%, 48% |
+| 3 in 4, weight as odds (proposed) | 64%, 48% | 48%, 46% | 17%, 57% | 9%, 56% |
+| Every card, weight as odds | 65%, 56% | 51%, 52% | 14%, 70% | 7%, 66% |
+| 3 in 4, no weight (the pool only) | 64%, 40% | 47%, 37% | 20%, 48% | 12%, 43% |
+| 3 in 4, weight as +1 point of score | 63%, 53% | 48%, 51% | 15%, 64% | 8%, 62% |
+
+Every card from the pool is best for shared picks but starts to cost split rooms of 8 (51% without a match, against 47%) and leaves no room for films outside anyone's picks. Without the weight, the pool alone does about half as much for shared picks. Weight as odds or as a point of score do about the same.
+
+**One player picks: the share as proposed, or times the share of players who picked**
+
+| Players | Variant | No match | Cards in the picker's genres |
+| --- | --- | --- | --- |
+| 4 | Today's deck | 53% | 37% |
+| 4 | 3 in 4 (proposed) | 52% | 75% |
+| 4 | 3 in 4 × 1 in 4 who picked | 53% | 39% |
+| 8 | Today's deck | 38% | 37% |
+| 8 | 3 in 4 (proposed) | 36% | 75% |
+| 8 | 3 in 4 × 1 in 8 who picked | 39% | 38% |
+
+Scaling the share by the players who picked takes the lean away almost entirely; it's a question of fairness, not of time.
+
+**A narrow night: 400 eligible films**
+
+| Picks | Players | Guard and genres | Genres offered | Pick pool, median films | Guard fired | Median / 90th pct | Cards in your own genres |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| One player | 2 | Today's deck | 12.7 | 169 | n/a | 2:09 / 3:12 | 45% |
+| One player | 2 | 100, from 30 films (proposed) | 12.7 | 169 | 1% | 2:04 / 3:09 | 76% |
+| One player | 2 | 50, from 30 films | 12.7 | 169 | 0% | 2:04 / 3:09 | 76% |
+| One player | 2 | 200, from 30 films | 12.7 | 169 | 69% | 2:04 / 3:10 | 64% |
+| One player | 2 | 100, from 15 films | 15.8 | 150 | 11% | 2:02 / 3:07 | 75% |
+| One player | 2 | 100, from 50 films | 7.8 | 219 | 0% | 2:04 / 3:14 | 77% |
+| Split | 4 | Today's deck | 12.7 | 333 | n/a | 3:36 / 4:45 | 44% |
+| Split | 4 | 100, from 30 films (proposed) | 12.7 | 333 | 0% | 3:36 / 4:45 | 49% |
+
+On a narrow night, the 30-film rule does most of the guarding: it hides 5 or 6 genres, and the pool of one player's 3 genres is then under 100 films in only 1% of rooms. Lowering it to 15 films offers 3 more genres and starves 11% of one-picker rooms; raising the guard to 200 shrinks the lean in 69% of them. Time barely moves in any variant (5 seconds at most).
+
+**When the made-up numbers move: split picks, median / 90th percentile and no match, today's deck / with genres**
+
+| Assumption | 2 players | 4 players | 8 players |
+| --- | --- | --- | --- |
+| The reference | 2:19 / 3:19, 2:21 / 3:19; 14% / 13% | 3:35 / 4:43, 3:34 / 4:43; 63% / 64% | 3:27 / 4:40, 3:28 / 4:41; 47% / 48% |
+| Genres explain 15% | 2:07 / 3:09, 2:07 / 3:12; 7% / 7% | 3:30 / 4:42, 3:30 / 4:42; 45% / 46% | 3:21 / 4:27, 3:21 / 4:29; 26% / 27% |
+| Genres explain 45% | 2:27 / 3:24, 2:29 / 3:24; 26% / 26% | 3:38 / 4:47, 3:38 / 4:47; 79% / 81% | 3:32 / 4:46, 3:33 / 4:46; 68% / 70% |
+| Like rate 10% | 2:32 / 3:32, 2:33 / 3:32; 34% / 33% | 3:38 / 4:50, 3:39 / 4:51; 85% / 86% | 3:34 / 4:49, 3:35 / 4:49; 77% / 79% |
+| Low agreement (0.1) | 2:30 / 3:30, 2:30 / 3:28; 29% / 28% | 3:40 / 4:51, 3:40 / 4:51; 90% / 90% | 3:37 / 4:53, 3:38 / 4:53; 88% / 88% |
+| Noisier picks (1.0) | 2:19 / 3:19, 2:20 / 3:17; 14% / 13% | 3:35 / 4:43, 3:34 / 4:43; 63% / 64% | 3:27 / 4:40, 3:27 / 4:36; 47% / 48% |
+
+The gate holds under every assumption: the slowest split cells are 3:40 at the median (4 players) and 4:53 at the 90th percentile (8 players), both at low agreement. With genres, medians stay within 2 seconds and games without a match within 2 points of today's deck everywhere. What moves split rooms is how much tastes differ, not the deck.
+
+### Proposals for Harry
+
+Each is a proposal, not a decision. The values are the starting values M6.53 will add to [the deck's starting values](../architecture/deck-engine.md#starting-values).
+
+| Value or rule | Proposed in the 6 November proposal | Suggested here | Why |
+| --- | --- | --- | --- |
+| Ship in the first release | Only if the simulation passes | **Yes**: the gate passes | Split picks keep the median within a few seconds of today's deck at every size, 3:34 at worst (4 players) |
+| Cap | 3 genres a player | **Keep 3** | 1 is fastest for shared rooms but worse for split ones; 5 dilutes the lean |
+| Pick share | About 3 cards in 4 | **Keep 3 in 4** | Every card helps shared rooms but costs split rooms of 8 and leaves no open card |
+| The weight | Each film weighted by the share of players whose picks it hits | **Keep it, and keep it in the draw.** The pool alone does little from 4 players up, since it holds 63 to 93% of the night's films. Odds × weight is `score + 0.3 × ln(weight)` in `internal.shuffle_key`'s terms | The weight is what makes the deck lean, and it puts overlap first |
+| The guard | A pick pool of 100 films; genres under 30 films aren't offered | **Keep both** | The 30-film rule does most of the work; 100 fires in about 1% of narrow nights |
+| The open slots | "The best of the rest" | **Today's order over every eligible film**, not only films outside the pick pool | From 4 players up, "the rest" can be as little as 7% of the night (8 players with different picks): only the films outside everyone's genres |
+| `internal.deck_candidates`' cut | The top 300 by score | **Cut each pool on its own** (the top 300 of the pick pool, then today's top 300) | A weight as odds never raises a score, so a single top-300 cut would keep only the pool's films that were already in today's top 300 and trip the guard for no reason |
+| One player who picks alone | Steers 3 cards in 4 for everyone | **Keep, and watch it in the playtest** | No cost in time or in liked picks in the bots. Whether the others mind is a question for real players; scaling the share by the players who picked would take the lean away |
+
+**Defaults taken** (choices nobody had made; the most cautious reading, for Harry to confirm or change):
+
+- The catalog is synthetic, shaped like TMDB's popular films: the local stack has only the seed's 500 films, and production and staging are never queried.
+- Split picks are modelled as two camps with opposite tastes, the worst case, rather than rooms that merely differ (shown as "everyone different").
+- A player who picks always picks the full 3 genres.
+- The weight is applied as odds times the weight (the literal "drawn by that weight"); a point of score is shown next to it.
+- The open slots follow today's order over all eligible films.
+- A starved pool's share shrinks in proportion to its size (60 films: 3 in 4 × 0.6).
+
+**For the next playtest:** let players pick genres, and count how many do, how often their picks overlap, and whether a player who didn't pick says "why all these horror films?".

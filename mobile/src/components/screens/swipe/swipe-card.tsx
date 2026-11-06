@@ -101,12 +101,6 @@ export type SwipeCardProps = {
     actions: { name: string; label: string }[];
     onAction: (name: string) => void;
   };
-  /** The room asks "Watch it again tonight?": a release toward Seen it holds the card instead of throwing. */
-  asksSeen?: boolean;
-  /** Seen it was released past the line: the screen lifts the card and opens the question. */
-  onHold?: (titleId: number) => void;
-  /** A finger took the held card: the question closes and the card is the finger's. */
-  onGrab?: () => void;
   onRelease: (titleId: number, direction: Direction) => void;
   onFlip: () => void;
   onLanded: (titleId: number) => void;
@@ -114,7 +108,7 @@ export type SwipeCardProps = {
 
 export function SwipeCard(props: SwipeCardProps) {
   const { card, depth, flight, flipped, size, screen, dragProgress, lit, dragging, locked } = props;
-  const { onLanded, onRelease, onFlip, onHold, onGrab, asksSeen } = props;
+  const { onLanded, onRelease, onFlip } = props;
   const { i18n } = useTranslation();
   const reduced = useReducedMotion();
   const motion = useCardMotion();
@@ -254,12 +248,6 @@ export function SwipeCard(props: SwipeCardProps) {
       // A new touch takes the card from where it is, even mid-spring.
       cancelAnimation(x);
       cancelAnimation(y);
-      // Grabbing the held card closes the rewatch question; the card is the finger's again.
-      if (forced.get() === 3) {
-        forced.set(0);
-        forcedProgress.set(0);
-        if (onGrab) scheduleOnRN(onGrab);
-      }
       startX.set(x.get());
       startY.set(y.get());
       touching.set(1);
@@ -294,11 +282,6 @@ export function SwipeCard(props: SwipeCardProps) {
         springBack();
         return;
       }
-      if (direction === 'up' && asksSeen && onHold) {
-        // The question comes first: the screen lifts the card and holds it, nothing flies yet.
-        scheduleOnRN(onHold, titleId);
-        return;
-      }
       fly(direction, e.velocityX, e.velocityY);
       scheduleOnRN(onRelease, titleId, direction);
     },
@@ -324,7 +307,6 @@ export function SwipeCard(props: SwipeCardProps) {
       'worklet';
       // A tap during the first-game lean flips the card and sends it back to the middle.
       if (x.get() !== 0 || y.get() !== 0) springBack();
-      // A tap on the held card puts it back (the stack's onFlip decides); otherwise it flips.
       scheduleOnRN(flipUnlessTrailer);
     },
   });

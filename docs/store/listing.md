@@ -296,7 +296,7 @@ Every claim in the copy, matched to the string (in `mobile/src/i18n/locales/en/`
 | A final vote of 60 seconds; the Final Cut, "pick one, veto one", for 2 to 4 | `finale.json` title, heading; [The vote](../product/game-modes.md#the-vote-pick-one-veto-one) |
 | Only films on the room's services | `onboarding.json` welcome.promises.services; `host.json` services; `lobby.json` roomServices |
 | The youngest viewer's age keeps older films out; a time budget such as "Under 2 h" | `host.json` age.label, age.helper, time.under120 |
-| Seen it: swipe up, then "Watch it again tonight?" | `swipe.json` hints.seen, seenQuestion.title; Quick Match rooms allow rewatches (migration `20261104130000_allow_rewatch_default.sql`) |
+| Seen it: swipe up, then a chip asks "Watch it again tonight?" | `swipe.json` hints.seen, rewatchChip.text; Quick Match rooms allow rewatches (migration `20261104130000_allow_rewatch_default.sql`) |
 | "2 of 3 of you liked this"; nobody sees who said Nope | `swipe.json` nearMiss; [What players see](../product/game-modes.md#what-players-see-party-and-blind) |
 | Tonight's pick with where to watch it; a recap card with no names | `winner.json` eyebrow, whereToWatch; `recap.json` sheet.body |
 | Play alone at your own pace, then pick one of your likes | `solo.json` card, checkpoint.pick, pickSheet |
