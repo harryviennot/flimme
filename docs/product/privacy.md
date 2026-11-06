@@ -167,7 +167,7 @@ Sentry in its EU data region (Frankfurt), with personal data off: no IP, no name
 
 - **Deadline**: one month from the request (GDPR art. 12(3)).
 - **Email requests** go to support@flimme.com, until a separate privacy address exists (decided 4 November 2026). A guest can't be identified by email, so guests are pointed to the in-app buttons.
-- **Analytics and crash data** aren't in the export: they're not linked to the player.
+- **Analytics and crash data** aren't in the export, which reads the database: they live in PostHog and Sentry. Crash reports aren't linked to the player. Usage stats are, with "Detailed stats" or outside Europe (the profile id goes with them), and deleting the data erases that person in PostHog.
 
 ## Children
 
@@ -225,34 +225,41 @@ Later: RevenueCat with Pro, a push provider if push notifications arrive.
 
 ## Store privacy forms
 
+The first release's answers, field by field, are in [docs/store/privacy-forms.md](../store/privacy-forms.md) (M11.6, checked against the code on 6 November 2026). This section is their summary. It corrects the first tables written here: usage stats are **linked** to the player (with "Detailed stats", and everywhere outside Europe the profile id goes with them), and the email, Letterboxd and saved account rows wait for those features.
+
 **Apple App Privacy**, with no tracking:
 
 | Data type | Linked to the player | Purposes |
 | --- | --- | --- |
-| Contact Info: Name (display name), Email Address (saved accounts) | Yes | App Functionality |
-| User Content: Gameplay Content (votes, rooms), Other User Content (Letterboxd diary, film answers) | Yes | App Functionality, Product Personalization |
-| Identifiers: User ID | Yes | App Functionality |
-| Identifiers: Device ID (the anonymous analytics install id) | No | Analytics |
-| Usage Data: Product Interaction | No | Analytics |
-| Diagnostics: Crash Data, Performance Data | No | App Functionality |
+| Contact Info: Name (display name) | Yes | App Functionality |
+| User Content: Gameplay Content (rooms, seats, votes, the card log, My films, services, reports) | Yes | App Functionality, Analytics, Product Personalization |
+| Identifiers: User ID (the profile id) | Yes | App Functionality, Analytics |
+| Identifiers: Device ID (the anonymous analytics install id, Expo's update token, Sentry's installation id) | No | Analytics, App Functionality |
+| Usage Data: Product Interaction | Yes | Analytics |
+| Usage Data: Other Usage Data (when the profile was created and last used) | Yes | App Functionality |
+| Diagnostics: Crash Data | No | App Functionality |
+| Diagnostics: Performance Data (the time to the first card, app hangs) | Yes | Analytics, App Functionality |
+| Other Data (country, language, IP addresses, the stats choice) | Yes | App Functionality, Analytics, Other Purposes |
+| Later, with accounts: Contact Info: Email Address | Yes | App Functionality |
+| Later, with Letterboxd: User Content: Other User Content (the diary, film answers) | Yes | App Functionality, Product Personalization |
 
 **Google Play Data safety**:
 
 | Category | Data type | Required or optional | Purposes |
 | --- | --- | --- | --- |
 | Personal info | Name (Google counts a nickname) | Required | App functionality |
-| Personal info | Email address | Optional (saved accounts only) | Account management |
-| App activity | Other actions (likes, gameplay) | Required | App functionality, Personalization |
-| App activity | Other user-generated content (Letterboxd import) | Optional | Personalization |
+| Personal info | User IDs (the profile id) | Required | App functionality, Analytics, Account management |
+| Personal info | Other info (country, language) | Required | App functionality, Analytics |
+| App activity | Other actions (gameplay, likes, My films, reports, the stats choice) | Required | App functionality, Analytics, Personalization, Fraud prevention, security, and compliance |
 | App activity | App interactions | Optional (opt-out switch) | Analytics |
-| App info and performance | Crash logs, Diagnostics | Required | App functionality |
-| Device or other IDs | The analytics install id | Optional | Analytics |
+| App info and performance | Crash logs, Diagnostics | Required | App functionality, Analytics |
+| Device or other IDs | The install id, Expo's and Sentry's ids, IP addresses | Required | App functionality, Analytics, Fraud prevention, security, and compliance |
+| Later, with accounts: Personal info | Email address | Optional (saved accounts only) | Account management |
+| Later, with Letterboxd: App activity | Other user-generated content (the import) | Optional | Personalization |
 
 - **Shared with third parties**: none. Google doesn't count service providers as sharing.
 - **Encrypted in transit**: yes, everything over TLS.
-- **Deletion**: in the app and through the web page.
-
-The final answers are filled in with [store-listing.md](store-listing.md).
+- **Account creation**: yes, the automatic guest profile. **Deletion**: in the app and through the web page, `https://flimme.com/en/delete-account`.
 
 ## Privacy policy outline
 
