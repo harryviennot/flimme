@@ -162,7 +162,7 @@ const firstMatch = (list, text) => list.find(([, re]) => re.test(fold(text)))?.[
 export const RULES = {
   dashes: {
     source: 'CLAUDE.md#writing',
-    check: ({ value }) => (/[–—]/.test(value) ? ['has an em or en dash: use a comma, a colon or parentheses'] : []),
+    check: ({ value }) => (/[\u2013\u2014]/.test(value) ? ['has an em or en dash: use a comma, a colon or parentheses'] : []),
   },
   exclamation: {
     source: SRC.copy,

@@ -196,7 +196,7 @@ test('7b. no streaming service is named in any field (Q1.4)', () => {
 });
 
 test('8. dashes, emoji in short fields, price and ranking words in names', () => {
-  for (const dash of ['—', '–']) {
+  for (const dash of ['\u2014', '\u2013']) {
     const problems = checkListing(listing({ 'apple en-US Promotional Text': `Swipe ${dash} match.` }));
     assert.equal(about(problems, 'dash').length, 1, problems.join('\n'));
   }
