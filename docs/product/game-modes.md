@@ -89,7 +89,7 @@ Later modes are in [Later modes](#later-modes).
 | **Seen it** | Swipe up, or the eye button | Depends on the room's seen rule (below) |
 | **Undo** | The rewind button | Takes back the last swipe (below) |
 
-**Later is not an answer.** The bookmark on a card (front corner and back) saves the film to My films > Later (decided on 6 November 2026). The player still swipes the card; the save counts for nothing tonight, is never broadcast or shown to other players, and changes no deck, count or match.
+**Later is not an answer.** The bookmark on a card (front corner and back) saves the film to My films as a solo like, under Liked with the Solo chip (decided on 6 November 2026; the Later segment is gone). Unsaving takes back only a like the save made. The player still swipes the card; the save counts for nothing tonight, is never broadcast or shown to other players, and changes no deck, count or match.
 
 **Seen it, by seen rule**
 
