@@ -47,7 +47,7 @@ Times from the first signal. Tokens from `@/theme/motion`.
 | From 800 ms | A tap anywhere, or the button, goes on. A touch that started before the overlay never counts, so a swipe in progress can't skip it |
 | `duration.match-hold` (4 s) | The overlay hands over by itself (Q14.1) |
 
-**The hand-over.** While the overlay shows, the room layout holds its route change (the room is already `done`). On the hand-over it replaces the screen under the overlay with `/room/[id]/winner` without an animation, then the overlay fades out (`layout.fadeOut`). No haptic and no sound for the winner screen.
+**The hand-over.** While the overlay shows, the room layout holds its route change (the room is already `done`). On the hand-over it replaces the screen under the overlay with `/room/[id]/winner` without an animation, then the overlay fades out (`layout.fadeOut`). No haptic for the winner screen; its soft chime plays as it shows ([sounds.md](../sounds.md#the-winner-screen)).
 
 **Until slice 13.** The winner screen is M6.16 (slice 13). Until it ships, the hand-over lands on the existing winner placeholder (`PlaceholderScreen`, "This screen comes with task M6.16"). The player leaves it with the edge swipe or Android's back, which open the leave guard's alert. The overlay itself doesn't change when M6.16 ships.
 

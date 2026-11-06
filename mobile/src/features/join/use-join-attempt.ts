@@ -9,6 +9,7 @@ import { useOnline } from '@/features/network';
 import { MY_PROFILE_KEY } from '@/features/profile';
 import { track } from '@/lib/analytics';
 import { errorFeedback } from '@/lib/feedback';
+import { playSound } from '@/lib/sound';
 
 import { CODE_LENGTH, digitsOf, readPasted, roomRouteFor } from './link';
 import { keptRoomId, leaveOldSeat } from './old-seat';
@@ -111,6 +112,8 @@ export function useJoinAttempt() {
         }
         if (row.kind === 'go') {
           if (result.status === 'ok') {
+            // In: the ticket tears (sounds.md#joining-a-room).
+            void playSound('join');
             leaveOldSeat(result.room_id, oldRoomId);
             router.replace(roomRouteFor(result.room_id, result.state) as never);
           } else {

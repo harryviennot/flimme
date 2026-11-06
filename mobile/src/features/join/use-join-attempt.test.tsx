@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { api } from '@/api';
 import { track, trackWhenRoomKnown } from '@/lib/analytics';
+import { playSound } from '@/lib/sound';
 
 import { useJoinAttempt } from './use-join-attempt';
 
@@ -17,6 +18,7 @@ jest.mock('expo-router', () => ({
   useFocusEffect: jest.fn(),
 }));
 jest.mock('./old-seat', () => ({ keptRoomId: () => null, leaveOldSeat: jest.fn() }));
+jest.mock('@/lib/sound', () => ({ playSound: jest.fn(async () => undefined) }));
 
 const joinRoom = api.joinRoom as unknown as jest.Mock;
 
@@ -63,5 +65,32 @@ describe('the join screen and analytics', () => {
       ),
     );
     expect(track).toHaveBeenCalledWith('join:attempt_finish', { via: 'link', status: 'closed' });
+  });
+});
+
+describe('the join sound (sounds.md#joining-a-room)', () => {
+  it('tears the ticket when the join answers ok', async () => {
+    joinRoom.mockResolvedValue({ status: 'ok', room_id: 'r1', state: 'lobby' });
+    const view = await renderHook(() => useJoinAttempt(), { wrapper });
+    await act(async () => view.result.current.setCode('482913'));
+    expect(playSound).toHaveBeenCalledTimes(1);
+    expect(playSound).toHaveBeenCalledWith('join');
+  });
+
+  it('plays the error sound, not the join, on a refusal or a failed call', async () => {
+    joinRoom.mockResolvedValueOnce({ status: 'full', max_players: 10 });
+    const view = await renderHook(() => useJoinAttempt(), { wrapper });
+    await act(async () => view.result.current.setCode('482913'));
+    joinRoom.mockRejectedValueOnce(new Error('offline'));
+    await act(async () => view.result.current.setCode('48291'));
+    await act(async () => view.result.current.setCode('482914'));
+    expect(jest.mocked(playSound).mock.calls).toEqual([['error'], ['error']]);
+  });
+
+  it('asks for a name without a sound', async () => {
+    joinRoom.mockResolvedValue({ status: 'name_required', host_name: 'Sam' });
+    const view = await renderHook(() => useJoinAttempt(), { wrapper });
+    await act(async () => view.result.current.setCode('482913'));
+    expect(playSound).not.toHaveBeenCalled();
   });
 });

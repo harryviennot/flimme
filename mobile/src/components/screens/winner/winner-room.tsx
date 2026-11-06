@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 
 import { roomSizeBucket } from '@/features/analytics/journey';
 import { useOnline } from '@/features/network';
-import { releaseRoomGuards, useExitRoomToHome, useRoomSeats } from '@/features/room';
+import { releaseRoomGuards, useExitRoomToHome, useRoom, useRoomSeats } from '@/features/room';
 import { useMatchShown } from '@/features/room/match-shown';
 import { usePlayAgainFooter } from '@/features/play-again';
-import { arrivedLive } from '@/features/winner/arrival';
+import { arrivedFromGame, arrivedLive } from '@/features/winner/arrival';
 import { takeJustPicked } from '@/features/solo/pick';
 import { useIsSolo } from '@/features/solo/use-solo-room';
 import { useWinner } from '@/features/winner/use-winner';
@@ -41,6 +41,11 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
   }, [outcome, players]);
   // Read once, when the screen appears.
   const [fadeIn] = useState(() => arrivedLive(roomId, played));
+  const [fromGame] = useState(() => arrivedFromGame(roomId));
+  // The winner chime: a group's pick seen live, after the overlay or the reveal. Never on a cold
+  // start or a return, and never for a solo pick, which has its own sound (sounds.md#the-winner-screen).
+  const mode = useRoom(roomId).data?.mode;
+  const chime = fromGame && mode !== undefined && mode !== 'solo';
 
   return (
     <WinnerScreen
@@ -50,6 +55,7 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
       fadeIn={fadeIn || lands}
       solo={solo}
       lands={lands}
+      chime={chime}
       above={footer.kind ? <PlayAgainFooter state={footer} /> : undefined}
       onShareRecap={() => router.push(`/room/${roomId}/recap`)}
       roomId={roomId}

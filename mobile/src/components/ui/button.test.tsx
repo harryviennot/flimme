@@ -30,17 +30,17 @@ describe('Button', () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 
-  it('plays the tap on press-in when it has one, and only then', async () => {
+  it('plays the tap on press-in by default, and not when sound is false', async () => {
     jest.mocked(playSound).mockClear();
     await render(
       <>
-        <Button label="Join" sound="tap" />
-        <Button label="Other" />
+        <Button label="Any" />
+        <Button label="Quiet" sound={false} />
       </>,
     );
-    await fireEvent(screen.getByRole('button', { name: 'Other' }), 'pressIn');
+    await fireEvent(screen.getByRole('button', { name: 'Quiet' }), 'pressIn');
     expect(playSound).not.toHaveBeenCalled();
-    await fireEvent(screen.getByRole('button', { name: 'Join' }), 'pressIn');
+    await fireEvent(screen.getByRole('button', { name: 'Any' }), 'pressIn');
     expect(playSound).toHaveBeenCalledTimes(1);
     expect(playSound).toHaveBeenCalledWith('tap');
   });
@@ -49,8 +49,8 @@ describe('Button', () => {
     jest.mocked(playSound).mockClear();
     await render(
       <>
-        <Button label="Off" sound="tap" disabled />
-        <Button label="Busy" sound="tap" loading />
+        <Button label="Off" disabled />
+        <Button label="Busy" loading />
       </>,
     );
     await fireEvent(screen.getByRole('button', { name: 'Off' }), 'pressIn');
