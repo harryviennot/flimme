@@ -38,7 +38,18 @@ const IDLE: OfferView = { message: null, shuffling: false, button: 'join' };
  */
 export function useJoinOffer(next: NextRoom | null) {
   const online = useOnline();
-  const [view, setView] = useState<OfferView>(IDLE);
+  const [state, setState] = useState<{ code: string | undefined; view: OfferView }>({
+    code: next?.code,
+    view: IDLE,
+  });
+  const code = next?.code;
+  const codeRef = useRef(code);
+  // A view belongs to the code it was made for: a new code starts the card over.
+  const view = state.code === code ? state.view : IDLE;
+  const setView = useCallback(
+    (next: OfferView) => setState({ code: codeRef.current, view: next }),
+    [],
+  );
   const runId = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const waitingOnline = useRef(false);
@@ -47,6 +58,7 @@ export function useJoinOffer(next: NextRoom | null) {
   useEffect(() => {
     onlineRef.current = online;
     nextRef.current = next;
+    codeRef.current = code;
   });
 
   const cancel = useCallback(() => {
@@ -122,7 +134,7 @@ export function useJoinOffer(next: NextRoom | null) {
       }
       return;
     }
-  }, [cancel]);
+  }, [cancel, setView]);
 
   // Offline at the tap: join by itself when the connection comes back.
   useEffect(() => {
@@ -130,12 +142,7 @@ export function useJoinOffer(next: NextRoom | null) {
   }, [online, attempt]);
 
   // A new code (a second `next_room`) starts the card over; unmounting stops any retry.
-  const code = next?.code;
-  useEffect(() => {
-    cancel();
-    setView(IDLE);
-  }, [code, cancel]);
-  useEffect(() => cancel, [cancel]);
+  useEffect(() => cancel, [code, cancel]);
 
   return { view, join: () => void attempt() };
 }

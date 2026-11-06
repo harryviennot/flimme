@@ -5,6 +5,8 @@ import { localBackend, parseArgs, parseStatusEnv, stagingBackend, UsageError } f
 describe('parseArgs', () => {
   it('defaults to three mixed bots on the local stack that swipe at their own pace', () => {
     expect(parseArgs(['--code', '482913', '--seed', '5'])).toEqual({
+      action: 'play',
+      as: 'guest',
       code: '482913',
       count: 3,
       target: 'local',
@@ -43,6 +45,8 @@ describe('parseArgs', () => {
       '9',
     ]);
     expect(config).toEqual({
+      action: 'play',
+      as: 'guest',
       code: 'ABC123',
       count: 5,
       target: 'staging',
@@ -92,5 +96,23 @@ describe('backends', () => {
       key: 'k',
     });
     expect(() => stagingBackend({})).toThrow(UsageError);
+  });
+});
+
+describe('the play-again action', () => {
+  it('reads the action word and the role', () => {
+    const guest = parseArgs(['play-again', '--code', '482913']);
+    expect(guest).toMatchObject({ action: 'play-again', as: 'guest', code: '482913' });
+    const host = parseArgs(['play-again', '--as', 'host', '--count', '2']);
+    expect(host).toMatchObject({ action: 'play-again', as: 'host', count: 2 });
+  });
+
+  it('keeps the plain action for a normal run', () => {
+    expect(parseArgs(['--code', '482913'])).toMatchObject({ action: 'play', as: 'guest' });
+  });
+
+  it('refuses a host role outside the action, and an unknown role', () => {
+    expect(() => parseArgs(['--as', 'host'])).toThrow(UsageError);
+    expect(() => parseArgs(['play-again', '--as', 'dealer'])).toThrow(UsageError);
   });
 });
