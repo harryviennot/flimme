@@ -100,7 +100,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | Done |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 64 | In progress |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 66 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 14 | In progress |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 9 | In progress |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 174 of 301 tasks done.
+Progress: 174 of 303 tasks done.
 
 ```mermaid
 flowchart LR
@@ -454,6 +454,8 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: pgTAP tests cover the cap of 3, the weight, the 100-film guard, the 30-film floor, and that no response names who picked a genre.
 - [x] **M6.57** Later as solo likes, server: saving writes a solo like, `api.my_films` drops the `later` segment, the export follows · backend · M · needs M6.50, M6.41 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [game-modes](game-modes.md#the-answers)
   Done when: tested: a save writes a solo like that no room reads, `api.my_films` has no `later` segment, and the export carries the save as a solo like.
+- [ ] **M6.65** The card carries the caller's own seen and saved flags: `api.my_next_cards` and `api.title_cards` add `seen` and `saved` from the caller's own rows, never another seat's · backend · S · needs M6.57, M6.41 · [my films](solo-and-my-films.md#6-my-films-grouping-and-tiles), [bookmark](../design/screens/swipe.md#the-bookmark)
+  Done when: tested: a card shows the caller's own seen and saved flags, a film with no row shows both as false, and no field names another player.
 
 **App**
 
@@ -529,6 +531,8 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a three-player touch run shows readable player badges that no contender clips.
 - [x] **M6.64** The genre step, app · app · M · needs M6.60, M6.54 · [host setup](../design/screens/host-setup.md#layout), [lobby](../design/screens/lobby.md#your-genres-tonight)
   Done when: a touch run on the simulator shows a guest the full-screen genre step after joining and the host the step after the services choice, both skippable, and the lobby's sheet still changes picks.
+- [ ] **M6.66** Seen it disabled with a tick, and the bookmark ticked, for films already seen or saved · app · S · needs M6.65, M6.58 · [seen it](../design/screens/swipe.md#seen-it-the-rewatch-question), [bookmark](../design/screens/swipe.md#the-bookmark)
+  Done when: a touch run on the simulator shows Seen it disabled with a tick on a film already seen, and the bookmark ticked and disabled on a film already in My films likes, while the card still takes a like or a nope, in French and English.
 
 **Tests**
 
