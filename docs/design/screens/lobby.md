@@ -1,6 +1,6 @@
 # Lobby
 
-Screen 08 in the Figma (`15:607`). Route `/room/[id]/lobby`, under the room layout (`/room/[id]/_layout.tsx`). Built in M4.11 on the room layout (M4.10) and its Realtime (M4.21), with the host passing on from M4.5. Written on 30 October 2026 and updated on 3 November 2026 (slice 7's answers, then slice 9's too-few start) from [the lobby](../../product/onboarding.md#the-lobby), [realtime](../../architecture/app-structure.md#realtime), [who counts](../../product/game-modes.md#who-counts-presence-joining-and-leaving), [the room's lobby flow](../../architecture/data-model.md#lobby) and [room codes and the host](../../architecture/security.md#room-codes-joining-and-the-host). Connection states are in [Reconnecting](reconnecting.md).
+Screen 08 in the Figma (`15:607`). Route `/room/[id]/lobby`, under the room layout (`/room/[id]/_layout.tsx`). Built in M4.11 on the room layout (M4.10) and its Realtime (M4.21), with the host passing on from M4.5. Written on 30 October 2026, updated on 6 November 2026 for the per-player genres (M6.54), and on 3 November 2026 (slice 7's answers, then slice 9's too-few start) from [the lobby](../../product/onboarding.md#the-lobby), [realtime](../../architecture/app-structure.md#realtime), [who counts](../../product/game-modes.md#who-counts-presence-joining-and-leaving), [the room's lobby flow](../../architecture/data-model.md#lobby) and [room codes and the host](../../architecture/security.md#room-codes-joining-and-the-host). Connection states are in [Reconnecting](reconnecting.md).
 
 ## Purpose
 
@@ -16,13 +16,16 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 4. **Eyebrow** `lobby:inTheRoom`, then **the seats** in one `bg-bg-surface` group with a `border-border-default` hairline and `rounded-lg`, one `SeatRow` per seat with `left_at` null (`api.roomSeats` also returns seats that left; they never show), in join order (`joined_at`, then `member_id`). `SeatRow` is new: `screens/lobby/seat-row.tsx`, spec below.
 5. **The room's services**, `body-s` tone `muted`: `lobby:roomServices`, the [names](#service-names) of `api.rooms.provider_ids`, listed with `Intl.ListFormat`. No line while no name is known.
 6. **Guests only: `ListRow`** icon `tv`, label `lobby:yourServices.label`, value the guest's services or `lobby:yourServices.optional`, chevron. It opens the services sheet (below).
-7. **Host only: the lock row**, a `ListRow` with a `Toggle` and its helper line ([host menu](host-menu.md#lock-room), M4.13).
+7. **Everyone, host included: `ListRow`** icon `film`, label `lobby:yourGenres.label`, under "Your services" (for the host, who has no services row, in the same group above the lock row). Its value is [your genres](#your-genres-tonight) by name (`Intl.ListFormat`), or `lobby:yourGenres.optional` with none, `lobby:yourGenres.none` when no genre is offered tonight, and nothing while it loads. Chevron. It opens the genres sheet. It never blocks the start.
+8. **Host only: the lock row**, a `ListRow` with a `Toggle` and its helper line ([host menu](host-menu.md#lock-room), M4.13).
 
 **Footer, host:** `Button` primary L, icon `play`, `lobby:start.cta`, and under it one `body-s` muted line: `lobby:start.needPlayers` while fewer than the mode's minimum are [present](#present-and-away) (the button disabled), or `lobby:start.away` when some seats are away (the button enabled). The server counts presence its own way (`last_active_at`), so it can still answer `not_enough_players` (below). After a start with [too few films](#too-few-films), the same line shows `lobby:start.tooFew_*`. With several, one line shows: `start.needPlayers` first (Start is disabled), then `start.tooFew_*`, then `start.away`.
 
 **Footer, guest:** `MarqueeBulbs` (still, `count` 12) over `lobby:waiting` in `body-m` tone `secondary`, centred.
 
 **The services sheet** (`/room/[id]/services`, a `formSheet` like the invite sheet): title `display-s` `lobby:servicesSheet.title`, helper `lobby:servicesSheet.helper`, the [`ServiceGrid`](host-setup.md#new-component), in a scrolling area, and `Button` primary L `lobby:servicesSheet.done` pinned in the footer above the home indicator (`Screen` with `scroll` and `footer`, as in host setup), so Done stays reachable at the largest text size and on a small phone. Done saves to the profile (`api.set_my_providers`) and to the seat (`api.set_seat_prefs`), then closes. It never blocks the start. Its answers are [below](#the-services-sheet-done).
+
+**The genres sheet** (`/room/[id]/genres`, a `formSheet` like the services sheet): see [Your genres tonight](#your-genres-tonight).
 
 ## The seat row (`screens/lobby/seat-row.tsx`)
 
@@ -83,6 +86,56 @@ Done saves only what changed: `api.set_my_providers` when the selection differs 
 | Offline, or a call failed | `showToast` warn `lobby:errors.services`; the sheet stays open, Done works again |
 | The names are loading or failed | `ServiceGrid` `loading`; Done disabled until it has a list |
 
+## Your genres tonight
+
+Each player can pick up to 3 TMDB movie genres for tonight's deck. It is optional and never blocks Start. Decided by Harry on 6 November 2026 ([decisions](../../decisions.md)); the rules are the simulation's verdict ([simulations](../../product/simulations.md)). M6.54, on M6.53's backend.
+
+**The rules the screen keeps**
+
+- **Cap 3.** The sheet stops a 4th pick with a quiet note, not an error: no toast, no buzz, no call. Dropping a pick makes room again.
+- **Counts, never names.** A chip shows how many [present](#present-and-away) players picked the genre ("Comedy 3"), your own pick included. The phone never shows or learns who picked what, and genre ids never reach analytics or logs (privacy rule 7: counts only, like "2 of 3 of you liked this").
+- **Only genres with 30 films or more tonight** are offered, in the order the server gives (`api.room_genres.options`). The phone does not filter or reorder.
+- **Picks lock at Start.** The row is dimmed and shut while the room is dealing; the sheet only exists over the lobby (`isAllowed`). A late joiner plays the room's deck as it is.
+- **No picks** means today's deck. Nothing is asked of anyone.
+
+**The row** (lobby layout, item 7). Value by state:
+
+| State | Value | Opens the sheet |
+| --- | --- | --- |
+| Loading | none | yes (the sheet shows its own loading) |
+| No picks | `yourGenres.optional` | yes |
+| Picks | their names, in the offered order | yes |
+| No genre offered tonight | `yourGenres.none` | no (dimmed) |
+| Dealing (after Start) | as above | no (dimmed, picks are locked) |
+| Offline or the read failed | the last value, or none | yes (the sheet explains) |
+
+**The sheet.** `Screen` with `scroll` and `footer`, as the services sheet. Title `display-s` `genresSheet.title`, helper `body-s` muted `genresSheet.helper`, the chips in a wrapping row (`gap-2`), `Button` primary L `genresSheet.done` in the footer. A chip is the `Chip` with `count`: the name, then the count in `mono-data`; selected shows the check and the accent fill. Its screen reader label is `genresSheet.chip` ("Comedy, 3 players"), role checkbox. The counts include your own unsaved tap at once (the sheet adds or removes 1 locally), so a tap answers without waiting for the network; the server's number replaces it after Done.
+
+Done sends only the genre ids, only when the selection changed (`api.set_seat_prefs` with `p_genre_ids`), then closes. The sheet starts on your saved picks that are still offered; a saved pick that left the offer takes no place in the cap and is dropped on the next save.
+
+| State or answer | What the player sees |
+| --- | --- |
+| Loading | Six `Skeleton` chips (`h-9`, `rounded-pill`); Done disabled |
+| Loaded, none offered | `body-m` secondary `genresSheet.none`; Done closes with no call |
+| Cap reached (a 4th tap) | `body-s` secondary `genresSheet.cap` under the helper, announced politely; the chip stays off; no haptic, no toast |
+| `ok` | The sheet closes; the row shows the names; other phones' counts follow `genres_changed` |
+| Nothing changed | The sheet closes, with no call |
+| `closed` | The sheet closes; the layout follows the room's state |
+| `locked` (Start happened while the sheet was open) | `showToast` info `genresLocked.*`, the sheet closes |
+| `unknown_genre` (a genre left tonight's offer) | `showToast` warn `errors.genresStale`; the sheet stays open and reads the offer again, your selection resets to the saved picks |
+| `too_many` | A bug (the sheet stops a 4th pick): `showToast` warn `common:errors.generic.title`, reported to Sentry, stays open |
+| The read failed (online) | `EmptyState` error with `genresSheet.failed` and `genresSheet.retry`; Done disabled |
+| Offline with nothing loaded | `EmptyState` with the `wifi-off` icon, `genresSheet.offline` and Retry; Done disabled |
+| Offline with the offer loaded | The chips stay; Done fails and shows `errors.genres`; the sheet stays open |
+| The save call failed | `showToast` warn `errors.genres`; the sheet stays open, Done works again |
+| A non-member | 42501, reported as `denied`; the room layout already sends a removed seat Home |
+
+**Live.** The server sends `genres_changed` (an empty payload) on `room:<id>` when a seat's picks change. The phone re-reads `api.room_genres` and updates the row and any open sheet in place. It also re-reads on every reconnect and when the app returns to the foreground (the same re-read as the room, under the room's query prefix). Counts move without animation: the numbers change in place. Reduce Motion needs nothing.
+
+**Accessibility.** The row reads "Your genres tonight, Comedy and Drama" (or "Optional") as a button; a dimmed row is announced as disabled. In the sheet the helper comes right after the title; each chip is a checkbox ("Comedy, 3 players", checked or not); the cap note is a polite live region (and `announceForAccessibility` on iOS). The tap targets are 44 points (`Chip` is 36 high with the `Pressable` target padding); at the largest text size the chips wrap onto more lines and Done stays in the footer.
+
+**Haptics.** The chips use `haptics.press()` through `Pressable`. A refused 4th pick has none: it is a gentle limit, not a refusal (`haptics.error()` is for refusals).
+
 ## Live changes (from the room layout)
 
 | Event | The lobby |
@@ -92,6 +145,7 @@ Done saves only what changed: `api.set_my_providers` when the selection differs 
 | `member_removed` | The seats are re-read; the row leaves as for `member_left` (nothing says it was removed). On the removed phone: [the removed side](host-menu.md#the-removed-players-side) |
 | `room_locked` | The room is re-read; the ticket's lock tag comes or goes |
 | `seat_updated` | The row's services change |
+| `genres_changed` | `api.room_genres` is read again; the genres row and an open genres sheet update in place ([Your genres tonight](#your-genres-tonight)) |
 | `settings_changed` | The room is re-read (the services line) |
 | `host_changed`, or `member_left` with `new_host_member_id` | The crown moves. On the new host's phone: `showToast` info `lobby:youreHost.*`, and the footer becomes Start |
 | Presence on `room:<id>:live` | Online dots and the away tag |
@@ -145,6 +199,22 @@ The alert is the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`,
 | `roomServices` | Cette salle peut regarder sur {{list}}. | This room can watch on {{list}}. |
 | `yourServices.label` | Tes plateformes | Your services |
 | `yourServices.optional` | Facultatif | Optional |
+| `yourGenres.label` | Tes genres ce soir | Your genres tonight |
+| `yourGenres.optional` | Facultatif | Optional |
+| `yourGenres.none` | Rien à choisir ce soir | Nothing to pick tonight |
+| `genresSheet.title` | Tes genres ce soir | Your genres tonight |
+| `genresSheet.helper` | Choisis jusqu'à 3 genres. Les autres voient combien de joueurs ont choisi chaque genre, pas qui. | Pick up to 3 genres. Others see how many players picked each genre, not who. |
+| `genresSheet.cap` | 3 genres au maximum. Retire-en un pour en changer. | 3 genres at most. Drop one to swap. |
+| `genresSheet.none` | Pas assez de films pour proposer des genres ce soir. | Not enough films to offer genres tonight. |
+| `genresSheet.failed` | Impossible de charger les genres. | We couldn't load the genres. |
+| `genresSheet.offline` | Pas de réseau. Les genres reviennent avec la connexion. | No network. The genres come back with your connection. |
+| `genresSheet.retry` | Réessayer | Try again |
+| `genresSheet.done` | C'est bon | Done |
+| `genresSheet.chip_one` | {{name}}, {{count}} joueur | {{name}}, {{count}} player |
+| `genresSheet.chip_other` | {{name}}, {{count}} joueurs | {{name}}, {{count}} players |
+| `genresLocked.title` / `.message` | Genres verrouillés / La séance a commencé. | Genres locked / The game has started. |
+| `errors.genres` | Impossible d'enregistrer tes genres. Réessaie. | We couldn't save your genres. Try again. |
+| `errors.genresStale` | Les genres ont changé. Choisis à nouveau. | The genres changed. Pick again. |
 | `servicesSheet.title` | Tes plateformes | Your services |
 | `servicesSheet.helper` | Facultatif : ça ajoute des films. | Optional: adds more films. |
 | `servicesSheet.done` | C'est bon | Done |
@@ -184,7 +254,7 @@ The away names are listed with `Intl.ListFormat`. The host alone leaving has no 
 
 ## Accessibility
 
-- Focus order: back (`lobby:a11y.leave`), title, invite, the ticket (read as "Room code 4 8 2 9 1 3, 3 of 10 players, host Harry"), Share link, Show QR, the rules line, "In the room" (header), each seat as one element ("Sam, here, Netflix, Disney+"; the host's says "host"), the room's services, your services (guests) or the lock row (host), Start (its helper as the hint). Each other player's seat is a button that opens the seat sheet.
+- Focus order: back (`lobby:a11y.leave`), title, invite, the ticket (read as "Room code 4 8 2 9 1 3, 3 of 10 players, host Harry"), Share link, Show QR, the rules line, "In the room" (header), each seat as one element ("Sam, here, Netflix, Disney+"; the host's says "host"), the room's services, your services (guests), your genres, the lock row (host), Start (its helper as the hint). Each other player's seat is a button that opens the seat sheet.
 - Arrivals and departures are announced politely (`lobby:a11y.joined`, `lobby:a11y.left`), at most one announcement a second.
 - The shuffling overlay takes focus and reads `lobby:shuffling`.
 - After `not_enough_players` or `too_few_films`, focus goes back to Start, its hint becomes the new line, and the line is announced once (assertive, it answers the host's tap). The number is read as a number ("Only 12 films fit tonight").

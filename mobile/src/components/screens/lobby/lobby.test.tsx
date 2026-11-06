@@ -902,7 +902,7 @@ describe('the genres sheet', () => {
     await waitFor(() =>
       expect(showToast).toHaveBeenCalledWith({
         tone: 'warn',
-        title: "Couldn't save your genres. Try again.",
+        title: "We couldn't save your genres. Try again.",
       }),
     );
     expect(mockRouter.back).not.toHaveBeenCalled();
@@ -929,7 +929,7 @@ describe('the genres sheet', () => {
     mockApi.roomGenres.mockRejectedValue(new Error('down'));
     await render(<RoomGenresScreen />, { wrapper: Providers });
     // The read retries once (a second later) before it counts as failed.
-    await waitFor(() => expect(screen.getByText("Couldn't load the genres.")).toBeTruthy(), {
+    await waitFor(() => expect(screen.getByText("We couldn't load the genres.")).toBeTruthy(), {
       timeout: 4000,
     });
     expect(done()).toBeDisabled();

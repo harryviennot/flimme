@@ -186,6 +186,7 @@ Each room uses two topics from the [data model](data-model.md#realtime), both op
 | Event | The phone |
 | --- | --- |
 | `member_joined`, `member_left`, `seat_updated` | Refetches seats |
+| `genres_changed` | Refetches `api.room_genres` (counts per genre and the seat's own picks, never who) |
 | `settings_changed` | Refetches the room |
 | `state_changed` | Refetches the room; the layout moves to the state's screen |
 | `deck_updated` (with this seat's id) | Refetches its next cards and replaces everything behind the 3 mounted ones |

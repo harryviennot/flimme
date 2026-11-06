@@ -144,6 +144,8 @@ What everyone sees:
 
 **A guest's services.** A row "Your services", prefilled from their profile, empty the first time. Under the default rule, where the room uses every service anyone has (one screen), it's optional and says so: "Optional: adds more films." Under the long-distance rule, where only services everyone has count, it says "Needed: tonight only shows films everyone can watch." It never blocks the start.
 
+**Everyone's genres.** A row "Your genres tonight" under "Your services" (for the host too): up to 3 genres, optional, never blocking Start. Chips show how many players picked each genre, never who. Only genres with 30 films or more tonight are offered; picks lock at Start; no picks means today's deck. The spec is in [the lobby screen](../design/screens/lobby.md#your-genres-tonight).
+
 ### The taste check
 
 The rules are the deck engine's ([The taste check](../architecture/deck-engine.md#the-taste-check)): only for players we know little about (confidence under 0.3), a question about the film rather than tonight, four answers, never the same film twice, never marks a film as seen. How it appears in the lobby:
