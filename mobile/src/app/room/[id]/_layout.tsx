@@ -26,6 +26,7 @@ import { useCountGame, useRoomCap } from '@/features/analytics';
 import { useFinalePreload } from '@/features/finale/use-finale-preload';
 import { useRevealOf } from '@/features/finale/reveal-store';
 import { useRevealHold } from '@/features/finale/use-reveal-hold';
+import { takeGenreAsk } from '@/features/genres/step';
 import { useMatchOverlay } from '@/features/match/use-match-overlay';
 import { ShortlistProvider, useShortlist, useShortlistHold } from '@/features/shortlist';
 import { useOnline } from '@/features/network';
@@ -113,6 +114,17 @@ export default function RoomLayout() {
   const revealPlaying = useRevealOf(id).phase === 'playing';
   useFinalePreload(id, realtime);
 
+  // A phone that just joined or opened this room is asked its genres once, while it is in the lobby
+  // (genre-step.md#where-it-lives). A request for a room past the lobby is dropped.
+  useEffect(() => {
+    if (!id || !state) return;
+    if (state === 'lobby' && current === 'lobby') {
+      if (takeGenreAsk(id)) router.replace(`/room/${id}/genre-step`);
+    } else if (state !== 'lobby') {
+      takeGenreAsk(id);
+    }
+  }, [id, state, current]);
+
   useEffect(() => {
     if (match.holdRoute || shortlistHold || soloHold) return;
     if (revealHold) {
@@ -169,6 +181,7 @@ export default function RoomLayout() {
                 contentStyle: { backgroundColor: tokens.color['bg-canvas'] },
               }}
             >
+              <Stack.Screen name="genre-step" options={{ animation: 'fade' }} />
               <Stack.Screen
                 name="invite"
                 options={{

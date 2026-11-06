@@ -22,6 +22,8 @@ import { playSound } from '@/lib/sound';
 import { linkOpenedAt, takeLinkReceivedAt } from './link-received';
 import { roomEntry, type RootRoute } from './enter-room';
 import { useLeaveLine } from './leave-line';
+import { askGenres } from '@/features/genres/step';
+
 import { parseInviteLink, roomRouteFor } from './link';
 import { keptRoomId, leaveOldSeat } from './old-seat';
 import { STARTING_RETRIES, STARTING_RETRY_MS, type JoinMessage } from './rows';
@@ -152,6 +154,8 @@ export function useJoinLink(params: Params) {
           trackJoinAttempt('link', result.status);
           rememberLinkJoin(result.room_id, receivedAt);
           leaveOldSeat(result.room_id, oldRoomId);
+          // A player already seated (the preview said so) is back in, not new: no genre step.
+          if (keep) askGenres(result.room_id);
           enterRoom(roomRouteFor(result.room_id, result.state), result.room_id, rootRoutes.current);
           return;
         }

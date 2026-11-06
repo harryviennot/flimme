@@ -25,6 +25,16 @@ describe('the genres sheet', () => {
   });
 });
 
+describe('the genre step', () => {
+  it('stays in the lobby only and is a screen, not a sheet', () => {
+    expect(isAllowed('lobby', 'genre-step')).toBe(true);
+    expect(isSheet('genre-step')).toBe(false);
+    for (const state of ['dealing', 'swiping', 'finale', 'done', 'abandoned'] as const) {
+      expect(isAllowed(state, 'genre-step')).toBe(false);
+    }
+  });
+});
+
 describe('isAllowed', () => {
   it('lets the invite and services sheets sit over the lobby and the dealing', () => {
     for (const state of ['lobby', 'dealing'] as const) {
