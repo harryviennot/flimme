@@ -1,6 +1,7 @@
 import type { NextCard } from '@flimme/contract';
 
 import {
+  backMeta,
   backServices,
   cardMeta,
   cardServices,
@@ -99,6 +100,7 @@ describe('toMovieCard', () => {
     expect(props.services).toEqual(['Netflix', 'Arte']);
     expect(props.back.synopsis).toBe('A bear in prison.');
     expect(props.back.tmdbRating).toBe('7.4');
+    expect(props.back.meta).toBe('2017 · 1 h 43');
     expect(props.back.director).toBe('Paul King');
     expect(props.back.cast).toBe('Ben Whishaw, Hugh Grant, Hugh Bonneville, and Sally Hawkins');
   });
@@ -113,6 +115,19 @@ describe('toMovieCard', () => {
     expect(props.back.director).toBeUndefined();
     expect(props.back.cast).toBeUndefined();
     expect(props.poster).toBeNull();
+  });
+});
+
+describe('backMeta', () => {
+  it('is the year and the runtime, without the score', () => {
+    expect(backMeta(base, 'en')).toBe('2017 · 1 h 43');
+    expect(backMeta(base, 'fr')).toBe('2017 · 1 h 43');
+  });
+
+  it('leaves out what the film lacks', () => {
+    expect(backMeta({ ...base, runtime_min: null }, 'en')).toBe('2017');
+    expect(backMeta({ ...base, year: null, runtime_min: 45 }, 'en')).toBe('45 min');
+    expect(backMeta({ ...base, year: null, runtime_min: null }, 'en')).toBe('');
   });
 });
 
@@ -176,6 +191,17 @@ describe('toMovieCard back', () => {
     expect(view.back.cast).toBe('A, B, C, D, and E');
     expect(view.back.tmdbRating).toBe('7.4');
     expect(view.back.services?.map((s) => s.name)).toEqual(['Netflix', 'Arte']);
+  });
+
+  it('passes the Read more and control touch handlers on', () => {
+    const onReadMore = jest.fn();
+    const onControlTouch = jest.fn();
+    const view = toMovieCard(base, { ...options, onReadMore, onControlTouch });
+    view.back.onReadMore?.();
+    view.back.onControlTouch?.();
+    expect(onReadMore).toHaveBeenCalledTimes(1);
+    expect(onControlTouch).toHaveBeenCalledTimes(1);
+    expect(toMovieCard(base, options).back.onReadMore).toBeUndefined();
   });
 
   it('has a trailer button only with a trailer key', () => {

@@ -33,6 +33,7 @@ import {
   CARRY_Y,
   commitLines,
   decideRelease,
+  dimOf,
   directionOf,
   LIGHT_FROM,
   PIVOT,
@@ -51,7 +52,6 @@ import { isLanding } from '@/features/swipe/bookmark-guard';
 import { isTrailerTap, markTrailerTouch, openTrailerUrl } from '@/features/swipe/trailer';
 import { registerTopCard, useCardMotion } from '@/features/swipe/top-card';
 import { haptics } from '@/lib/haptics';
-import { tokens } from '@/theme/generated/tokens';
 import { duration, easing, layout, spring, timing } from '@/theme/motion';
 
 // One card of the stack. The card on top takes a drag and a tap; the others only sit behind.
@@ -106,6 +106,8 @@ export type SwipeCardProps = {
   };
   onRelease: (titleId: number, direction: Direction) => void;
   onFlip: () => void;
+  /** "Read more" on the back: opens the synopsis sheet for this card. */
+  onReadMore: (card: NextCard) => void;
   onLanded: (titleId: number) => void;
 };
 
@@ -356,15 +358,19 @@ export function SwipeCard(props: SwipeCardProps) {
     },
   );
 
+  // The dark layer over a card behind: solid cards, darkened by depth, with no filter on the poster
+  // and no JavaScript render. The second card brightens as the top card is dragged.
+  const dim = useAnimatedStyle(() => ({
+    opacity: dimOf(depthValue.get(), dragProgress.get(), reduced),
+  }));
+
   const style = useAnimatedStyle(() => {
     const d = depthValue.get();
     // With Reduce Motion the card behind is already full size: no scale.
     const behind = reduced ? 1 : SECOND_CARD_SCALE + (1 - SECOND_CARD_SCALE) * dragProgress.get();
     const pivot = size.height * PIVOT;
     return {
-      opacity:
-        interpolate(d, [0, 1, 2], [1, tokens.opacity['stack-near'], tokens.opacity['stack-far']]) *
-        fade.get(),
+      opacity: fade.get(),
       transform: [
         { translateX: x.get() },
         { translateY: y.get() + d * STACK_STEP },
@@ -381,7 +387,8 @@ export function SwipeCard(props: SwipeCardProps) {
     language: i18n.language,
     onTrailer: openTrailerUrl,
     // Not passed straight on: a touch event would land in `now`.
-    onTrailerTouch: () => markTrailerTouch(),
+    onControlTouch: () => markTrailerTouch(),
+    onReadMore: () => props.onReadMore(card),
   });
   const interactive = isTop;
   const saved = useIsSaved(titleId);
@@ -434,6 +441,14 @@ export function SwipeCard(props: SwipeCardProps) {
             bookmark={bookmark}
             flipped={flight ? flight.flipped : flipped}
             stampProgress={isTop || flight ? stampProgress : undefined}
+          />
+          <Animated.View
+            testID={`swipe-dim-${titleId}`}
+            pointerEvents="none"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={dim}
+            className="absolute inset-0 rounded-xl bg-bg-sunken"
           />
         </Animated.View>
       </GestureDetector>

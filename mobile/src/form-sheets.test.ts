@@ -19,6 +19,8 @@ const SHEET_FILES = [
   'app/room/[id]/pick.tsx',
   'app/room/[id]/recap.tsx',
   'app/room/[id]/film/[title].tsx',
+  'app/room/[id]/synopsis/[title].tsx',
+  'components/screens/swipe/synopsis-sheet.tsx',
   'app/join/[code].tsx',
   'app/settings/delete.tsx',
   'app/(tabs)/my-films/film/[title].tsx',

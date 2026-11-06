@@ -276,6 +276,9 @@
 @utility opacity-stack-near {
   opacity: 0.7;
 }
-@utility opacity-stack-far {
-  opacity: 0.45;
+@utility opacity-stack-dim-near {
+  opacity: 0.3;
+}
+@utility opacity-stack-dim-far {
+  opacity: 0.55;
 }
