@@ -6,8 +6,8 @@ import {
 } from 'expo-audio';
 
 // Every in-app sound, its moment and its phones: docs/design/sounds.md (6 November 2026).
-// Mixed with other audio so it never pauses the TV or music, quiet when the phone is set to
-// silent, nothing in the background. The Sound switch in Settings turns all of them off. The
+// Mixed with other audio so it never pauses the TV or music, played even when the phone is set
+// to silent (Harry, 6 November 2026), nothing in the background. Every button press ticks. The Sound switch in Settings turns all of them off. The
 // files carry their own levels, so the volume is always 1 and is never set here. `notify.wav`
 // belongs to M15.5's notification and `sonic-logo.wav` to the preview video: neither is
 // required here, and a test keeps it that way.
@@ -83,7 +83,7 @@ export function setSoundEnabled(value: boolean) {
 
 function setMode() {
   modeSet ??= setAudioModeAsync({
-    playsInSilentMode: false,
+    playsInSilentMode: true,
     interruptionMode: 'mixWithOthers',
     shouldPlayInBackground: false,
   }).catch(() => undefined);

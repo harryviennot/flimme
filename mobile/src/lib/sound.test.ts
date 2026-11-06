@@ -106,7 +106,7 @@ describe('playing', () => {
     } as never);
     await fresh!.playSound('tap');
     expect(audio!.setAudioModeAsync).toHaveBeenCalledWith({
-      playsInSilentMode: false,
+      playsInSilentMode: true,
       interruptionMode: 'mixWithOthers',
       shouldPlayInBackground: false,
     });

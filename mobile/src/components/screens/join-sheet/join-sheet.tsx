@@ -195,7 +195,6 @@ function FirstTime({
         label={t('link.join')}
         size="l"
         block
-        sound="tap"
         disabled={!valid}
         loading={saving}
         onPress={() => void join()}
