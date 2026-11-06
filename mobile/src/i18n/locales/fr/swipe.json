@@ -58,8 +58,8 @@
       "seen": "Déjà vu",
       "flip": "Retourner la carte",
       "trailer": "Voir la bande-annonce",
-      "save": "Garder pour plus tard",
-      "unsave": "Retirer de Plus tard"
+      "save": "Ajouter à Mes films",
+      "unsave": "Retirer de Mes films"
     },
     "superLeft_one": "Coup de cœur, il en reste {{count}}",
     "superLeft_other": "Coup de cœur, il en reste {{count}}",
@@ -73,8 +73,8 @@
     "pillHost": "{{name}}, hôte",
     "done": "{{name}} a fini",
     "thrown": "{{answer}} : {{title}}",
-    "saved": "{{title}} : gardé pour plus tard",
-    "unsaved": "{{title}} : retiré de Plus tard",
+    "saved": "{{title}} : ajouté à Mes films",
+    "unsaved": "{{title}} : retiré de Mes films",
     "players_one": "{{count}} joueur dans la salle de {{host}}",
     "players_other": "{{count}} joueurs dans la salle de {{host}}",
     "playersDone_one": "{{count}} a fini",

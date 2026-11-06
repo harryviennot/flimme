@@ -1,0 +1,67 @@
+# M6.64, the genre step: the host opens a room on staging and sees the step before the lobby, picks
+# up to 3 (the cap note on the 4th, no counts while alone), and a bot's pick makes counts appear
+# after the lobby's sheet is opened. Needs Metro started with the staging environment (see the
+# expo-app skill).
+#   1. maestro test mobile/.maestro/genre-step.yaml -e METRO_URL=http://localhost:<port>
+#   2. when the step shows, read the room code (the eyebrow) and run
+#      FLIMME_STAGING_URL=... FLIMME_STAGING_KEY=... mise run bots -- --code <code> --target staging \
+#        --count 1 --swipe-ms off --genres 35,27 --leave-on-stop yes
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Alice'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)open a room'
+    timeout: 15000
+- tapOn: '(?i)open a room'
+- extendedWaitUntil:
+    visible: 'Netflix'
+    timeout: 15000
+- tapOn: 'Netflix'
+- tapOn: 'Amazon Prime Video'
+- tapOn: 'Disney Plus'
+- tapOn: 'Canal\+'
+- tapOn: '(?i)open the room'
+
+# The step, before the lobby: the question, 0/3, and the skip button.
+- extendedWaitUntil:
+    visible: 'Your genres tonight'
+    timeout: 20000
+- assertVisible: '0 of 3 picked'
+- assertVisible: 'Any genre'
+- takeScreenshot: genre-step-1-host
+
+# Up to 3, then a gentle note for the 4th. Alone, so no counts.
+- tapOn: 'Comedy.*'
+- assertVisible: '1 of 3 picked'
+- tapOn: 'Horror.*'
+- tapOn: 'Thriller.*'
+- assertNotVisible: '3 genres at most.*'
+- tapOn: 'Western.*'
+- assertVisible: '3 genres at most.*'
+- takeScreenshot: genre-step-2-cap
+
+# Continue lands in the lobby, whose row names the picks.
+- tapOn: 'Continue'
+- extendedWaitUntil:
+    visible: 'Your genres tonight.*Comedy.*'
+    timeout: 20000
+- takeScreenshot: genre-step-3-lobby
+
+# The sheet still changes picks.
+- tapOn: 'Your genres tonight.*'
+- extendedWaitUntil:
+    visible: 'Comedy.*'
+    timeout: 20000
+- tapOn: 'Thriller.*'
+- tapOn: 'Done'
+- extendedWaitUntil:
+    visible: 'Your genres tonight.*Comedy.*'
+    timeout: 15000
+- takeScreenshot: genre-step-4-sheet-changed

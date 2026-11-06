@@ -59,11 +59,11 @@ describe('the solo events', () => {
     expect(track).toHaveBeenCalledWith('solo:cap_show', { placement: 'deck' });
   });
 
-  it('the grid view for Later has no filter and no film id', () => {
-    trackMyFilmsGrid({ segment: 'later', filter: 'friends', count: 3, hasMore: false });
+  it('the grid view for Liked keeps the Solo chip and no film id', () => {
+    trackMyFilmsGrid({ segment: 'liked', filter: 'solo', count: 3, hasMore: false });
     expect(track).toHaveBeenCalledWith('my_films:grid_view', {
-      segment: 'later',
-      filter: 'none',
+      segment: 'liked',
+      filter: 'solo',
       film_count: '1_4',
     });
   });

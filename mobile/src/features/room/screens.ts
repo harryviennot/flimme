@@ -52,6 +52,8 @@ const SHEETS: Record<RoomState, readonly RoomSheet[]> = {
 export function isAllowed(state: RoomState, screen: string, mode?: string): boolean {
   // The pick sheet belongs to a solo room only.
   if (screen === 'pick') return state === 'swiping' && mode === 'solo';
+  // The genre step is a full screen over the lobby only: Start replaces it with the lobby.
+  if (screen === 'genre-step') return state === 'lobby';
   return (
     screen === roomScreenFor(state, mode) || (SHEETS[state] as readonly string[]).includes(screen)
   );
