@@ -94,11 +94,15 @@ export async function runPlayAgain(
     events.on('broadcast', { event: 'next_room' }, (message: { payload?: unknown }) => {
       const args = nextRoomJoin(message.payload);
       if (!args) return;
-      void api.joinRoom(args).then((joined) => {
-        if (joined.status !== 'ok') return log(`bot ${index} could not join the next game`);
-        log(`bot ${index} joined the next game`);
-        sit(index, client, api, joined);
-      });
+      void api
+        .joinRoom(args)
+        .then((joined) => {
+          if (joined.status !== 'ok') return log(`bot ${index} could not join the next game`);
+          log(`bot ${index} joined the next game`);
+          sit(index, client, api, joined);
+        })
+        // A slow staging call must not end the other bots.
+        .catch(() => log(`bot ${index} could not reach the next game`));
     });
     events.subscribe();
     seats.push({ stop: async () => void (await client.removeChannel(events)) });

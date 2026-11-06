@@ -14,6 +14,13 @@ appId: com.harryviennot.flimme.dev
       visible: 'Continue'
     commands:
       - tapOn: 'Continue'
+# The dev menu's first-run sheet hides the page from the accessibility tree: close it first.
+- runFlow:
+    when:
+      visible: 'Runtime version.*'
+    commands:
+      - tapOn:
+          point: 90%,50%
 - runFlow: subflows/use-staging.yaml
 - runFlow: subflows/host-room.yaml
 - takeScreenshot: play-again-1-lobby

@@ -20,10 +20,10 @@ appId: com.harryviennot.flimme.dev
           text: 'Like'
           optional: true
 - extendedWaitUntil:
-    visible: 'Play again'
+    visible: 'Start another game.*'
     timeout: 240000
 - takeScreenshot: play-again-2-winner-host
-- tapOn: 'Play again'
+- tapOn: 'Start another game.*'
 - extendedWaitUntil:
     visible: '(?i)in the room'
     timeout: 30000
