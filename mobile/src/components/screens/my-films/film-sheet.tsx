@@ -10,11 +10,8 @@ import { api } from '@/api';
 import { MovieCard } from '@/components/shared/movie-card';
 import { WhereToWatch } from '@/components/shared/where-to-watch';
 import { Banner } from '@/components/ui/banner';
-import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { IconButton } from '@/components/ui/icon-button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Text } from '@/components/ui/text';
 import { showToast } from '@/components/ui/toast';
 import { useAppConfig } from '@/features/app-config/use-app-config';
 import {
@@ -26,6 +23,8 @@ import {
 } from '@/features/my-films';
 import { useOnline } from '@/features/network';
 import { servicesLabel } from '@/features/winner/services';
+
+import { FilmSheetBar } from './film-sheet-bar';
 
 export type FilmSheetProps = { titleId: number; onClose: () => void };
 
@@ -146,54 +145,28 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
 
   return (
     <GestureHandlerRootView className="flex-1 bg-bg-canvas">
+      <FilmSheetBar
+        seen={ready?.seen ?? false}
+        showSeen={ready !== null}
+        showRemove={ready?.liked === true}
+        disabled={!canEdit}
+        onToggleSeen={() => void toggleSeen()}
+        onRemove={remove}
+        onClose={onClose}
+      />
+      {ready && !online ? <Banner tone="warn" message={t('sheet.offlineActions')} /> : null}
       <ScrollView
         className="flex-1"
         contentContainerClassName="grow"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-1 gap-4 px-5 pt-5 pb-4">
-          <View className="items-end">
-            <IconButton
-              icon="x"
-              variant="plain"
-              accessibilityLabel={tc('actions.close')}
-              onPress={onClose}
-            />
-          </View>
+        <View
+          className="flex-1 gap-4 px-5 pt-2"
+          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        >
           {body}
         </View>
       </ScrollView>
-      {ready && !online ? <Banner tone="warn" message={t('sheet.offlineActions')} /> : null}
-      <View
-        className="gap-3 border-t border-border-default bg-bg-surface px-5 pt-3"
-        style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-      >
-        <Button
-          label={ready?.seen ? t('sheet.notSeen') : t('sheet.markSeen')}
-          variant="secondary"
-          size="l"
-          block
-          icon="eye"
-          disabled={!canEdit}
-          onPress={() => void toggleSeen()}
-        />
-        {ready?.seen ? (
-          <Text variant="body-s" tone="muted" align="center">
-            {t('sheet.seenHelper')}
-          </Text>
-        ) : null}
-        {ready?.liked ? (
-          <Button
-            label={t('sheet.remove')}
-            variant="ghost"
-            size="l"
-            block
-            icon="trash"
-            disabled={!canEdit}
-            onPress={remove}
-          />
-        ) : null}
-      </View>
     </GestureHandlerRootView>
   );
 }

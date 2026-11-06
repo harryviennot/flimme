@@ -25,6 +25,16 @@ describe('the genres sheet', () => {
   });
 });
 
+describe('the genre step', () => {
+  it('stays in the lobby only and is a screen, not a sheet', () => {
+    expect(isAllowed('lobby', 'genre-step')).toBe(true);
+    expect(isSheet('genre-step')).toBe(false);
+    for (const state of ['dealing', 'swiping', 'finale', 'done', 'abandoned'] as const) {
+      expect(isAllowed(state, 'genre-step')).toBe(false);
+    }
+  });
+});
+
 describe('the players sheet', () => {
   it('sits over the swiping only, and closes when the finale starts', () => {
     expect(isSheet('players')).toBe(true);

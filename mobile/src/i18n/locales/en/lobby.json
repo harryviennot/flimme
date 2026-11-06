@@ -121,5 +121,16 @@
   "genresLocked": {
     "title": "Genres locked",
     "message": "The game has started."
+  },
+  "genreStep": {
+    "eyebrow": "Room {{code}}",
+    "title": "Your genres tonight",
+    "helper": "Pick up to 3 to steer tonight's films. Others see how many picked each, never who.",
+    "count": "{{count}}/3",
+    "any": "Any genre",
+    "continue": "Continue",
+    "skip": "Skip for now",
+    "a11yCount": "{{count}} of 3 picked",
+    "a11yLoading": "Loading tonight's genres"
   }
 }

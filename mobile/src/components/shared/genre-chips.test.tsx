@@ -1,0 +1,43 @@
+import i18n from '@/i18n';
+
+import { fireEvent, render, screen } from '@testing-library/react-native';
+
+import { GenreChips } from './genre-chips';
+
+const options = [
+  { id: 1, name: 'Action', count: 2 },
+  { id: 2, name: 'Comedy', count: 0 },
+];
+
+describe('GenreChips', () => {
+  beforeAll(async () => {
+    await i18n.changeLanguage('en');
+  });
+
+  it('toggles by id and shows the selection', async () => {
+    const onToggle = jest.fn();
+    await render(<GenreChips options={options} selected={[1]} showCounts onToggle={onToggle} />);
+    expect(screen.getByRole('checkbox', { name: /Action/ })).toBeChecked();
+    await fireEvent.press(screen.getByRole('checkbox', { name: /Comedy/ }));
+    expect(onToggle).toHaveBeenCalledWith(2);
+  });
+
+  it('draws counts only when asked and above 0', async () => {
+    const { rerender } = await render(
+      <GenreChips options={options} selected={[]} showCounts onToggle={() => {}} />,
+    );
+    expect(screen.getByText('2')).toBeTruthy();
+    expect(screen.queryByText('0')).toBeNull();
+    await rerender(
+      <GenreChips options={options} selected={[]} showCounts={false} onToggle={() => {}} />,
+    );
+    expect(screen.queryByText('2')).toBeNull();
+  });
+
+  it('draws no chip while loading', async () => {
+    await render(
+      <GenreChips options={options} selected={[]} showCounts onToggle={() => {}} loading />,
+    );
+    expect(screen.queryByText('Action')).toBeNull();
+  });
+});

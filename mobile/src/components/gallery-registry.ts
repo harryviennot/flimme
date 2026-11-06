@@ -27,6 +27,7 @@ import { gallery as uiToast } from './ui/toast.gallery';
 import { gallery as uiToggle } from './ui/toggle.gallery';
 import { gallery as uiTopBar } from './ui/top-bar.gallery';
 import { gallery as sharedFilmTile } from './shared/film-tile.gallery';
+import { gallery as sharedGenreChips } from './shared/genre-chips.gallery';
 import { gallery as sharedMovieCard } from './shared/movie-card.gallery';
 import { gallery as sharedNameForm } from './shared/name-form.gallery';
 import { gallery as sharedPlayerPill } from './shared/player-pill.gallery';
@@ -70,6 +71,7 @@ export const galleryEntries: GalleryEntry[] = [
   uiToggle,
   uiTopBar,
   sharedFilmTile,
+  sharedGenreChips,
   sharedMovieCard,
   sharedNameForm,
   sharedPlayerPill,

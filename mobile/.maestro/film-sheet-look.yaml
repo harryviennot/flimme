@@ -1,0 +1,17 @@
+# M6.62: opens the first film in My films and takes pictures of the sheet, for the explore pass
+# (French, the largest text size). Run with the simulator set up as needed:
+#   maestro --device <sim> test mobile/.maestro/film-sheet-look.yaml -e SHOT=fr
+appId: com.harryviennot.flimme.dev
+---
+- openLink: flimme-dev:///my-films
+- extendedWaitUntil:
+    visible: '(?i)liked|aimés'
+    timeout: 30000
+- tapOn:
+    point: 18%,54%
+- extendedWaitUntil:
+    visible: '(?i)synopsis'
+    timeout: 30000
+- takeScreenshot: film-sheet-look-${SHOT}-top
+- scroll
+- takeScreenshot: film-sheet-look-${SHOT}-bottom

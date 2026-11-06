@@ -11,6 +11,7 @@ import { track } from '@/lib/analytics';
 import { errorFeedback } from '@/lib/feedback';
 import { playSound } from '@/lib/sound';
 
+import { askGenres } from '@/features/genres/step';
 import { CODE_LENGTH, digitsOf, readPasted, roomRouteFor } from './link';
 import { keptRoomId, leaveOldSeat } from './old-seat';
 import {
@@ -115,6 +116,7 @@ export function useJoinAttempt() {
             // In: the ticket tears (sounds.md#joining-a-room).
             void playSound('join');
             leaveOldSeat(result.room_id, oldRoomId);
+            askGenres(result.room_id);
             router.replace(roomRouteFor(result.room_id, result.state) as never);
           } else {
             waitingName.current = true;

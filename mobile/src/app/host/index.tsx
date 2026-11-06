@@ -15,6 +15,7 @@ import { showToast } from '@/components/ui/toast';
 import { Text } from '@/components/ui/text';
 import { TopBar } from '@/components/ui/top-bar';
 import { keptRoomId, leaveOldSeat } from '@/features/join/old-seat';
+import { askGenres } from '@/features/genres/step';
 import { openRoom } from '@/features/host/open-room';
 import { MY_PROVIDERS_KEY } from '@/features/host/queries';
 import {
@@ -85,6 +86,7 @@ export default function HostScreen() {
         });
         client.setQueryData(MY_PROVIDERS_KEY, selection);
         leaveOldSeat(outcome.roomId, oldRoomId);
+        askGenres(outcome.roomId);
         router.replace(`/room/${outcome.roomId}/lobby`);
         return;
       }

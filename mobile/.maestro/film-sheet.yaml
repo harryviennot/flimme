@@ -1,0 +1,50 @@
+# M6.62, the film sheet full page: opens full height from My films, the Seen chip toggles, Remove
+# shows its undo toast, the synopsis shows whole. Needs solo likes on staging: run
+# film-sheet-seed.yaml first, then
+#   maestro --device <sim> test mobile/.maestro/film-sheet.yaml
+appId: com.harryviennot.flimme.dev
+---
+- tapOn:
+    id: 'close'
+    optional: true
+- tapOn: '(?i)stop playing alone|arr.ter de jouer seul'
+- extendedWaitUntil:
+    visible: '(?i)open a room|ouvrir une salle'
+    timeout: 20000
+- tapOn: '(?i)my films|mes films'
+- extendedWaitUntil:
+    visible: '(?i)liked|aimés'
+    timeout: 30000
+- takeScreenshot: film-sheet-0-grid
+# Open the first tile (the first element with a year in its label).
+- tapOn:
+    text: '.*, (19|20)[0-9]{2}.*'
+    index: 0
+- extendedWaitUntil:
+    visible: '(?i)where to watch|où regarder'
+    timeout: 30000
+- takeScreenshot: film-sheet-1-open
+- assertVisible: 'Seen'
+- assertVisible: 'Remove from Liked'
+- assertNotVisible: 'Mark as seen'
+- assertNotVisible: '(?i).*later.*'
+# Seen on, then off.
+- tapOn: 'Seen'
+- takeScreenshot: film-sheet-2-seen-on
+- tapOn: 'Seen'
+- takeScreenshot: film-sheet-3-seen-off
+# The synopsis shows whole: scroll to the credits and where to watch.
+- scrollUntilVisible:
+    element: '(?i)where to watch|où regarder'
+    timeout: 15000
+- takeScreenshot: film-sheet-4-scrolled
+# Remove, then Undo.
+- tapOn: 'Remove from Liked'
+- extendedWaitUntil:
+    visible: 'Removed from My films'
+    timeout: 10000
+- takeScreenshot: film-sheet-5-removed
+- tapOn: 'Undo'
+- extendedWaitUntil:
+    visible: 'Saved with this phone for now.'
+    timeout: 10000

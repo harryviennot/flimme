@@ -121,5 +121,16 @@
   "genresLocked": {
     "title": "Genres verrouillés",
     "message": "La séance a commencé."
+  },
+  "genreStep": {
+    "eyebrow": "Salle {{code}}",
+    "title": "Tes genres ce soir",
+    "helper": "Choisis-en jusqu'à 3 pour orienter les films de ce soir. Les autres voient combien les ont choisis, jamais qui.",
+    "count": "{{count}}/3",
+    "any": "Tous les genres",
+    "continue": "Continuer",
+    "skip": "Passer pour l'instant",
+    "a11yCount": "{{count}} sur 3 choisis",
+    "a11yLoading": "Chargement des genres de ce soir"
   }
 }

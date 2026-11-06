@@ -6,6 +6,7 @@ import { api } from '@/api';
 import { track, trackWhenRoomKnown } from '@/lib/analytics';
 import { playSound } from '@/lib/sound';
 
+import { askGenres } from '@/features/genres/step';
 import { useJoinAttempt } from './use-join-attempt';
 
 jest.mock('@/api', () => ({ api: { joinRoom: jest.fn() } }));
@@ -18,6 +19,7 @@ jest.mock('expo-router', () => ({
   useFocusEffect: jest.fn(),
 }));
 jest.mock('./old-seat', () => ({ keptRoomId: () => null, leaveOldSeat: jest.fn() }));
+jest.mock('@/features/genres/step', () => ({ askGenres: jest.fn() }));
 jest.mock('@/lib/sound', () => ({ playSound: jest.fn(async () => undefined) }));
 
 const joinRoom = api.joinRoom as unknown as jest.Mock;
@@ -92,5 +94,17 @@ describe('the join sound (sounds.md#joining-a-room)', () => {
     const view = await renderHook(() => useJoinAttempt(), { wrapper });
     await act(async () => view.result.current.setCode('482913'));
     expect(playSound).not.toHaveBeenCalled();
+  });
+});
+
+describe('the genre step after a join by code', () => {
+  it('is asked for the room once the join is ok, and not on a refusal', async () => {
+    joinRoom.mockResolvedValue({ status: 'full', max_players: 10 });
+    const view = await renderHook(() => useJoinAttempt(), { wrapper });
+    await act(async () => view.result.current.setCode('482913'));
+    expect(askGenres).not.toHaveBeenCalled();
+    joinRoom.mockResolvedValue({ status: 'ok', room_id: 'r1', state: 'lobby' });
+    await act(async () => view.result.current.setCode('482914'));
+    expect(askGenres).toHaveBeenCalledWith('r1');
   });
 });

@@ -71,7 +71,10 @@ export type MovieCardProps = {
   flipped?: boolean;
   /** Turns the card over. Without it the card is not pressable (the swipe screen's gesture flips). */
   onFlip?: () => void;
-  /** A back that never turns over (the film sheet): no flip badge. */
+  /**
+   * A back that never turns over (the film sheet, the runner-up sheet): no flip badge. It is at
+   * least the card's shape and grows with its content, and its synopsis shows whole.
+   */
   still?: boolean;
   back: {
     /** "2017 · 1 h 43": the year and the runtime. The score follows it, drawn from `tmdbRating`. */
@@ -148,6 +151,8 @@ export function MovieCard(props: MovieCardProps) {
     </>
   );
 
+  if (props.still && flipped) return <StillBack {...props} />;
+
   return (
     <View className="w-full" style={{ aspectRatio: 345 / 518 }}>
       {onFlip ? (
@@ -167,20 +172,42 @@ export function MovieCard(props: MovieCardProps) {
   );
 }
 
+/** A still back: the card's shape at least, taller when the content needs it. */
+function StillBack(props: MovieCardProps) {
+  const [width, setWidth] = useState(0);
+  return (
+    <View
+      className="w-full"
+      style={width > 0 ? { minHeight: (width * 518) / 345 } : { aspectRatio: 345 / 518 }}
+      onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}
+      testID="movie-card-back"
+    >
+      <Back {...props} whole />
+    </View>
+  );
+}
+
 function Frame({
   children,
   border,
   rings,
+  whole = false,
 }: {
   children: React.ReactNode;
   border: string;
   /** The 3-point colour borders drawn over the card's hairline (the stamps). */
   rings?: React.ReactNode;
+  /** Grows with its content instead of filling a fixed box. */
+  whole?: boolean;
 }) {
   return (
-    <View className="flex-1">
+    <View className={whole ? 'grow' : 'flex-1'}>
       <View
-        className={cn('flex-1 overflow-hidden rounded-xl bg-bg-surface elevation-card', border)}
+        className={cn(
+          'overflow-hidden rounded-xl bg-bg-surface elevation-card',
+          whole ? 'grow' : 'flex-1',
+          border,
+        )}
       >
         {children}
       </View>
@@ -581,10 +608,11 @@ function Back({
   services,
   back,
   still = false,
+  whole = false,
   stamp,
   stampProgress,
   bookmark,
-}: MovieCardProps) {
+}: MovieCardProps & { whole?: boolean }) {
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
   const large = isLargeText(fontScale);
@@ -592,6 +620,7 @@ function Back({
   const logos = back.services ?? services.map((name) => ({ name }));
   return (
     <Frame
+      whole={whole}
       border="border border-border-default"
       rings={stamps?.map(({ kind, progress }) => (
         <Ring key={kind} kind={kind} progress={progress} />
@@ -612,7 +641,7 @@ function Back({
           </View>
         )}
       </View>
-      <View className="flex-1 gap-3 px-5 py-3.5">
+      <View className={cn('gap-3 px-5 py-3.5', whole ? 'grow' : 'flex-1')}>
         {large ? (
           <View className="gap-0.5" testID="movie-card-back-title">
             <Text variant="title-l" numberOfLines={2}>
@@ -621,13 +650,19 @@ function Back({
             <CardMetaLine meta={back.meta} score={back.tmdbRating} />
           </View>
         ) : null}
-        <View className="min-h-0 flex-1 gap-1">
+        <View className={whole ? 'grow gap-1' : 'min-h-0 flex-1 gap-1'}>
           <Text variant="mono-eyebrow" tone="secondary">
             {t('card.synopsis')}
           </Text>
-          <Synopsis onReadMore={back.onReadMore} onControlTouch={back.onControlTouch}>
-            {back.synopsis}
-          </Synopsis>
+          {whole ? (
+            <Text variant="body-m" testID="synopsis-whole">
+              {back.synopsis}
+            </Text>
+          ) : (
+            <Synopsis onReadMore={back.onReadMore} onControlTouch={back.onControlTouch}>
+              {back.synopsis}
+            </Synopsis>
+          )}
         </View>
         <View className="gap-0.5">
           {back.director ? (
