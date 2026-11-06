@@ -54,7 +54,7 @@ function seat(id: string, name: string, joined: number, extra: Partial<RoomSeat>
   } as RoomSeat;
 }
 
-const mockSeats = [
+let mockSeats = [
   seat('me', 'Harry', 1, { role: 'host' }),
   seat('sam', 'Sam', 2),
   seat('jo', 'Jo', 3),
@@ -66,7 +66,7 @@ let mockPresence = {
 };
 jest.mock('@/features/room', () => ({
   useRoomSeats: () => ({ data: mockSeats }),
-  useMySeat: () => mockSeats[0],
+  useMySeat: () => mockSeats.find((s) => s.member_id === 'me'),
   useRoomPresence: () => mockPresence,
 }));
 
@@ -82,6 +82,11 @@ describe('SwipeTopBar', () => {
       onMismatch: () => undefined,
     });
     mockAsk.mockClear();
+    mockSeats = [
+      seat('me', 'Harry', 1, { role: 'host' }),
+      seat('sam', 'Sam', 2),
+      seat('jo', 'Jo', 3),
+    ];
     mockPresence = {
       online: new Set(['sam']),
       away: new Set(['jo']),
@@ -89,26 +94,43 @@ describe('SwipeTopBar', () => {
     };
   });
 
-  it('shows the pills in join order with the own count, the others from presence, and the crown', async () => {
+  it('is one button that says how many play, whose room it is, and who is away', async () => {
     await render(<SwipeTopBar roomId="r" count={7} done={false} />);
-    expect(screen.getByLabelText('You, 7 films, host')).toBeTruthy();
-    expect(screen.getByLabelText('Sam, 10 films')).toBeTruthy();
-    expect(screen.getByLabelText('Jo, away')).toBeTruthy();
+    expect(screen.getByLabelText("3 players in Harry's room, 1 away")).toBeTruthy();
+    expect(screen.getAllByTestId('player-disc')).toHaveLength(3);
   });
 
-  it('says Done and names the player for a screen reader', async () => {
+  it('shows no answer count in the bar: the counts live in the players sheet', async () => {
+    await render(<SwipeTopBar roomId="r" count={7} done={false} />);
+    expect(screen.queryByText('7')).toBeNull();
+    expect(screen.queryByText('10')).toBeNull();
+    expect(screen.queryByLabelText(/films/)).toBeNull();
+  });
+
+  it('marks a finished player with a check badge, and says so for a screen reader', async () => {
     mockPresence.progress = new Map([['sam', { swipe_count: 20, done: true }]]);
     await render(<SwipeTopBar roomId="r" count={7} done={false} />);
-    expect(screen.getByLabelText('Sam is done')).toBeTruthy();
-    expect(screen.getByText('Done')).toBeTruthy();
+    expect(screen.getByLabelText("3 players in Harry's room, 1 is done, 1 away")).toBeTruthy();
+    expect(screen.getAllByTestId('player-done')).toHaveLength(1);
   });
 
-  it('opens the seat sheet from another pill, and nothing from the own', async () => {
+  it('opens the players sheet from the whole stack', async () => {
     await render(<SwipeTopBar roomId="r" count={7} done={false} />);
-    fireEvent.press(screen.getByLabelText('Sam, 10 films'));
-    expect(mockPush).toHaveBeenCalledWith('/room/r/seat/sam');
-    fireEvent.press(screen.getByLabelText('You, 7 films, host'));
-    expect(mockPush).toHaveBeenCalledTimes(1);
+    fireEvent.press(screen.getByTestId('player-stack'));
+    expect(mockPush).toHaveBeenCalledWith('/room/r/players');
+  });
+
+  it('ends in a +N disc when the seats do not fit, and never hides the own seat', async () => {
+    mockSeats = [
+      ...Array.from({ length: 9 }, (_, i) => seat(`p${i}`, `P${i}`, i + 2)),
+      seat('me', 'Harry', 20),
+    ];
+    mockPresence.away = new Set();
+    await render(<SwipeTopBar roomId="r" count={0} done={false} />);
+    expect(screen.getAllByTestId('player-disc')).toHaveLength(5);
+    expect(screen.getByText('+5')).toBeTruthy();
+    expect(screen.getByLabelText('Harry')).toBeTruthy();
+    expect(screen.queryByLabelText('P8')).toBeNull();
   });
 
   it('shows the empty shortlist, then the posters of the films read back, never who liked them', async () => {

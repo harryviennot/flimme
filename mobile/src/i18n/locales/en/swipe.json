@@ -74,6 +74,19 @@
     "done": "{{name}} is done",
     "thrown": "{{answer}}: {{title}}",
     "saved": "{{title}}: saved for later",
-    "unsaved": "{{title}}: removed from Later"
+    "unsaved": "{{title}}: removed from Later",
+    "players_one": "{{count}} player in {{host}}'s room",
+    "players_other": "{{count}} players in {{host}}'s room",
+    "playersDone_one": "{{count}} is done",
+    "playersDone_other": "{{count}} are done",
+    "playersAway_one": "{{count}} away",
+    "playersAway_other": "{{count}} away",
+    "playersHint": "Shows who is playing and how far each is"
+  },
+  "players": {
+    "more": "+{{count}}",
+    "title": "Players",
+    "films_one": "{{count}} film",
+    "films_other": "{{count}} films"
   }
 }
