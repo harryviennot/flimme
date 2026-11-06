@@ -69,6 +69,35 @@ describe('deviceProfileChanges', () => {
   });
 });
 
+describe('deviceProfileChanges, mending a country without a catalog', () => {
+  const catalog = ['FR'];
+  const fr = { regionCode: 'FR', language: 'fr' };
+
+  it('saves the region when the saved country has no catalog and the region has one', () => {
+    expect(deviceProfileChanges({ country: 'US', language: 'fr' }, fr, catalog)).toEqual({
+      country: 'FR',
+    });
+  });
+
+  it('never overwrites a country that has a catalog (the player may have chosen it)', () => {
+    expect(deviceProfileChanges({ country: 'BE', language: 'fr' }, fr, ['FR', 'BE'])).toBeNull();
+  });
+
+  it('leaves a country without a catalog when the region has none either', () => {
+    expect(
+      deviceProfileChanges(
+        { country: 'US', language: 'fr' },
+        { regionCode: 'DE', language: 'fr' },
+        catalog,
+      ),
+    ).toBeNull();
+  });
+
+  it('does nothing about the country while the catalog list is unknown', () => {
+    expect(deviceProfileChanges({ country: 'US', language: 'fr' }, fr, null)).toBeNull();
+  });
+});
+
 describe('toAvatarColor', () => {
   it.each(['blue', 'green', 'gold', 'red', 'violet', 'teal'] as const)('keeps %s', (color) => {
     expect(toAvatarColor(color)).toBe(color);

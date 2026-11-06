@@ -10,6 +10,8 @@ export type EmptyStateProps = {
   title: string;
   body?: string;
   action?: { label: string; onPress: () => void };
+  /** A quieter way out under the action (a ghost button). */
+  secondaryAction?: { label: string; onPress: () => void };
   /** An error rather than an empty list: the icon turns red. */
   error?: boolean;
   /** Moves a screen reader's focus to the title when it appears (a screen that failed). */
@@ -28,6 +30,7 @@ export function EmptyState({
   title,
   body,
   action,
+  secondaryAction,
   error = false,
   autoFocus = false,
   children,
@@ -58,6 +61,14 @@ export function EmptyState({
         <View className="mt-2">
           <Button label={action.label} onPress={action.onPress} variant="secondary" size="s" />
         </View>
+      ) : null}
+      {secondaryAction ? (
+        <Button
+          label={secondaryAction.label}
+          onPress={secondaryAction.onPress}
+          variant="ghost"
+          size="s"
+        />
       ) : null}
     </View>
   );

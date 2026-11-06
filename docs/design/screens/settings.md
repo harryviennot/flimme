@@ -14,7 +14,7 @@ A **section** (`screens/settings/settings-section.tsx`, single use): an optional
 
 | # | Section label | Rows (`ListRow`, top to bottom) | Helper |
 | --- | --- | --- | --- |
-| 1 | `sections.preferences` | **Language**: icon `globe`, `language.label`, value `language.current`, chevron. **Haptics**: icon `zap`, `haptics.label`, `trailing` a `Toggle`. **Sound**: icon `volume` (new, below), `sound.label`, `trailing` a `Toggle` | `preferences.helper` |
+| 1 | `sections.preferences` | **Language**: icon `globe`, `language.label`, value `language.current`, chevron. **Country** (M11.11): icon `film`, `country:row`, value the country's name (`Intl.DisplayNames`), chevron. **Haptics**: icon `zap`, `haptics.label`, `trailing` a `Toggle`. **Sound**: icon `volume` (new, below), `sound.label`, `trailing` a `Toggle` | `preferences.helper` |
 | 2 | `sections.privacy` | **Help improve the app**: icon `eye`, `analytics.label`, `trailing` a `Toggle`. **Detailed stats** (M9.1, strict regions only): icon `user`, `analytics.detailed`, `trailing` a `Toggle` | `analytics.helper`, then in strict regions (M9.1) `analytics.helperStrict` on its own line |
 | 2, second group | none (a second group in the Privacy section, `mt-2` under the helper) | **Download my data**: icon `upload`, `export.label`, chevron. **Privacy policy**: icon `shield`, `legal.privacy`, chevron. **Terms of use**: icon `info`, `legal.terms`, chevron | none |
 | 3 | `sections.help` | **Contact support**: icon `mail`, `support.label`, chevron | none |
@@ -44,6 +44,10 @@ The link is picked in the app's language (`fr` or `en`), falling back to the oth
 ### Language
 
 Tap: `Linking.openSettings()` (decision row 105), which opens Flimme's page in the phone's settings, where iOS (and Android 13 and later) let the player pick the app's language. Nothing else happens in the app; on return to the foreground the app already re-reads the language, and the value follows. `language.current` is the app's current language written in that language ("Français" in `fr`, "English" in `en`), so each locale file holds its own name.
+
+### Country
+
+Tap: pushes `/settings/country`, a full screen with a `TopBar` (`country:title`), the countries that have a catalog (`api.catalog_countries`) as `ListRow`s with the country's name, a check on the chosen one and `country:selected` as its hint, and the helper `country:helper` under the list. Choosing one saves it with `api.update_profile` and goes back; a different country changes the services and films the player sees in Host and Play alone. While the list loads: a `Skeleton` row. If it fails: `EmptyState` `country:empty.*` with Try again. A failed save: toast `country:errors.save` and the error haptic. Copy: `country:row` Pays / Country, `country:title` Pays / Country, `country:helper` "On te montre les plateformes et les films disponibles dans ce pays. Tu peux en changer quand tu veux." / "You'll see the services and films available in this country. You can change it any time."
 
 ### Haptics and sound
 

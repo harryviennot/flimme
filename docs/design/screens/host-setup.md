@@ -101,7 +101,19 @@ The two durations are written as copy, not built with `Intl`: `Intl.DurationForm
 
 ## Differences from onboarding
 
-- The unsupported state offers only Join with a code. [Onboarding's error table](../../product/onboarding.md#empty-and-error-states) also offers "Choose another country" for people abroad; the first release has no country picker before settings, so it's dropped (decisions.md, 3 Nov 2026).
+- The unsupported state offers the French catalog (Q0.4, decisions.md, 5 Nov 2026), next to Join with a code. [Onboarding's error table](../../product/onboarding.md#empty-and-error-states) also lists "Choose another country"; it ships as the country choice below. The 3 Nov 2026 decision that dropped it is replaced.
+
+## The country choice (M11.11)
+
+The unsupported state (no country on the profile, a country whose catalog lists no services, or `country_required`) shows `EmptyState` `globe` with `host:errors.unsupported.*` and two ways out:
+
+- **One country has a catalog** (`api.catalog_countries`, France at launch): the primary action `country:use` ("Utiliser le catalogue : France" / "Use the catalog: France") saves the country with `api.update_profile` and the setup carries on in place, with the services of that country. "Rejoindre avec un code" stays below it as a ghost button.
+- **Several have one:** the primary action is `country:choose`, which opens the country list (`/settings/country`, the same list as Settings). Choosing a country goes back to the setup, which carries on.
+- While the list loads, or if it fails or is empty, only Join with a code shows (the earlier state).
+- A save that fails keeps the state and shows the toast `country:errors.save` with the error haptic.
+- A country the server refused is only treated as refused until the player picks another one.
+
+Play alone's setup shows the same state and action (`solo-setup.md`). Players who choose a country see that country's services and availability, whatever their phone's region.
 
 ## Questions
 

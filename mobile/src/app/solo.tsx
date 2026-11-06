@@ -24,6 +24,7 @@ import {
 import { useSetupForm } from '@/features/host/use-setup-form';
 import { keptRoomId, leaveOldSeat } from '@/features/join/old-seat';
 import { trackCapShow, trackSoloStart } from '@/features/analytics/solo-events';
+import { useUnsupportedAction } from '@/features/country';
 import { useOnline } from '@/features/network';
 import { markCapReached, useCapToday } from '@/features/solo/cap';
 import { startSoloGame } from '@/features/solo/start';
@@ -39,13 +40,16 @@ export default function SoloSetupScreen() {
   const { t: tc } = useTranslation();
   const client = useQueryClient();
   const online = useOnline();
+  const countryAction = useUnsupportedAction();
   const form = useSetupForm();
   const { profile, country, providers, listed, selection, ready, failed } = form;
   const { toggle, time, setTime, age, setAge, retry } = form;
   const capToday = useCapToday();
 
   const [starting, setStarting] = useState(false);
-  const [refused, setRefused] = useState(false);
+  // The country the server refused: choosing another one lifts it.
+  const [refusedFor, setRefusedFor] = useState<string | null>(null);
+  const refused = refusedFor !== null && refusedFor === country;
   const [capHit, setCapHit] = useState(false);
   const [tooFew, setTooFew] = useState<number | null>(null);
   const busy = useRef(false);
@@ -97,7 +101,7 @@ export default function SoloSetupScreen() {
         router.push('/name?edit=1');
         return;
       case 'unsupported':
-        setRefused(true);
+        setRefusedFor(country);
         return;
       case 'rate_limited':
         showToast({ tone: 'warn', title: t('setup.errors.rateLimited') });
@@ -153,7 +157,17 @@ export default function SoloSetupScreen() {
           icon="globe"
           title={th('errors.unsupported.title')}
           body={th('errors.unsupported.body')}
-          action={{ label: th('errors.unsupported.action'), onPress: () => router.push('/join') }}
+          action={
+            countryAction ?? {
+              label: th('errors.unsupported.action'),
+              onPress: () => router.push('/join'),
+            }
+          }
+          secondaryAction={
+            countryAction
+              ? { label: th('errors.unsupported.action'), onPress: () => router.push('/join') }
+              : undefined
+          }
         />
       </Screen>
     );

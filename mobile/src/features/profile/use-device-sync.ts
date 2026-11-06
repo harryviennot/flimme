@@ -23,21 +23,35 @@ export function useDeviceSync(profile: MyProfile | null | undefined, fresh: bool
   useEffect(() => {
     if (!fresh || !profile || doneFor.current === profile.id) return;
     doneFor.current = profile.id;
-    const changes = deviceProfileChanges(profile, {
-      regionCode: getLocales()[0]?.regionCode ?? null,
-      language: deviceLanguage(),
+    const device = { regionCode: getLocales()[0]?.regionCode ?? null, language: deviceLanguage() };
+    // The list of countries with a catalog is only needed to mend a saved country that differs
+    // from the region; a failed read leaves the country alone until the next launch.
+    const needsCatalog =
+      profile.country !== null &&
+      device.regionCode !== null &&
+      profile.country !== device.regionCode;
+    const catalog = needsCatalog
+      ? client
+          .fetchQuery({
+            queryKey: ['catalog_countries'],
+            queryFn: async () => (await api.catalogCountries()).map((c) => c.code),
+          })
+          .catch(() => null)
+      : Promise.resolve(null);
+    void catalog.then((codes) => {
+      const changes = deviceProfileChanges(profile, device, codes);
+      if (!changes) return;
+      return api
+        .updateProfile(changes)
+        .then((answer) => {
+          if (answer.status !== 'ok') return;
+          const saved = { ...profile, ...changes };
+          saveCachedProfile(saved);
+          client.setQueryData(MY_PROFILE_KEY, saved);
+        })
+        .catch(() => {
+          // Already reported by the api layer; the next launch tries again.
+        });
     });
-    if (!changes) return;
-    api
-      .updateProfile(changes)
-      .then((answer) => {
-        if (answer.status !== 'ok') return;
-        const saved = { ...profile, ...changes };
-        saveCachedProfile(saved);
-        client.setQueryData(MY_PROFILE_KEY, saved);
-      })
-      .catch(() => {
-        // Already reported by the api layer; the next launch tries again.
-      });
   }, [client, profile, fresh]);
 }

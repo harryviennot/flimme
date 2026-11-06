@@ -1,0 +1,16 @@
+{
+  "title": "Pays",
+  "row": "Pays",
+  "use": "Utiliser le catalogue : {{country}}",
+  "choose": "Choisir un pays",
+  "helper": "On te montre les plateformes et les films disponibles dans ce pays. Tu peux en changer quand tu veux.",
+  "selected": "Choisi",
+  "empty": {
+    "title": "Pas de pays à choisir",
+    "body": "On n'a pas pu charger la liste. Réessaie dans un instant.",
+    "action": "Réessayer"
+  },
+  "errors": {
+    "save": "Impossible de changer de pays. Réessaie."
+  }
+}
