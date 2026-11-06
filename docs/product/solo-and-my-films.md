@@ -326,7 +326,7 @@ No new storage: My films joins your seats, votes and matches. Why not: Remove wo
 | Deletion (M8.5) | Nothing to build: the rows cascade with the profile. A pgTAP test proves it |
 | Retention (M8.9) | Nothing to change: a test proves `run_retention` leaves `user_titles` alone. Solo rooms follow the room rules |
 | Guests | A guest's My films goes when the guest is deleted after 90 days without activity, as all their data does |
-| The store privacy forms | No new data type; "product interaction" already covers games. Check at M11 |
+| The store privacy forms | No new data type: My films and solo games are Gameplay Content on Apple and Other actions on Google, checked in M11.6 ([privacy-forms.md](../store/privacy-forms.md)) |
 | Analytics ([events](analytics.md#events)) | Five events, named as [analytics.md](analytics.md#naming) asks and with no film ids: `solo:session_start` (`service_count`, `has_time_budget`), `solo:checkpoint_view` (`card_count`, `like_count` bucketed), `solo:pick_submit` (`card_count`), `solo:cap_show` (`placement`: `deck`, `play`), `my_films:grid_view` (`segment`, `filter`, `film_count` bucketed). Opening a film, Remove and Mark as seen are read from the database |
 
 ## 11. Accounts

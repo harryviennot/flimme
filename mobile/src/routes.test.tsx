@@ -77,6 +77,9 @@ jest.mock('@/features/session', () => ({
   useSession: () => ({ status: 'ok', userId: 'u1', isNew: true }),
   useSessionFailed: () => false,
 }));
+jest.mock('@/features/app-config/use-app-config', () => ({
+  useAppConfig: () => ({ data: { tmdb_image_base: 'https://img.test/t/p' } }),
+}));
 jest.mock('@/features/network', () => ({ useOnline: () => true, watchNetwork: jest.fn() }));
 // The room layout opens Realtime channels on this client; tests have no network.
 jest.mock('@/lib/supabase', () => {

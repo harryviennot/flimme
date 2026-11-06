@@ -1,41 +1,49 @@
-import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useWindowDimensions, View } from 'react-native';
 
 import { ServiceTile } from '@/components/shared/service-tile';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Text } from '@/components/ui/text';
 
-export type ServiceGridService = { id: number; name: string };
+export type ServiceGridService = { id: number; name: string; logo?: string };
 
 export type ServiceGridProps = {
   services: ServiceGridService[];
   /** Ids of the selected services. */
   selected: number[];
   onToggle: (id: number) => void;
-  /** Shows six placeholder tiles instead of the services. */
+  /** Shows placeholder tiles instead of the services. */
   loading?: boolean;
 };
 
-const COLUMNS = 3;
+/** Tiles per row: four, three once text is scaled past 1.3 (the initials and badge need room). */
+export function serviceColumns(fontScale: number): number {
+  return fontScale > 1.3 ? 3 : 4;
+}
 
-function chunk<T>(items: T[]): T[][] {
+function chunk<T>(items: T[], size: number): T[][] {
   const rows: T[][] = [];
-  for (let i = 0; i < items.length; i += COLUMNS) rows.push(items.slice(i, i + COLUMNS));
+  for (let i = 0; i < items.length; i += size) rows.push(items.slice(i, i + size));
   return rows;
 }
 
 /**
- * Service tiles in rows of three, wrapping. A short last row keeps the tiles' width (empty
- * cells fill it). Data comes in through props; nothing is fetched here. Used by host setup and
- * the lobby's services sheet.
+ * Square logo tiles, four to a row (three at the largest text sizes), wrapping. A short last
+ * row keeps the tiles' width (empty cells fill it). Carries the JustWatch credit, since the
+ * logos come from its data. Data comes in through props; nothing is fetched here. Used by host
+ * setup, Play alone and the lobby's services sheet.
  */
 export function ServiceGrid({ services, selected, onToggle, loading = false }: ServiceGridProps) {
+  const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const columns = serviceColumns(fontScale);
   if (loading) {
-    // A tile is 68 points high: 12 of border and padding, title-m 22, gap 4, body-s 18, 12.
     return (
       <View className="gap-2" testID="service-grid-loading">
         {[0, 1].map((row) => (
           <View key={row} testID="service-grid-loading-row" className="flex-row gap-2">
-            {[0, 1, 2].map((cell) => (
-              <Skeleton key={cell} className="h-17 flex-1 rounded-md" />
+            {Array.from({ length: columns }, (_, cell) => (
+              <Skeleton key={cell} className="aspect-square flex-1 rounded-md" />
             ))}
           </View>
         ))}
@@ -44,21 +52,25 @@ export function ServiceGrid({ services, selected, onToggle, loading = false }: S
   }
   return (
     <View className="gap-2">
-      {chunk(services).map((row, index) => (
+      {chunk(services, columns).map((row, index) => (
         <View key={index} className="flex-row gap-2">
           {row.map((service) => (
             <ServiceTile
               key={service.id}
               name={service.name}
+              logo={service.logo}
               selected={selected.includes(service.id)}
               onPress={() => onToggle(service.id)}
             />
           ))}
-          {Array.from({ length: COLUMNS - row.length }, (_, i) => (
+          {Array.from({ length: columns - row.length }, (_, i) => (
             <View key={`pad-${i}`} className="min-w-0 flex-1" />
           ))}
         </View>
       ))}
+      <Text variant="body-s" tone="muted">
+        {t('card.justwatch')}
+      </Text>
     </View>
   );
 }

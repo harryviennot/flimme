@@ -1,0 +1,21 @@
+{
+  "playAgain": "Play again",
+  "a11y": {
+    "playAgain": "Start another game with the same settings",
+    "join": "Join the new game"
+  },
+  "errors": {
+    "notFinished": "This game isn't over yet.",
+    "unknownMode": "This game can't start again. Host a new movie night from Home.",
+    "notHost": "Only the host can start the next game.",
+    "offline": "You're offline. Connect to start the next game.",
+    "network": "We couldn't start the next game. Check your connection."
+  },
+  "offer": {
+    "title": "{{name}} started another game",
+    "titleSelf": "Your next game is open",
+    "titleNoName": "Another game is open",
+    "body": "Same settings as this one.",
+    "join": "Join"
+  }
+}

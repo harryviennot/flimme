@@ -34,7 +34,7 @@ Opening a room leaves the kept room: after `ok`, if the phone keeps another room
 | --- | --- | --- |
 | No country on the profile (`profile.country` is null) | The unsupported state at once (the next row); the services aren't queried | `host:errors.unsupported.action` |
 | No services for the country (an empty list) | The whole form gives way to `EmptyState` icon `globe`, `host:errors.unsupported.*`. `create_room` doesn't refuse a country without a catalog (decisions.md, 3 Nov 2026), so the empty list is how the screen knows | `host:errors.unsupported.action`, to [the code](join-code.md) |
-| Services loading | Six `Skeleton` tiles in two rows of three, each `h-17 flex-1 rounded-md` (68 points, a `ServiceTile`'s height: 12 of border and padding, `title-m`'s 22, a gap of 4, `body-s`'s 18, 12 again); the chips are already usable | |
+| Services loading | `Skeleton` squares in two rows of four (three at the largest text sizes), each `aspect-square flex-1 rounded-md`, the size of a `ServiceTile`; the chips are already usable | |
 | Services failed to load (either query) | Inline `EmptyState` `error` in the services section, `host:errors.services` | `common:actions.retry` refetches both |
 | No service picked | Open the room disabled, `host:services.required` | Pick one |
 | Opening | `Button` `loading`; the form stays visible | |
@@ -83,14 +83,16 @@ The two durations are written as copy, not built with `Intl`: `Intl.DurationForm
 
 ## Accessibility
 
-- Service tiles are checkboxes ("Netflix, selected"). Each chip row is a radio group labelled by its eyebrow, and each chip in it is a radio (`Chip role="radio"`, announced "Under 2 h, radio button, selected" or the platform's equivalent).
+- Service tiles are checkboxes labelled with the service name and announced checked or not ("Netflix, checked"); the logo itself is hidden from screen readers. Each chip row is a radio group labelled by its eyebrow, and each chip in it is a radio (`Chip role="radio"`, announced "Under 2 h, radio button, selected" or the platform's equivalent).
 - Focus order: back, title, the services label, the tiles row by row, the free services line, the time chips, the age chips and their helper, Open the room.
 - Open the room's disabled reason is its accessibility hint.
 - Reduce Motion: state changes without transitions.
 
 ## New component
 
-**`ServiceGrid` (`shared/service-grid`).** `ServiceTile`s in rows of three (`gap-2`, each tile a third of the width: 106 points on a 375-wide phone, the Figma's 108 on a large one), wrapping. Props: `services` (id and name), `selected` (ids), `onToggle`, `loading` (shows six `Skeleton` tiles, 68 points high, as in the states table). No data fetching inside. Used here and in the lobby's services sheet ([lobby](lobby.md)), which is why it's shared. Gallery: loading, none selected, three selected, a long list.
+**`ServiceGrid` (`shared/service-grid`).** Square `ServiceTile`s showing each service's real logo, four to a row (`gap-2`, about 80 points a tile on a 375-wide phone), three once the text scale is above 1.3 (`serviceColumns`), wrapping. Eighteen services take five rows, not six. Props: `services` (id, name and an optional logo address), `selected` (ids), `onToggle`, `loading` (two rows of `Skeleton` squares). No data fetching inside: screens build the logo address with `useGridServices` (`features/services`): `app_config.tmdb_image_base` + `w92` + the service's `logo_path`, the same size as the winner screen and the card back. Under the tiles the grid carries the JustWatch credit (`common:card.justwatch`, `body-s` muted), since the logos are JustWatch data (decisions.md, 4 Nov 2026). Used here, in Play alone and in the lobby's services sheet ([lobby](lobby.md)), which is why it's shared. Gallery: loading, none selected, three selected, a long list (fixtures have no logos, so they show initials).
+
+**`ServiceTile` (`shared/service-tile`).** A square, `rounded-md`, the logo filling it (`expo-image`, `cover`, cached). The name is not shown: four tiles a row leave no room for it, and the logos are what players know. The name is the accessibility label. **Selected:** `border-2 border-accent-default` and a check badge (a 20-point `accent-default` disc with a `check` icon) top right. **Unselected:** 1-point `border-default` and the logo dimmed (`opacity-stack-near`), so the state never rests on colour alone. **No logo** (`logo_path` null, no image base, or the load failed): `bg-bg-raised` with the initials of the first two words in `title-m` secondary ("Prime Video" is PV).
 
 ## Differences from the Figma
 

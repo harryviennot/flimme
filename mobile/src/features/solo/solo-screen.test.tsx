@@ -28,6 +28,9 @@ jest.mock('expo-router', () => ({
   router: { replace: jest.fn(), push: jest.fn(), back: jest.fn(), dismissTo: jest.fn() },
 }));
 let mockOnline = true;
+jest.mock('@/features/app-config/use-app-config', () => ({
+  useAppConfig: () => ({ data: { tmdb_image_base: 'https://img.test/t/p' } }),
+}));
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline, watchNetwork: jest.fn() }));
 jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },

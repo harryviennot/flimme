@@ -6,6 +6,7 @@ import { View } from 'react-native';
 
 import { api } from '@/api';
 import { ServiceGrid } from '@/components/shared/service-grid';
+import { useGridServices } from '@/features/services/use-grid-services';
 import { Button } from '@/components/ui/button';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
@@ -27,6 +28,7 @@ export default function RoomServicesScreen() {
   const seat = useMySeat(id);
   const providers = useCountryProviders(room?.country);
   const listed = providers.data ?? [];
+  const gridItems = useGridServices(listed);
 
   // Starts on the seat's services that the country lists; the player's taps replace it.
   const start = initialSelection(
@@ -97,12 +99,7 @@ export default function RoomServicesScreen() {
         <Text variant="body-s" tone="muted">
           {t('servicesSheet.helper')}
         </Text>
-        <ServiceGrid
-          loading={!ready}
-          services={listed.map((p) => ({ id: p.provider_id, name: p.name }))}
-          selected={selection}
-          onToggle={toggle}
-        />
+        <ServiceGrid loading={!ready} services={gridItems} selected={selection} onToggle={toggle} />
       </View>
     </Screen>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { useEffect, useRef, useState, type ComponentRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, findNodeHandle, View } from 'react-native';
 import Animated, {
@@ -41,6 +41,8 @@ export type WinnerScreenProps = {
   solo?: boolean;
   /** The solo pick was just made on this phone: the poster settles with a small overshoot and one buzz. */
   lands?: boolean;
+  /** Play again or the Join offer (M6.23): sits above Home, which shrinks to size S. */
+  above?: ReactNode;
   onHome: () => void;
   /** Opens the recap sheet (winner.md#share-recap). Shown for a group pick only. */
   onShareRecap?: () => void;
@@ -56,6 +58,7 @@ export function WinnerScreen({
   fadeIn = false,
   solo = false,
   lands = false,
+  above,
   onHome,
   onShareRecap,
   roomId,
@@ -95,14 +98,17 @@ export function WinnerScreen({
     <Screen
       scroll
       footer={
-        <Button
-          label={solo ? ts('pick.done') : t('home')}
-          accessibilityLabel={solo ? ts('pick.a11yDone') : t('a11y.home')}
-          variant="secondary"
-          size="l"
-          block
-          onPress={onHome}
-        />
+        <View className="gap-2">
+          {above}
+          <Button
+            label={solo ? ts('pick.done') : t('home')}
+            accessibilityLabel={solo ? ts('pick.a11yDone') : t('a11y.home')}
+            variant="secondary"
+            size={above ? 's' : 'l'}
+            block
+            onPress={onHome}
+          />
+        </View>
       }
     >
       <Animated.View

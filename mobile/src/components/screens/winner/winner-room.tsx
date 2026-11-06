@@ -6,6 +6,7 @@ import { roomSizeBucket } from '@/features/analytics/journey';
 import { useOnline } from '@/features/network';
 import { releaseRoomGuards, useExitRoomToHome, useRoomSeats } from '@/features/room';
 import { useMatchShown } from '@/features/room/match-shown';
+import { usePlayAgainFooter } from '@/features/play-again';
 import { arrivedLive } from '@/features/winner/arrival';
 import { takeJustPicked } from '@/features/solo/pick';
 import { useIsSolo } from '@/features/solo/use-solo-room';
@@ -13,6 +14,7 @@ import { useWinner } from '@/features/winner/use-winner';
 
 import { track } from '@/lib/analytics';
 
+import { PlayAgainFooter } from './play-again-footer';
 import { WinnerScreen } from './winner-screen';
 
 /** The winner route's body: the room's pick, and the way Home (Q16.4). */
@@ -27,6 +29,7 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
   const solo = useIsSolo(roomId);
   // Read once, when the screen appears: only a pick made on this phone just now has the landing.
   const [lands] = useState(() => takeJustPicked(roomId));
+  const footer = usePlayAgainFooter(roomId, solo);
   // A solo pick is not a group win: its analytics belong to the solo events (M6.46).
   const outcome = view.status === 'ready' && !solo ? view.outcome : null;
   // The pick is on screen: reported once per visit, with how it was made and the room's size.
@@ -47,6 +50,7 @@ export function WinnerRoom({ roomId }: { roomId: string }) {
       fadeIn={fadeIn || lands}
       solo={solo}
       lands={lands}
+      above={footer.kind ? <PlayAgainFooter state={footer} /> : undefined}
       onShareRecap={() => router.push(`/room/${roomId}/recap`)}
       roomId={roomId}
       onOpenRunnerUp={(titleId) => router.push(`/room/${roomId}/film/${titleId}`)}

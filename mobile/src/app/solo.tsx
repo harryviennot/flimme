@@ -42,7 +42,7 @@ export default function SoloSetupScreen() {
   const online = useOnline();
   const countryAction = useUnsupportedAction();
   const form = useSetupForm();
-  const { profile, country, providers, listed, selection, ready, failed } = form;
+  const { profile, country, providers, listed, gridItems, selection, ready, failed } = form;
   const { toggle, time, setTime, age, setAge, retry } = form;
   const capToday = useCapToday();
 
@@ -236,7 +236,7 @@ export default function SoloSetupScreen() {
           ) : (
             <ServiceGrid
               loading={!ready}
-              services={listed.map((p) => ({ id: p.provider_id, name: p.name }))}
+              services={gridItems}
               selected={selection}
               onToggle={(id) => {
                 setTooFew(null);
