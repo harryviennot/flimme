@@ -38,7 +38,7 @@ export default function HostScreen() {
   const client = useQueryClient();
   const online = useOnline();
   const form = useSetupForm();
-  const { profile, country, providers, listed, start, selection, ready, failed } = form;
+  const { profile, country, providers, listed, gridItems, start, selection, ready, failed } = form;
   const { toggle, time, setTime, age, setAge, retry } = form;
 
   const [opening, setOpening] = useState(false);
@@ -179,7 +179,7 @@ export default function HostScreen() {
           ) : (
             <ServiceGrid
               loading={!ready}
-              services={listed.map((p) => ({ id: p.provider_id, name: p.name }))}
+              services={gridItems}
               selected={selection}
               onToggle={toggle}
             />
