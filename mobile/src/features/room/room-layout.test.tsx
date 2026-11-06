@@ -1,10 +1,11 @@
 import '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { router, Stack } from 'expo-router';
+import { router, Stack, type Href } from 'expo-router';
 import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 import type { ReactNode } from 'react';
 
+import { Text } from '@/components/ui/text';
 import { showToast } from '@/components/ui/toast';
 
 import { revealStore } from '@/features/finale/reveal-store';
@@ -99,6 +100,7 @@ const roomOf = (state: string) => ({
 const routes = {
   _layout: () => <Stack screenOptions={{ headerShown: false }} />,
   play: () => null,
+  solo: () => <Text variant="body-m">Solo setup</Text>,
   'room/[id]/_layout': require('@/app/room/[id]/_layout').default,
   'room/[id]/lobby': require('@/app/room/[id]/lobby').default,
   'room/[id]/invite': require('@/app/room/[id]/invite').default,
@@ -434,5 +436,38 @@ describe('the room layout', () => {
     await waitFor(() => expect(api.room).toHaveBeenCalled());
     expect(screen.queryByText('Try again')).toBeNull();
     expect(screen).toHavePathname('/room/r1/lobby');
+  });
+
+  describe('after a game ends', () => {
+    // A touch run found Home and Play alone bringing the old winner screen back.
+    it.each([
+      ['from Home through the host setup', ['/play'], '/room/r1/swipe'],
+      ['cold, with no Home under the room', [], '/room/r1/swipe'],
+    ])('Home, then Play alone, opens the solo setup (%s)', async (_name, under, start) => {
+      api.room.mockResolvedValue(roomOf('swiping'));
+      keptRoomStore.getState().keep({ id: 'r1', code: '482913' });
+      await renderRouter(routes, { initialUrl: under[0] ?? start, wrapper: Providers });
+      if (under.length > 0) {
+        await act(async () => {
+          router.push(start as Href);
+        });
+      }
+      await waitFor(() => expect(screen).toHavePathname(start));
+      // The room ends while the phone is on it.
+      api.room.mockResolvedValue(roomOf('done'));
+      await act(async () => {
+        await client.invalidateQueries({ queryKey: ['room', 'r1'] });
+      });
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/winner'));
+      await waitFor(() => expect(keptRoomStore.getState().room).toBeNull());
+      await fireEvent.press(await screen.findByLabelText('Back to Home'));
+      await waitFor(() => expect(screen).toHavePathname('/play'));
+      await act(async () => {
+        router.push('/solo');
+      });
+      await waitFor(() => expect(screen).toHavePathname('/solo'));
+      expect(await screen.findByText('Solo setup')).toBeTruthy();
+      expect(keptRoomStore.getState().room).toBeNull();
+    });
   });
 });
