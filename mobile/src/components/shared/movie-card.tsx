@@ -689,7 +689,8 @@ function Back({
               ) : null}
             </View>
           ) : null}
-          {/* The last row: the credit, and the 44-point slot the bookmark lands in (M6.58). */}
+          {/* The last row: the credit, and the 44-point slot the bookmark lands in (M6.58),
+              reserved only where the bookmark shows (the swipe card): a still back leaves no gap. */}
           <View className="flex-row items-end gap-3">
             <View className="flex-1">
               {logos.length > 0 ? (
@@ -698,7 +699,7 @@ function Back({
                 </Text>
               ) : null}
             </View>
-            <View className="size-11" testID="movie-card-bookmark-slot" />
+            {bookmark ? <View className="size-11" testID="movie-card-bookmark-slot" /> : null}
           </View>
         </View>
       </View>
