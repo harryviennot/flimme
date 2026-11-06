@@ -2,8 +2,7 @@
   "title": "My films",
   "segments": {
     "liked": "Liked",
-    "seen": "Seen",
-    "later": "Later"
+    "seen": "Seen"
   },
   "filters": {
     "label": "Show",
@@ -21,8 +20,7 @@
     "friends": "Films you like with friends land here.",
     "solo": "Films you like on your own land here.",
     "seen": "Films you've seen land here.",
-    "playAlone": "Play alone",
-    "later": "Films you save for later land here. Tap the bookmark on a card."
+    "playAlone": "Play alone"
   },
   "offline": {
     "title": "You're offline",
@@ -42,22 +40,16 @@
     "loadingFilm": "Loading the film"
   },
   "sheet": {
-    "markSeen": "Mark as seen",
-    "notSeen": "Not seen",
-    "seenHelper": "It stays out of your games.",
+    "seen": "Seen",
     "remove": "Remove from Liked",
-    "a11ySeen": "Marked as seen",
+    "a11ySeen": "Marked as seen. It stays out of your games.",
     "a11yNotSeen": "No longer marked as seen. It can come back in your games.",
     "failed": "We couldn't save that. Try again in a moment.",
     "notFound": "This film isn't in My films any more.",
     "error": "We couldn't load the film.",
     "offline": "You're offline. The film shows when you're back.",
     "offlineActions": "You're offline. Connect to change your films.",
-    "notListed": "None of your services has it.",
-    "removeLater": "Remove from Later",
-    "saveLater": "Save for later",
-    "a11yRemovedLater": "Removed from Later",
-    "a11ySavedLater": "Saved for later"
+    "notListed": "None of your services has it."
   },
   "removed": {
     "title": "Removed from My films",

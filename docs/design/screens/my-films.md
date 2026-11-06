@@ -11,7 +11,7 @@ The films you liked and the films you've seen, as posters, newest first. Tonight
 `Screen` (no `scroll`: the grid is the scroller), above [the tab bar](tab-bar.md). Top to bottom:
 
 1. **The title:** `myFilms:title` in `display-m`, `px-5 pt-3` (the same top as Play's header row). Role `header`.
-2. **The segments:** `SegmentedControl` (new, `ui/`, [below](#new-components)) with `myFilms:segments.liked`, `myFilms:segments.seen` and `myFilms:segments.later` (M6.51, three segments), `mx-5 mt-4`. Liked is the default. The title and the segments stay put while the grid scrolls.
+2. **The segments:** `SegmentedControl` (new, `ui/`, [below](#new-components)) with `myFilms:segments.liked` and `myFilms:segments.seen` (two segments: the Later segment M6.51 added is gone since 6 November 2026, a saved film is a solo like), `mx-5 mt-4`. Liked is the default. The title and the segments stay put while the grid scrolls.
 3. **The grid:** a `FlatList` with `numColumns` 3, `px-4`, a gap of 8 between columns and rows (tiles about 109 by 163 points at 375 wide, 2:3), `pb-6`. Its header, which scrolls away with it, `gap-3 pt-4 pb-3`:
    - **The chips** (Liked only): a row of `Chip role="radio"`, `myFilms:filters.all` (default), `myFilms:filters.friends`, `myFilms:filters.solo`, in a `View` with `accessibilityRole="radiogroup"` labelled `myFilms:filters.label`. They wrap at the largest text.
    - **The accounts line:** `myFilms:accounts` in `body-s`, tone `muted`. Under the chips on Liked, under the segments on Seen, so it shows once per segment (Q39.4).
@@ -27,9 +27,8 @@ The films you liked and the films you've seen, as posters, newest first. Tonight
 | --- | --- | --- |
 | Liked, All | Every film you liked or super liked, alone or in a group, and every group pick you sat for, one tile each (Q41.10) | Newest first, by the latest time |
 | Liked, With friends | Likes from group rooms, and group picks you sat for even if you didn't like them | Newest first |
-| Liked, Solo | Likes from solo sessions | Newest first |
+| Liked, Solo | Likes from solo sessions, and films saved with the bookmark on a card in any game (a save is a solo like, decided on 6 November 2026) | Newest first |
 | Seen | Films you marked seen in the app: Seen it in any game, Mark as seen. Not Letterboxd's (M20) | Newest first, by when you marked it |
-| Later | Films you saved with the bookmark on a card (M6.51), one tile each, no badge, no chips (the filter is ignored). A save is never a like, so a saved film is in Liked only if you also liked it | Newest first, by when you saved it |
 
 **Paging.** The next page loads when the list is within two rows of its end (`onEndReachedThreshold`); a row of three `Skeleton` tiles shows at the end while it does. Each segment and chip keeps its own pages in the query cache, so switching back is instant. The first page refetches when the tab comes back into view, and after any game ends.
 
@@ -45,7 +44,6 @@ The films you liked and the films you've seen, as posters, newest first. Tonight
 | Liked, With friends, empty | `EmptyState` icon `users`, `myFilms:empty.title`, `myFilms:empty.friends`, no action |
 | Liked, Solo, empty | `EmptyState` icon `user`, `myFilms:empty.title`, `myFilms:empty.solo`, action `solo:card.cta` |
 | Seen, empty | `EmptyState` icon `eye`, `myFilms:empty.title`, `myFilms:empty.seen`, no action |
-| Later, empty | `EmptyState` icon `bookmark`, `myFilms:empty.title`, `myFilms:empty.later`, no action |
 | Offline with pages already read | Those pages, and a `Banner` warn `myFilms:offlineBanner` above the grid; tiles still open (the sheet has its own offline state) |
 | Offline with nothing read | `EmptyState` icon `wifi-off`, `myFilms:offline.title`, `myFilms:offline.body`; it loads by itself when the phone is back |
 | The first page fails | `EmptyState` `error`, `myFilms:error.title`, action `common:actions.retry` |
@@ -69,7 +67,6 @@ A new file pair, `i18n/locales/fr/myFilms.json` and `en/myFilms.json`, registere
 | `title` | Mes films | My films |
 | `segments.liked` | Aimés | Liked |
 | `segments.seen` | Vus | Seen |
-| `segments.later` | Plus tard | Later |
 | `filters.label` | Afficher | Show |
 | `filters.all` | Tous | All |
 | `filters.friends` | Entre amis | With friends |
@@ -81,7 +78,6 @@ A new file pair, `i18n/locales/fr/myFilms.json` and `en/myFilms.json`, registere
 | `empty.friends` | Les films que tu aimes entre amis arrivent ici. | Films you like with friends land here. |
 | `empty.solo` | Les films que tu aimes en jouant seul arrivent ici. | Films you like on your own land here. |
 | `empty.seen` | Les films que tu as déjà vus arrivent ici. | Films you've seen land here. |
-| `empty.later` | Les films que tu gardes pour plus tard arrivent ici. Touche le signet sur une carte. | Films you save for later land here. Tap the bookmark on a card. |
 | `offline.title` | Tu es hors ligne | You're offline |
 | `offline.body` | Tes films s'affichent dès ton retour. | Your films show when you're back. |
 | `offlineBanner` | Tu es hors ligne. Ta liste n'est peut-être pas à jour. | You're offline. Your list may be out of date. |

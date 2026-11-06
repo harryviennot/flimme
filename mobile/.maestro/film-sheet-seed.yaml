@@ -1,0 +1,31 @@
+# M6.62: gives a phone on staging a few solo likes so My films has content for film-sheet.yaml.
+# Run after the app is connected to Metro:
+#   maestro --device <sim> test mobile/.maestro/film-sheet-seed.yaml
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/use-staging.yaml
+- extendedWaitUntil:
+    visible: '(?i)play alone'
+    timeout: 30000
+- tapOn: '(?i)play alone'
+- extendedWaitUntil:
+    visible: '(?i)^start$|c.est parti'
+    timeout: 20000
+- runFlow:
+    when:
+      visible: '(?i)pick at least one service|choisis au moins'
+    commands:
+      - tapOn: 'Netflix'
+      - tapOn: 'Amazon Prime Video'
+      - tapOn: 'Disney Plus'
+      - tapOn: 'Canal\+'
+- tapOn: '(?i)^start$|c.est parti'
+- extendedWaitUntil:
+    visible: 'Undo'
+    timeout: 60000
+- repeat:
+    times: 5
+    commands:
+      - tapOn: 'Like'
+      - tapOn: 'Nope'
+- takeScreenshot: film-sheet-seed-swiped

@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 168 of 301 tasks done.
+Progress: 172 of 301 tasks done.
 
 ```mermaid
 flowchart LR
@@ -452,7 +452,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: tested: saving and unsaving, the `later` segment, the export with `saved_at`, and that nothing in a room reads a saved film.
 - [x] **M6.53** Per-player genres on the server: `api.set_seat_prefs` capped at 3 genres, each film weighted by how many players' picks it hits, the weight in `internal.deck_candidates` and `internal.deal_baseline` (3 slots in 4 from the picks, the rest open), the starvation guard (a pick pool of 100 eligible films, genres under 30 films left out), counts only. Ships in the first release only if the genre simulation passes; otherwise right after launch · backend · M · needs M6.52, M5.1 · [deck-engine](../architecture/deck-engine.md#scoring-a-film-for-a-player)
   Done when: pgTAP tests cover the cap of 3, the weight, the 100-film guard, the 30-film floor, and that no response names who picked a genre.
-- [ ] **M6.57** Later as solo likes, server: saving writes a solo like, `api.my_films` drops the `later` segment, the export follows · backend · M · needs M6.50, M6.41 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [game-modes](game-modes.md#the-answers)
+- [x] **M6.57** Later as solo likes, server: saving writes a solo like, `api.my_films` drops the `later` segment, the export follows · backend · M · needs M6.50, M6.41 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [game-modes](game-modes.md#the-answers)
   Done when: tested: a save writes a solo like that no room reads, `api.my_films` has no `later` segment, and the export carries the save as a solo like.
 
 **App**
@@ -521,11 +521,11 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: the card back (the poster's fade as on the front, the poster centred on its middle, a synopsis never clipped, a compact TMDB rating, compact services), the card stack (cards underneath dimmed, not see-through) and the film sheet in My films (full page, quick actions beside the close button) each have a spec with its states, in French and English.
 - [x] **M6.60** The design pass for the UI reworks (b): the multiplayer top bar, the full-screen genre step and the bookmark's reach · design · M · [swipe](../design/screens/swipe.md#the-top-bar), [lobby](../design/screens/lobby.md#your-genres-tonight), [host setup](../design/screens/host-setup.md#layout)
   Done when: the top bar (player badges readable, never clipped by the contenders), the full-screen genre step for guests and in host setup (skippable with "Any genre" or Skip), and the bookmark within the thumb's reach each have a spec with its states, in French and English.
-- [ ] **M6.61** The card back and the card stack, app · app · M · needs M6.59 · [swipe](../design/screens/swipe.md)
+- [x] **M6.61** The card back and the card stack, app · app · M · needs M6.59 · [swipe](../design/screens/swipe.md)
   Done when: a touch run on the simulator shows the card back with the new layout, the synopsis never clipped at large text, and the cards underneath dimmed.
-- [ ] **M6.62** The film sheet full page, app · app · S · needs M6.59 · [film sheet](../design/screens/film-sheet.md)
+- [x] **M6.62** The film sheet full page, app · app · S · needs M6.59 · [film sheet](../design/screens/film-sheet.md)
   Done when: a touch run on the simulator opens the film sheet full page in My films, with the quick actions beside the close button, in French and English.
-- [ ] **M6.63** The top bar, app · app · M · needs M6.60 · [swipe](../design/screens/swipe.md#the-top-bar)
+- [x] **M6.63** The top bar, app · app · M · needs M6.60 · [swipe](../design/screens/swipe.md#the-top-bar)
   Done when: a three-player touch run shows readable player badges that no contender clips.
 - [ ] **M6.64** The genre step, app · app · M · needs M6.60, M6.54 · [host setup](../design/screens/host-setup.md#layout), [lobby](../design/screens/lobby.md#your-genres-tonight)
   Done when: a touch run on the simulator shows a guest the full-screen genre step after joining and the host the step after the services choice, both skippable, and the lobby's sheet still changes picks.

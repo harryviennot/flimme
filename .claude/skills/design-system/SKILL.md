@@ -13,7 +13,7 @@ Dark cinema marquee: arcade buttons with a hard 4-point lip, neon glows, spotlig
 - **Colors** are the token paths: `bg-bg-canvas`, `bg-bg-surface`, `bg-bg-raised`, `text-text-primary`, `border-border-default`, `bg-accent-default`, `bg-marquee-default`, `bg-like-default`, `bg-nope-default`, `bg-neon-soft`, `bg-avatar-teal`...
 - **Spacing** is Tailwind's 4-point scale (`p-4` is 16, `gap-3.5` is 14). **Radii:** `rounded-xs` 4, `sm` 8, `md` 12, `lg` 16, `xl` 24, `pill`.
 - **Effects** are utilities: `lip-accent`, `lip-neutral`, `elevation-card`, `elevation-sheet`, `glow-accent`, `glow-like`, `glow-nope`, `glow-marquee`, `glow-focus`, `focus-ring`. Gradients: `gradient-card-scrim`, `gradient-marquee-sunset` (or `GradientFill`), spotlights through `Spotlight` (radial, SVG).
-- **Strokes:** `border` (1), `border-2`, `stroke-badge` (1.5). **Opacity:** `opacity-disabled`, `opacity-stack-near`, `opacity-stack-far`. **Rotation** (degrees, no class; for a `transform` style): `tokens.rotation["poster-fan"]`.
+- **Strokes:** `border` (1), `border-2`, `stroke-badge` (1.5). **Opacity:** `opacity-disabled`, `opacity-stack-near` (dimmed logos), `opacity-stack-dim-near` and `opacity-stack-dim-far` (the swipe stack's dark layers, read as `tokens.opacity[...]`). **Rotation** (degrees, no class; for a `transform` style): `tokens.rotation["poster-fan"]`.
 - **Fonts** are embedded at build time (`expo-font` plugin, list in `mobile/src/theme/fonts.json`, files and OFL licences in `mobile/assets/fonts/`); theme family names are the fonts' PostScript names. A new weight means a new entry in that JSON, then `pnpm tokens`.
 - **Never:** arbitrary values (`p-[13px]`), hex colors, `fontSize` or `fontFamily` in styles. Need a value that doesn't exist? Add it to tokens.json with a `$description`, run `pnpm tokens` (from mobile/), and say so in the pull request.
 - **Animated styles** use Reanimated with values from `tokens.ts` and `@/theme/motion`, never by swapping classes on every frame. `useSharedValue` changes go through `.set()` (the React Compiler forbids `.value =` in handlers).
@@ -51,7 +51,7 @@ Dark cinema marquee: arcade buttons with a hard 4-point lip, neon glows, spotlig
 | shared | `MovieCard` | The swipe card, front and back, flip, stamps, the optional Later bookmark |
 | shared | `Poster`, `PosterThumb` | Posters with their placeholder |
 | shared | `FilmTile`, `WhereToWatch` | A poster as a grid tile with Picked or the star; the services that have a film (strings and the "not listed" line through props) |
-| shared | `PlayerPill`, `RoomTicket`, `ServiceTile`, `ResultRow`, `RatingLogo` | Presence, the room code, services, runners-up, TMDB and Letterboxd marks |
+| shared | `SeatRow` (a seat of the lobby and of the players sheet), `PlayerPill` (store scenes only), `RoomTicket`, `ServiceTile`, `ResultRow`, `RatingLogo` | Presence, the room code, services, runners-up, TMDB and Letterboxd marks |
 
 ## Tiers and files
 

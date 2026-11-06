@@ -89,7 +89,8 @@ export const tokens = {
   "opacity": {
     "disabled": 0.4,
     "stack-near": 0.7,
-    "stack-far": 0.45
+    "stack-dim-near": 0.3,
+    "stack-dim-far": 0.55
   },
   "rotation": {
     "poster-fan": 8,

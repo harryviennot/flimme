@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, type LayoutChangeEvent } from 'react-native';
+import { useWindowDimensions, View, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   interpolate,
   ReduceMotion,
@@ -13,14 +13,21 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
-import { Avatar, type AvatarColor } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { GradientFill } from '@/components/ui/gradients';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Tag, type TagTone } from '@/components/ui/tag';
 import { Text } from '@/components/ui/text';
+import {
+  isLargeText,
+  LOGO_SIZE,
+  logoSlots,
+  splitServices,
+  synopsisFit,
+} from '@/lib/card-back-layout';
 import { cn } from '@/lib/cn';
+import { serviceInitials } from '@/lib/service-initials';
 import { tokens } from '@/theme/generated/tokens';
 import { duration, spring, timing } from '@/theme/motion';
 
@@ -64,12 +71,16 @@ export type MovieCardProps = {
   flipped?: boolean;
   /** Turns the card over. Without it the card is not pressable (the swipe screen's gesture flips). */
   onFlip?: () => void;
-  /** A back that never turns over (the film sheet): no flip badge, no "tap to flip back" line. */
+  /**
+   * A back that never turns over (the film sheet, the runner-up sheet): no flip badge. It is at
+   * least the card's shape and grows with its content, and its synopsis shows whole.
+   */
   still?: boolean;
   back: {
+    /** "2017 · 1 h 43": the year and the runtime. The score follows it, drawn from `tmdbRating`. */
+    meta: string;
+    /** The TMDB score, already formatted ("7,4"). It joins the meta line; none, no score. */
     tmdbRating?: string;
-    /** A seated player's Letterboxd rating, when they have one. */
-    friendRating?: { name: string; color: AvatarColor; rating: string };
     synopsis: string;
     director?: string;
     cast?: string;
@@ -77,8 +88,10 @@ export type MovieCardProps = {
     services?: { name: string; logo?: string }[];
     /** Hidden in rooms with an age cap under 13 (security.md). */
     onTrailer?: () => void;
-    /** A touch started on the Trailer button, so a card that flips on a tap can tell it apart. */
-    onTrailerTouch?: () => void;
+    /** A touch started on the Trailer button or "Read more", so a card that flips on a tap can tell it apart. */
+    onControlTouch?: () => void;
+    /** Opens the synopsis sheet, when the text is cut. Without it there is no "Read more". */
+    onReadMore?: () => void;
   };
 };
 
@@ -138,6 +151,8 @@ export function MovieCard(props: MovieCardProps) {
     </>
   );
 
+  if (props.still && flipped) return <StillBack {...props} />;
+
   return (
     <View className="w-full" style={{ aspectRatio: 345 / 518 }}>
       {onFlip ? (
@@ -157,20 +172,42 @@ export function MovieCard(props: MovieCardProps) {
   );
 }
 
+/** A still back: the card's shape at least, taller when the content needs it. */
+function StillBack(props: MovieCardProps) {
+  const [width, setWidth] = useState(0);
+  return (
+    <View
+      className="w-full"
+      style={width > 0 ? { minHeight: (width * 518) / 345 } : { aspectRatio: 345 / 518 }}
+      onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}
+      testID="movie-card-back"
+    >
+      <Back {...props} whole />
+    </View>
+  );
+}
+
 function Frame({
   children,
   border,
   rings,
+  whole = false,
 }: {
   children: React.ReactNode;
   border: string;
   /** The 3-point colour borders drawn over the card's hairline (the stamps). */
   rings?: React.ReactNode;
+  /** Grows with its content instead of filling a fixed box. */
+  whole?: boolean;
 }) {
   return (
-    <View className="flex-1">
+    <View className={whole ? 'grow' : 'flex-1'}>
       <View
-        className={cn('flex-1 overflow-hidden rounded-xl bg-bg-surface elevation-card', border)}
+        className={cn(
+          'overflow-hidden rounded-xl bg-bg-surface elevation-card',
+          whole ? 'grow' : 'flex-1',
+          border,
+        )}
       >
         {children}
       </View>
@@ -346,63 +383,170 @@ function Services({ services }: { services: string[] }) {
   );
 }
 
-function ServiceBadges({ services }: { services: { name: string; logo?: string }[] }) {
+/** One service as a 32-point square, in the look of the service picker's tile. */
+function LogoSquare({ name, logo }: { name: string; logo?: string }) {
+  const [failed, setFailed] = useState(false);
   return (
-    <View className="flex-row flex-wrap gap-1.5">
-      {services.map(({ name, logo }) => (
+    <View
+      className="size-8 items-center justify-center overflow-hidden rounded-sm border border-border-default bg-bg-raised"
+      testID="service-square"
+    >
+      {logo && !failed ? (
+        // An expo-image sized only by className has no width on iOS: it gets a style.
+        <Image
+          source={{ uri: logo }}
+          contentFit="cover"
+          transition={duration.fast}
+          style={{ width: LOGO_SIZE, height: LOGO_SIZE }}
+          onError={() => setFailed(true)}
+          accessible={false}
+          testID="service-logo"
+        />
+      ) : (
+        <Text variant="mono-eyebrow" tone="secondary" testID="service-initials">
+          {serviceInitials(name)}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+/**
+ * The room's services as one row of logo squares, never wrapping. It holds as many as its measured
+ * width allows; when they don't all fit, the last square is "+n" for the ones left out.
+ */
+function ServiceLogos({ services }: { services: { name: string; logo?: string }[] }) {
+  const { t } = useTranslation();
+  const [width, setWidth] = useState(0);
+  const { shown, hidden } = splitServices(services, logoSlots(width));
+  return (
+    <View
+      className="min-w-0 flex-1 flex-row gap-1.5 overflow-hidden"
+      onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}
+      testID="service-logos"
+    >
+      {shown.map(({ name, logo }) => (
+        <LogoSquare key={name} name={name} logo={logo} />
+      ))}
+      {hidden > 0 ? (
         <View
-          key={name}
-          className="h-6 flex-row items-center gap-1.5 self-start rounded-xs bg-bg-raised pr-2 pl-1"
+          className="size-8 items-center justify-center rounded-sm border border-border-default bg-bg-raised"
+          testID="service-more"
         >
-          {logo ? (
-            // An expo-image sized only by className has no width on iOS: it gets a style.
-            <Image
-              source={{ uri: logo }}
-              contentFit="cover"
-              transition={duration.fast}
-              style={{
-                width: tokens.space[16],
-                height: tokens.space[16],
-                borderRadius: tokens.radius.xs,
-              }}
-              accessible={false}
-              testID="service-logo"
-            />
-          ) : null}
           <Text variant="mono-eyebrow" tone="secondary" numberOfLines={1}>
-            {name}
+            {t('card.moreServices', { count: hidden })}
           </Text>
         </View>
-      ))}
+      ) : null}
     </View>
+  );
+}
+
+/**
+ * The meta line of the back: "2017 · 1 h 43 · ★ 7,4 TMDB". The score is a nested text, so the
+ * star and the number take the marquee colour and the source stays quiet. No score: the line ends
+ * after the runtime.
+ */
+export function CardMetaLine({
+  meta,
+  score,
+  numberOfLines,
+}: {
+  meta: string;
+  score?: string;
+  numberOfLines?: number;
+}) {
+  const { t } = useTranslation();
+  const text = score ? t('card.tmdbScore', { score }) : '';
+  const cut = text.lastIndexOf(' ');
+  return (
+    <Text variant="mono-data" numberOfLines={numberOfLines}>
+      {meta}
+      {score ? (
+        <>
+          {meta ? ' · ' : ''}
+          <Text variant="mono-data" tone="marquee">
+            {cut > 0 ? text.slice(0, cut) : text}
+          </Text>
+          {cut > 0 ? (
+            <Text variant="mono-data" tone="secondary">
+              {text.slice(cut)}
+            </Text>
+          ) : null}
+        </>
+      ) : null}
+    </Text>
   );
 }
 
 /**
  * The synopsis, cut with an ellipsis to the space the back leaves it: the back never scrolls
  * (a scroll would fight the swipe up). The line count comes from the room it has and the height
- * of one line, so it follows the text size.
+ * of one line, so it follows the text size. An invisible, unclipped copy counts the lines the
+ * whole text needs: when it is cut, "Read more" takes the last line's place.
  */
-function FitText({ children }: { children: string }) {
+function Synopsis({
+  children,
+  onReadMore,
+  onControlTouch,
+}: {
+  children: string;
+  onReadMore?: () => void;
+  onControlTouch?: () => void;
+}) {
+  const { t } = useTranslation();
   const [room, setRoom] = useState(0);
   const [line, setLine] = useState(0);
-  const lines = room > 0 && line > 0 ? Math.max(1, Math.floor(room / line + 0.01)) : undefined;
+  const [full, setFull] = useState(0);
+  const { lines, cut } = synopsisFit({ room, line, full });
   return (
-    <View
-      className="min-h-0 flex-1 overflow-hidden"
-      onLayout={(e: LayoutChangeEvent) => setRoom(e.nativeEvent.layout.height)}
-    >
-      <Text
-        variant="body-m"
-        numberOfLines={lines}
-        onTextLayout={(e) => {
-          const height = e.nativeEvent.lines[0]?.height;
-          if (height) setLine(height);
-        }}
+    <>
+      <View
+        className="min-h-0 flex-1 overflow-hidden"
+        // Never less than one line: a sliver of a line reads as a bug, and one line plus
+        // "Read more" is the least the back can show of the story.
+        style={line > 0 ? { minHeight: line } : undefined}
+        onLayout={(e: LayoutChangeEvent) => setRoom(e.nativeEvent.layout.height)}
       >
-        {children}
-      </Text>
-    </View>
+        <Text
+          variant="body-m"
+          numberOfLines={lines}
+          onTextLayout={(e) => {
+            const height = e.nativeEvent.lines[0]?.height;
+            if (height) setLine(height);
+          }}
+        >
+          {children}
+        </Text>
+        <Text
+          variant="body-m"
+          className="absolute inset-x-0 top-0 opacity-0"
+          pointerEvents="none"
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+          testID="synopsis-measure"
+          onTextLayout={(e) => setFull(e.nativeEvent.lines.length)}
+        >
+          {children}
+        </Text>
+      </View>
+      {cut && onReadMore ? (
+        // Outside the clipped box, so the link keeps its own line at any text size: the text
+        // above it gives up the room (a cut stays a cut when the box shrinks).
+        <View className="self-start" onTouchStart={onControlTouch}>
+          <Pressable
+            accessibilityLabel={t('card.readMore')}
+            hitSlop={tokens.space[16]}
+            onPress={onReadMore}
+            testID="movie-card-read-more"
+          >
+            <Text variant="mono-eyebrow" tone="accent">
+              {t('card.readMore')}
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+    </>
   );
 }
 
@@ -454,75 +598,67 @@ function Front({
 
 function Back({
   title,
-  meta,
   poster,
   thumbhash,
   services,
   back,
   still = false,
+  whole = false,
   stamp,
   stampProgress,
   bookmark,
-}: MovieCardProps) {
+}: MovieCardProps & { whole?: boolean }) {
   const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const large = isLargeText(fontScale);
   const stamps = useStamps({ stamp, stampProgress });
+  const logos = back.services ?? services.map((name) => ({ name }));
   return (
     <Frame
+      whole={whole}
       border="border border-border-default"
       rings={stamps?.map(({ kind, progress }) => (
         <Ring key={kind} kind={kind} progress={progress} />
       ))}
     >
       <View className="h-33 overflow-hidden">
-        <View className="absolute inset-x-0 -top-5" style={{ aspectRatio: 345 / 518 }}>
-          <Poster source={poster} thumbhash={thumbhash} />
+        <Poster source={poster} thumbhash={thumbhash} />
+        <View className="absolute inset-x-0 bottom-0" style={{ height: '92%' }}>
+          <GradientFill gradient="card-front-scrim" />
         </View>
-        <GradientFill gradient="card-scrim" />
         {still ? null : <FlipBadge icon="refresh" />}
         {bookmark ? <BookmarkBadge bookmark={bookmark} /> : null}
-        <View className="absolute right-16 bottom-4 left-5 gap-0.5">
-          <Text variant="title-l" numberOfLines={1}>
-            {title}
-          </Text>
-          <Text variant="mono-data" tone="secondary" numberOfLines={1}>
-            {meta}
-          </Text>
-        </View>
+        {large ? null : (
+          <View className="absolute right-16 bottom-4 left-5 gap-0.5">
+            <Text variant="title-l" numberOfLines={1}>
+              {title}
+            </Text>
+            <CardMetaLine meta={back.meta} score={back.tmdbRating} numberOfLines={2} />
+          </View>
+        )}
       </View>
-      <View className="flex-1 gap-3 px-5 py-3.5">
-        <View className="flex-row gap-2.5">
-          {back.tmdbRating ? (
-            <View className="flex-1 gap-0.5 rounded-md bg-bg-raised px-3 py-2.5">
-              <View className="flex-row items-center gap-2">
-                <Icon name="star" size={22} color="marquee-default" />
-                <Text variant="display-m" tone="marquee">
-                  {back.tmdbRating}
-                </Text>
-              </View>
-              <Text variant="mono-data" tone="muted">
-                {t('card.tmdbRating')}
-              </Text>
-            </View>
-          ) : null}
-          {back.friendRating ? (
-            <View className="flex-1 gap-0.5 rounded-md bg-bg-raised px-3 py-2.5">
-              <View className="flex-row items-center gap-2">
-                <Avatar name={back.friendRating.name} color={back.friendRating.color} />
-                <Text variant="display-m">
-                  {t('card.stars', { rating: back.friendRating.rating })}
-                </Text>
-              </View>
-              <Text variant="mono-data" tone="muted" numberOfLines={1}>
-                {t('card.letterboxdRating', { name: back.friendRating.name })}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-        <View className="min-h-0 flex-1 gap-1">
+      <View className={cn('gap-3 px-5 py-3.5', whole ? 'grow' : 'flex-1')}>
+        {large ? (
+          <View className="gap-0.5" testID="movie-card-back-title">
+            <Text variant="title-l" numberOfLines={2}>
+              {title}
+            </Text>
+            <CardMetaLine meta={back.meta} score={back.tmdbRating} />
+          </View>
+        ) : null}
+        <View className={whole ? 'grow gap-1' : 'min-h-0 flex-1 gap-1'}>
           <Text variant="mono-eyebrow" tone="secondary">
             {t('card.synopsis')}
           </Text>
-          <FitText>{back.synopsis}</FitText>
+          {whole ? (
+            <Text variant="body-m" testID="synopsis-whole">
+              {back.synopsis}
+            </Text>
+          ) : (
+            <Synopsis onReadMore={back.onReadMore} onControlTouch={back.onControlTouch}>
+              {back.synopsis}
+            </Synopsis>
+          )}
         </View>
         <View className="gap-0.5">
           {back.director ? (
@@ -531,43 +667,40 @@ function Back({
             </Text>
           ) : null}
           {back.cast ? (
-            <Text variant="body-s" tone="secondary" numberOfLines={2}>
+            <Text variant="body-s" tone="secondary" numberOfLines={large ? 1 : 2}>
               {t('card.cast', { names: back.cast })}
             </Text>
           ) : null}
         </View>
         <View className="gap-1">
-          <View className="flex-row items-center gap-1.5">
-            <View className="flex-1">
-              {back.services ? (
-                <ServiceBadges services={back.services} />
-              ) : (
-                <Services services={services} />
-              )}
+          {logos.length > 0 || back.onTrailer ? (
+            <View className="flex-row items-center gap-1.5">
+              {logos.length > 0 ? <ServiceLogos services={logos} /> : <View className="flex-1" />}
+              {back.onTrailer ? (
+                <View onTouchStart={back.onControlTouch}>
+                  <Button
+                    label={t('card.trailer')}
+                    icon="play"
+                    variant="secondary"
+                    size="s"
+                    onPress={back.onTrailer}
+                  />
+                </View>
+              ) : null}
             </View>
-            {back.onTrailer ? (
-              <View onTouchStart={back.onTrailerTouch}>
-                <Button
-                  label={t('card.trailer')}
-                  icon="play"
-                  variant="secondary"
-                  size="s"
-                  onPress={back.onTrailer}
-                />
-              </View>
-            ) : null}
-          </View>
-          {(back.services ?? services).length > 0 ? (
-            <Text variant="body-s" tone="muted">
-              {t('card.justwatch')}
-            </Text>
           ) : null}
+          {/* The last row: the credit, and the 44-point slot the bookmark lands in (M6.58). */}
+          <View className="flex-row items-end gap-3">
+            <View className="flex-1">
+              {logos.length > 0 ? (
+                <Text variant="body-s" tone="muted">
+                  {t('card.justwatch')}
+                </Text>
+              ) : null}
+            </View>
+            <View className="size-11" testID="movie-card-bookmark-slot" />
+          </View>
         </View>
-        {still ? null : (
-          <Text variant="mono-eyebrow" tone="muted" align="center">
-            {t('card.flipBack')}
-          </Text>
-        )}
       </View>
       {stamps?.map(({ kind, progress }) => (
         <Stamp key={kind} kind={kind} progress={progress} />

@@ -35,6 +35,7 @@ import { gallery as sharedPoster } from './shared/poster.gallery';
 import { gallery as sharedRatingLogo } from './shared/rating-logo.gallery';
 import { gallery as sharedResultRow } from './shared/result-row.gallery';
 import { gallery as sharedRoomTicket } from './shared/room-ticket.gallery';
+import { gallery as sharedSeatRow } from './shared/seat-row.gallery';
 import { gallery as sharedServiceGrid } from './shared/service-grid.gallery';
 import { gallery as sharedServiceTile } from './shared/service-tile.gallery';
 import { gallery as sharedSwipeAction } from './shared/swipe-action.gallery';
@@ -78,6 +79,7 @@ export const galleryEntries: GalleryEntry[] = [
   sharedRatingLogo,
   sharedResultRow,
   sharedRoomTicket,
+  sharedSeatRow,
   sharedServiceGrid,
   sharedServiceTile,
   sharedSwipeAction,

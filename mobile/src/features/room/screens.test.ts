@@ -35,6 +35,16 @@ describe('the genre step', () => {
   });
 });
 
+describe('the players sheet', () => {
+  it('sits over the swiping only, and closes when the finale starts', () => {
+    expect(isSheet('players')).toBe(true);
+    expect(isAllowed('swiping', 'players')).toBe(true);
+    for (const state of ['lobby', 'dealing', 'finale', 'done', 'abandoned'] as const) {
+      expect(isAllowed(state, 'players')).toBe(false);
+    }
+  });
+});
+
 describe('isAllowed', () => {
   it('lets the invite and services sheets sit over the lobby and the dealing', () => {
     for (const state of ['lobby', 'dealing'] as const) {
@@ -63,6 +73,14 @@ describe('isAllowed', () => {
     expect(isAllowed('finale', 'film')).toBe(false);
     expect(isAllowed('swiping', 'film')).toBe(false);
     expect(isSheet('film')).toBe(true);
+  });
+  it('lets the synopsis sheet over the swipe screen only', () => {
+    expect(isAllowed('swiping', 'synopsis')).toBe(true);
+    expect(isAllowed('swiping', 'synopsis', 'solo')).toBe(true);
+    expect(isAllowed('finale', 'synopsis')).toBe(false);
+    expect(isAllowed('done', 'synopsis')).toBe(false);
+    expect(isAllowed('lobby', 'synopsis')).toBe(false);
+    expect(isSheet('synopsis')).toBe(true);
   });
   it('refuses any other screen', () => {
     expect(isAllowed('swiping', 'lobby')).toBe(false);

@@ -6,7 +6,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import { fixturePosters } from '@/components/gallery';
 import { FinalCutScreen } from '@/components/screens/final-cut/final-cut-screen';
 import { LobbyFooter } from '@/components/screens/lobby/lobby-footer';
-import { SeatRow } from '@/components/screens/lobby/seat-row';
+import { SeatRow } from '@/components/shared/seat-row';
 import { RecapCard } from '@/components/screens/recap/recap-card';
 import { MatchOverlay } from '@/components/screens/room/match-overlay';
 import { ActionRow } from '@/components/screens/swipe/action-row';
@@ -87,7 +87,7 @@ function Swipe({ language }: { language: StoreLanguage }) {
             poster={fixturePosters[FILM.poster]}
             services={[...STORE_SERVICES]}
             stamp="like"
-            back={{ synopsis: FILM.synopsis[language] }}
+            back={{ meta: String(FILM.year), synopsis: FILM.synopsis[language] }}
           />
         </View>
       </View>
@@ -165,7 +165,7 @@ function Lobby() {
                 key={player.id}
                 name={player.name}
                 color={player.color}
-                services="Service A, Service B"
+                detail="Service A, Service B"
                 isHost={index === 0}
                 isMe={index === 0}
                 present
@@ -192,6 +192,7 @@ function CardBack({ language }: { language: StoreLanguage }) {
           flipped
           still
           back={{
+            meta: `${FILM.year} · ${FILM.runtime.h} h ${FILM.runtime.min}`,
             tmdbRating: FILM.rating,
             synopsis: FILM.synopsis[language],
             director: FILM.director,
