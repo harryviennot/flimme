@@ -21,7 +21,7 @@ Six digits and you're in. The app tries to join as soon as the sixth digit is ty
 
 | Answer | Message (status line) | Boxes | Haptic | Next |
 | --- | --- | --- | --- | --- |
-| `ok` | | Stay filled | None: arriving is the reward | `replace` with `/room/[id]`; the room layout shows the lobby or the swipe screen |
+| `ok` | | Stay filled | None: arriving is the reward | `askGenres(roomId)`, then `replace` with `/room/[id]`; the room layout shows [the genre step](genre-step.md) then the lobby, or the swipe screen (M6.64) |
 | `not_found` | `join:errors.notFound` | Shake, then clear; the caret goes back to the first box | `haptics.error()` | Type again |
 | `rate_limited` | `join:errors.rateLimited` | Clear, no shake | `haptics.error()` | Paste a link, or wait |
 | `full` | `join:errors.full` (`{{max}}` is `max_players`) | Stay filled | `haptics.error()` | Host a movie night |
