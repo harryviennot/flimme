@@ -171,7 +171,8 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
       const last = undoer.state.getState().last;
       if (!last || last.card.title_id !== titleId || last.kind !== 'seen') return false;
       if (!undoer.change('seen_rewatch')) return false;
-      answerer.change(titleId, 'seen_rewatch');
+      // Both read the same lock, so this holds right after the first vote was taken back.
+      if (!answerer.change(titleId, 'seen_rewatch')) return false;
       soloSession.getState().undo(titleId);
       soloSession.getState().answer(last.card, 'seen_rewatch');
       return true;
