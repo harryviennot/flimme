@@ -1,0 +1,29 @@
+# M6.63, French at the largest text size, part 2 (see swipe-top-bar-host-fr.yaml): start the game,
+# look at the bar, open the players sheet, then like a few films to watch the shortlist fill.
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-top-bar-play-fr.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- tapOn: 'Lancer la séance'
+- extendedWaitUntil:
+    visible: "J'aime"
+    timeout: 60000
+- takeScreenshot: swipe-top-bar-stack-fr
+- tapOn:
+    id: player-stack
+- extendedWaitUntil:
+    visible: 'Joueurs'
+    timeout: 10000
+- takeScreenshot: swipe-top-bar-sheet-fr
+- swipe:
+    start: 50%,40%
+    end: 50%,95%
+- extendedWaitUntil:
+    visible: "J'aime"
+    timeout: 10000
+- repeat:
+    times: 6
+    commands:
+      - tapOn:
+          text: "J'aime"
+          optional: true
+- takeScreenshot: swipe-top-bar-shortlist-fr

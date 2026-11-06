@@ -13,7 +13,7 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 1. **`RoomTicket`**: the code, left detail `lobby:ticket.players` (the [present](#present-and-away) seats of the room's maximum), right detail `lobby:ticket.host`. While `api.rooms.locked` is true, `locked` draws its lock tag ([host menu](host-menu.md#lock-room)). A long press on the ticket copies the six digits (no space) with `haptics.press()` and shows a `success` `Toast` `lobby:ticket.copied`; a screen reader gets the action `lobby:a11y.copyCode`. A tap does nothing. The host reaches this screen straight from setup, with no share step in between, so this ticket, **Share link** and **Show QR** are the ways to invite.
 2. **Two buttons** in a row, each half the width: `Button` secondary S, icon `link`, `lobby:shareLink` (the system share sheet straight away, with the [invite sheet's](invite-sheet.md) message); `Button` secondary S, icon `qr`, `lobby:showQr` (the invite sheet).
 3. **The rules line**, `body-s` tone `secondary`: `lobby:rules.quickMatch`. For guests who didn't choose the mode; everyone sees it.
-4. **Eyebrow** `lobby:inTheRoom`, then **the seats** in one `bg-bg-surface` group with a `border-border-default` hairline and `rounded-lg`, one `SeatRow` per seat with `left_at` null (`api.roomSeats` also returns seats that left; they never show), in join order (`joined_at`, then `member_id`). `SeatRow` is new: `screens/lobby/seat-row.tsx`, spec below.
+4. **Eyebrow** `lobby:inTheRoom`, then **the seats** in one `bg-bg-surface` group with a `border-border-default` hairline and `rounded-lg`, one `SeatRow` per seat with `left_at` null (`api.roomSeats` also returns seats that left; they never show), in join order (`joined_at`, then `member_id`). `SeatRow` is new: `shared/seat-row.tsx` (moved there by M6.63), spec below.
 5. **The room's services**, `body-s` tone `muted`: `lobby:roomServices`, the [names](#service-names) of `api.rooms.provider_ids`, listed with `Intl.ListFormat`. No line while no name is known.
 6. **Guests only: `ListRow`** icon `tv`, label `lobby:yourServices.label`, value the guest's services or `lobby:yourServices.optional`, chevron. It opens the services sheet (below).
 7. **Everyone, host included: `ListRow`** icon `film`, label `lobby:yourGenres.label`, under "Your services" (for the host, who has no services row, in the same group above the lock row). Its value is [your genres](#your-genres-tonight) by name (`Intl.ListFormat`), or `lobby:yourGenres.optional` with none, `lobby:yourGenres.none` when no genre is offered tonight, and nothing while it loads. Chevron. It opens the genres sheet. It never blocks the start.
@@ -27,7 +27,7 @@ Everyone sees who's here, live, and the host starts when they like. The code rea
 
 **The genres sheet** (`/room/[id]/genres`, a `formSheet` like the services sheet): see [Your genres tonight](#your-genres-tonight).
 
-## The seat row (`screens/lobby/seat-row.tsx`)
+## The seat row (`shared/seat-row.tsx`)
 
 56 points high or more, `p-4`, `gap-3.5`, a `border-border-subtle` bottom hairline (none on the last row).
 

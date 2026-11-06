@@ -84,18 +84,12 @@ describe('My films', () => {
     );
   });
 
-  it('reads Later with no chips and no badge, newest save first as the server sends it', async () => {
-    myFilms.mockImplementation(async ({ segment }: { segment: string }) =>
-      page(segment === 'later' ? [film(60, { title: 'Ran', year: 1985 }), film(61)] : [film(10)]),
-    );
+  it('has two segments, Liked and Seen: no Later tab', async () => {
+    myFilms.mockResolvedValue(page([film(10)]));
     await showScreen();
     await screen.findByRole('button', { name: /Film 10,/ });
-    await fireEvent.press(screen.getByRole('tab', { name: 'Later' }));
-    await screen.findByRole('button', { name: 'Ran, 1985' });
-    expect(screen.queryByRole('radio', { name: 'Solo' })).toBeNull();
-    expect(myFilms).toHaveBeenLastCalledWith(
-      expect.objectContaining({ segment: 'later', filter: 'all' }),
-    );
+    expect(screen.getAllByRole('tab')).toHaveLength(2);
+    expect(screen.queryByRole('tab', { name: 'Later' })).toBeNull();
   });
 
   it('pages: the second page loads at the end, no film twice, the last page stops', async () => {
@@ -161,14 +155,11 @@ describe('My films', () => {
     ['liked', 'friends', 'Films you like with friends land here.'],
     ['liked', 'solo', 'Films you like on your own land here.'],
     ['seen', 'all', "Films you've seen land here."],
-    ['later', 'all', 'Films you save for later land here. Tap the bookmark on a card.'],
   ])('has an empty line for %s / %s', async (segment, filter, line) => {
     myFilms.mockResolvedValue(page([]));
     await showScreen();
     if (segment === 'seen') await fireEvent.press(screen.getByRole('tab', { name: 'Seen' }));
-    else if (segment === 'later') {
-      await fireEvent.press(screen.getByRole('tab', { name: 'Later' }));
-    } else if (filter !== 'all') {
+    else if (filter !== 'all') {
       await fireEvent.press(
         screen.getByRole('radio', { name: filter === 'friends' ? 'With friends' : 'Solo' }),
       );
@@ -213,6 +204,7 @@ describe('My films', () => {
       screen.getByText('Enregistré sur ce téléphone pour l’instant.'.replace('’', "'")),
     ).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Vus' })).toBeTruthy();
-    expect(screen.getByRole('tab', { name: 'Plus tard' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Aimés' })).toBeTruthy();
+    expect(screen.queryByRole('tab', { name: 'Plus tard' })).toBeNull();
   });
 });

@@ -45,6 +45,14 @@ export function pillsFor(input: {
   });
 }
 
+/**
+ * The count the players sheet shows (swipe.md#the-players-sheet): exact for this phone, in steps
+ * of 5 (rounded down) for the others, so it says how far they are and no more.
+ */
+export function filmsShown(pill: Pick<Pill, 'count' | 'isMe'>): number {
+  return pill.isMe ? pill.count : Math.floor(pill.count / 5) * 5;
+}
+
 /** The other players who are done, for the polite announcement. */
 export function doneNames(pills: readonly Pill[]): string[] {
   return pills.filter((pill) => pill.done && !pill.isMe).map((pill) => pill.name);

@@ -48,12 +48,11 @@ const card: Card = {
   providers: [{ provider_id: 8, kind: 'subscription', name: 'Netflix', logo_path: null }],
   watch_link: null,
 };
-const ok = (extra: { seen?: boolean; liked?: boolean; saved?: boolean } = {}) => ({
+const ok = (extra: { seen?: boolean; liked?: boolean } = {}) => ({
   status: 'ok',
   card,
   seen: false,
   liked: true,
-  saved: false,
   ...extra,
 });
 
@@ -180,7 +179,7 @@ describe('the film sheet', () => {
   });
 
   it('has no Later button, saved or not', async () => {
-    myFilmCard.mockResolvedValue(ok({ saved: true }));
+    myFilmCard.mockResolvedValue(ok({ liked: true }));
     await showLoaded();
     expect(screen.queryByRole('button', { name: /Later/ })).toBeNull();
     expect(setFilmSaved).not.toHaveBeenCalled();

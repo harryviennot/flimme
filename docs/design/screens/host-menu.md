@@ -8,7 +8,7 @@ The host can get a troll out and keep strangers out, in two taps, without stoppi
 
 ## The seat sheet
 
-Route `/room/[id]/seat/[memberId]`, a `formSheet` with the grabber and `sheetAllowedDetents: 'fitToContents'`, declared in the room layout beside the invite sheet. It opens from a tap on any [seat row](lobby.md#the-seat-row-screenslobbyseat-rowtsx) but the player's own (Q7.1). The sheet closes when the game starts, like the invite and services sheets (the room layout's rule: `SHEETS` allows it over the lobby and the dealing only). It swipes down with the grabber (`gestureEnabled: true` on the sheet, since the room's stack turns gestures off).
+Route `/room/[id]/seat/[memberId]`, a `formSheet` with the grabber and `sheetAllowedDetents: 'fitToContents'`, declared in the room layout beside the invite sheet. It opens from a tap on any [seat row](lobby.md#the-seat-row-sharedseat-rowtsx) but the player's own (Q7.1). The sheet closes when the game starts, like the invite and services sheets (the room layout's rule: `SHEETS` allows it over the lobby and the dealing only). It swipes down with the grabber (`gestureEnabled: true` on the sheet, since the room's stack turns gestures off).
 
 Layout, `p-5`, `gap-3`:
 

@@ -2,8 +2,7 @@
   "title": "My films",
   "segments": {
     "liked": "Liked",
-    "seen": "Seen",
-    "later": "Later"
+    "seen": "Seen"
   },
   "filters": {
     "label": "Show",
@@ -21,8 +20,7 @@
     "friends": "Films you like with friends land here.",
     "solo": "Films you like on your own land here.",
     "seen": "Films you've seen land here.",
-    "playAlone": "Play alone",
-    "later": "Films you save for later land here. Tap the bookmark on a card."
+    "playAlone": "Play alone"
   },
   "offline": {
     "title": "You're offline",

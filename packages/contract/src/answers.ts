@@ -217,10 +217,11 @@ export type TitleCardsAnswer = (typeof TITLE_CARDS_ANSWERS)[number];
  * My films (M6.41, solo-and-my-films.md). `api.my_films` has one answer, `ok`; a bad segment, filter or
  * cursor raises (22023). `api.my_film_card` answers `ok` with the card and the caller's own `seen`
  * and `liked` flags, `not_found` for a film outside the caller's own rows, `rate_limited` at 60 calls
- * per 10 minutes; its `ok` also carries `saved` (M6.50). `api.set_film_seen`, `api.remove_my_film` and
- * `api.set_film_saved` answer `ok`, `not_found` (nothing to change) or `rate_limited` (they share 60 per
- * 10 minutes). `api.set_film_saved` (M6.50, Later) answers `not_found` for a save of a film never dealt
- * to the caller nor in their rows, and for an unsave of a film that is not saved; a repeat save is `ok`.
+ * per 10 minutes. `api.set_film_seen`, `api.remove_my_film` and `api.set_film_saved` answer `ok`,
+ * `not_found` (nothing to change) or `rate_limited` (they share 60 per 10 minutes). `api.set_film_saved`
+ * (the bookmark, decided 6 Nov 2026) saves a film as a solo like: `ok` also when the film is already
+ * liked (nothing changes) or saved again; `not_found` for a save of a film never dealt to the caller nor
+ * in their rows, and for an unsave of a film no save liked (a like from a game is never taken back).
  */
 export const MY_FILMS_ANSWERS = ['ok'] as const;
 export type MyFilmsAnswer = (typeof MY_FILMS_ANSWERS)[number];
@@ -233,8 +234,8 @@ export type RemoveMyFilmAnswer = (typeof REMOVE_MY_FILM_ANSWERS)[number];
 export const SET_FILM_SAVED_ANSWERS = ['ok', 'not_found', 'rate_limited'] as const;
 export type SetFilmSavedAnswer = (typeof SET_FILM_SAVED_ANSWERS)[number];
 
-/** The segments and filters of `api.my_films`. The filter is ignored for `seen` and `later`. */
-export const MY_FILMS_SEGMENTS = ['liked', 'seen', 'later'] as const;
+/** The segments and filters of `api.my_films`. The filter is ignored for `seen`. A saved film is a solo like, under `liked`. */
+export const MY_FILMS_SEGMENTS = ['liked', 'seen'] as const;
 export type MyFilmsSegment = (typeof MY_FILMS_SEGMENTS)[number];
 export const MY_FILMS_FILTERS = ['all', 'friends', 'solo'] as const;
 export type MyFilmsFilter = (typeof MY_FILMS_FILTERS)[number];

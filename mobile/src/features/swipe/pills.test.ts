@@ -1,6 +1,6 @@
 import type { RoomSeat } from '@flimme/contract';
 
-import { doneNames, pillsFor } from './pills';
+import { doneNames, filmsShown, pillsFor } from './pills';
 
 function seat(id: string, joined: number, extra: Partial<RoomSeat> = {}): RoomSeat {
   return {
@@ -66,6 +66,15 @@ describe('pillsFor', () => {
       [true, false, true],
       [false, true, false],
     ]);
+  });
+});
+
+describe('filmsShown', () => {
+  it('is exact for the own seat and in steps of 5 (down) for the others', () => {
+    expect(filmsShown({ count: 7, isMe: true })).toBe(7);
+    expect(filmsShown({ count: 7, isMe: false })).toBe(5);
+    expect(filmsShown({ count: 4, isMe: false })).toBe(0);
+    expect(filmsShown({ count: 10, isMe: false })).toBe(10);
   });
 });
 
