@@ -20,7 +20,7 @@ All files are in `mobile/assets/sounds/`. Levels are in dB under the match, and 
 | [The winner screen](#the-winner-screen) | `winner.wav` | The film shows, after a group's pick seen live | Every phone that saw it live | None | 0.75 s | -10 |
 | [The solo pick](#the-solo-pick) | `solo-pick.wav` | The picked poster lands | The solo player's phone | `haptics.match()` | 1.14 s | -3 |
 | [Errors](#errors-and-refusals) | `error.wav` | Every refusal | The phone refused | `haptics.error()` | 0.42 s | -10 |
-| [Key buttons](#key-buttons) | `tap.wav` | Join, Start swiping | The phone pressed | `haptics.press()` | 0.01 s | -20 |
+| [Buttons](#key-buttons) | `tap.wav` | Every button press (Lock in plays its latch) | The phone pressed | `haptics.press()` | 0.01 s | -20 |
 | [The reminder](#the-did-you-watch-it-reminder) | `notify.wav` | The "Did you watch it?" notification | The phone notified | The system's | 0.96 s | 0 |
 | [The sonic logo](#the-sonic-logo) | `sonic-logo.wav` | The end of the preview video and ads. Never in the app | | | 2.97 s | 0 |
 
@@ -30,7 +30,7 @@ In a 4-player night that ends with the Final Cut, a phone plays about 15 sounds:
 
 - **One file, one meaning.** A file plays only at its moment. Nothing reuses `match.wav` or `reveal.wav`; they stay the night's two big beats.
 - **Volume 1, always.** The files carry their levels (the frequent ones sit far under the match). Never set a volume per sound in code.
-- **The existing audio mode applies to all of them:** mixed with other audio so the TV or music never pauses, quiet when the phone is set to silent, nothing in the background. The Sound switch in Settings turns every in-app sound off.
+- **The existing audio mode applies to all of them:** mixed with other audio so the TV or music never pauses, played even when the phone is on silent (`playsInSilentMode: true`, Harry, 6 November 2026), nothing in the background. The Sound switch in Settings turns every in-app sound off.
 - **Only live moments.** A sound plays when the phone sees the moment happen. A re-read, a reconnect or a cold start that finds the moment already past plays nothing. The one exception stays the match's "Missed it" ([match.md](screens/match.md#when-it-shows)).
 - **No sound tells the couch a private answer** (rule 6), with one exception Harry chose: the veto. None depends on a swipe, a like, a vote or a rank. The countdown plays only on phones that haven't locked in, and the latch on the phone that locks in, which every phone already shows. The veto's stamp plays only on the phone that vetoed, quietly, but the couch may hear that someone vetoed; Harry heard that risk in the sound lab and said yes ([the veto](#the-veto)).
 - **With its haptic, at the same instant,** when it has one. A sound never waits for an animation to end.
@@ -148,8 +148,10 @@ In a 4-player night that ends with the Final Cut, a phone plays about 15 sounds:
 
 `tap.wav`: a tiny, barely there click.
 
-- Only on two buttons that commit the player: **Join** on the join sheet (`join:link.join`, both the sheet and its name step, [join-sheet.md](screens/join-sheet.md)) and **Start swiping** (`lobby:start.cta`, the host, [lobby.md](screens/lobby.md)). **Lock in** plays [its latch](#locking-in) instead. Every other button stays silent.
-- Plays on press-in with `haptics.press()`, as `Pressable` does today, never on release. Not when the button is disabled.
+- **Every press ticks** (Harry, 6 November 2026): `Button`, icon buttons, chips, toggles, plain list rows, and the swipe screen's answer buttons (Like, Nope, Undo, Super, Seen). One tick for every press, the same for every answer, tells the couch nothing about what was answered. Swiping the card itself stays silent. **Lock in** plays [its latch](#locking-in) instead.
+- **No tick** when the button is disabled or loading, and on touch surfaces that aren't buttons and have no haptic (`haptic={false}`): the card's flip, an overlay's "tap anywhere", a finalist tile, the player pill, the long press on the code, a store badge. A screen can also pass `sound={false}`.
+- It is the default of `Pressable` (and so `Button`); no screen asks for it.
+- Plays on press-in with `haptics.press()`, as `Pressable` does, never on release.
 - It must start with the haptic: a late click feels detached. Check it on a low-end Android ([wiring](#wiring-it)).
 
 ### The "Did you watch it?" reminder
@@ -185,11 +187,11 @@ The shape below is a suggestion; the rules above are not.
 - **`lib/sound.ts`** keeps one audio mode and one player per file. The fixed names: `match`, `reveal`, `start`, `error`, `tap`, `join`, `lock-in`, `shortlist`, `veto`, `winner`, `solo-pick`. Two helpers pick the file: one for an arrival from the seat count (clamped to 2..10), one for the countdown from the seconds left. `require('@/assets/sounds/match.wav')` and so on.
 - **Preloading.** Create `tap`, `error` and `join` once the settings are read at launch: they must play without a delay, and the join plays before any room layout is up. Create `match`, `reveal`, `start`, the arrivals, `shortlist`, `winner` and `solo-pick` when the room layout mounts, the countdown ticks, `lock-in` and `veto` when the Final Cut mounts, and release them when the room ends. A player made at play time is too slow for the tick.
 - **Replaying.** A sound that plays again (two taps, two errors) restarts from the start. Don't queue.
-- **The button sounds:** a `sound` option on `Pressable` (and so `Button`), `tap` or `lock-in`, played next to the haptic in `onPressIn` when not disabled. Only Join, Start swiping and Lock in set it.
+- **The button sounds:** the tick is the default of `Pressable` (and so `Button`), `lock-in` is set by Lock in, both played next to the haptic in `onPressIn` when not disabled; `sound={false}` or `haptic={false}` turns the tick off.
 - **The error sound:** a single function that fires `haptics.error()` and the error sound together, used everywhere `haptics.error()` is called today (about 30 places), with a test that nothing outside `lib/` calls `haptics.error()` alone. The haptics switch and the Sound switch stay separate: either one off still lets the other through.
 - **Settings' helper** under the Sound switch (`settings:preferences.helper`) says today that sounds only play at the match and the reveal. It changes to the new text in [settings.md](screens/settings.md#copy-settings-namespace-new) in the same pull request, and so does the comment at the top of `lib/sound.ts`.
 - **Latency.** The tick and the latch must start within about 20 ms of the press haptic, and every other sound within about 100 ms of its moment. If the tick lands late on a low-end Android, don't ship it on that phone: tell Harry.
-- **Tests** (one per rule, rule 4): the reveal sound's start time in each of the three cases, the seat count to the arrival file, the seconds left to the countdown file and no tick after lock-in, nothing plays with the Sound switch off, Join and Start swiping play the tick and Lock in the latch on press-in and a disabled one plays nothing, every refusal plays the error sound, the join tear on `ok` only and on every join path, the bell with the shortlisted beat, the stamp when a veto lands and not when it moves, the winner chime once on a live group pick and never on a cold start or a solo pick, the solo pick's sound on landing, a re-read or a cold start plays no start or arrival sound, every app file in `assets/sounds` is required, and `sonic-logo.wav` is never required. The feel check covers hearing them on a couch.
+- **Tests** (one per rule, rule 4): the reveal sound's start time in each of the three cases, the seat count to the arrival file, the seconds left to the countdown file and no tick after lock-in, nothing plays with the Sound switch off, every button plays the tick (Lock in the latch) on press-in and a disabled one plays nothing, every refusal plays the error sound, the join tear on `ok` only and on every join path, the bell with the shortlisted beat, the stamp when a veto lands and not when it moves, the winner chime once on a live group pick and never on a cold start or a solo pick, the solo pick's sound on landing, a re-read or a cold start plays no start or arrival sound, every app file in `assets/sounds` is required, and `sonic-logo.wav` is never required. The feel check covers hearing them on a couch.
 
 ## Making or changing a sound
 

@@ -86,8 +86,8 @@ export type ButtonProps = {
   accessibilityHint?: string;
   /** Lets a screen move a screen reader's focus here (the lobby does after a refused Start). */
   focusRef?: Ref<PressableNode>;
-  /** On press-in: the tick (Join, Start swiping) or Lock in's latch. Every other button is silent. */
-  sound?: ButtonSound;
+  /** On press-in: the tick by default, Lock in's latch, or `false` for none. Never when disabled or loading. */
+  sound?: ButtonSound | false;
 };
 
 export function Button({
