@@ -136,7 +136,7 @@ Specified in the screen specs (`docs/design/screens/`) from 30 October 2026 on, 
 | `TabBar` | ui | New: two tabs (icon and label), the selected one in `marquee` | [The tab bar](screens/tab-bar.md#new-component) |
 | `SegmentedControl` | ui | New: two or three segments in one track, a sliding thumb (My films' Liked and Seen) | [My films](screens/my-films.md#new-components) |
 | `FilmTile` | shared | New: a film's poster as a grid tile, its placeholder, one badge (Picked or the star), used by My films and the pick sheet | [My films](screens/my-films.md#new-components) |
-| `MovieCard` | shared | Gains `still`: the back with no flip badge and no flip-back line (the film sheet) | [The film sheet](screens/film-sheet.md#design-system-changes) |
+| `MovieCard` | shared | Gains `bookmark` (M6.51): the Later bookmark, top left, front and back ([swipe](screens/swipe.md#the-card)). Gains `still`: the back with no flip badge and no flip-back line (the film sheet) | [The film sheet](screens/film-sheet.md#design-system-changes) |
 | `WhereToWatch` | shared | Moves from `screens/winner/` to `shared/`, and takes the "not listed" line as a prop | [The film sheet](screens/film-sheet.md#design-system-changes) |
 | `Toast` | ui | Gains an optional `action` (Undo) and `duration` | [The film sheet](screens/film-sheet.md#design-system-changes) |
 
