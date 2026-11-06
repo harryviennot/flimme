@@ -7,8 +7,8 @@ import { AccessibilityInfo, Platform, View } from 'react-native';
 import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 
 import { api } from '@/api';
+import { GenreChips } from '@/components/shared/genre-chips';
 import { Button } from '@/components/ui/button';
-import { Chip } from '@/components/ui/chip';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -143,21 +143,7 @@ export default function RoomGenresScreen() {
               {capped ? t('genresSheet.cap') : t('genresSheet.helper')}
             </Text>
             {ready && chips.length > 0 ? (
-              <View accessibilityRole="list" className="flex-row flex-wrap gap-2">
-                {chips.map((chip) => (
-                  <Chip
-                    key={chip.id}
-                    label={chip.name}
-                    count={chip.count > 0 ? chip.count : undefined}
-                    accessibilityLabel={t('genresSheet.chip', {
-                      name: chip.name,
-                      count: chip.count,
-                    })}
-                    selected={chip.selected}
-                    onPress={() => toggle(chip.id)}
-                  />
-                ))}
-              </View>
+              <GenreChips options={chips} selected={selection} showCounts onToggle={toggle} />
             ) : null}
             {ready && chips.length === 0 ? (
               <Text variant="body-m" tone="secondary">
