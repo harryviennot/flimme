@@ -427,7 +427,24 @@ If the server doesn't deal within 8 seconds, `internal.deal_baseline` deals in S
 
 So even a fallback deck doesn't repeat last week's.
 
+Per-player genres (below) are kept: the SQL deal makes the pick slots itself.
+
 In the first release nobody has a taste profile, so the SQL deal's fit is simpler still: every seat's fit is `5 × crowd`, where crowd is `0.85 × percentile(quality score) + 0.15 × percentile(popularity)` among tonight's eligible films, and `group_score` and `min_fit` equal it. It needs no `title_vectors` row.
+
+## Per-player genres
+
+Players can pick up to 3 genres in the lobby ([the rules](../product/game-modes.md#genres-tonight)). The tuning is the genre simulation's (M6.52, "Per-player genres" in [simulations.md](../product/simulations.md)); M6.53 built it into the SQL deal.
+
+- **The picks:** `api.start_game` copies the present seats' picks, kept to the genres offered tonight, into `room_models.genre_picks`: one array per seat that picked. Seats with no picks are left out. Nothing changes them after Start.
+- **A film's weight** is the share of those seats whose picks include one of its genres (`internal.pick_weight`): with picks of {Comedy}, {Comedy} and {Horror}, a comedy weighs 2/3, a horror comedy 1. With no picks every weight is 0.
+- **The pools.** `internal.deck_candidates` cuts each pool on its own: today's top 300 by score above the misery line, and the pick pool's top 300 (films with a weight, above the line) by `score + 0.3 × ln(weight)`. A single cut by score would keep only the pick films already in today's top 300. Its columns don't change: the deal reads each film's weight with `internal.pick_weight`.
+- **The draw.** `internal.deal_baseline` walks two lists for each seat. The open list is today's weighted shuffle over every candidate. The pick list holds the films with a weight, shuffled by `internal.shuffle_key(seed, film, score + 0.3 × ln(weight))`: since the key divides the score by 0.3, the weight multiplies a film's odds. Position n of a seat's deck (counted over its whole deck, so refills and late joiners carry on the same pattern) is a pick slot when `floor(0.5 + n × share)` passes a whole number. With a share of 3 in 4, slots 1, 2 and 4 of every 4 are pick slots, 8 of the first 10. A slot takes the first film of its list not dealt yet whose franchise isn't among the previous 9 cards; when its list has none, it takes the other list's.
+- **The starvation guard.** The share is 3 in 4 when 100 eligible films or more match a pick, and 3 in 4 × size / 100 below (40 films: 0.3). The first SQL deal sets it in `room_models.pick_share`, counting the eligible films before the misery line, like the 30-film rule.
+- **The shared opening** comes out of the same walk: at Start every seat walks the same lists, so the first 10 cards are the same for everyone.
+- **No picks, today's deck.** With no picks the share is 0, every slot is open, and the deal is exactly the one before M6.53.
+- **The 30-film rule.** `internal.offered_genres` counts tonight's eligible films (`internal.eligible_titles`, the same filters as the deal) per genre. `api.set_seat_prefs` refuses a genre under 30 (`unknown_genre`), and `api.room_genres` lists only the others. After Start the films already dealt still count, so the offer doesn't shrink as the game runs.
+- **Propensity.** A card logs its odds in the list it came from (the open list's or the pick list's).
+- **The server deck (M17)** will need the same mix; until then the SQL deal is the only one.
 
 ## Logging and upgrading
 
@@ -540,6 +557,7 @@ All placeholders until playtests. The taste builder's values are stored with the
 | `freshness.repeat_factor`, `.repeat_max`, `.max` | 0.5, 3, 5 |
 | `freshness.rematch_slots`, `.rematch_window_days`, `.rematch_top_share`, `.rematch_positions` | 1, 30, 0.25, cards 12 to 18 |
 | `deck.deal_size` | 25 |
+| `genres.pick_share`, `genres.pool_guard`, `genres.min_films`, `genres.per_player` | 0.75, 100 films, 30 films, 3 (M6.53; constants in `internal.deal_baseline` and `internal.offered_genres` until the recipes move to the server) |
 | `deck.temperature` | 0.3 |
 | `deck.personal_tilt` | 0.25 |
 | `deck.variety.mmr`, `.window`, `.main_genre_max`, `.collection_window` | 1.0, 5 cards, 2 in any 5, 10 cards |

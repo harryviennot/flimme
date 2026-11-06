@@ -272,13 +272,14 @@ select is(pg_temp.snap(current_setting('tests.room_x')::uuid, 'x', 3),
           pg_temp.snap(current_setting('tests.room_y')::uuid, 'y', 3),
           'M6.50: saves change no counter, match, near miss, event or deck in a room');
 
+-- The solo deck's filter lives in internal.eligible_titles since M6.53 (it was in internal.deck_candidates).
 -- Every function that reads saved_at is one of these, so no room function (the deck, cast_vote''s
 -- match check and near miss, the shortlist, the finalists, labels, card payloads) starts reading it.
 select is((select array_agg(n.nspname || '.' || p.proname order by n.nspname, p.proname)
            from pg_proc p join pg_namespace n on n.oid = p.pronamespace
            where p.prosrc ~ 'saved_at' and n.nspname in ('api', 'internal', 'public', 'rec')),
           array['api.export_my_data', 'api.my_film_card', 'api.my_films', 'api.set_film_saved',
-                'internal.deck_candidates', 'internal.prune_film_rows'],
+                'internal.eligible_titles', 'internal.prune_film_rows'],
           'M6.50: only My films, the export, the pruner and the solo deck read saved_at');
 select ok(not exists (select 1 from information_schema.columns
                       where table_schema = 'api' and column_name = 'saved_at'),

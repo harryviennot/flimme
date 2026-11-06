@@ -17,6 +17,7 @@ import {
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
   PLAY_AGAIN_ANSWERS,
+  ROOM_GENRES_ANSWERS,
   ROOM_RUNNERS_UP_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
@@ -257,6 +258,12 @@ const cases = [
         ],
       },
     },
+  },
+  {
+    name: 'room_genres',
+    answers: ROOM_GENRES_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.roomGenres({ room_id: ROOM }),
+    full: { ok: { options: [{ genre_id: 35, count: 2 }], mine: [35] } },
   },
   {
     name: 'update_room_settings',
