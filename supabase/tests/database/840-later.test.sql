@@ -6,7 +6,7 @@
 -- Solo decks skip saved films, as they skip the rest of My films.
 
 begin;
-select plan(52);
+select plan(53);
 
 select tests.create_catalog(40);
 update public.titles set is_active = false where original_title not like 'Catalog Film %';
@@ -241,6 +241,9 @@ select set_config('tests.room_y', tests.room_id()::text, true);
 select pg_temp.save('x1', tests.film(n), true) from generate_series(1, 4) n;
 select pg_temp.save('x2', tests.film(2), true);
 select pg_temp.save('x3', tests.film(3), true);
+select is((select count(*) from public.user_titles
+           where saved_at is not null and profile_id in (tests.uid('x1'), tests.uid('x2'), tests.uid('x3'))),
+          6::bigint, 'the six saves in the room with saves are in place');
 
 create function pg_temp.play(prefix text, r uuid) returns void language plpgsql as $$
 begin
