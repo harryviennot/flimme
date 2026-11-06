@@ -145,7 +145,7 @@ From [the first game](../product/onboarding.md#the-first-game). The beats that t
 
 Everything on the back is already in the card's payload from `api.my_next_cards` (overview, runtime, directors, cast, providers, trailer key), so a flip never waits on the network, offline included.
 
-**The back doesn't scroll** (default, [question 7](#questions-for-harry)): a scroll inside the card would fight the swipe up for "Seen it". The synopsis is cut to fit the back, with an ellipsis.
+**The back doesn't scroll** (default, [question 7](#questions-for-harry)): a scroll inside the card would fight the swipe up for "Seen it". The synopsis is cut to fit the back, with an ellipsis. Since 6 November 2026 (M6.59), a cut synopsis ends with "Read more", which opens the whole text in a sheet over the stack; the back still never scrolls ([swipe](screens/swipe.md#the-card-back-reworked)).
 
 **The trailer** opens outside the game (and is hidden in rooms capped under 13, M7.3). The game doesn't wait: a player away for more than 90 seconds stops counting as present, as for any other app.
 
