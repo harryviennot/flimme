@@ -152,7 +152,7 @@ Why: decisions.md, "Store assets use fictional posters": "a 13+ target audience 
 
 | Question | Answer | Why |
 | --- | --- | --- |
-| Could your store listing unintentionally appeal to children? (if asked) | No | Fictional posters, no cartoon characters or youthful imagery, and never "for kids" in the copy (decisions.md, "Store assets use fictional posters"). Before answering, look at M11.1's listing and M11.3's screenshots: if an image looks made for children, fix the image, not this answer |
+| Could your store listing unintentionally appeal to children? (if asked) | No | Fictional posters, no cartoon characters or youthful imagery, and never "for kids" in the copy (decisions.md, "Store assets use fictional posters"). Before answering, look at the [listing](listing.md) and M11.3's screenshots: if an image looks made for children, fix the image, not this answer |
 | Questions about ads shown to children | They don't appear | They come only with an age group under 13 |
 | Teacher Approved | Not applicable | Only for apps that target children |
 
