@@ -201,8 +201,10 @@ export type TitleCardsAnswer = (typeof TITLE_CARDS_ANSWERS)[number];
  * My films (M6.41, solo-and-my-films.md). `api.my_films` has one answer, `ok`; a bad segment, filter or
  * cursor raises (22023). `api.my_film_card` answers `ok` with the card and the caller's own `seen`
  * and `liked` flags, `not_found` for a film outside the caller's own rows, `rate_limited` at 60 calls
- * per 10 minutes. `api.set_film_seen` and `api.remove_my_film` answer `ok`, `not_found` (nothing to
- * change) or `rate_limited` (they share 60 per 10 minutes).
+ * per 10 minutes; its `ok` also carries `saved` (M6.50). `api.set_film_seen`, `api.remove_my_film` and
+ * `api.set_film_saved` answer `ok`, `not_found` (nothing to change) or `rate_limited` (they share 60 per
+ * 10 minutes). `api.set_film_saved` (M6.50, Later) answers `not_found` for a save of a film never dealt
+ * to the caller nor in their rows, and for an unsave of a film that is not saved; a repeat save is `ok`.
  */
 export const MY_FILMS_ANSWERS = ['ok'] as const;
 export type MyFilmsAnswer = (typeof MY_FILMS_ANSWERS)[number];
@@ -212,9 +214,11 @@ export const SET_FILM_SEEN_ANSWERS = ['ok', 'not_found', 'rate_limited'] as cons
 export type SetFilmSeenAnswer = (typeof SET_FILM_SEEN_ANSWERS)[number];
 export const REMOVE_MY_FILM_ANSWERS = ['ok', 'not_found', 'rate_limited'] as const;
 export type RemoveMyFilmAnswer = (typeof REMOVE_MY_FILM_ANSWERS)[number];
+export const SET_FILM_SAVED_ANSWERS = ['ok', 'not_found', 'rate_limited'] as const;
+export type SetFilmSavedAnswer = (typeof SET_FILM_SAVED_ANSWERS)[number];
 
-/** The segments and filters of `api.my_films`. The filter is ignored for `seen`. */
-export const MY_FILMS_SEGMENTS = ['liked', 'seen'] as const;
+/** The segments and filters of `api.my_films`. The filter is ignored for `seen` and `later`. */
+export const MY_FILMS_SEGMENTS = ['liked', 'seen', 'later'] as const;
 export type MyFilmsSegment = (typeof MY_FILMS_SEGMENTS)[number];
 export const MY_FILMS_FILTERS = ['all', 'friends', 'solo'] as const;
 export type MyFilmsFilter = (typeof MY_FILMS_FILTERS)[number];
