@@ -220,16 +220,16 @@ From the beat; every duration is a token from `@/theme/motion`.
 | Arrival | Screen `layout.fadeIn`; posters `layout.popIn`, staggered by `duration.instant` | None |
 | Rank or unrank | Badge pop `spring.snappy`; ring colour `duration.fast`; numbers change in place | `haptics.press()` |
 | Holding a poster (veto allowed) | Sinks 4 points, `timing.press`; back with `timing.release` | None |
-| Veto lands | Stamp `layout.popIn`; poster to `opacity-disabled`, `duration.fast` | `haptics.veto()`, once |
+| Veto lands | Stamp `layout.popIn`; poster to `opacity-disabled`, `duration.fast` | `haptics.veto()`, once, with the stamp's sound |
 | Veto lifted or moved | Old stamp `layout.fadeOut`; a moved one pops on the new poster | None |
-| Lock in | Button press; Sending; Locked in look crossfades (`duration.fast`), check `spring.snappy` | The button's `press` only, no `commit` |
+| Lock in | Button press; Sending; Locked in look crossfades (`duration.fast`), check `spring.snappy` | The button's `press` and the latch on press-in, no `commit` |
 | Someone locks in | Avatar opacity `duration.fast`, check `spring.snappy` | None |
 | Last 10 seconds | `Countdown` turns red | None |
 | Last 5 seconds | None | `haptics.countdown()` each second, only before lock-in |
 | Zero, or everyone locked in | Countdown `layout.fadeOut`; Counting `layout.fadeIn`; posters to `opacity-stack-near`, `timing.base` | None |
 | Done | [The reveal](#the-reveal) | [The reveal](#the-reveal) |
 
-**Sound during the round:** only the countdown's tick on each of the last 5 seconds, with `haptics.countdown()` and only before lock-in, and Lock in's button tick on press-in ([sounds.md](../sounds.md#the-final-cuts-last-5-seconds)). The reveal plays `playSound('reveal')` once ([The sequence](#the-sequence)).
+**Sound during the round:** the veto's stamp when it lands (this phone only, [sounds.md](../sounds.md#the-veto)), the countdown's tick on each of the last 5 seconds, with `haptics.countdown()` and only before lock-in ([sounds.md](../sounds.md#the-final-cuts-last-5-seconds)), and Lock in's latch on press-in ([sounds.md](../sounds.md#locking-in)). Moving or lifting a veto is silent. The reveal plays `playSound('reveal')` once ([The sequence](#the-sequence)).
 
 **The veto's buzz** fires as the stamp starts popping, not 250 ms later when the pop ends: the arcade curve reaches full size early, and a late buzz feels disconnected. A starting point for the feel check.
 

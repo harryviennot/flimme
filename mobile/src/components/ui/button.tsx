@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { cn } from '@/lib/cn';
+import type { ButtonSound } from '@/lib/sound';
 import { tokens, type ColorToken } from '@/theme/generated/tokens';
 import { timing } from '@/theme/motion';
 
@@ -85,8 +86,8 @@ export type ButtonProps = {
   accessibilityHint?: string;
   /** Lets a screen move a screen reader's focus here (the lobby does after a refused Start). */
   focusRef?: Ref<PressableNode>;
-  /** The button tick on press-in (Join, Start swiping, Lock in only). */
-  sound?: 'tap';
+  /** On press-in: the tick (Join, Start swiping) or Lock in's latch. Every other button is silent. */
+  sound?: ButtonSound;
 };
 
 export function Button({

@@ -72,6 +72,7 @@ The messages are shared with the [join sheet](join-sheet.md).
 - **The wrong-code shake:** the row moves 8 points left, right, left and back (`space.8`), each step `duration.instant` with `easing.standard` (320 ms in all), with `haptics.error()` at the start. The digits clear when it ends. It should read as "try again", not as a crash.
 - `PinBox` shows its new `error` state (below) from the answer until the next keystroke.
 - The keypad's own clicks are the system's; no haptic per digit.
+- When `join_room` answers `ok`, the ticket tears (`playSound('join')`, [sounds.md](../sounds.md#joining-a-room)) as the room comes in. No haptic.
 
 ## Accessibility
 
