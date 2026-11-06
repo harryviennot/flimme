@@ -563,9 +563,19 @@ export const cardRow = z.object({
 });
 export type Card = z.infer<typeof cardRow>;
 
+// A card in a room, as `api.my_next_cards` and `api.title_cards` send it (M6.65): the calling
+// player's own marks, never another seat's. `seen`: the film is in their My films, Seen. `saved`:
+// it is in their My films likes (a game like, a solo like, a save or a group's pick).
+export const roomCardRow = z.object({
+  ...cardRow.shape,
+  seen: z.boolean(),
+  saved: z.boolean(),
+});
+export type RoomCard = z.infer<typeof roomCardRow>;
+
 export const DECK_SOURCES = ['opening', 'ranked', 'propagated', 'wildcard'] as const;
 export const nextCardRow = z.object({
-  ...cardRow.shape,
+  ...roomCardRow.shape,
   deck_source: z.enum(DECK_SOURCES),
   reason_code: z.nullable(z.string()),
   reason_params: z.record(z.string(), z.unknown()),
@@ -619,7 +629,7 @@ export type MyFilmEditResult = z.infer<typeof myFilmEditResult>;
 
 /** `api.title_cards`: the room's films as cards, in the order asked; other films are left out. */
 export const titleCardsResult = z.discriminatedUnion('status', [
-  z.object({ status: z.literal('ok'), cards: z.array(cardRow) }),
+  z.object({ status: z.literal('ok'), cards: z.array(roomCardRow) }),
   z.object({ status: z.literal('too_many'), max: z.number() }),
   z.object({ status: z.literal('rate_limited') }),
 ]);

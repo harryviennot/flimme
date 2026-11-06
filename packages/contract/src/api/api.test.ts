@@ -958,6 +958,8 @@ describe('my_next_cards', () => {
     reason_code: null,
     reason_params: {},
     member_ratings: [{ member_id: MEMBER, rating: 4.5 }],
+    seen: true,
+    saved: false,
   };
 
   it('a sample card parses and the arguments are mapped', async () => {

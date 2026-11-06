@@ -55,7 +55,8 @@
     "stampSeen": "Déjà vu",
     "stampSuper": "Super",
     "bookmarkSave": "Ajouter à Mes films",
-    "bookmarkRemove": "Retirer de Mes films"
+    "bookmarkRemove": "Retirer de Mes films",
+    "bookmarkAlready": "Déjà dans Mes films"
   },
   "ticket": {
     "roomCode": "Code de la salle",

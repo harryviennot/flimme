@@ -12,6 +12,12 @@ export const gallery: GalleryEntry = {
     'The swipe screen controls. Press to sink onto the lip; lit while a card is dragged toward it.',
   render: () => (
     <View className="gap-6">
+      {/* Seen it on a film already seen: a dimmed tick, disabled. */}
+      <View className="flex-row items-end">
+        <View className="flex-1 items-center">
+          <SwipeAction kind="seen" done />
+        </View>
+      </View>
       {/* Equal-width columns, like the swipe screen: the gaps stay even in every language. */}
       <View className="flex-row items-end">
         {kinds.map((kind) => (

@@ -27,6 +27,8 @@ export type ActionRowProps = {
   lit: SharedValue<number>;
   /** Solo: super likes never run out, so the button shows no count. */
   hideSuperCount?: boolean;
+  /** The top film is already in the player's My films, Seen: the Seen it button is a disabled tick. */
+  topSeen?: boolean;
 };
 
 export function ActionRow({
@@ -38,6 +40,7 @@ export function ActionRow({
   onAnswer,
   lit,
   hideSuperCount = false,
+  topSeen = false,
 }: ActionRowProps) {
   const { t } = useTranslation('swipe');
   const [litCode, setLitCode] = useState<number>(LIT.none);
@@ -97,6 +100,9 @@ export function ActionRow({
         <SwipeAction
           kind="seen"
           disabled={!canAnswer}
+          done={topSeen}
+          accessibilityLabel={topSeen ? t('a11y.seenAlready') : undefined}
+          accessibilityHint={topSeen ? t('a11y.seenAlreadyHint') : undefined}
           lit={litCode === LIT.seen}
           onPress={() => onAnswer('seen')}
         />

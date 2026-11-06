@@ -64,6 +64,11 @@ export type MovieCardProps = {
    */
   bookmark?: {
     saved: boolean;
+    /**
+     * The film is already in the player's My films likes (the read said so): a tick, disabled. It
+     * cannot be taken back from the card; My films' sheet does that.
+     */
+    alreadySaved?: boolean;
     onToggle: () => void;
     /** A touch started on the bookmark, so a card that flips on a tap can tell it apart. */
     onTouch?: () => void;
@@ -332,7 +337,8 @@ function BookmarkBadge({ bookmark }: { bookmark: NonNullable<MovieCardProps['boo
   const { t } = useTranslation();
   const reduced = useReducedMotion();
   const scale = useSharedValue(1);
-  const { saved } = bookmark;
+  const { alreadySaved = false } = bookmark;
+  const saved = bookmark.saved || alreadySaved;
   const first = useRef(true);
   useEffect(() => {
     if (first.current) {
@@ -352,8 +358,15 @@ function BookmarkBadge({ bookmark }: { bookmark: NonNullable<MovieCardProps['boo
       testID="movie-card-bookmark-wrap"
     >
       <Pressable
-        accessibilityLabel={saved ? t('card.bookmarkRemove') : t('card.bookmarkSave')}
-        accessibilityState={{ selected: saved }}
+        accessibilityLabel={
+          alreadySaved
+            ? t('card.bookmarkAlready')
+            : saved
+              ? t('card.bookmarkRemove')
+              : t('card.bookmarkSave')
+        }
+        accessibilityState={{ selected: saved, disabled: alreadySaved }}
+        disabled={alreadySaved}
         onPress={bookmark.onToggle}
         testID="movie-card-bookmark"
       >
@@ -365,9 +378,9 @@ function BookmarkBadge({ bookmark }: { bookmark: NonNullable<MovieCardProps['boo
           )}
         >
           <Icon
-            name="bookmark"
+            name={alreadySaved ? 'check' : 'bookmark'}
             size={22}
-            filled={saved}
+            filled={saved && !alreadySaved}
             color={saved ? 'marquee-default' : 'text-primary'}
           />
         </Animated.View>

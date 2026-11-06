@@ -117,6 +117,8 @@ function film(id: number): NextCard {
     reason_code: null,
     reason_params: {},
     member_ratings: [],
+    seen: false,
+    saved: false,
   };
 }
 
@@ -139,10 +141,17 @@ async function makeSwipe(
     solo?: boolean;
     /** `request_cards` answers `daily_limit`. */
     capped?: boolean;
+    /** Films the player has already seen or saved, by id (the card's own flags, M6.65). */
+    seenIds?: number[];
+    savedIds?: number[];
   } = {},
 ) {
   const votes: QueuedVote[] = [];
-  const cards = Array.from({ length: options.cards ?? 20 }, (_, i) => film(i + 1));
+  const cards = Array.from({ length: options.cards ?? 20 }, (_, i) => ({
+    ...film(i + 1),
+    seen: options.seenIds?.includes(i + 1) ?? false,
+    saved: options.savedIds?.includes(i + 1) ?? false,
+  }));
   const stack = createCardStack(
     {
       fetchCards: async () => cards.filter((c) => !votes.some((v) => v.title_id === c.title_id)),
@@ -387,6 +396,57 @@ describe('super likes', () => {
     expect(screen.getByLabelText('No super likes left').props.accessibilityState.disabled).toBe(
       true,
     );
+  });
+});
+
+describe('a film the player has already seen or saved (M6.66)', () => {
+  it('disables Seen it with a tick, silent, while Like and Nope still answer', async () => {
+    const { votes } = await setup({ seenIds: [1] });
+    await layoutStack();
+    expect(screen.queryByLabelText('Seen it')).toBeNull();
+    const seen = screen.getByLabelText('Seen it, already marked');
+    expect(seen.props.accessibilityState.disabled).toBe(true);
+    expect(seen.props.accessibilityHint).toBe('This film is already in My films, Seen');
+    await fireEvent.press(seen);
+    expect(votes).toHaveLength(0);
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([[1, 'like']]);
+    // The next film was not seen: the button is back.
+    expect(screen.getByLabelText('Seen it').props.accessibilityState.disabled).toBeFalsy();
+  });
+
+  it('says it in French', async () => {
+    await i18n.changeLanguage('fr');
+    try {
+      await setup({ seenIds: [1] });
+      await layoutStack();
+      expect(screen.getByLabelText('Déjà vu, déjà noté').props.accessibilityState.disabled).toBe(
+        true,
+      );
+    } finally {
+      await i18n.changeLanguage('en');
+    }
+  });
+
+  it('takes the seen and save actions off the card for screen readers', async () => {
+    await setup({ seenIds: [1], savedIds: [1] });
+    await layoutStack();
+    const card = screen.getByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0');
+    expect(card.props.accessibilityActions.map((a: { name: string }) => a.name)).toEqual([
+      'like',
+      'nope',
+      'superLike',
+      'flip',
+    ]);
+  });
+
+  it('shows the bookmark ticked and disabled for a film already in My films', async () => {
+    await setup({ savedIds: [1] });
+    await layoutStack();
+    const bookmark = screen.getAllByLabelText('Already in My films')[0]!;
+    expect(bookmark.props.accessibilityState).toMatchObject({ disabled: true, selected: true });
+    await fireEvent.press(bookmark);
+    expect(mockToggleSaved).not.toHaveBeenCalled();
   });
 });
 

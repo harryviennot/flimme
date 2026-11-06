@@ -55,7 +55,8 @@
     "stampSeen": "Seen it",
     "stampSuper": "Super",
     "bookmarkSave": "Add to My films",
-    "bookmarkRemove": "Remove from My films"
+    "bookmarkRemove": "Remove from My films",
+    "bookmarkAlready": "Already in My films"
   },
   "ticket": {
     "roomCode": "Room code",

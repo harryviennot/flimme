@@ -107,6 +107,8 @@ function film(id: number): NextCard {
     reason_code: null,
     reason_params: {},
     member_ratings: [],
+    seen: false,
+    saved: false,
   };
 }
 const deck = (n: number) => Array.from({ length: n }, (_, i) => film(i + 1));

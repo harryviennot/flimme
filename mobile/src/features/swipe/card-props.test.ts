@@ -38,6 +38,8 @@ const base: NextCard = {
   reason_code: null,
   reason_params: {},
   member_ratings: [],
+  seen: false,
+  saved: false,
 };
 
 describe('formatRuntime', () => {
