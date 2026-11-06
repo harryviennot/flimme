@@ -18,6 +18,7 @@ Built in parts, each with its own section here:
 | M6.58 | The bookmark's new place, low on the card's right (design pass (b), M6.60) | [The bookmark](#the-bookmark) |
 | M6.37 | The shortlist in the top bar, the shortlisted beat over the stack, the route held on the third match, Undo after a shortlisted match | [The top bar](#the-top-bar), [The shortlisted beat](#the-shortlisted-beat), [Undo](#undo) |
 | M6.44 | The solo variant: the solo top bar, the checkpoint card, the pick sheet, out of films, the cap card | [Solo](#solo) |
+| M6.61 | The card back reworked (the poster's middle, the front's fade, the score in the meta line, one row of logos, the synopsis sheet) and the solid stack, from Harry's feel test of 6 November 2026 (specified in M6.59) | [The card back, reworked](#the-card-back-reworked), [The stack](#the-stack) |
 
 ## Purpose
 
@@ -113,10 +114,30 @@ Focus order: the title, close, the rows in order (each a button but your own, hi
 
 `screens/swipe/card-stack.tsx`, M6.9, on the card stack store (M6.25) and the vote queue (M6.11).
 
-- **Three mounted cards.** The top card at full size. The second at 95% (a starting value), `translate-y-2`, `opacity-stack-near`. The third at 90%, `translate-y-4`, `opacity-stack-far`. Only the top card takes touches.
-- **The next card is already there.** When the top card is thrown, the second settles to full size and full opacity (`spring.snappy`) and is draggable at once; a new third mounts behind with `layout.fadeIn`. Up to 3 thrown cards can be in flight at once.
+- **Three mounted cards, all solid.** The top card at full size. The second at 95% (a starting value), `translate-y-2`. The third at 90%, `translate-y-4`. Cards behind are never see-through: each is drawn at full opacity and darkened by [the dim layer](#the-dim-layer) (M6.61; until then they used `opacity-stack-near` and `opacity-stack-far`, which let the third card show through the second). Only the top card takes touches.
+- **The next card is already there.** When the top card is thrown, the second settles to full size and full brightness (`spring.snappy`) and is draggable at once; a new third mounts behind with `layout.fadeIn`. Up to 3 thrown cards can be in flight at once.
 - **Every new card arrives front side up.**
 - **Past the mounted cards** (the refill is late): the [loading card](#states) takes the top card's place.
+
+### The dim layer
+
+M6.61, from Harry's feel test of 6 November 2026: "when swiping, the card underneath has opacity, meaning we can see through and also see the card under that one". The cards behind are now solid and dimmed, as if the lights were lower on them.
+
+- **What it is.** In `screens/swipe/swipe-card.tsx`, an `Animated.View` drawn over the `MovieCard`, inside the card's moving view (so it rides the scale and offset): `absolute inset-0 rounded-xl bg-bg-sunken`, `pointerEvents="none"`, hidden from screen readers. The card's own opacity is 1; `fade` (the Reduce Motion throw and Undo) keeps working as today.
+- **Its opacity** comes from the same `depthValue` that drives the scale, on the UI thread: `interpolate(d, [0, 1, 2], [0, opacity.stack-dim-near, opacity.stack-dim-far])`. So when the top card is thrown, the second card brightens with the same `spring.snappy` that brings it forward.
+- **With the drag**, the second card brightens as it grows: its layer is `stack-dim-near * (1 - progress)`, clear at the commit line (the progress that already scales it).
+
+| Depth | Scale | Offset | Dim layer | Looks like |
+| --- | --- | --- | --- | --- |
+| 0, the top card | 1 | none | none | Full brightness |
+| 1 | 0.95, growing to 1 with the drag | `translate-y-2` | `opacity.stack-dim-near`, 0.3 (to 0 with the drag) | About 70% bright, as before, but solid |
+| 2 | 0.9 | `translate-y-4` | `opacity.stack-dim-far`, 0.55 | About 45% bright, solid |
+
+Starting values that keep today's brightness without the see-through; tuned at the feel check.
+
+- **Sixty frames a second on a low-end Android.** One plain view per card with an animated opacity: a compositing change on the UI thread, no React render, no new image. No `filter`, no brightness or colour matrix on the poster, no blur, no Skia: those redraw the poster on every frame. The near-miss glow stays behind the card and is never dimmed (it is only on the top card).
+- **A new third card** still fades in with `layout.fadeIn`; behind two solid cards only its 16-point peek fades in from the canvas.
+- **Reduce Motion:** the depth changes at once (Reanimated skips the spring), and the layer jumps with it. The drag doesn't brighten it: the second card is already full size there, so it stays at `stack-dim-near` until it is on top.
 
 ### Gestures
 
@@ -154,12 +175,120 @@ Placeholders, tuned at the first feel check. The gesture rules live in `features
 
 **Front** (screens 11 and 12): the poster, the `card-front-scrim` (a soft nine-stop fade of `bg.sunken` from clear to 88%, over the bottom 92% of the card, so most of the poster shows; the back keeps `card-scrim`), the flip badge, the title in `title-l`, the meta in `mono-data` in `text.primary` (AA over a bright poster, which `text.secondary` cannot reach under a light fade; "2019 · 2 h 04 · Thriller · ★ 7.4": the year, the runtime and the score through `Intl`, the first genre), the room's services for the film as `Tag`s. No reason tag in the first release (the First release frame's caption: watchlist and taste reasons wait for M17 to M20).
 
-**Back** (screen 13, M6.10): the 132-point header (poster, scrim, title, meta, the `refresh` flip badge); the TMDB score box (`star`, `display-m` in `marquee.default`, `common:card.tmdbRating`); `common:card.synopsis` and the overview in `body-m`, cut with an ellipsis to the space left (the back never scrolls, Q10.1); `common:card.director` and `common:card.cast` (the directors and the first 5 names, joined with `Intl.ListFormat`; the cast line takes two lines); the room's services for the film, each with its logo when TMDB has one (`w92`, six at most), with the JustWatch credit under them (`common:card.justwatch`, `body-s` in `text-muted`, wraps at large text sizes; the same wording as the invite page, and it shows whenever the back shows services, TMDB's rule in [tmdb.md](../../integrations/tmdb.md#terms-licence-and-attribution)); the Trailer button (`Button` secondary S, icon `play`, `common:card.trailer`), which opens the trailer outside the app; `common:card.flipBack`. No Letterboxd rating (M20).
+**Back** (screen 13, M6.10, reworked by M6.61 from Harry's feel test of 6 November 2026, [below](#the-card-back-reworked)): the 132-point header (the poster's vertical middle, the front's `card-front-scrim`, the title, the meta line with the TMDB score, the `refresh` flip badge); the synopsis in `body-m`, with "Read more" to [the synopsis sheet](#the-synopsis-sheet) when it doesn't fit; `common:card.director` and `common:card.cast` (the directors and the first 5 names, joined with `Intl.ListFormat`; the cast line takes two lines); one row of the room's services as small logos, with "+n" when they don't all fit, and the Trailer button (`Button` secondary S, icon `play`, `common:card.trailer`) at its end, which opens the trailer outside the app; the JustWatch credit under them (`common:card.justwatch`, `body-s` in `text-muted`, whenever logos show: TMDB's rule in [tmdb.md](../../integrations/tmdb.md#terms-licence-and-attribution)). No score box and no "Tap the card to flip back" line since M6.61. No Letterboxd rating (M20).
 
 - **The bookmark:** low on the card's right edge, on both faces ([The bookmark](#the-bookmark), moved by design pass (b)).
 - **No trailer** when `trailer_key` is null: rooms capped under 13 always get null (M7.3), and so do films without one. The services badges take the row alone.
 - **The flip** (moments.md#the-flip): a tap turns the card in place (`timing.flip`, faces swap halfway), a second tap turns it back. The cards behind don't move. A drag mid-turn takes the card from where it is; a tap mid-turn reverses it. The back answers exactly like the front (drags, buttons, stamps over the back). No haptic, no sound. Whether the card was flipped goes with its vote (`flipped`, M6.2). Everything on the back is in the card's payload, so a flip never waits, offline included.
-- **Missing data:** no overview shows `swipe:card.noSynopsis`; no score hides its box; no director or cast hides its line.
+- **Missing data:** no overview shows `swipe:card.noSynopsis` (never with "Read more"); no score leaves it out of the meta line; no director or cast hides its line; no services hides the row and the credit.
+
+### The card back, reworked
+
+M6.61, specified on 6 November 2026 (M6.59) from Harry's feel test on his iPhone: the poster preview was too dark and showed only the top of the poster, the synopsis was sometimes cut before it was readable, and the score box and the service badges took too much height. Screen 13 still sets the parts; this section wins where they differ.
+
+Top to bottom, on a 345-point card (393-point phone):
+
+| Part | Layout | Height |
+| --- | --- | --- |
+| The header | `h-33`, `overflow-hidden`: the poster, the fade, the badges, the title block | 132 |
+| The body | `flex-1 gap-3 px-5 py-3.5` | 386 |
+| The synopsis | `min-h-0 flex-1 gap-1`: `common:card.synopsis` (`mono-eyebrow` `text-secondary`), the overview (`body-m`), "Read more" when it is cut | What's left: about 175, 8 lines (about 80, 4 lines, before) |
+| The credits | `gap-0.5`: director (one line), cast (two lines), `body-s` `text-secondary` | 54 |
+| The services row | `flex-row items-center gap-1.5`: the logos (`flex-1`), then the Trailer button. Full width: it ends above the bookmark, never beside or under it | 36 (the button's height) |
+| The last row | [The bookmark](#the-bookmark)'s row from design pass (b): `flex-row items-end gap-3`, the JustWatch credit (`body-s` `text-muted`) in a `flex-1` column, then the 44-point bookmark, which lands at `right-5 bottom-3.5`, its place on the front too. `gap-1` under the services row | 44 (the bookmark's height) |
+
+**The poster's middle.** The poster fills the header straight away (`Poster`, `absoluteFill`, `contentFit="cover"` with its default centred position), so the header shows the poster's vertical middle: the middle 132 points of a 518-point poster at the card's width. The wrapper that drew a whole card-shaped poster from `-top-5` goes. `Poster` itself doesn't change.
+
+**The front's fade.** The header's gradient becomes the front's, unchanged: `GradientFill gradient="card-front-scrim"` in a view `absolute inset-x-0 bottom-0` at 92% of the header's height, as on the front (the 5 November fix, PR #203). `card-scrim` leaves the back; it stays for the match poster and the Final Cut bands. The title block keeps its place (`absolute left-5 right-16 bottom-4 gap-0.5`, clear of the badges' column); the meta moves to `text.primary`, as on the front, for AA over the lighter fade.
+
+**The TMDB score, inline.** The score box goes. The header's meta line carries the score: "2017 · 1 h 43 · ★ 7,4 TMDB", that is the year and the runtime (`back.meta`, through `Intl` as today), a " · ", then `common:card.tmdbScore`, with "★ 7,4" in tone `marquee` (a nested `Text`) and "TMDB" in `text-secondary`. `mono-data`, at most two lines (one at the default size, even at 375 points). Naming TMDB next to its score keeps the source the box's label gave; TMDB's logo and notice stay in About ([tmdb.md](../../integrations/tmdb.md#terms-licence-and-attribution)). No score: the line ends after the runtime. The front's meta keeps its "★ 7.4" as it is. A friend's Letterboxd rating (M20) will join the same line the same way, never as a box.
+
+**The synopsis, readable in full.** The space freed (the score box, about 80 points; the services, 25 to 50; the flip-back line, 26) goes to the synopsis, so most overviews now fit whole. When one still doesn't (a long overview, a 375 by 667 phone, large text):
+
+- The text is cut one line earlier than it would be, with an ellipsis, and **"Read more"** shows under its last line: a `Pressable` `self-start`, `Text` `mono-eyebrow` tone `accent`, `common:card.readMore`, hit slop to 44 points, `haptic="press"`. The app knows it is cut by comparing the overview's full line count (from an unclipped, invisible measure) with the lines that fit.
+- A tap opens [the synopsis sheet](#the-synopsis-sheet). A touch that starts on the link is the link's: the card's tap doesn't flip (the Trailer's touch mark, renamed `onControlTouch`), and a drag that starts on it moves the card as anywhere else.
+- **Why a sheet.** A scroll inside the back would fight the drag and the swipe up for Seen it (Q10.1 stands). Expanding in place can't grow past the card's fixed size, and at the largest text even the whole body can't hold a long overview. A sheet holds any length at any size, leaves the gestures alone, and the card is there, still flipped, when it closes.
+
+**Services, one row of logos.** `ServiceBadges` becomes `ServiceLogos`, still private to `movie-card.tsx`:
+
+- Each service is a 32-point square (`size-8`), `rounded-sm`, `border border-border-default`, `bg-bg-raised`, its `w92` logo filling it (`contentFit="cover"`, sized by a style: an expo-image sized only by class has no width on iOS). No logo, or one that fails to load: its initials (`serviceInitials`) in `mono-eyebrow` `text-secondary`. The look of the service picker's `ServiceTile` (PR #264), small, not pressable, no selected state.
+- One row, never wrapping. The row measures its width (`onLayout`); it holds `floor((width + 6) / 38)` squares. When the services don't all fit, the last square is the overflow: the same square with `common:card.moreServices` ("+3", the count through `Intl.NumberFormat`) in `mono-eyebrow` `text-secondary`. The back still gets six services at most (`BACK_SERVICES`).
+- The Trailer button keeps the row's end; the logos take the rest. No trailer: the logos have the whole row. No services: no row and no credit; the Trailer button sits alone at the right.
+- The JustWatch credit stays under the row whenever logos show (tmdb.md), in the last row beside the bookmark.
+- **The bookmark and the row never meet.** The services and Trailer row is a full-width row of its own, ending 8 points above the bookmark's row, so neither a logo, "+n" nor the Trailer button sits under the bookmark's 44 points, and each keeps its own touch target.
+
+**The flip-back line goes** (`common:card.flipBack`): the `refresh` badge shows the card turns, and a screen reader hears `common:card.flipHint`. Its 26 points go to the synopsis (question 2 below), less what the bookmark's 44-point last row takes. The last row then holds the JustWatch credit and the bookmark only.
+
+**States.**
+
+| State | The back shows |
+| --- | --- |
+| Loaded | Everything above |
+| A short overview | The whole text, no "Read more"; the space under it stays empty |
+| A long overview | The cut text and "Read more" |
+| No overview | `swipe:card.noSynopsis`, never with "Read more" |
+| No score, no director, no cast | Each part left out, as in Missing data above |
+| More services than fit | The logos that fit, then "+n" |
+| No services | No logos and no credit: the Trailer button alone at its row's right, above the bookmark, which keeps the last row by itself |
+| A logo that fails | The initials in its square |
+| A missing poster | The thumbhash, or `bg-bg-raised`, under the fade |
+| Offline | The same: everything is in the card's payload |
+
+**The largest text** (font scale above 1.3, the threshold `serviceColumns` uses). The title and the meta leave the header and open the body, in the flow (`title-l` up to two lines, the meta wrapping), so text never climbs over the poster's light top; the header keeps the poster, the fade and the badges. The synopsis is often cut there: "Read more" carries it. The logos keep 32 points; "+n" grows to `mono-eyebrow`'s cap (1.4) and still fits its square; the Trailer label to its cap (1.2). The credit wraps beside the bookmark, which keeps 44 points.
+
+**A 375 by 667 phone.** The card fits the height left (about 300 by 450). The meta line stays one line. With the Trailer button the row holds two squares (one logo and "+n" when there are three services or more); without it, six.
+
+### The synopsis sheet
+
+`screens/swipe/synopsis-sheet.tsx`, route `/room/[id]/synopsis/[title]` (`app/room/[id]/synopsis/[title].tsx`), a `formSheet` registered in the room layout like the others: `gestureEnabled: true` (the room stack turns gestures off), `sheetGrabberVisible: true`, `sheetAllowedDetents: [0.6]`. M6.61.
+
+- **What it reads.** The card from the card stack store, by its title id: no network, so it opens offline. If the card isn't in the store (it can't leave while the sheet covers it, but a re-read could), the sheet closes.
+- **Layout.** Gesture Handler's `ScrollView`, `px-5 pt-5 gap-3`, bottom padding `max(insets.bottom, 16)`: a row with the title (`title-m`, role `header`, wraps, `flex-1`) and `IconButton` plain `x` (`common:actions.close`); the back's meta line, score included; `common:card.synopsis` (`mono-eyebrow` `text-secondary`); the whole overview in `body-l` (17 on 26, easier to read at length than the card's `body-m`). Nothing else: no Trailer, no services, no answers.
+- **Closing.** Close, a swipe down, or the screen reader's escape gesture. The card is still on top and still flipped, as it was.
+- **The room moves on while it's open** (the finale starts, the room closes, this seat is removed): it closes with the screen under it, as the room's other sheets do. A near miss or a shortlisted beat plays on the swipe screen under it; nothing is replayed.
+- **Solo:** the same sheet.
+- **Motion:** the system sheet's slide; Reduce Motion is the system's. `haptics.press()` from the link. No sound beyond the tap.
+- **Accessibility:** on open, focus goes to the title; then the meta, the label, the synopsis, Close.
+
+**Accessibility of the back.** The card stays one element. `swipe:a11y.cardBack` already reads the whole synopsis, so a screen reader never needs "Read more" and gets no new action. `swipe:a11y.cardBackServices` names every service, the ones behind "+n" included. The score reads as "TMDB rating 7.4" through the existing `cardBack` string.
+
+**Copy (`common` namespace, new keys).**
+
+| Key | French | English |
+| --- | --- | --- |
+| `card.tmdbScore` | ★ {{score}} TMDB | ★ {{score}} TMDB |
+| `card.readMore` | Lire la suite | Read more |
+| `card.moreServices` | +{{count}} | +{{count}} |
+
+Removed once unused: `card.tmdbRating` (the box's label) and `card.flipBack`. "LIRE LA SUITE" fits under the synopsis at 375 points.
+
+**What M6.61 changes.**
+
+- `shared/movie-card.tsx`, the back: the header (the poster's middle, `card-front-scrim`, the meta in `text.primary` with the inline score); no score box (and no `friendRating` box); `FitText` cuts a line earlier and shows "Read more" when the text overflows; `ServiceLogos` replaces `ServiceBadges`; no flip-back line; the large-text layout. Props: `back.meta` (the year and runtime, without the score), `back.onReadMore` (without it, no link), `back.onTrailerTouch` renamed `back.onControlTouch`. Gallery: a long synopsis with "Read more", six services with "+n", no services, a logo that fails.
+- `features/swipe/card-props.ts`: `back.meta` without the score; tests.
+- `screens/swipe/swipe-card.tsx`: [the dim layer](#the-dim-layer); the card's opacity no longer follows its depth; `onReadMore` pushes the sheet's route.
+- `screens/swipe/synopsis-sheet.tsx`, its route, and its entry in the room layout.
+- The bookmark's last row on the back is M6.58's ([The bookmark](#the-bookmark)); M6.61 keeps it and only drops the flip-back line from it. Whichever task lands second rebases on the other.
+- Tokens: `opacity.stack-dim-near` and `opacity.stack-dim-far` ([Design-system changes](#design-system-changes)).
+- Tests: "Read more" shows only when the text is cut; a tap on it opens the sheet and doesn't flip; the overflow square counts the hidden services; the dim layer's opacity at each depth.
+
+**Feel check for M6.61** (Harry, iPhone and a low-end Android):
+
+- Flip a card: the header shows the poster's middle, as light as the front's fade.
+- Drag the top card slowly: the second card brightens as it grows; nothing of the third shows through it. No stutter on the Android.
+- A film with a long overview: "Read more" opens the sheet; closing it finds the card still flipped. A tap on the link never flips the card; a drag from it moves the card.
+- A film on 4 or more services: one row of logos and "+n", the JustWatch line under it beside the bookmark; the bookmark never covers a logo or the Trailer button.
+- Largest text: the title moves into the body; nothing overlaps the badges.
+- Reduce Motion: the stack's dimming jumps with the cards, with no flash.
+
+**Questions** (defaults taken; none needs an answer unless Harry objects).
+
+1. **The synopsis: a sheet, or expand in place?** Default: compact the back so most fit, and a sheet for the rest. Expanding can't hold a long overview at large text.
+2. **The flip-back line.** Default: it goes; the `refresh` badge and the screen reader's hint carry it.
+3. **The poster's crop.** Default: the exact middle, as Harry asked. If faces end up cut too often (they often sit in a poster's upper third), the crop can move up later with `contentPosition`.
+4. **The front's meta.** Default: "★ 7.4" stays without "TMDB"; the back names the source.
+5. **The sheet's height.** Default: 0.6 of the screen, scrolling for a longer text.
+6. **The dim values.** Default: 0.3 and 0.55, today's brightness made solid; tuned at the feel check.
 
 ### The bookmark
 
@@ -181,7 +310,7 @@ M6.51 (PR #275), moved by design pass (b) (M6.60) after Harry's feel test of 6 N
 
 - A 44-point round button (`size-11 rounded-pill bg-bg-sunken border border-border-default`), `Icon` `bookmark` 22, its right edge 20 points from the card's right edge and its bottom edge 14 points from the card's bottom (`right-5 bottom-3.5`). The old 36-point button in the top left corner goes, on both faces. The flip badge keeps the top right.
 - **Front:** `absolute`. The title keeps the full width; the meta line and the services row stop short of the bookmark (`pr-14`, 56 points). The services row always keeps its height (`min-h-6`, empty when the film has no service for the room), so the title always sits above the bookmark, whatever the meta's length.
-- **Back:** in the flow. The JustWatch credit and the flip-back line share the last row with it: `flex-row items-end gap-3`, the two lines in a `flex-1` column, now start-aligned, and the bookmark last. The services and Trailer row above it keeps the full width. The synopsis gives up the height (it is already fitted to the space left).
+- **Back:** in the flow. The JustWatch credit and the flip-back line (which M6.61 removes, [The card back, reworked](#the-card-back-reworked)) share the last row with it: `flex-row items-end gap-3`, the two lines in a `flex-1` column, now start-aligned, and the bookmark last. The services and Trailer row above it keeps the full width. The synopsis gives up the height (it is already fitted to the space left).
 - **375 points and the largest text:** the bookmark keeps 44 and its icon 22 (no text). The meta wraps or cuts within its narrower width, before the title (as today). On the back the credit wraps beside the bookmark.
 
 **States.** Empty: the outline icon in `text-primary`. Saved: the icon filled in `marquee-default` and the border `border-marquee-default`. Pressed: `bg-bg-raised`. A tap flips the state at once and a second tap takes the save back. The state is this phone's own for the session: room cards never carry a saved state, so a film saved in an earlier game shows an empty bookmark, and saving it again is harmless.
@@ -516,7 +645,7 @@ The stack's label joins `a11y.players`, then `a11y.playersDone` and `a11y.player
 - **The rewatch chip** is announced when it shows (`swipe:rewatchChip.text`) and again for the confirmation (`rewatchChip.done`), without moving focus. Yes is labelled `swipe:a11y.seenYes`. With a screen reader on the chip never leaves on a timer; it stays until the next answer.
 - **The near-miss toast** is announced once, politely, when it shows on the focused card.
 - **The shortlisted beat** is announced once, assertively (`swipe:shortlisted.a11y`); focus stays where it was. A disabled Undo after a match has the hint `swipe:a11y.undoShortlisted`.
-- **Reduce Motion:** the drag follows the finger without the tilt; a throw becomes a short slide toward its side with a fade (`timing.base`); the stamp (label included) shows at full as soon as the drag starts toward an answer, with its coloured border, without growing; the second card is already full size; Undo fades the card back in place; the flip crossfades in place (`timing.flip`); the toast fades (`layout.fadeIn`, `layout.fadeOut`) and the glow doesn't pulse; the hint lean becomes the still stamps; the shortlisted beat fades instead of popping and crossfades instead of flying ([The shortlisted beat](#the-shortlisted-beat)).
+- **Reduce Motion:** the drag follows the finger without the tilt; a throw becomes a short slide toward its side with a fade (`timing.base`); the stamp (label included) shows at full as soon as the drag starts toward an answer, with its coloured border, without growing; the second card is already full size, and its dim layer changes at once with the depth; Undo fades the card back in place; the flip crossfades in place (`timing.flip`); the toast fades (`layout.fadeIn`, `layout.fadeOut`) and the glow doesn't pulse; the hint lean becomes the still stamps; the shortlisted beat fades instead of popping and crossfades instead of flying ([The shortlisted beat](#the-shortlisted-beat)).
 - Largest text: the player stack keeps its size (only "+N" is text, capped at 1.2); the shortlist's count grows to its cap (1.2) and its slots keep their size; the beat's title keeps 2 lines at `display-m`'s capped scale; the hint line wraps to two lines; the question's title wraps; the card's meta is cut before the title.
 
 ## Design-system changes
@@ -538,8 +667,10 @@ Spec here; app-dev builds them with their gallery states in the task named.
 | `PosterThumb`: a size `xs`, 24 by 36 (`h-9 w-6`), with `rounded-xs` instead of `rounded-sm`. A gallery state with a missing poster | M6.37 |
 | Token: `duration.shortlist-hold`, 1200ms, "The shortlisted beat: the poster over the stack before it flies to the shortlist (a starting value)", then `mise run tokens` | M6.37 |
 | Haptic: `haptics.shortlist()` in `lib/haptics`, "A match joins the shortlist": two `Light` impacts 100 ms apart, a starting point for the feel check. The `motion` skill's haptics table gets the row | M6.37 |
+| Tokens: `opacity.stack-dim-near` 0.3, "The dark layer over the swipe stack's second card: dims it without letting the third show through (a starting value)", and `opacity.stack-dim-far` 0.55, the same for the third card. `opacity.stack-far` goes (nothing else uses it); `opacity.stack-near` stays for `ServiceTile`'s dimmed logo, and its description says so. Then `mise run tokens`; the `design-system` skill's opacity line follows | M6.61 |
+| `MovieCard`, the back: the poster's middle, `card-front-scrim`, the inline score, "Read more", one row of logos with "+n", no flip-back line ([The card back, reworked](#the-card-back-reworked)) | M6.61 |
 
-No new component: the new pieces are single-use screen pieces in `components/screens/swipe/` (the shortlist and the beat's layer are M6.37's, the player stack M6.63's). No new token: the stack, its badges and the bookmark use existing sizes, colors and motion tokens.
+No new component: the new pieces are single-use screen pieces in `components/screens/swipe/` (the shortlist and the beat's layer are M6.37's, the player stack M6.63's). No new token for design pass (b): the player stack, its badges and the bookmark use existing sizes, colors and motion tokens. Design pass (a) adds two (`opacity.stack-dim-near` and `opacity.stack-dim-far`, above), and the synopsis sheet is a single-use piece too (M6.61's).
 
 ## Differences from the Figma
 
