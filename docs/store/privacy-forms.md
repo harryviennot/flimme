@@ -4,7 +4,7 @@ The answers for Apple's App Privacy questionnaire (App Store Connect) and Google
 
 The answers come from the published privacy policy (`mobile/src/content/legal/privacy.en.ts` and `privacy.fr.ts`, sections 2, 3, 6, 8 and 9) and were checked against the code: the analytics wrapper (`mobile/src/lib/analytics.ts`, `analytics-core.ts`, `analytics-region.ts`), the crash reporter (`mobile/src/lib/sentry.ts`, `sentry-scrub.ts`), the app config (`mobile/app.config.ts`) and the database (`supabase/migrations/`). Where a doc and the code disagreed, the code won. The starting tables were in [privacy.md](../product/privacy.md#store-privacy-forms), which now points here. Decisions: [decisions.md](../decisions.md) ("The first release is the bare minimum", "Analytics by region", "Crash reports carry no user, profile or seat id", "The app's Sentry sends errors only", "M9.1 (Q1.3)", "M8.3: the legal pages"). Q6.1 to Q6.7 below are its "M11.6 App Privacy and Data safety" row; the choices this file made on top are its next row and [Defaults taken](#defaults-taken).
 
-`mobile/privacy-forms.test.ts` keeps the facts these answers rest on: no package that reads location, contacts, photos, the camera or the advertising id; no Android permission behind an undeclared type; no tracking on iOS; PostHog with no lifecycle events, replay, surveys, crash capture or IP location. If the app starts collecting something new, this file and the privacy policy change first, in the same pull request.
+`mobile/privacy-forms.test.ts` keeps the facts these answers rest on: no package that reads location, contacts, photos, the camera or the advertising id; no Android permission beyond the network, sound, vibration and, up to Android 12L, the storage pair that expo-file-system and expo-image use for their caches (it reads the manifest of every native module, which Android merges at build time); no tracking on iOS; PostHog with no lifecycle events, replay, surveys, crash capture or IP location. If the app starts collecting something new, this file and the privacy policy change first, in the same pull request.
 
 ## Contents
 
@@ -79,7 +79,7 @@ Then App Store Connect asks three questions for each ticked type: what it is use
 | User Content | Emails or Text Messages | No | | | | No messaging between players (policy section 5) |
 | User Content | Photos or Videos | No | | | | Avatars are colours from a list, never a photo |
 | User Content | Audio Data | No | | | | The app plays sounds, never records (`app.config.test.ts`) |
-| User Content | Gameplay Content | Yes | Yes | No | App Functionality, Analytics, Product Personalization | Rooms and their settings; each seat (name snapshot, colour, services that night, how the player arrived); answers (Like, Nope, Super like, Seen it) and when; Final Cut votes; tonight's pick; the card log (place, score, answer, undo, time looked); My films; the services a player has; reports (a reason from a list). Analytics: the card log compares ways of building the deck (policy sections 3 and 7). Personalization: My films keeps seen films out of the next decks, and solo decks skip liked films (section 3) |
+| User Content | Gameplay Content | Yes | Yes | No | App Functionality, Analytics, Product Personalization | Rooms and their settings; each seat (name snapshot, colour, services that night, how the player arrived); answers (Like, Nope, Super like, Seen it) and when; Final Cut votes; tonight's pick; the card log (place, score, answer, undo, time looked); My films; the services a player has; reports (a reason from a list). Analytics: the card log compares ways of building the deck (policy sections 3 and 7). Personalization: My films keeps seen films out of the next decks, and solo decks skip films already liked or picked (section 3 for seen films; the liked and picked ones in `supabase/migrations/20261105180100_my_films.sql`) |
 | User Content | Customer Support | No | | | | Support is an email from the player's own mail app: see [Not declared](#not-declared-and-why) |
 | User Content | Other User Content | No | | | | No free text anywhere: names are under Name, report reasons come from a list |
 | Browsing History | Browsing History | No | | | | Trailers open on YouTube and "where to watch" in the system browser; the app sees nothing there |
@@ -142,7 +142,7 @@ For each collected type, the form asks: "Is this data collected, shared, or both
 
 | Category | Data type | Collected | Shared | Processed ephemerally | Required or optional | Purposes | Why |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Location | Approximate location | No | | | | | Google: declare location when IP addresses "are used to infer location". Ours never are: PostHog has `disableGeoip` and the project discards IPs; the country is the phone's region setting (Q6.4) |
+| Location | Approximate location | No | | | | | Google: "where developers use IP addresses as a means to determine location, then that data type should be declared". Ours never are: PostHog has `disableGeoip` and the project discards IPs; the country is the phone's region setting (Q6.4) |
 | Location | Precise location | No | | | | | No location permission (`mobile/privacy-forms.test.ts`) |
 | Personal info | Name | Yes | No | No | Required | App functionality | Google counts a nickname ("How a user refers to themselves, such as their first or last name, or nickname"). The name is needed to play (policy section 2) |
 | Personal info | Email address | No | | | | | No account, no email field. Support emails: see [Not declared](#not-declared-and-why) |
@@ -162,7 +162,7 @@ For each collected type, the form asks: "Is this data collected, shared, or both
 | Messages | Emails | No | | | | | |
 | Messages | SMS or MMS | No | | | | | |
 | Messages | Other in-app messages | No | | | | | No messaging between players (policy section 5) |
-| Photos and videos | Photos | No | | | | | Avatars are colours from a list |
+| Photos and videos | Photos | No | | | | | Avatars are colours from a list. The build holds the storage permissions only up to Android 12L, for expo-file-system's and expo-image's caches; the app never reads the player's photos or files (`mobile/privacy-forms.test.ts`) |
 | Photos and videos | Videos | No | | | | | |
 | Audio files | Voice or sound recordings | No | | | | | The app never records (`app.config.test.ts`) |
 | Audio files | Music files | No | | | | | |
@@ -249,6 +249,7 @@ Choices no decision covered. Each takes the answer that declares more, unless sa
 - **Sentry and IP addresses.** Sentry's docs say "By default, the user's IP address is inferred by the Sentry backend services based on the incoming request". The app deletes the user from every JavaScript event, but native crash reports don't pass through that code. For the policy's "no IP address" to hold, turn on "Prevent Storing of IP Addresses" in the Sentry project's Security & Privacy settings, if it isn't on.
 - **The policy doesn't name Sentry's installation id, its hang reports or its session counts** (section 6, "Crash reports"). Its sentence "nothing that links it to your profile" stays true. A line could be added at the next policy update; this task doesn't edit the policy.
 - **The deletion page mentions saved Apple or Google accounts and a taste profile**, which the first release doesn't have, and a guest without the app can only wait for the 90-day deletion. Google asks for a way to request deletion without the app; the page explains why a guest can't be found. A Play reviewer could still ask.
+- **The policy says "There is no account to create"**, while Google's form calls the guest profile an account (Q6.7) and lists Account management for User IDs. Both are true of the same thing: the profile the app makes on first launch. The policy could say so in a word at its next update.
 - **Google Play needs the Play app first** (H1); the answers wait for it. App Store Connect can be filled now.
 
 ## Sources checked

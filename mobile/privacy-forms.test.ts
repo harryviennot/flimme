@@ -1,3 +1,6 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 import appConfig from './app.config';
@@ -59,20 +62,64 @@ const UNDECLARED = [
   'react-native-google-mobile-ads',
 ];
 
-const DANGEROUS_ANDROID = [
-  'android.permission.ACCESS_FINE_LOCATION',
-  'android.permission.ACCESS_COARSE_LOCATION',
-  'android.permission.ACCESS_BACKGROUND_LOCATION',
-  'android.permission.READ_CONTACTS',
-  'android.permission.CAMERA',
-  'android.permission.RECORD_AUDIO',
-  'android.permission.READ_MEDIA_IMAGES',
-  'android.permission.READ_MEDIA_VIDEO',
-  'android.permission.READ_EXTERNAL_STORAGE',
-  'android.permission.READ_CALENDAR',
-  'android.permission.POST_NOTIFICATIONS',
-  'com.google.android.gms.permission.AD_ID',
-];
+// Every Android permission the build may hold. Android merges each native module's own manifest
+// into the app's at build time, so the app config alone doesn't show them. The storage pair only
+// exists up to Android 12L (SDK 32), for expo-file-system's and expo-image's caches: the app never
+// reads the player's photos or files.
+const ALLOWED_ANDROID: Record<string, number | 'any'> = {
+  'android.permission.INTERNET': 'any',
+  'android.permission.ACCESS_NETWORK_STATE': 'any',
+  'android.permission.ACCESS_WIFI_STATE': 'any',
+  'android.permission.MODIFY_AUDIO_SETTINGS': 'any',
+  'android.permission.VIBRATE': 'any',
+  'android.permission.READ_EXTERNAL_STORAGE': 32,
+  'android.permission.WRITE_EXTERNAL_STORAGE': 32,
+};
+
+/** The folder a package resolves to from `from`, following pnpm's links; null if absent. */
+function packageDir(name: string, from: string): string | null {
+  for (let dir = from; ; dir = path.dirname(dir)) {
+    const file = path.join(dir, 'node_modules', name, 'package.json');
+    if (fs.existsSync(file)) return path.dirname(fs.realpathSync(file));
+    if (path.dirname(dir) === dir) return null;
+  }
+}
+
+/** The app's dependencies and theirs, two levels down: where autolinked native modules come from. */
+function installedPackages(): Map<string, string> {
+  const found = new Map<string, string>();
+  const visit = (name: string, from: string, depth: number) => {
+    if (found.has(name)) return;
+    const dir = packageDir(name, from);
+    if (!dir) return;
+    found.set(name, dir);
+    if (depth >= 2) return;
+    const own = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')) as {
+      dependencies?: Record<string, string>;
+    };
+    for (const dep of Object.keys(own.dependencies ?? {})) visit(dep, dir, depth + 1);
+  };
+  for (const name of Object.keys(pkg.dependencies)) visit(name, __dirname, 0);
+  return found;
+}
+
+type Permission = { from: string; name: string; maxSdk: number | null };
+
+/** The permissions in the Android manifest of every installed package that has one. */
+function androidPermissions(): Permission[] {
+  const all: Permission[] = [];
+  for (const [from, dir] of installedPackages()) {
+    const manifest = path.join(dir, 'android', 'src', 'main', 'AndroidManifest.xml');
+    if (!fs.existsSync(manifest)) continue;
+    const xml = fs.readFileSync(manifest, 'utf8');
+    for (const [tag] of xml.matchAll(/<uses-permission[^>]*>/g)) {
+      const name = /android:name="([^"]+)"/.exec(tag)?.[1];
+      const maxSdk = /android:maxSdkVersion="(\d+)"/.exec(tag)?.[1];
+      if (name) all.push({ from, name, maxSdk: maxSdk ? Number(maxSdk) : null });
+    }
+  }
+  return all;
+}
 
 function load(variant: string): ExpoConfig {
   const original = process.env.APP_VARIANT;
@@ -91,10 +138,29 @@ describe('what the store privacy forms declare', () => {
     expect(installed.filter((name) => UNDECLARED.includes(name))).toEqual([]);
   });
 
-  it('asks for no Android permission behind an undeclared data type', () => {
+  it('asks for no Android permission beyond the network, sound, vibration and old caches', () => {
     const config = load('production');
-    const asked = config.android?.permissions ?? [];
-    expect(asked.filter((name) => DANGEROUS_ANDROID.includes(name))).toEqual([]);
+    const blocked = new Set(config.android?.blockedPermissions ?? []);
+    const fromConfig = (config.android?.permissions ?? []).map((name): Permission => ({
+      from: 'app.config',
+      name,
+      maxSdk: null,
+    }));
+    const asked = [...fromConfig, ...androidPermissions()].filter(
+      (permission) => !blocked.has(permission.name),
+    );
+    const extra = asked.filter(({ name, maxSdk }) => {
+      const allowed = ALLOWED_ANDROID[name];
+      if (allowed === undefined) return true;
+      return allowed !== 'any' && (maxSdk === null || maxSdk > allowed);
+    });
+    expect(extra).toEqual([]);
+    // The scan reaches the native modules: Sentry's own manifest asks for the network.
+    expect(asked).toContainEqual({
+      from: '@sentry/react-native',
+      name: 'android.permission.INTERNET',
+      maxSdk: null,
+    });
   });
 
   it('tracks nothing on iOS (no "Data Used to Track You")', () => {
