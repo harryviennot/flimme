@@ -15,6 +15,7 @@ import {
 } from '@/features/join/rows';
 import { keptRoomStore, releaseRoomGuards } from '@/features/room';
 import { errorFeedback } from '@/lib/feedback';
+import { playSound } from '@/lib/sound';
 
 import { OFFER_ROWS } from './join-rows';
 import type { NextRoom } from './offer';
@@ -99,6 +100,8 @@ export function useJoinOffer(next: NextRoom | null) {
         return;
       }
       if (row.kind === 'go' && result.status === 'ok') {
+        // In: the ticket tears (sounds.md#joining-a-room).
+        void playSound('join');
         leaveOldSeat(result.room_id, oldRoomId);
         keptRoomStore.getState().keep({ id: result.room_id, code: target.code });
         releaseRoomGuards();

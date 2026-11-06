@@ -28,6 +28,7 @@ import { useRevealView } from '@/features/finale/use-reveal';
 import type { FinalCutModel, LockInSeat } from '@/features/finale/use-final-cut';
 import { LeaveContext } from '@/features/lobby/leave-context';
 import { haptics } from '@/lib/haptics';
+import { playSound } from '@/lib/sound';
 
 // The Final Cut on fixture data, for the gestures, the ranked vote, the largest text size and the
 // feel check (Dev menu, Tools). No room: the other seats lock in after this phone, and the round
@@ -288,7 +289,10 @@ function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void })
     onLongPress: (id) => {
       if (!takesTaps(phase) || !canVeto) return;
       const next = pressFinalist(ballot, id, canVeto);
-      if (ballot.veto === null && next.veto !== null) haptics.veto();
+      if (ballot.veto === null && next.veto !== null) {
+        haptics.veto();
+        void playSound('veto');
+      }
       setLiftVetoHint(false);
       setBallot(next);
     },

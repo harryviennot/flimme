@@ -8,6 +8,8 @@ import { api } from '@/api';
 import { registerRoomGuard } from '@/features/room';
 import { showToast } from '@/components/ui/toast';
 import { track } from '@/lib/analytics';
+import { playSound } from '@/lib/sound';
+import { rememberRoomScreen } from '@/features/winner/arrival';
 
 import { WinnerRoom } from './winner-room';
 
@@ -66,6 +68,7 @@ jest.mock('@/features/room', () => ({
   }),
 }));
 jest.mock('@/lib/analytics', () => ({ track: jest.fn() }));
+jest.mock('@/lib/sound', () => ({ playSound: jest.fn(async () => undefined) }));
 jest.mock('@/features/room/match-shown', () => ({ useMatchShown: () => true }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -407,5 +410,41 @@ describe('play again and the join offer', () => {
     await render(<WinnerRoom roomId="r1" />, { wrapper });
     await screen.findByText('Past Lives', {}, { timeout: 5000 });
     expect(screen.queryByText('Play again')).toBeNull();
+  });
+});
+
+describe('the winner chime (sounds.md#the-winner-screen)', () => {
+  it('chimes for a group pick that came from the game', async () => {
+    rememberRoomScreen('live-1', 'swipe');
+    mockApi.roomMatches.mockResolvedValue([match('unanimous', 1)]);
+    await render(<WinnerRoom roomId="live-1" />, { wrapper });
+    await waitFor(() => expect(screen.getByText('Past Lives')).toBeTruthy());
+    await waitFor(() => expect(jest.mocked(playSound).mock.calls).toEqual([['winner']]));
+  });
+
+  it('chimes after the Final Cut too', async () => {
+    rememberRoomScreen('live-2', 'final-cut');
+    mockApi.roomMatches.mockResolvedValue([match('finale', 1)]);
+    await render(<WinnerRoom roomId="live-2" />, { wrapper });
+    await waitFor(() => expect(jest.mocked(playSound).mock.calls).toEqual([['winner']]));
+  });
+
+  it('is silent on a cold start or a return', async () => {
+    mockApi.roomMatches.mockResolvedValue([match('unanimous', 1)]);
+    await render(<WinnerRoom roomId="cold-1" />, { wrapper });
+    await waitFor(() => expect(screen.getByText('Past Lives')).toBeTruthy());
+    rememberRoomScreen('back-1', 'winner');
+    await render(<WinnerRoom roomId="back-1" />, { wrapper });
+    await waitFor(() => expect(screen.getAllByText('Past Lives').length).toBeGreaterThan(0));
+    expect(playSound).not.toHaveBeenCalled();
+  });
+
+  it('never chimes for a solo pick', async () => {
+    mockMode = 'solo';
+    rememberRoomScreen('solo-1', 'swipe');
+    mockApi.roomMatches.mockResolvedValue([match('unanimous', 1)]);
+    await render(<WinnerRoom roomId="solo-1" />, { wrapper });
+    await waitFor(() => expect(screen.getByText('Past Lives')).toBeTruthy());
+    expect(playSound).not.toHaveBeenCalledWith('winner');
   });
 });

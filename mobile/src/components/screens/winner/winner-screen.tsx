@@ -21,6 +21,7 @@ import { matchMeta } from '@/features/match/format';
 import { servicesLabel } from '@/features/winner/services';
 import type { WinnerView } from '@/features/winner/use-winner';
 import { haptics } from '@/lib/haptics';
+import { playSound } from '@/lib/sound';
 import { layout, spring } from '@/theme/motion';
 
 import { NoPick } from './no-pick';
@@ -29,7 +30,8 @@ import { ShareRecap } from './share-recap';
 import { SoloNotListed } from '@/components/screens/solo/not-listed';
 
 // Tonight's pick (winner.md): the film and where to watch it, the same on every phone. Never
-// who liked it, never a count. No haptic and no sound: the overlay already had them.
+// who liked it, never a count. No haptic: the overlay already had it. One soft chime as the film
+// and where to watch it appear, on a group's pick seen live (sounds.md#the-winner-screen).
 
 export type WinnerScreenProps = {
   view: WinnerView;
@@ -39,8 +41,10 @@ export type WinnerScreenProps = {
   fadeIn?: boolean;
   /** A solo pick (winner.md#the-solo-pick): its eyebrow and copy, no single-film line, Done in place of Home. */
   solo?: boolean;
-  /** The solo pick was just made on this phone: the poster settles with a small overshoot and one buzz. */
+  /** The solo pick was just made on this phone: the poster settles with a small overshoot, one buzz and its sound. */
   lands?: boolean;
+  /** A group's pick seen live: the chime plays once, when the film and where to watch it appear. */
+  chime?: boolean;
   /** Play again or the Join offer (M6.23): sits above Home, which shrinks to size S. */
   above?: ReactNode;
   onHome: () => void;
@@ -58,6 +62,7 @@ export function WinnerScreen({
   fadeIn = false,
   solo = false,
   lands = false,
+  chime = false,
   above,
   onHome,
   onShareRecap,
@@ -78,10 +83,17 @@ export function WinnerScreen({
   const ready = view.status === 'ready';
   useEffect(() => {
     if (!ready || !lands) return;
-    // The pick the player made lands: one success buzz, no sound (moments.md#the-solo-pick).
+    // The pick the player made lands: one success buzz and the ta-dum for one (moments.md#the-solo-pick).
     posterScale.set(withSpring(1, spring.snappy));
     haptics.match();
+    void playSound('solo-pick');
   }, [ready, lands, posterScale]);
+  const chimed = useRef(false);
+  useEffect(() => {
+    if (!ready || !chime || chimed.current) return;
+    chimed.current = true;
+    void playSound('winner');
+  }, [ready, chime]);
   useEffect(() => {
     if (!ready) return;
     const node = title.current ? findNodeHandle(title.current) : null;

@@ -53,6 +53,29 @@ describe('the files', () => {
     expect(arriveSoundFor(13)).toBe('arrive-10');
   });
 
+  it('requires every app file in assets/sounds, and nothing else', () => {
+    const dir = path.join(__dirname, '..', '..', 'assets', 'sounds');
+    const onDisk = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith('.wav'))
+      // The reminder's sound is M15.5's, the sonic logo is for videos: neither is in the app.
+      .filter((f) => f !== 'notify.wav' && f !== 'sonic-logo.wav')
+      .sort();
+    const source = fs.readFileSync(path.join(__dirname, 'sound.ts'), 'utf8');
+    const required = [...source.matchAll(/require\('\.\.\/\.\.\/assets\/sounds\/([^']+)'\)/g)]
+      .map((m) => m[1])
+      .sort();
+    expect(required).toEqual(onDisk);
+  });
+
+  it('makes every sound in exactly one group', () => {
+    const all = Object.values(GROUPS).flat();
+    expect(new Set(all).size).toBe(all.length);
+    expect(GROUPS.launch).toEqual(expect.arrayContaining(['tap', 'error', 'join']));
+    expect(GROUPS.room).toEqual(expect.arrayContaining(['shortlist', 'winner', 'solo-pick']));
+    expect(GROUPS.finale).toEqual(expect.arrayContaining(['lock-in', 'veto']));
+  });
+
   it('maps the seconds left to the countdown file', () => {
     expect([5, 4, 3].map(countdownSoundFor)).toEqual(['countdown', 'countdown', 'countdown']);
     expect([2, 1].map(countdownSoundFor)).toEqual(['countdown-last', 'countdown-last']);
@@ -133,13 +156,14 @@ describe('preloading', () => {
   });
 
   it('makes a group once, and frees it when the room ends', () => {
+    const n = GROUPS.finale.length;
     preloadSounds('finale');
     preloadSounds('finale');
-    expect(created).toHaveLength(2);
+    expect(created).toHaveLength(n);
     releaseSounds('finale');
     expect(created.every((p) => p.remove.mock.calls.length === 1)).toBe(true);
     preloadSounds('finale');
-    expect(created).toHaveLength(4);
+    expect(created).toHaveLength(2 * n);
   });
 });
 
