@@ -323,7 +323,7 @@ M6.51 (PR #275), moved by design pass (b) (M6.60) after Harry's feel test of 6 N
 
 **Accessibility.** Unchanged: the card is one element, so it offers a custom action `save` (`swipe:a11y.actions.save`) that becomes `unsave`; the bookmark's own label follows the state (`common:card.bookmarkSave`, `common:card.bookmarkRemove`) and it reports `selected`. After a save or unsave `swipe:a11y.saved` or `swipe:a11y.unsaved` is announced politely. The landing guard does not apply to the custom action.
 
-**Solo** uses the same card, so the bookmark moves there too. The copy is the same as in a room.
+**Solo** shows no bookmark, on either face (decided on 6 Nov 2026): a like already saves the film to My films, so the bookmark would duplicate it. The back then has no slot for it: the last row reserves its 44 points only where the bookmark shows (the swipe card in a group room), so the film sheet and the runner-up sheet never reserve them. The copy is the same as in a room.
 
 ## The buttons row
 

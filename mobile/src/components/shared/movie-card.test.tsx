@@ -109,9 +109,15 @@ describe('the back of the card', () => {
     expect(screen.getByText('Streaming availability by JustWatch.')).toBeOnTheScreen();
   });
 
-  it('keeps the bookmark slot free in the last row', async () => {
-    await render(<MovieCard {...film} flipped />);
+  it('reserves the bookmark slot in the last row only when the bookmark shows', async () => {
+    const bookmark = { saved: false, onToggle: jest.fn(), onTouch: jest.fn() };
+    await render(<MovieCard {...film} flipped bookmark={bookmark} />);
     expect(screen.getByTestId('movie-card-bookmark-slot')).toBeOnTheScreen();
+  });
+
+  it('leaves no bookmark slot without a bookmark (the film sheet, the runner-up sheet)', async () => {
+    await render(<MovieCard {...film} flipped />);
+    expect(screen.queryByTestId('movie-card-bookmark-slot')).toBeNull();
   });
 
   describe('the services row', () => {
