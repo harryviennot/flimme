@@ -1,7 +1,7 @@
 import '@/i18n';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { router, Stack } from 'expo-router';
+import { router, Stack, type Href } from 'expo-router';
 import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 import type { ReactNode } from 'react';
 
@@ -449,7 +449,7 @@ describe('the room layout', () => {
       await renderRouter(routes, { initialUrl: under[0] ?? start, wrapper: Providers });
       if (under.length > 0) {
         await act(async () => {
-          router.push(start);
+          router.push(start as Href);
         });
       }
       await waitFor(() => expect(screen).toHavePathname(start));
