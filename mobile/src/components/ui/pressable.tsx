@@ -2,7 +2,7 @@ import type { ComponentRef, ReactNode, Ref } from 'react';
 import { Pressable as RNPressable, type PressableProps as RNPressableProps } from 'react-native';
 
 import { haptics, type HapticName } from '@/lib/haptics';
-import { playSound } from '@/lib/sound';
+import { playSound, type ButtonSound } from '@/lib/sound';
 
 /** What a ref to a Pressable points at. */
 export type PressableNode = ComponentRef<typeof RNPressable>;
@@ -13,8 +13,12 @@ export type PressableProps = Omit<RNPressableProps, 'style' | 'children' | 'acce
   accessibilityLabel: string;
   /** The haptic on press-in, by meaning. `false` for none. */
   haptic?: HapticName | false;
-  /** The button tick, played with the haptic on press-in. Only Join, Start swiping and Lock in set it. */
-  sound?: 'tap';
+  /**
+   * Played with the haptic on press-in. Every press ticks by default, except one with no haptic (a
+   * touch surface that isn't a button, like the card or an overlay); Lock in sets its own latch.
+   * `false` for none; never when disabled.
+   */
+  sound?: ButtonSound | false;
   className?: string;
   /** For moving a screen reader's focus here. */
   ref?: Ref<PressableNode>;
@@ -26,7 +30,7 @@ export type PressableProps = Omit<RNPressableProps, 'style' | 'children' | 'acce
  */
 export function Pressable({
   haptic = 'press',
-  sound,
+  sound = haptic === false ? false : 'tap',
   hitSlop = 8,
   accessibilityRole = 'button',
   onPressIn,

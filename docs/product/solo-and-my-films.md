@@ -130,7 +130,7 @@ The revival plan's "Pick for me" ([later modes](game-modes.md#later-modes)) ende
 | What the player sees | The card slides in as the next card. Up to 5 liked posters fanned on it, the count in display type, the two buttons. One light haptic |
 | Never shown | Nopes, a streak, "you're on a roll", a timer, a target ("5 more to go"), a nudge to keep swiping |
 
-**The solo pick beat** (draft): the poster lifts out of the sheet and settles where the winner screen shows it, the bulbs light, one success haptic, no sound. Calmer than a group's reveal: there's no suspense when you chose it yourself.
+**The solo pick beat** (draft): the poster lifts out of the sheet and settles where the winner screen shows it, the bulbs light, one success haptic and a small ta-dum for one (since 6 November 2026, [sounds.md](../design/sounds.md#the-solo-pick)). Calmer than a group's reveal: there's no suspense when you chose it yourself.
 
 Copy, proposed:
 

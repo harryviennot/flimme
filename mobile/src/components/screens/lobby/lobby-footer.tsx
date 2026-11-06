@@ -41,7 +41,6 @@ export function LobbyFooter(props: LobbyFooterProps) {
     <View className="gap-2">
       <Button
         label={t('start.cta')}
-        sound="tap"
         icon="play"
         size="l"
         block

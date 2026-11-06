@@ -51,7 +51,7 @@ Dark cinema marquee: arcade buttons with a hard 4-point lip, neon glows, spotlig
 | shared | `MovieCard` | The swipe card, front and back, flip, stamps, the optional Later bookmark |
 | shared | `Poster`, `PosterThumb` | Posters with their placeholder |
 | shared | `FilmTile`, `WhereToWatch` | A poster as a grid tile with Picked or the star; the services that have a film (strings and the "not listed" line through props) |
-| shared | `PlayerPill`, `RoomTicket`, `ServiceTile`, `ResultRow`, `RatingLogo` | Presence, the room code, services, runners-up, TMDB and Letterboxd marks |
+| shared | `SeatRow` (a seat of the lobby and of the players sheet), `PlayerPill` (store scenes only), `RoomTicket`, `ServiceTile`, `ResultRow`, `RatingLogo` | Presence, the room code, services, runners-up, TMDB and Letterboxd marks |
 
 ## Tiers and files
 

@@ -17,6 +17,7 @@ import { rememberLinkJoin } from '@/features/analytics/journey';
 import { releaseRoomGuards } from '@/features/room/leave-guard';
 import { startSession, useSession, useSessionFailed } from '@/features/session';
 import { errorFeedback } from '@/lib/feedback';
+import { playSound } from '@/lib/sound';
 
 import { linkOpenedAt, takeLinkReceivedAt } from './link-received';
 import { roomEntry, type RootRoute } from './enter-room';
@@ -146,6 +147,8 @@ export function useJoinLink(params: Params) {
           return;
         }
         if (result.status === 'ok') {
+          // In: the ticket tears (sounds.md#joining-a-room).
+          void playSound('join');
           trackJoinAttempt('link', result.status);
           rememberLinkJoin(result.room_id, receivedAt);
           leaveOldSeat(result.room_id, oldRoomId);

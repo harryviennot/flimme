@@ -10,7 +10,12 @@ export function rememberRoomScreen(roomId: string, screen: string): void {
 }
 
 /** True when the room was on the swipe or Final Cut screen just before this one. */
-export function arrivedLive(roomId: string, overlayPlayed: boolean): boolean {
+export function arrivedFromGame(roomId: string): boolean {
   const from = last.get(roomId);
-  return !overlayPlayed && (from === 'swipe' || from === 'final-cut');
+  return from === 'swipe' || from === 'final-cut';
+}
+
+/** The screen fades in: it came from the game, and no match overlay played over it. */
+export function arrivedLive(roomId: string, overlayPlayed: boolean): boolean {
+  return !overlayPlayed && arrivedFromGame(roomId);
 }

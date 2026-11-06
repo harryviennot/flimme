@@ -8,7 +8,7 @@ import type { RoomState } from '@flimme/contract';
 
 import { api } from '@/api';
 import { LobbyFooter } from '@/components/screens/lobby/lobby-footer';
-import { SeatRow } from '@/components/screens/lobby/seat-row';
+import { SeatRow } from '@/components/shared/seat-row';
 import { ShufflingOverlay } from '@/components/screens/lobby/shuffling-overlay';
 import { RoomBanner } from '@/components/screens/room/room-banner';
 import { RoomTicket } from '@/components/shared/room-ticket';
@@ -347,7 +347,7 @@ export default function RoomLobbyScreen() {
                   key={seat.member_id}
                   name={seat.display_name}
                   color={toAvatarColor(seat.avatar_key)}
-                  services={namesOf(seat.provider_ids)}
+                  detail={namesOf(seat.provider_ids) || t('seat.noServices')}
                   isHost={seat.role === 'host'}
                   isMe={seat.is_me === true}
                   present={seat.is_me === true || here.has(seat.member_id)}

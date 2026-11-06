@@ -1,0 +1,14 @@
+# M6.63, part 4: with a full room swiping, the phone likes every film so matches fill the shortlist
+# beside the player stack. The bar must never clip (screenshots at the end).
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-top-bar-shortlist.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- repeat:
+    while:
+      visible: 'Like'
+    times: 40
+    commands:
+      - tapOn:
+          text: 'Like'
+          optional: true
+- takeScreenshot: swipe-top-bar-shortlist

@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 166 of 301 tasks done.
+Progress: 169 of 301 tasks done.
 
 ```mermaid
 flowchart LR
@@ -511,9 +511,9 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on the simulator against staging saves a film from the front and from the back, shows it under Later, removes it, and saves one offline that arrives once the phone is back online.
 - [x] **M6.54** Per-player genres in the lobby: the row "Your genres tonight" under "Your services", the genre sheet with the chips and their counts, optional and never blocking Start, in French and English. Ships in the first release only if the genre simulation passes; otherwise right after launch · app · M · needs M6.53, M4.11 · [onboarding](onboarding.md#the-lobby)
   Done when: a touch run on the simulator with three phones picks up to 3 genres on one phone, the counts show on the others, and the room starts with no picks.
-- [ ] **M6.55** Sounds on silent and on every button · app · S · needs M6.24 · [sounds](../design/sounds.md#rules-for-every-sound)
+- [x] **M6.55** Sounds on silent and on every button · app · S · needs M6.24 · [sounds](../design/sounds.md#rules-for-every-sound)
   Done when: a sound plays with the phone on silent, every enabled button plays `tap.wav` on press-in, a disabled one stays silent, and the Sound switch still turns them all off, with a test per rule.
-- [ ] **M6.56** The shortlist match sound: wiring Harry's file when it lands · app · S · needs M6.37, M6.55 · [sounds](../design/sounds.md#silent-on-purpose)
+- [x] **M6.56** The shortlist match sound: wiring Harry's file when it lands (`shortlist.wav`, the bell he picked in the sound lab) · app · S · needs M6.37, M6.55 · [sounds](../design/sounds.md#a-match-joins-the-shortlist)
   Done when: the sound plays once when a match joins the shortlist, and nothing plays until the file exists. Harry provides the file.
 - [ ] **M6.58** Later as solo likes, app: remove the Later segment; the bookmark within the thumb's reach, per the design pass · app · M · needs M6.57, M6.60 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles), [swipe](../design/screens/swipe.md#the-top-bar)
   Done when: a touch run on the simulator against staging saves a film during a game, finds it under Liked with the Solo chip and not in any match, shows no Later segment, and reaches the bookmark with the thumb on the front and the back.
@@ -525,7 +525,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on the simulator shows the card back with the new layout, the synopsis never clipped at large text, and the cards underneath dimmed.
 - [ ] **M6.62** The film sheet full page, app · app · S · needs M6.59 · [film sheet](../design/screens/film-sheet.md)
   Done when: a touch run on the simulator opens the film sheet full page in My films, with the quick actions beside the close button, in French and English.
-- [ ] **M6.63** The top bar, app · app · M · needs M6.60 · [swipe](../design/screens/swipe.md#the-top-bar)
+- [x] **M6.63** The top bar, app · app · M · needs M6.60 · [swipe](../design/screens/swipe.md#the-top-bar)
   Done when: a three-player touch run shows readable player badges that no contender clips.
 - [ ] **M6.64** The genre step, app · app · M · needs M6.60, M6.54 · [host setup](../design/screens/host-setup.md#layout), [lobby](../design/screens/lobby.md#your-genres-tonight)
   Done when: a touch run on the simulator shows a guest the full-screen genre step after joining and the host the step after the services choice, both skippable, and the lobby's sheet still changes picks.

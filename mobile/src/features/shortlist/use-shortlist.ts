@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react';
 import { api } from '@/api';
 import { ROOM_KEY, type RoomRealtime } from '@/features/room';
 import { voteQueue } from '@/features/swipe';
-import { haptics } from '@/lib/haptics';
 
+import { shortlistBeatFeedback } from './beat';
 import { createShortlistController, type BeatSignal, type ShortlistController } from './controller';
 
 const SHORTLIST_KEY = (roomId: string) => [...ROOM_KEY(roomId), 'shortlist'] as const;
@@ -50,7 +50,7 @@ export function useShortlist(
   useEffect(() => {
     if (!roomId || !enabled) return;
     const created = createShortlistController({
-      onBeat: () => haptics.shortlist(),
+      onBeat: shortlistBeatFeedback,
       onMismatch: () => void queryClient.invalidateQueries({ queryKey: SHORTLIST_KEY(roomId) }),
     });
     // The controller is an external object made per room; the layout reads it through state.

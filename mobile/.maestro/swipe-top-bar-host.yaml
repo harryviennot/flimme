@@ -1,0 +1,27 @@
+# M6.63, the swipe screen's player stack and players sheet, part 1: a fresh phone opens a room on
+# staging and waits in the lobby. Read the room code from the screenshot, then run the bots:
+#   FLIMME_STAGING_URL=... FLIMME_STAGING_KEY=... mise run bots -- --code <code> --count 3 --target staging
+# and run swipe-top-bar-play.yaml.
+# Needs Metro started with the staging environment (see the expo-app skill).
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-top-bar-host.yaml -e METRO_URL=http://localhost:<port>`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Continue|Staging'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: 'Continue'
+    commands:
+      - tapOn: 'Continue'
+- runFlow:
+    when:
+      visible: 'Runtime version.*'
+    commands:
+      - tapOn:
+          point: 90%,50%
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/host-room.yaml
+- takeScreenshot: swipe-top-bar-lobby

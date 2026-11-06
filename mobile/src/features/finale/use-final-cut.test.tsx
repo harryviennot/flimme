@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { haptics } from '@/lib/haptics';
 import { reportError } from '@/lib/sentry';
+import { playSound } from '@/lib/sound';
 
 import { useFinalCut } from './use-final-cut';
 
@@ -45,6 +46,7 @@ jest.mock('@/lib/haptics', () => ({
   haptics: { press: jest.fn(), veto: jest.fn(), countdown: jest.fn() },
 }));
 jest.mock('@/lib/sentry', () => ({ reportError: jest.fn() }));
+jest.mock('@/lib/sound', () => ({ playSound: jest.fn(async () => undefined) }));
 jest.mock('@/features/match/use-match-card', () => ({ heldCardOf: () => undefined }));
 
 const seat = (id: string, vetoes: number | null = 1, me = false) => ({
@@ -161,10 +163,14 @@ describe('the Final Cut model', () => {
     await settle();
     await act(async () => result.current.onLongPress(20));
     expect(haptics.veto).toHaveBeenCalledTimes(1);
+    // The stamp's sound lands with the haptic (sounds.md#the-veto).
+    expect(playSound).toHaveBeenCalledTimes(1);
+    expect(playSound).toHaveBeenCalledWith('veto');
     expect(result.current.places.get(20)).toEqual({ kind: 'vetoed' });
     // Moving it is silent.
     await act(async () => result.current.onLongPress(30));
     expect(haptics.veto).toHaveBeenCalledTimes(1);
+    expect(playSound).toHaveBeenCalledTimes(1);
     // Tapping the vetoed poster does nothing and says how to lift it.
     await act(async () => result.current.onTap(30));
     expect(result.current.places.get(30)).toEqual({ kind: 'vetoed' });
@@ -185,6 +191,7 @@ describe('the Final Cut model', () => {
     await act(async () => ranked.result.current.onLongPress(10));
     expect(ranked.result.current.places.get(10)).toEqual({ kind: 'faint', rank: 1 });
     expect(haptics.veto).not.toHaveBeenCalled();
+    expect(playSound).not.toHaveBeenCalled();
     const spent = await setup({ vetoes: 0 });
     await settle();
     expect(spent.result.current.vetoAllowed).toBe(false);

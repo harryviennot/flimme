@@ -331,7 +331,8 @@ A new file pair for M6.23, `i18n/locales/fr/playAgain.json` and `en/playAgain.js
 
 - Almost nothing moves (the beat). The arrival fade as in [How it arrives](#how-it-arrives); the late card's fade (`layout.fadeIn`), which Share recap shares; the poster and logo images' own fade over their placeholder (`expo-image`'s `transition`, `duration.fast`, as `Poster` already does). The spotlight and bulbs are still.
 - **After the pick:** the runners-up fade in when their read answers (`layout.fadeIn`); the Join offer enters with `layout.toastIn` and leaves with `layout.fadeOut`. Nothing in the pick's block moves for either, and neither has a haptic or a sound.
-- **No haptic and no sound** on arrival, from any path: the overlay already fired `haptics.match()` and `playSound('match')`, and the reveal fires `haptics.match()` and `playSound('reveal')` before the hand-over ([final-cut.md](final-cut.md#the-reveal)). Until M6.31 the Final Cut and the single-film pick arrive in silence, on purpose. Buttons keep their `press` haptic; Play again's and Join's refusals use `haptics.error()`.
+- **No haptic** on arrival, from any path: the overlay already fired `haptics.match()` and `playSound('match')`, and the reveal fires `haptics.match()` and `playSound('reveal')` before the hand-over ([final-cut.md](final-cut.md#the-reveal)). Buttons keep their `press` haptic; Play again's and Join's refusals use `haptics.error()` with the error sound.
+- **One soft chime** (`playSound('winner')`), once, when the film and where to watch it show on a phone that came from the swipe or Final Cut screen (after the overlay's hand-over, the reveal or the single-film pick). A cold start, a return to a `done` room and a solo pick stay silent; the solo pick has [its own sound](../sounds.md#the-solo-pick) as the poster lands. Harry, 6 November 2026 ([sounds.md](../sounds.md#the-winner-screen)).
 - No new token.
 
 ## Accessibility

@@ -1,0 +1,35 @@
+# M6.63, French run at the largest text size: like swipe-top-bar-host.yaml on a simulator set to
+# French (the dev launcher's own sheets stay English, so open the app once by hand first and close
+# its developer menu; this flow starts from the welcome screen). Then run the bots and
+# swipe-top-bar-play-fr.yaml.
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-top-bar-host-fr.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow:
+    when:
+      visible: 'Runtime version.*|Runtime'
+    commands:
+      - tapOn:
+          point: 87%,56%
+- runFlow: subflows/use-staging.yaml
+- extendedWaitUntil:
+    visible: "C'est parti"
+    timeout: 30000
+- tapOn: "C'est parti"
+- inputText: 'Alice'
+- tapOn: 'Continuer'
+- extendedWaitUntil:
+    visible: 'Ouvrir une salle'
+    timeout: 15000
+- tapOn: 'Ouvrir une salle'
+- extendedWaitUntil:
+    visible: 'Netflix'
+    timeout: 15000
+- tapOn: 'Netflix'
+- tapOn: 'Amazon Prime Video'
+- tapOn: 'Disney Plus'
+- tapOn: 'Ouvrir la salle'
+- extendedWaitUntil:
+    visible: 'Dans la salle.*'
+    timeout: 15000
+- takeScreenshot: swipe-top-bar-lobby-fr
