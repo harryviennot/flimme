@@ -74,6 +74,19 @@
     "done": "{{name}} a fini",
     "thrown": "{{answer}} : {{title}}",
     "saved": "{{title}} : gardé pour plus tard",
-    "unsaved": "{{title}} : retiré de Plus tard"
+    "unsaved": "{{title}} : retiré de Plus tard",
+    "players_one": "{{count}} joueur dans la salle de {{host}}",
+    "players_other": "{{count}} joueurs dans la salle de {{host}}",
+    "playersDone_one": "{{count}} a fini",
+    "playersDone_other": "{{count}} ont fini",
+    "playersAway_one": "{{count}} pas là",
+    "playersAway_other": "{{count}} pas là",
+    "playersHint": "Affiche qui joue et où chacun en est"
+  },
+  "players": {
+    "more": "+{{count}}",
+    "title": "Joueurs",
+    "films_one": "{{count}} film",
+    "films_other": "{{count}} films"
   }
 }

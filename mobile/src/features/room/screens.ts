@@ -5,7 +5,7 @@ export type RoomScreen = 'lobby' | 'swipe' | 'final-cut' | 'winner' | 'closed';
 
 /** The sheets that may sit over a state's screen. */
 export type RoomSheet =
-  'invite' | 'services' | 'genres' | 'seat' | 'report' | 'recap' | 'pick' | 'film';
+  'invite' | 'services' | 'genres' | 'seat' | 'report' | 'players' | 'recap' | 'pick' | 'film';
 
 /**
  * The screen a room state calls for (app-structure.md#screens-and-navigation). `dealing` shows
@@ -33,7 +33,7 @@ const SHEETS: Record<RoomState, readonly RoomSheet[]> = {
   // The genre sheet is lobby only: picks lock at Start (lobby.md#your-genres-tonight).
   lobby: ['invite', 'services', 'genres', 'seat', 'report'],
   dealing: ['invite', 'services', 'seat', 'report'],
-  swiping: ['seat', 'report'],
+  swiping: ['players', 'seat', 'report'],
   finale: [],
   done: ['recap', 'film'],
   abandoned: [],
@@ -56,6 +56,7 @@ export function isSheet(screen: string): screen is RoomSheet {
     screen === 'genres' ||
     screen === 'seat' ||
     screen === 'report' ||
+    screen === 'players' ||
     screen === 'recap' ||
     screen === 'film' ||
     screen === 'pick'
