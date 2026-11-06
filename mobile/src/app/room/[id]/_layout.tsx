@@ -210,6 +210,16 @@ export default function RoomLayout() {
                 }}
               />
               <Stack.Screen
+                name="players"
+                options={{
+                  presentation: 'formSheet',
+                  // The stack turns gestures off for the room; a sheet still swipes down.
+                  gestureEnabled: true,
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: 'fitToContents',
+                }}
+              />
+              <Stack.Screen
                 name="report/[memberId]"
                 options={{
                   presentation: 'formSheet',

@@ -6,7 +6,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import { fixturePosters } from '@/components/gallery';
 import { FinalCutScreen } from '@/components/screens/final-cut/final-cut-screen';
 import { LobbyFooter } from '@/components/screens/lobby/lobby-footer';
-import { SeatRow } from '@/components/screens/lobby/seat-row';
+import { SeatRow } from '@/components/shared/seat-row';
 import { RecapCard } from '@/components/screens/recap/recap-card';
 import { MatchOverlay } from '@/components/screens/room/match-overlay';
 import { ActionRow } from '@/components/screens/swipe/action-row';
@@ -165,7 +165,7 @@ function Lobby() {
                 key={player.id}
                 name={player.name}
                 color={player.color}
-                services="Service A, Service B"
+                detail="Service A, Service B"
                 isHost={index === 0}
                 isMe={index === 0}
                 present

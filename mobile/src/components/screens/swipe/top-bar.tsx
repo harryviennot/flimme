@@ -1,20 +1,19 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, Platform, ScrollView, View } from 'react-native';
+import { AccessibilityInfo, Platform, View } from 'react-native';
 
-import { PlayerPill } from '@/components/shared/player-pill';
 import { IconButton } from '@/components/ui/icon-button';
 import { useAskToLeave } from '@/features/lobby/leave-context';
-import { toAvatarColor } from '@/features/profile';
 import { useMySeat, useRoomPresence, useRoomSeats } from '@/features/room';
 import { doneNames, pillsFor } from '@/features/swipe/pills';
 
+import { PlayerStack } from './player-stack';
 import { Shortlist } from './shortlist';
 
-// The top bar (swipe.md#the-top-bar): Leave, the player pills and, through a tap on a pill, the
-// seat sheet (Remove for the host, Report for everyone), then the room's shortlist. Never
-// anything about answers.
+// The top bar (swipe.md#the-top-bar): Leave, the player stack (one button that opens the players
+// sheet, and from a row there the seat sheet), then the room's shortlist. Never anything about
+// answers.
 export function SwipeTopBar({
   roomId,
   count,
@@ -62,30 +61,7 @@ export function SwipeTopBar({
   return (
     <View className="flex-row items-center gap-2 px-5 pt-2 pb-2">
       <IconButton icon="x" accessibilityLabel={tl('a11y.leave')} onPress={askToLeave} />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="flex-1"
-        contentContainerClassName="items-center gap-2"
-      >
-        {pills.map((pill) => (
-          <PlayerPill
-            key={pill.memberId}
-            name={pill.name}
-            color={toAvatarColor(pill.avatarKey)}
-            count={pill.count}
-            online={pill.online}
-            away={pill.away}
-            done={pill.done}
-            isHost={pill.isHost}
-            isMe={pill.isMe}
-            hint={pill.isMe ? undefined : tl('a11y.seat', { name: pill.name })}
-            onPress={
-              pill.isMe ? undefined : () => router.push(`/room/${roomId}/seat/${pill.memberId}`)
-            }
-          />
-        ))}
-      </ScrollView>
+      <PlayerStack pills={pills} onPress={() => router.push(`/room/${roomId}/players`)} />
       <Shortlist roomId={roomId} />
     </View>
   );

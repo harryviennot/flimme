@@ -1,0 +1,20 @@
+# M6.63, part 2: the host starts the game once the bots are in (see swipe-top-bar-host.yaml), then
+# the flow checks the player stack, opens the players sheet and closes it.
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-top-bar-play.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- takeScreenshot: swipe-top-bar-stack
+- tapOn:
+    id: player-stack
+- extendedWaitUntil:
+    visible: 'Players'
+    timeout: 10000
+- takeScreenshot: swipe-top-bar-sheet
+- tapOn: 'Close'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 10000

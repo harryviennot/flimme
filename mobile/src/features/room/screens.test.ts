@@ -25,6 +25,16 @@ describe('the genres sheet', () => {
   });
 });
 
+describe('the players sheet', () => {
+  it('sits over the swiping only, and closes when the finale starts', () => {
+    expect(isSheet('players')).toBe(true);
+    expect(isAllowed('swiping', 'players')).toBe(true);
+    for (const state of ['lobby', 'dealing', 'finale', 'done', 'abandoned'] as const) {
+      expect(isAllowed(state, 'players')).toBe(false);
+    }
+  });
+});
+
 describe('isAllowed', () => {
   it('lets the invite and services sheets sit over the lobby and the dealing', () => {
     for (const state of ['lobby', 'dealing'] as const) {

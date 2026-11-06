@@ -1,0 +1,37 @@
+# M6.63, part 3 (explore): with a full room already swiping, open the players sheet, scroll it,
+# tap a row to reach the seat sheet, and come back. In a development build the dev menu's floating
+# button sits over the sheet's close button, so the sheet closes with a swipe down.
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-top-bar-explore.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- runFlow:
+    when:
+      visible: 'Runtime version.*'
+    commands:
+      - tapOn:
+          point: 90%,50%
+- runFlow:
+    when:
+      notVisible: 'Players'
+    commands:
+      - tapOn:
+          id: player-stack
+- extendedWaitUntil:
+    visible: 'Players'
+    timeout: 10000
+- swipe:
+    start: 50%,80%
+    end: 50%,30%
+- takeScreenshot: swipe-top-bar-sheet-scrolled
+- tapOn: 'Bot 6.*'
+- extendedWaitUntil:
+    visible: '(?i)report.*'
+    timeout: 10000
+- takeScreenshot: swipe-top-bar-seat-sheet
+- swipe:
+    start: 50%,40%
+    end: 50%,95%
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 10000
+- takeScreenshot: swipe-top-bar-after
