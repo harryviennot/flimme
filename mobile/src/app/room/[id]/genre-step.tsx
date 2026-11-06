@@ -72,6 +72,16 @@ export default function GenreStepScreen() {
   const failed = !ready && (read.isError || names.isError || !online);
 
   // No offer tonight: straight to the lobby, with no message (its row says so).
+  // Loading announces once (genre-step.md#accessibility).
+  const loadingAnnounced = useRef(false);
+  const loading = !read.isSuccess && !read.isError;
+  useEffect(() => {
+    if (loading && !loadingAnnounced.current && Platform.OS === 'ios') {
+      loadingAnnounced.current = true;
+      AccessibilityInfo.announceForAccessibility(t('genreStep.a11yLoading'));
+    }
+  }, [loading, t]);
+
   const noOffer = ready && read.data.options.length === 0;
   useEffect(() => {
     if (noOffer && stillOpen.current) router.replace(`/room/${id}/lobby`);

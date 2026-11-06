@@ -47,3 +47,16 @@ export function stepFooter(input: {
   const skip = input.saveFailed || (!input.online && primary === 'continue');
   return { primary, skip };
 }
+
+/**
+ * What the room layout does with a request for the step: ask (the room is in the lobby and the
+ * phone is on it), drop it (the room moved past the lobby: picks are locked), or wait.
+ */
+export function genreAskAction(
+  state: string | undefined,
+  current: string | undefined,
+): 'ask' | 'drop' | 'wait' {
+  if (!state) return 'wait';
+  if (state !== 'lobby') return 'drop';
+  return current === 'lobby' ? 'ask' : 'wait';
+}

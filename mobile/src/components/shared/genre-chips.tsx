@@ -40,14 +40,13 @@ export function GenreChips({ options, selected, onToggle, showCounts, loading }:
       className="flex-row flex-wrap gap-2"
     >
       {options.map((option) => {
-        const counted = showCounts;
         return (
           <Chip
             key={option.id}
             label={option.name}
-            count={counted && option.count > 0 ? option.count : undefined}
+            count={showCounts && option.count > 0 ? option.count : undefined}
             accessibilityLabel={
-              counted
+              showCounts
                 ? t('genresSheet.chip', { name: option.name, count: option.count })
                 : option.name
             }

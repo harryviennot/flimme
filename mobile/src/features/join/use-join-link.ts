@@ -18,12 +18,11 @@ import { releaseRoomGuards } from '@/features/room/leave-guard';
 import { startSession, useSession, useSessionFailed } from '@/features/session';
 import { errorFeedback } from '@/lib/feedback';
 import { playSound } from '@/lib/sound';
+import { askGenres } from '@/features/genres/step';
 
 import { linkOpenedAt, takeLinkReceivedAt } from './link-received';
 import { roomEntry, type RootRoute } from './enter-room';
 import { useLeaveLine } from './leave-line';
-import { askGenres } from '@/features/genres/step';
-
 import { parseInviteLink, roomRouteFor } from './link';
 import { keptRoomId, leaveOldSeat } from './old-seat';
 import { STARTING_RETRIES, STARTING_RETRY_MS, type JoinMessage } from './rows';
@@ -95,6 +94,8 @@ export function useJoinLink(params: Params) {
   // The host from the preview, and which step to run again (Retry, back online).
   const hostRef = useRef<JoinHost | null>(null);
   const step = useRef<'preview' | 'join'>(ref ? 'preview' : 'join');
+  // The preview said this phone already holds a seat: coming back is not a fresh join.
+  const seatedAtPreview = useRef(false);
   // Join was tapped on Confirm: the button shows the wait, the layout stays.
   const keepConfirm = useRef(false);
   const onlineRef = useRef(online);
@@ -155,7 +156,7 @@ export function useJoinLink(params: Params) {
           rememberLinkJoin(result.room_id, receivedAt);
           leaveOldSeat(result.room_id, oldRoomId);
           // A player already seated (the preview said so) is back in, not new: no genre step.
-          if (keep) askGenres(result.room_id);
+          if (!seatedAtPreview.current) askGenres(result.room_id);
           enterRoom(roomRouteFor(result.room_id, result.state), result.room_id, rootRoutes.current);
           return;
         }
@@ -228,6 +229,7 @@ export function useJoinLink(params: Params) {
       players: result.players,
     };
     step.current = 'join';
+    seatedAtPreview.current = result.seated;
     // Seated: it's their room, straight back in.
     if (result.seated) void attempt(false);
     else

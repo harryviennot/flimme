@@ -26,7 +26,7 @@ import { useCountGame, useRoomCap } from '@/features/analytics';
 import { useFinalePreload } from '@/features/finale/use-finale-preload';
 import { useRevealOf } from '@/features/finale/reveal-store';
 import { useRevealHold } from '@/features/finale/use-reveal-hold';
-import { takeGenreAsk } from '@/features/genres/step';
+import { genreAskAction, takeGenreAsk } from '@/features/genres/step';
 import { useMatchOverlay } from '@/features/match/use-match-overlay';
 import { ShortlistProvider, useShortlist, useShortlistHold } from '@/features/shortlist';
 import { useOnline } from '@/features/network';
@@ -117,12 +117,10 @@ export default function RoomLayout() {
   // A phone that just joined or opened this room is asked its genres once, while it is in the lobby
   // (genre-step.md#where-it-lives). A request for a room past the lobby is dropped.
   useEffect(() => {
-    if (!id || !state) return;
-    if (state === 'lobby' && current === 'lobby') {
-      if (takeGenreAsk(id)) router.replace(`/room/${id}/genre-step`);
-    } else if (state !== 'lobby') {
-      takeGenreAsk(id);
-    }
+    if (!id) return;
+    const action = genreAskAction(state, current);
+    if (action === 'wait') return;
+    if (takeGenreAsk(id) && action === 'ask') router.replace(`/room/${id}/genre-step`);
   }, [id, state, current]);
 
   useEffect(() => {

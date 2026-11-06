@@ -1,5 +1,6 @@
 import {
   askGenres,
+  genreAskAction,
   forgetGenreAsk,
   groupedCode,
   showsCounts,
@@ -69,5 +70,17 @@ describe('stepFooter', () => {
       primary: 'any',
       skip: false,
     });
+  });
+});
+
+describe('genreAskAction', () => {
+  it('asks in the lobby once the phone is on it, drops past the lobby, waits otherwise', () => {
+    expect(genreAskAction('lobby', 'lobby')).toBe('ask');
+    expect(genreAskAction('lobby', 'genre-step')).toBe('wait');
+    expect(genreAskAction('lobby', undefined)).toBe('wait');
+    expect(genreAskAction(undefined, 'lobby')).toBe('wait');
+    for (const state of ['dealing', 'swiping', 'finale', 'done', 'abandoned']) {
+      expect(genreAskAction(state, 'lobby')).toBe('drop');
+    }
   });
 });
