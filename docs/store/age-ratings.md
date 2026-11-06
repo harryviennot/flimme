@@ -177,6 +177,7 @@ Then **Save**. Google reviews the declared audience, which can take up to 7 days
 | Language | [use-settings-links.ts](../../mobile/src/features/account/use-settings-links.ts) | The phone's settings for the app |
 | The store page, from the update screen | [open-store.ts](../../mobile/src/features/app-config/open-store.ts) | The App Store or the Play Store |
 | Sharing an invite | [invite-link.ts](../../mobile/src/features/invite/invite-link.ts) | The system's share sheet; nothing opens |
+| Sharing the recap image, and the data export from Settings | [use-recap-share.ts](../../mobile/src/features/recap/use-recap-share.ts), [use-export-data.ts](../../mobile/src/features/account/use-export-data.ts) | The system's share sheet; nothing opens |
 
 The invite page's links and store badges and the legal pages' links run on flimme.com in a browser, not in the app. Letterboxd's export page isn't in the first release.
 
