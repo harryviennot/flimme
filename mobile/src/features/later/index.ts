@@ -10,6 +10,7 @@ import { savedSession } from './saved-session';
 import { createSaveSettler } from './settle';
 
 export { pendingSaves } from './pending';
+export { recordSaved } from './record';
 export { savedSession, useIsSaved } from './saved-session';
 
 /**
@@ -37,13 +38,6 @@ export function toggleSaved(titleId: number): boolean {
   const next = !savedSession.getState().has(titleId);
   setSaved(titleId, next);
   return next;
-}
-
-/** The sheet's own call went through: the session and the waiting list follow it. */
-export function recordSaved(titleId: number, saved: boolean): void {
-  savedSession.getState().set(titleId, saved);
-  const waiting = pendingSaves.getState().items.find((i) => i.title_id === titleId);
-  if (waiting) pendingSaves.getState().settle(waiting);
 }
 
 /** Sends what waited: on open, when the phone is back online and when the app comes to the foreground. */

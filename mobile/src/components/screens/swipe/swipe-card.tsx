@@ -25,6 +25,8 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { MovieCard } from '@/components/shared/movie-card';
 import type { AnswerKind } from '@/features/swipe/answer';
+import { toggleSaved, useIsSaved } from '@/features/later';
+import { announceSaved } from '@/features/later/announce';
 import { toMovieCard, type CardTextOptions } from '@/features/swipe/card-props';
 import {
   CARRY_X,
@@ -378,6 +380,13 @@ export function SwipeCard(props: SwipeCardProps) {
     onTrailerTouch: () => markTrailerTouch(),
   });
   const interactive = isTop;
+  const saved = useIsSaved(titleId);
+  const bookmark = {
+    saved,
+    // Not an answer: the card stays on top and is still swiped.
+    onToggle: () => announceSaved(card.title, toggleSaved(titleId)),
+    onTouch: () => markTrailerTouch(),
+  };
 
   return (
     // The wrapper fades a new card in; the card inside moves and fades with the drag.
@@ -415,6 +424,7 @@ export function SwipeCard(props: SwipeCardProps) {
           ) : null}
           <MovieCard
             {...view}
+            bookmark={bookmark}
             flipped={flight ? flight.flipped : flipped}
             stampProgress={isTop || flight ? stampProgress : undefined}
           />

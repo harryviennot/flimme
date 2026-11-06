@@ -145,7 +145,13 @@ export function FilmsGrid(props: FilmsGridProps) {
       onPlayAlone && (kind === 'liked' || kind === 'solo')
         ? { label: t('empty.playAlone'), onPress: onPlayAlone }
         : undefined;
-    const icon = { liked: 'heart', friends: 'users', solo: 'user', seen: 'eye' } as const;
+    const icon = {
+      liked: 'heart',
+      friends: 'users',
+      solo: 'user',
+      seen: 'eye',
+      later: 'bookmark',
+    } as const;
     empty = (
       <EmptyState
         icon={icon[kind]}
