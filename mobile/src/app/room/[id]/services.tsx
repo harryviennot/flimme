@@ -81,6 +81,7 @@ export default function RoomServicesScreen() {
   return (
     <Screen
       scroll
+      sheet
       footer={
         <Button
           label={t('servicesSheet.done')}

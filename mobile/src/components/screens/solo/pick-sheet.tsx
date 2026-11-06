@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useReducedMotion, withSpring } from 'react-native-reanimated';
 
@@ -141,50 +142,52 @@ export function PickSheet({ roomId }: { roomId: string }) {
   return (
     // A form sheet's scroll view fills the sheet and covers anything beside it, so the header is
     // the first thing inside it.
-    <ScrollView
-      className="bg-bg-canvas"
-      contentInsetAdjustmentBehavior="never"
-      contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
-    >
-      <View className="gap-1 px-5 pt-6">
-        <View className="flex-row items-center justify-between gap-3">
-          <Text variant="display-s" accessibilityRole="header" className="flex-1">
-            {t('pickSheet.title')}
+    <GestureHandlerRootView className="flex-1">
+      <ScrollView
+        className="bg-bg-canvas"
+        contentInsetAdjustmentBehavior="never"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+      >
+        <View className="gap-1 px-5 pt-6">
+          <View className="flex-row items-center justify-between gap-3">
+            <Text variant="display-s" accessibilityRole="header" className="flex-1">
+              {t('pickSheet.title')}
+            </Text>
+            <IconButton
+              icon="x"
+              variant="plain"
+              accessibilityLabel={tc('actions.close')}
+              onPress={() => router.back()}
+            />
+          </View>
+          <Text variant="body-s" tone="muted">
+            {t('pickSheet.helper')}
           </Text>
-          <IconButton
-            icon="x"
-            variant="plain"
-            accessibilityLabel={tc('actions.close')}
-            onPress={() => router.back()}
-          />
         </View>
-        <Text variant="body-s" tone="muted">
-          {t('pickSheet.helper')}
-        </Text>
-      </View>
-      <View className="px-5">
-        {online ? null : <Banner tone="warn" message={t('pickSheet.offline')} />}
-        <View className="gap-2 pt-4 pb-4">
-          {rows.map((row) => (
-            <View key={row[0]!.card.title_id} className="flex-row gap-2">
-              {row.map((entry) => (
-                <Tile
-                  key={entry.card.title_id}
-                  entry={entry}
-                  lifted={pending === entry.card.title_id}
-                  disabled={!online || pending !== null}
-                  imageBase={imageBase}
-                  screenWidth={width}
-                  onPress={() => void pick(entry.card.title_id)}
-                />
-              ))}
-              {Array.from({ length: 3 - row.length }, (_, i) => (
-                <View key={`pad-${i}`} className="flex-1 basis-0" />
-              ))}
-            </View>
-          ))}
+        <View className="px-5">
+          {online ? null : <Banner tone="warn" message={t('pickSheet.offline')} />}
+          <View className="gap-2 pt-4 pb-4">
+            {rows.map((row) => (
+              <View key={row[0]!.card.title_id} className="flex-row gap-2">
+                {row.map((entry) => (
+                  <Tile
+                    key={entry.card.title_id}
+                    entry={entry}
+                    lifted={pending === entry.card.title_id}
+                    disabled={!online || pending !== null}
+                    imageBase={imageBase}
+                    screenWidth={width}
+                    onPress={() => void pick(entry.card.title_id)}
+                  />
+                ))}
+                {Array.from({ length: 3 - row.length }, (_, i) => (
+                  <View key={`pad-${i}`} className="flex-1 basis-0" />
+                ))}
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </GestureHandlerRootView>
   );
 }

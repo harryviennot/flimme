@@ -41,7 +41,7 @@ export function JoinSheet({ view, code, ...rest }: JoinSheetProps) {
       className="flex-1 bg-bg-canvas"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Screen scroll>
+      <Screen scroll sheet>
         <View className="pt-8 pb-4">
           {view.kind === 'loading' ? <Loading code={code} /> : null}
           {view.kind === 'joining' ? <Joining code={code} shuffling={view.shuffling} /> : null}
