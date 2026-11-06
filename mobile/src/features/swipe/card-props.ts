@@ -24,7 +24,7 @@ export function formatRuntime(minutes: number, language: string): string {
   return `${new Intl.NumberFormat(language).format(hours)} h ${two}`;
 }
 
-function formatScore(score: number, language: string): string {
+export function formatScore(score: number, language: string): string {
   return new Intl.NumberFormat(language, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
@@ -42,6 +42,16 @@ export function cardMeta(
     parts.push(formatRuntime(card.runtime_min, language));
   }
   if (card.tmdb_score !== null) parts.push(`★ ${formatScore(card.tmdb_score, language)}`);
+  return parts.join(' · ');
+}
+
+/** "2017 · 1 h 43": the back's meta line before the score, which the card draws itself. */
+export function backMeta(card: Pick<NextCard, 'year' | 'runtime_min'>, language: string): string {
+  const parts: string[] = [];
+  if (card.year !== null) parts.push(String(card.year));
+  if (card.runtime_min !== null && card.runtime_min > 0) {
+    parts.push(formatRuntime(card.runtime_min, language));
+  }
   return parts.join(' · ');
 }
 
@@ -99,8 +109,10 @@ export type CardTextOptions = {
   maxAge?: number | null;
   /** Opens a trailer. Without it (or without a `trailer_key`) the back has no Trailer button. */
   onTrailer?: (url: string) => void;
-  /** A touch started on the Trailer button. */
-  onTrailerTouch?: () => void;
+  /** A touch started on the Trailer button or "Read more". */
+  onControlTouch?: () => void;
+  /** Opens the synopsis sheet. Without it the back has no "Read more". */
+  onReadMore?: () => void;
 };
 
 export function toMovieCard(
@@ -120,13 +132,15 @@ export function toMovieCard(
     thumbhash: card.poster_placeholder ?? undefined,
     services: cardServices(card),
     back: {
+      meta: backMeta(card, language),
       tmdbRating: card.tmdb_score !== null ? formatScore(card.tmdb_score, language) : undefined,
       synopsis: card.overview ?? options.noSynopsis,
       director: directors,
       cast,
       services: backServices(card, options.imageBase),
       onTrailer: key && onTrailer ? () => onTrailer(trailerUrl(key)) : undefined,
-      onTrailerTouch: options.onTrailerTouch,
+      onControlTouch: options.onControlTouch,
+      onReadMore: options.onReadMore,
     },
   };
 }

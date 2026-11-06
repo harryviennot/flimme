@@ -2,7 +2,7 @@ import type { Card } from '@flimme/contract';
 
 import type { MovieCardProps } from '@/components/shared/movie-card';
 import { formatList } from '@/features/lobby/names';
-import { cardMeta } from '@/features/swipe/card-props';
+import { backMeta, cardMeta } from '@/features/swipe/card-props';
 import { posterUrl } from '@/features/swipe/poster-url';
 
 // The film sheet's card back (film-sheet.md): the poster header, title, meta, TMDB rating,
@@ -31,6 +31,7 @@ export function sheetCardProps(
     services: [],
     still: true,
     back: {
+      meta: backMeta(card, language),
       tmdbRating:
         score !== null
           ? new Intl.NumberFormat(language, {

@@ -54,6 +54,14 @@ describe('isAllowed', () => {
     expect(isAllowed('swiping', 'film')).toBe(false);
     expect(isSheet('film')).toBe(true);
   });
+  it('lets the synopsis sheet over the swipe screen only', () => {
+    expect(isAllowed('swiping', 'synopsis')).toBe(true);
+    expect(isAllowed('swiping', 'synopsis', 'solo')).toBe(true);
+    expect(isAllowed('finale', 'synopsis')).toBe(false);
+    expect(isAllowed('done', 'synopsis')).toBe(false);
+    expect(isAllowed('lobby', 'synopsis')).toBe(false);
+    expect(isSheet('synopsis')).toBe(true);
+  });
   it('refuses any other screen', () => {
     expect(isAllowed('swiping', 'lobby')).toBe(false);
     expect(isAllowed('swiping', 'invite')).toBe(false);

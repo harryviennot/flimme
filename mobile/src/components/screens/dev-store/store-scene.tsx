@@ -87,7 +87,7 @@ function Swipe({ language }: { language: StoreLanguage }) {
             poster={fixturePosters[FILM.poster]}
             services={[...STORE_SERVICES]}
             stamp="like"
-            back={{ synopsis: FILM.synopsis[language] }}
+            back={{ meta: String(FILM.year), synopsis: FILM.synopsis[language] }}
           />
         </View>
       </View>
@@ -192,6 +192,7 @@ function CardBack({ language }: { language: StoreLanguage }) {
           flipped
           still
           back={{
+            meta: `${FILM.year} · ${FILM.runtime.h} h ${FILM.runtime.min}`,
             tmdbRating: FILM.rating,
             synopsis: FILM.synopsis[language],
             director: FILM.director,

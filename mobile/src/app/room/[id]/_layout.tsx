@@ -240,6 +240,16 @@ export default function RoomLayout() {
                 }}
               />
               <Stack.Screen
+                name="synopsis/[title]"
+                options={{
+                  presentation: 'formSheet',
+                  // The stack turns gestures off for the room; a sheet still swipes down.
+                  gestureEnabled: true,
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: [0.6],
+                }}
+              />
+              <Stack.Screen
                 name="film/[title]"
                 options={{
                   presentation: 'formSheet',
