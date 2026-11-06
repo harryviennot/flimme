@@ -31,7 +31,7 @@ Tu n'as pas de compte à créer. À la première ouverture, l'appli crée un pro
 | --- | --- |
 | Ton profil | Un identifiant aléatoire, le prénom ou le pseudo que tu choisis, ta couleur (choisie dans une liste, jamais une photo), ta langue et le pays réglé sur ton téléphone |
 | Ta connexion | La date de création de ton profil et de ton dernier passage. Pour chaque session, notre base de données enregistre aussi l'adresse IP de ton téléphone et l'identification technique de l'appli |
-| Le journal des connexions | Pour la sécurité, Supabase, qui gère la connexion, note les connexions, chaque renouvellement de ta session et la suppression de ton profil : l'action, ton identifiant et l'heure. Selon l'action, il peut aussi noter l'adresse IP de ton téléphone |
+| Le journal des connexions | Pour la sécurité, Supabase, qui gère la connexion, enregistre les connexions, chaque renouvellement de ta session et la suppression de ton profil : l'action, ton identifiant et l'heure. Selon l'action, il peut aussi enregistrer l'adresse IP de ton téléphone |
 | Tes plateformes | Les services de streaming que tu as |
 | Tes parties | Les salles que tu crées ou rejoins et leurs réglages. Ta place dans chaque salle : ton prénom, ta couleur et tes plateformes ce soir-là, et comment tu es arrivé (lien, code, QR code). Tes réponses à chaque film (J'aime, Bof, Coup de cœur, Déjà vu) et leur heure, tes votes au Final Cut et le film du soir. Une partie en solo est une salle à une seule place |
 | Le journal des cartes | Pour chaque carte : le film, comment il est arrivé dans ton paquet, sa place, son score et ce qui a servi à le choisir, ta réponse et son heure, une annulation éventuelle, si tu as retourné la carte et le temps passé dessus. Il est relié à ta place dans la salle, jamais à ton prénom |
@@ -123,7 +123,7 @@ Ces prestataires traitent tes données pour notre compte, selon nos instructions
 | Sentry | Rapports de plantage | Francfort (Union européenne). Sentry indique que certains types de données peuvent être stockés aux États-Unis |
 | PostHog | Statistiques d'usage | Francfort (Union européenne) |
 | Expo | Mises à jour de l'appli. Quand l'appli en cherche une, Expo reçoit le système de ton téléphone, un identifiant aléatoire et ton adresse IP | États-Unis |
-| OVH | Le serveur de notre site, flimme.com, et la boîte e-mail de support@flimme.com : il reçoit et garde les e-mails que tu nous envoies | France (le serveur du site est à Gravelines) |
+| OVH | Le serveur de notre site, flimme.com, et la boîte e-mail de support@flimme.com : OVH reçoit et garde les e-mails que tu nous envoies | France (le serveur du site est à Gravelines) |
 
 À part OVH, qui est une entreprise française, ces prestataires sont des entreprises américaines. Quand des données sont envoyées aux États-Unis ou peuvent y être consultées, le transfert est encadré par les clauses contractuelles types de la Commission européenne et, pour les entreprises qui y adhèrent, par le cadre de protection des données UE-États-Unis (Data Privacy Framework).
 
@@ -158,7 +158,7 @@ Notre site, flimme.com, ne mesure pas l'audience et ne garde aucun journal des v
 Tu peux accéder à tes données, les corriger, les supprimer, les récupérer, t'opposer à leur utilisation ou la limiter, et retirer ton consentement. La plupart se font directement dans l'appli.
 
 - **Télécharger tes données** : Réglages, « Télécharger mes données ». Tu reçois un fichier JSON avec ton profil, tes plateformes, ton choix sur les statistiques, Mes films et, pour chaque partie, ta place, tes réponses, tes votes et le film du soir. Jamais les données des autres joueurs. Une fois par heure au plus.
-- **Supprimer tes données** : Réglages, « Supprimer mes données ». Ton profil, tes plateformes, Mes films, ton choix sur les statistiques et les statistiques reliées à ton profil sont effacés. Tes votes passés restent dans leurs salles, sans ton prénom. Le journal des connexions disparaît au bout de 90 jours au plus. Sans l'appli, la page [flimme.com/fr/suppression](https://flimme.com/fr/suppression) explique comment faire.
+- **Supprimer tes données** : Réglages, « Supprimer mes données ». Ton profil, tes plateformes, Mes films, ton choix sur les statistiques et les statistiques reliées à ton profil sont effacés. Tes votes passés restent dans leurs salles, sans ton prénom. Le journal des connexions est effacé sous 90 jours au plus. Sans l'appli, la page [flimme.com/fr/suppression](https://flimme.com/fr/suppression) explique comment faire.
 - **Corriger** : change ton prénom et ta couleur depuis l'accueil, et tes plateformes en préparant une partie. Dans Mes films, retire un film ou marque-le comme vu ou pas vu.
 - **T'opposer** : désactive « Aider à améliorer l'appli ». Pour le journal des cartes, écris-nous.
 - **Retirer ton consentement** : désactive « Stats détaillées ».

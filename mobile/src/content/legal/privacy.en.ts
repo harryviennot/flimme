@@ -122,7 +122,7 @@ These providers process your data on our behalf, following our instructions and 
 | Sentry | Crash reports | Frankfurt (European Union). Sentry says some types of data may be stored in the United States |
 | PostHog | Usage stats | Frankfurt (European Union) |
 | Expo | App updates. When the app checks for one, Expo receives your phone's operating system, a random id and your IP address | United States |
-| OVH | The server behind our website, flimme.com, and the mailbox for support@flimme.com: it receives and keeps the emails you send us | France (the website's server is in Gravelines) |
+| OVH | The server behind our website, flimme.com, and the mailbox for support@flimme.com: OVH receives and keeps the emails you send us | France (the website's server is in Gravelines) |
 
 Apart from OVH, a French company, these providers are American companies. When data is sent to the United States or can be accessed from there, the transfer is covered by the European Commission's standard contractual clauses and, for the companies that have joined it, by the EU-US Data Privacy Framework.
 
@@ -157,7 +157,7 @@ Our website, flimme.com, doesn't measure its audience and keeps no log of visits
 You can access your data, correct it, delete it, take a copy, object to or restrict its use, and withdraw your consent. Most of this happens right in the app.
 
 - **Download your data**: Settings, "Download my data". You get a JSON file with your profile, your services, your stats choice, My films and, for each game, your seat, your answers, your votes and tonight's pick. Never other players' data. Once an hour at most.
-- **Delete your data**: Settings, "Delete my data". Your profile, your services, My films, your stats choice and any stats linked to your profile are erased. Your past votes stay in their rooms, without your name. The sign-in log goes within 90 days at most. Without the app, the page [flimme.com/en/delete-account](https://flimme.com/en/delete-account) explains how.
+- **Delete your data**: Settings, "Delete my data". Your profile, your services, My films, your stats choice and any stats linked to your profile are erased. Your past votes stay in their rooms, without your name. The sign-in log is erased within 90 days at most. Without the app, the page [flimme.com/en/delete-account](https://flimme.com/en/delete-account) explains how.
 - **Correct it**: change your name and colour from the home screen, and your services when you set up a game. In My films, remove a film or mark it as seen or not seen.
 - **Object**: switch off "Help improve the app". For the card log, write to us.
 - **Withdraw your consent**: switch off "Detailed stats".

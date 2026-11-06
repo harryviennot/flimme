@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 154 of 283 tasks done.
+Progress: 154 of 285 tasks done.
 
 ```mermaid
 flowchart LR
@@ -566,7 +566,7 @@ Done when: the policy and terms are online, and players can download and delete 
 - [ ] **M8.13** A written personal data breach process and a breach register: who decides, the CNIL's 72-hour notice, what's recorded · legal · S · [privacy](privacy.md#french-specifics), [record of processing](../legal/record-of-processing.md#points-ouverts)
   Done when: the process and an empty register are in the docs, and operations.md's incident steps point to them.
 - [ ] **M8.14** A retention rule for `auth.audit_log_entries` matching the policy (90 days at most): a daily cleanup in the retention job, or the database copy turned off · backend · S · needs M8.9 · [privacy](privacy.md#what-we-store-and-why), [record of processing](../legal/record-of-processing.md#points-ouverts)
-  Done when: tested, and live on production before any row there is 90 days old.
+  Done when: no row older than 90 days is left, rows already written included, tested, and live on production before any row there is 90 days old.
 
 ## M9 Observability and analytics
 
