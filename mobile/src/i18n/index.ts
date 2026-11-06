@@ -3,6 +3,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { AppState, type NativeEventSubscription } from 'react-native';
 
+import { patchFrenchPlurals } from './french-plurals';
 import { resources } from './resources';
 
 export const languages = ['fr', 'en'] as const;
@@ -35,6 +36,9 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
   returnNull: false,
 });
+
+// Hermes answers "other" for French 0; French takes the singular (copy skill, Keys).
+patchFrenchPlurals(i18n.services.pluralResolver as Parameters<typeof patchFrenchPlurals>[0]);
 
 /** Switches the app to the device's language when it changed, and answers the language. */
 export function applyDeviceLanguage(): Language {

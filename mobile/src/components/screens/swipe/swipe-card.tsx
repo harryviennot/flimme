@@ -86,6 +86,8 @@ export type SwipeCardProps = {
   flipped: boolean;
   /** A near miss: the card takes the like glow, front and back. */
   glow?: boolean;
+  /** A solo room: a like is already the save, so the card shows no bookmark on either face. */
+  solo?: boolean;
   /** The card's size in points, from the stack's room. */
   size: { width: number; height: number };
   /** The screen's size: the commit lines and the flight's reach come from it. */
@@ -438,7 +440,7 @@ export function SwipeCard(props: SwipeCardProps) {
           ) : null}
           <MovieCard
             {...view}
-            bookmark={bookmark}
+            bookmark={props.solo ? undefined : bookmark}
             flipped={flight ? flight.flipped : flipped}
             stampProgress={isTop || flight ? stampProgress : undefined}
           />

@@ -49,7 +49,7 @@ export function ListRow({
       <Text
         variant="body-l"
         tone={danger ? 'nope' : 'primary'}
-        className="flex-1"
+        className={value ? 'max-w-1/2 shrink-0' : 'flex-1'}
         numberOfLines={2}
         accessibilityElementsHidden={hideLabel}
         importantForAccessibility={hideLabel ? 'no-hide-descendants' : 'auto'}
@@ -62,7 +62,12 @@ export function ListRow({
         ) : (
           <>
             {value ? (
-              <Text variant="body-m" tone="muted" numberOfLines={1}>
+              <Text
+                variant="body-m"
+                tone="muted"
+                numberOfLines={1}
+                className="min-w-0 flex-1 text-right"
+              >
                 {value}
               </Text>
             ) : null}

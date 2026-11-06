@@ -4,6 +4,28 @@ import { ListRow } from './list-row';
 import { Toggle } from './toggle';
 
 describe('ListRow', () => {
+  it('never shrinks its label for a long value: the value truncates instead', async () => {
+    await render(
+      <ListRow label="Tes genres ce soir" value="Action, Comédie, Science-fiction, Thriller" />,
+    );
+    const label = screen.getByText('Tes genres ce soir');
+    const value = screen.getByText('Action, Comédie, Science-fiction, Thriller');
+    expect(label.props.className).toContain('shrink-0');
+    expect(label.props.numberOfLines).toBe(2);
+    expect(value.props.numberOfLines).toBe(1);
+  });
+
+  it('never shrinks its label for a long value: the value truncates instead', async () => {
+    await render(
+      <ListRow label="Tes genres ce soir" value="Action, Comédie, Science-fiction, Thriller" />,
+    );
+    const label = screen.getByText('Tes genres ce soir');
+    const value = screen.getByText('Action, Comédie, Science-fiction, Thriller');
+    expect(label.props.className).toContain('shrink-0');
+    expect(label.props.numberOfLines).toBe(2);
+    expect(value.props.numberOfLines).toBe(1);
+  });
+
   it('presses, and reads its label with its value', async () => {
     const onPress = jest.fn();
     await render(<ListRow label="Language" value="English" onPress={onPress} />);

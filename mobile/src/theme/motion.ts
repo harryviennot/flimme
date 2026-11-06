@@ -1,4 +1,12 @@
-import { Easing, FadeIn, FadeInDown, FadeOut, FadeOutUp, ZoomIn } from 'react-native-reanimated';
+import {
+  Easing,
+  FadeIn,
+  LinearTransition,
+  FadeInDown,
+  FadeOut,
+  FadeOutUp,
+  ZoomIn,
+} from 'react-native-reanimated';
 
 import { tokens } from './generated/tokens';
 
@@ -51,3 +59,14 @@ export const layout = {
   fadeOut: FadeOut.duration(duration.fast),
   popIn: ZoomIn.duration(duration.base).easing(easing.arcade),
 };
+
+/**
+ * The top bar's player stack (swipe.md#the-player-stack): seats pop in and the others slide.
+ * Under Reduce Motion, from `useReducedMotion()`, they fade in and nobody slides.
+ */
+export function stackMotion(reduced: boolean) {
+  return {
+    entering: reduced ? layout.fadeIn : layout.popIn,
+    layout: reduced ? undefined : LinearTransition.duration(duration.base),
+  };
+}

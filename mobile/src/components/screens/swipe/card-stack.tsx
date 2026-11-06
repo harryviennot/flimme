@@ -224,6 +224,7 @@ export function CardStack({
               }
               flipped={card === top ? flipped : false}
               glow={glowId === card.title_id}
+              solo={swipe.solo}
               size={size}
               screen={screen}
               text={{
