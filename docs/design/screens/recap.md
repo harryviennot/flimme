@@ -128,7 +128,7 @@ The card's labels are uppercase in their fonts (`display-*`, `mono-eyebrow`): "O
 ## Motion, haptics, sound
 
 - The system sheet's slide in and out. The preview's poster fades over its placeholder (`Poster`'s own `transition`, `duration.fast`). Nothing else moves: the card is a still image.
-- `press` on Share recap, Share and Close; `haptics.error()` when the capture or the share fails. No `match` haptic and no sound: sound is only for the match and the reveal.
+- `press` on Share recap, Share and Close; `haptics.error()` when the capture or the share fails. No `match` haptic, and no sound but the error sound with that `haptics.error()` ([sounds.md](../sounds.md#errors-and-refusals)).
 - **Reduce Motion:** nothing to change.
 
 ## Accessibility
