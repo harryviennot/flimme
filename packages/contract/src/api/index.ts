@@ -22,6 +22,7 @@ import {
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
   PLAY_AGAIN_ANSWERS,
+  ROOM_GENRES_ANSWERS,
   ROOM_RUNNERS_UP_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
@@ -74,6 +75,8 @@ import {
   setRoomLockedResult,
   playAgainResult,
   type PlayAgainResult,
+  roomGenresResult,
+  type RoomGenresResult,
   runnersUpResult,
   type RunnersUpResult,
   myProfileRow,
@@ -316,6 +319,21 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_room_id: args.room_id },
         ROOM_RUNNERS_UP_ANSWERS,
         runnersUpResult,
+      );
+    },
+
+    /**
+     * Tonight's genres with how many present seats picked each, and the caller's own picks. Read it
+     * again on `genres_changed`. Still answers after Start, with the locked picks (M6.53).
+     */
+    roomGenres(args: { room_id: string }): Promise<RoomGenresResult> {
+      return callAnswer(
+        client,
+        options,
+        'room_genres',
+        { p_room_id: args.room_id },
+        ROOM_GENRES_ANSWERS,
+        roomGenresResult,
       );
     },
 

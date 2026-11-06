@@ -310,6 +310,9 @@ export type Database = {
 "request_cards":
 { Args: { "p_member_id"?: string,"p_room_id": string }; Returns: Json
                            },
+"room_genres":
+{ Args: { "p_room_id": string }; Returns: Json
+                           },
 "room_preview":
 { Args: { "p_code": string,"p_ref": string }; Returns: Json
                            },

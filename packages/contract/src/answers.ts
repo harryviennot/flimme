@@ -82,12 +82,28 @@ export type PlayAgainAnswer = (typeof PLAY_AGAIN_ANSWERS)[number];
 export const ROOM_RUNNERS_UP_ANSWERS = ['ok', 'not_finished'] as const;
 export type RoomRunnersUpAnswer = (typeof ROOM_RUNNERS_UP_ANSWERS)[number];
 
+/**
+ * `api.room_genres` answers (M6.53): the genres offered tonight with counts, and the caller's own
+ * picks. A caller who is not a member raises 42501.
+ */
+export const ROOM_GENRES_ANSWERS = ['ok'] as const;
+export type RoomGenresAnswer = (typeof ROOM_GENRES_ANSWERS)[number];
+
 /** `api.update_room_settings` answers. */
 export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed', 'invalid_settings'] as const;
 export type UpdateRoomSettingsAnswer = (typeof UPDATE_ROOM_SETTINGS_ANSWERS)[number];
 
-/** `api.set_seat_prefs` answers. */
-export const SET_SEAT_PREFS_ANSWERS = ['ok', 'closed', 'too_many'] as const;
+/**
+ * `api.set_seat_prefs` answers. `too_many` is over a cap (3 genres since M6.53), `unknown_genre`
+ * a genre not offered tonight, `locked` a genre change once the room has started (M6.53).
+ */
+export const SET_SEAT_PREFS_ANSWERS = [
+  'ok',
+  'closed',
+  'too_many',
+  'unknown_genre',
+  'locked',
+] as const;
 export type SetSeatPrefsAnswer = (typeof SET_SEAT_PREFS_ANSWERS)[number];
 
 /**

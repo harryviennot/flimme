@@ -154,6 +154,17 @@ When the finale starts is in [The finale](#the-finale); the card counts and time
 
 > The host can also remove a player, who can't rejoin, and lock the room against new seats, and anyone can report a player: see [security.md](../architecture/security.md#room-codes-joining-and-the-host). Apple's guideline 1.2 asks for it ([store-listing.md](store-listing.md#passing-review)).
 
+## Genres tonight
+
+Each player can pick genres for tonight in the lobby (decisions.md, 6 November 2026; the genre simulation, "Per-player genres" in [simulations.md](simulations.md), passed the gate). The deck leans toward them; the match rule doesn't change.
+
+- **Which genres:** TMDB's movie genres, but not TV Movie. A genre with fewer than 30 eligible films tonight (the room's services, age cap, time budget and the other filters) isn't offered, so a pick can't starve the deck.
+- **Optional, never blocking Start.** At most 3 per player: more is refused (`too_many`), not cut.
+- **Counts, never who.** Everyone sees how many players picked each genre, never which ones. A change of picks tells the other phones only that the counts changed (`genres_changed`, no seat), and they read the counts again.
+- **Who counts:** the present players who picked. A player who picks nothing doesn't count in the weight, and with no picks at all the deck is exactly today's.
+- **Locked at Start.** From Start, a change is refused (`locked`), and the picks of the players present at Start drive the whole game, refills included. A late joiner plays the deck as it is, and can't pick.
+- **What the deck does with them:** about 3 cards in 4 come from films matching at least one pick, films matching more players' picks first; 1 in 4 stays open. The shared opening of 10 follows the same mix (8 from the picks), so everyone sees the same start. The details are in [deck-engine.md](../architecture/deck-engine.md#per-player-genres).
+
 ## What players see: Party and Blind
 
 The host chooses before the start. Party is the default.
@@ -456,6 +467,8 @@ All placeholders until playtests.
 | The vote | One round of 60 seconds; 2 seconds of grace for late ballots |
 | Vote now | After 10 cards each and 2 liked films, or once the room has a match |
 | Too few films to start | Fewer than 20 eligible |
+| Genres per player | At most 3, optional; TV Movie never offered |
+| A genre is offered | With 30 eligible films or more tonight |
 | Everyone out of cards, nothing liked | 5 minutes for the host to change filters |
 | Fewer than 2 players present | 5 minutes, then abandoned (not in a solo room) |
 | Solo room without a vote | 30 minutes, then done |
