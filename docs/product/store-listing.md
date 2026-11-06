@@ -82,64 +82,19 @@ Both stores need an account before any build reaches a tester. The choice of **i
 
 ## The listing, in English and French
 
-**Limits:** name 30 characters on both stores; Apple subtitle 30, promotional text 170 (editable without a new version), description 4,000, keywords 100 bytes; Google short description 80, full description 4,000.
+**The final copy is in [docs/store/listing.md](../store/listing.md)** (M11.1, 6 November 2026): every value for both stores, in French and English, checked by `node tools/store-copy.mjs`. The drafts that stood here described more than the first release (a Letterboxd import, a deck that learns, "no swipe limit" while solo stops at 100 cards a day), used "vous" and "non" where the app says "tu" and "Bof", and quoted a TMDB notice that wasn't TMDB's wording, so they were replaced by that file.
+
+**Limits** (checked on Apple's and Google's pages on 5 November 2026): name 30 characters on both stores; Apple subtitle 30, promotional text 170 (editable without a new version), description 4,000, keywords 100 bytes with each keyword more than two characters; Google short description 80, full description 4,000.
 
 **Rules that shape the copy**
 
-- **No "for kids" or "for children".** Apple reserves those words for the Kids Category (guideline 2.3.8). "For the whole family" is fine. Google may reject a listing that "appeals to children" through youthful imagery if the app isn't in its Families programme (see [Age ratings](#age-ratings)).
+- **No "for kids" or "for children"** ("pour enfants" in French). Apple reserves those words for the Kids Category (guideline 2.3.8). "For the whole family" is fine. Google may reject a listing that "appeals to children" through youthful imagery if the app isn't in its Families programme (see [Age ratings](#age-ratings)).
 - **No other app or company names in the keywords** (Apple allows none; guideline 2.3.7 bans packing metadata with trademarks). So no "Letterboxd", "Netflix" or "TMDB" in the keyword field.
-- **Third-party names in the description only to describe a real feature**, with no logos and no partnership wording: "Import your Letterboxd history", never "Letterboxd for groups". Add "Not affiliated with Letterboxd" ([Letterboxd ground rules](../integrations/letterboxd.md#ground-rules)).
-- **Credits in the description and the app's About screen:** "Film data from TMDB. Where-to-watch data powered by JustWatch. This product uses the TMDB API but is not endorsed or certified by TMDB" ([tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution)).
+- **No streaming service named anywhere in the copy:** "the services in the room" instead (M11.1, Q1.4).
+- **Third-party names in the description only to describe a real feature**, with no logos and no partnership wording. In the first release that means the credits only. When the Letterboxd import ships (M20), it can say "Import your Letterboxd history", never "Letterboxd for groups", with "Not affiliated with Letterboxd" ([Letterboxd ground rules](../integrations/letterboxd.md#ground-rules)).
+- **Credits in both full descriptions and the app's About screen, word for word as the app shows them** (`settings.json` about.tmdb and `common.json` card.justwatch): "This app uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB." and "Streaming availability by JustWatch." ([tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution)).
 - **No Android in the iOS listing** (guideline 2.3.10), and the reverse.
-
-**Drafts** (lengths checked):
-
-| Field | English | French |
-| --- | --- | --- |
-| Subtitle (Apple, 30) | Pick a movie together, fast | Le film du soir, en 5 minutes |
-| Promotional text (Apple, 170) | Stop scrolling, start watching. Everyone swipes, and the app finds the film you all want to see, usually in under five minutes. | Fini les heures à chercher. Chacun swipe, et l'appli trouve le film que tout le monde a envie de voir, souvent en moins de cinq minutes. |
-| Short description (Google, 80) | Swipe with friends or family and find the movie everyone wants to watch. | Swipez entre amis ou en famille et trouvez le film que tout le monde veut voir. |
-| Keywords (Apple, 100 bytes) | movie night,film,group,friends,family,swipe,match,watchlist,what to watch,decide,couple,date night | soirée film,film,cinéma,amis,famille,swipe,match,quoi regarder,choisir,couple,ce soir,watchlist |
-
-**Full description, English** (a start):
-
-> Movie night shouldn't take an hour. With [Name], everyone swipes on their own phone and the app finds the film the whole room says yes to.
->
-> HOW IT WORKS
-> 1. Open a room and share the code, link or QR code.
-> 2. Everyone swipes: like, nope, super like, or "seen it".
-> 3. It's a match when you all like the same film. No match yet? The Final Cut settles it in under a minute.
->
-> WHY IT'S DIFFERENT
-> - Only films you can watch tonight, on the services in the room.
-> - A deck that learns what each of you likes, and doesn't serve the same films every week.
-> - Nobody gets stuck with a film they'd hate.
-> - Optional: import your Letterboxd history so the deck knows your taste from the first card.
->
-> Free, no account needed, no swipe limit.
->
-> Film data from TMDB. Where-to-watch data powered by JustWatch. This product uses the TMDB API but is not endorsed or certified by TMDB. Not affiliated with Letterboxd.
-
-**Full description, French** (a start):
-
-> Choisir un film ne devrait pas prendre une heure. Avec [Name], chacun swipe sur son téléphone et l'appli trouve le film qui plaît à tout le monde.
->
-> COMMENT ÇA MARCHE
-> 1. Créez une salle et partagez le code, le lien ou le QR code.
-> 2. Chacun swipe : j'aime, non, coup de cœur, ou « déjà vu ».
-> 3. C'est un match quand tout le monde aime le même film. Pas encore de match ? Le Final Cut tranche en moins d'une minute.
->
-> CE QUI CHANGE
-> - Seulement des films que vous pouvez regarder ce soir, sur les plateformes de la salle.
-> - Des propositions qui apprennent vos goûts et ne vous resservent pas les mêmes films chaque semaine.
-> - Personne ne se retrouve devant un film qu'il déteste.
-> - En option : importez votre historique Letterboxd pour que l'appli connaisse vos goûts dès la première carte.
->
-> Gratuit, sans compte, sans limite de swipes.
->
-> Données des films : TMDB. Disponibilités fournies par JustWatch. Ce produit utilise l'API TMDB mais n'est ni approuvé ni certifié par TMDB. Sans lien avec Letterboxd.
-
-The answer labels in the French copy should match the app's French strings once they exist.
+- **Only what the first release does** ([The first release](roadmap.md#the-first-release-whats-in-what-waits)). The French copy says "tu" and uses the app's labels (J'aime, Bof, Coup de cœur, Déjà vu, Jouer seul, salle, Final Cut).
 
 ## Screenshots and the preview video
 
@@ -172,26 +127,30 @@ If the app supports tablets (an open question in [app structure](../architecture
 
 ## Age ratings
 
+The answers to enter, one per question in each console, are in [store/age-ratings.md](../store/age-ratings.md) (M11.5, checked against Apple's and Google's current questionnaires on 6 November 2026). This section keeps the reasoning.
+
 ### Apple
 
 Apple's ratings are now 4+, 9+, 13+, 16+ and 18+ (12+ and 17+ were retired; the new questionnaire was due by 31 January 2026). The rating follows the content the app can show, and ours is mainstream films' posters, titles, synopses and trailer links (adult titles are always excluded).
 
 | Questionnaire item | Our honest answer | Rating it implies |
 | --- | --- | --- |
-| Horror/Fear Themes | Infrequent (horror posters only reach rooms that like horror) | 9+ |
+| Horror/Fear Themes | Infrequent (horror posters can show in any room; the first release's deck doesn't learn tastes) | 9+ |
 | Cartoon or Fantasy Violence, Profanity or Crude Humor, Mature or Suggestive Themes | Infrequent | 9+ |
 | Realistic Violence | Infrequent (action and crime posters, synopses) | **13+** |
 | Sexual Content or Nudity | Infrequent (suggestive posters and synopses of some R-rated films) | **13+** |
-| User-generated content | Display names and preset emoji reactions, seen only by the room. Answer yes to be safe; it doesn't raise the rating | 4+ |
+| User-generated content | Display names, seen only by the room (reactions aren't in the first release). Answer yes to be safe; it doesn't raise the rating | 4+ |
 | Messaging and chat | No: no free text between players | |
-| Unrestricted web access | No: the app only opens specific pages (Letterboxd's export page, TMDB's watch page) in the system browser sheet, with no address to type. Open those "More details" links in the external browser if a reviewer disagrees | (16+ if yes) |
+| Unrestricted web access | No: the app only opens specific pages (TMDB's watch page, the privacy policy and the terms) in the system browser sheet, with no address to type, and trailers open in YouTube outside the app. Open those "More details" links in the external browser if a reviewer disagrees | (16+ if yes) |
 | Advertising, gambling, contests | None | |
 
-**Expected: 13+.** For comparison, JustWatch is rated 13+ with the same infrequent descriptors, and Letterboxd 16+ (it has messaging). A 9+ rating would need a catalog with no realistic violence or suggestive images at all, which isn't the product.
+Apple's current form has more items than this table (alcohol, tobacco or drugs, guns or other weapons, medical topics, loot boxes, social media and others): the answers file covers every one. Infrequent alcohol, tobacco or drug references also imply 13+.
+
+**Expected: 13+.** For comparison (App Store France, 6 November 2026), JustWatch is rated 13+ with much the same infrequent descriptors, and Letterboxd 16+ (not for its messaging, which Apple's scale puts at 4+). A 9+ rating would need a catalog with no realistic violence or suggestive images at all, which isn't the product.
 
 ### Google Play
 
-Google's content rating comes from the IARC questionnaire in Play Console; each region's authority applies its own rules (PEGI in Europe, so France; ESRB in the Americas). Answer it with the same facts as Apple's. The result can't be known before filling it in.
+Google's content rating comes from the IARC questionnaire in Play Console; each region's authority applies its own rules (PEGI in Europe, so France; ESRB in the Americas). Answer it with the same facts as Apple's; Google also counts content reached through links, so the trailers count. The result can't be known before filling it in; comparable film apps are PEGI 12 or "Parental guidance" in France and Teen in the US.
 
 **Target audience** is a separate Play Console setting. Choosing any age group under 13 brings in Google's Families policy: only self-certified ad SDKs, disclosure and parental consent for children's data where required, and a neutral age screen for mixed audiences. **Recommendation: target 13 and over at launch**, and keep the listing free of youthful imagery so it isn't judged to "appeal to children".
 

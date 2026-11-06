@@ -130,6 +130,13 @@ if (touched('.github/', 'tools/')) {
     'node --test tools/*.test.mjs && node tools/check-ci.mjs pins',
   );
 }
+// The store listing (M11.1): its values, the checker, and the app strings it quotes as credits.
+if (touched('docs/store/', 'tools/store-copy', 'mobile/src/i18n/locales/')) {
+  add(
+    'store: listing copy within the limits and rules',
+    'node --test tools/store-copy.test.mjs && node tools/store-copy.mjs',
+  );
+}
 if (
   touched('docs/', 'README.md', 'CLAUDE.md', '.claude/') ||
   files.some((f) => f.endsWith('.md'))
