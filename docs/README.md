@@ -47,6 +47,8 @@ Everything written about Flimme (the revival of MovieMatch): what we're building
 | [letterboxd.md](integrations/letterboxd.md) | What Letterboxd allows, the export file format, connecting, the RSS check, syncing, storage, rules for using the data | Draft for review |
 | [tmdb.md](integrations/tmdb.md) | The catalog from TMDB: terms and the machine-learning clause, which films, one request per film, the daily availability sweep, services and variants, the refresh schedule, the first load, images, certifications, translations, embeddings, failures, countries at launch | Draft for review. Its data model changes aren't applied yet |
 | [streaming-availability.md](integrations/streaming-availability.md) | Where-to-watch sources compared and the choice; Streaming Availability's data, terms and attribution; deep links and the last check on the winner screen; the staleness metric; service mapping; cost | Not used in v1: kept as the comparison of sources and a plan B |
+| **Legal** | | |
+| [legal/record-of-processing.md](legal/record-of-processing.md) | The record of processing (GDPR article 30), in French on the CNIL's model: the controller, one sheet per activity of the first release (purpose, people and data, recipients, transfers, retention, security), what's not in the first release, open points for the lawyer | Written 5 Nov 2026 (M8.10) from privacy.md's data map and the code; update it with any change to the data map |
 | **Decisions** | | |
 | [decisions.md](decisions.md) | Decided, defaults, open, dropped | Kept up to date |
 | **Process** | | |
@@ -65,6 +67,7 @@ Outside the repo: the [design file in Figma](https://www.figma.com/design/v2ZGLb
 | `architecture/` | How the system works: backend, app structure, the recommendation algorithm, operations | `notifications.md` |
 | `integrations/` | One file per outside service: what it allows, how we call it, its rules | `revenuecat.md` |
 | `design/` | Specs extracted from the Figma and written by the designer agent: components, screens, moments | `moments.md` |
+| `legal/` | Records the law asks us to keep, in French when they're for the CNIL | `record-of-processing.md` |
 | `decisions.md` | One line per decision or open question, linking to the doc with the details | |
 | `archive/` | Frozen snapshots. Never edited | |
 

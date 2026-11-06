@@ -24,6 +24,7 @@ French is the primary language (France launches first); English sits next to it.
 - Never reveal who noped, who vetoed or what someone voted. Counts only: "2 of 3 of you liked this".
 - Errors for status answers are specific: `full` is "This room is full (10 players)", not "Something went wrong".
 - No em dashes or en dashes; commas, colons or parentheses instead.
+- Store text lives in `docs/store/listing.md`, one fenced block per value, and only claims what the shipped app does. `node tools/store-copy.mjs` checks it (limits, keywords, credits, banned words); a new rule goes in its `RULES` table with a test.
 
 ## Keys
 
