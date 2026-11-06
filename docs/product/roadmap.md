@@ -102,7 +102,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
 | [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 48 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
-| [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 12 | In progress |
+| [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 14 | In progress |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 9 | In progress |
 | [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | Not started |
 | [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the review notes are ready on both stores, and Play alone reaches a pick on one device | 10 | Not started |
@@ -563,6 +563,10 @@ Done when: the policy and terms are online, and players can download and delete 
   Done when: recorded in decisions.md (open today).
 - [x] **M8.12** Settings' backend: `api.set_analytics_choice` and the legal links · backend · S · needs M1.5 · [privacy](privacy.md#consents)
   Done when: the choice is stored with its history, and the legal links are read from `app_config`.
+- [ ] **M8.13** A written personal data breach process and a breach register: who decides, the CNIL's 72-hour notice, what's recorded · legal · S · [privacy](privacy.md#french-specifics), [record of processing](../legal/record-of-processing.md#points-ouverts)
+  Done when: the process and an empty register are in the docs, and operations.md's incident steps point to them.
+- [ ] **M8.14** A retention rule for `auth.audit_log_entries` matching the policy (90 days at most): a daily cleanup in the retention job, or the database copy turned off · backend · S · needs M8.9 · [privacy](privacy.md#what-we-store-and-why), [record of processing](../legal/record-of-processing.md#points-ouverts)
+  Done when: tested, and live on production before any row there is 90 days old.
 
 ## M9 Observability and analytics
 

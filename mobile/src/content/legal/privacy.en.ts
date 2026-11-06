@@ -30,7 +30,7 @@ There is no account to create. The first time you open the app, it creates a pro
 | --- | --- |
 | Your profile | A random id, the name or nickname you choose, your colour (picked from a list, never a photo), your language and the country set on your phone |
 | Your sign-in | When your profile was created and when you last used the app. For each session, our database also records your phone's IP address and the app's technical identification |
-| The sign-in log | For security, Supabase, which runs sign-in, records each sign-in, each renewal of your session and the deletion of your profile: the action, your id and the time. Depending on the action, it may also record your phone's IP address |
+| The sign-in log | For security, Supabase, which runs sign-in, records sign-ins, each renewal of your session and the deletion of your profile: the action, your id and the time. Depending on the action, it may also record your phone's IP address |
 | Your services | The streaming services you have |
 | Your games | The rooms you create or join and their settings. Your seat in each room: your name, your colour and your services that night, and how you arrived (link, code, QR code). Your answer to each film (Like, Nope, Super like, Seen it) and when, your Final Cut votes and tonight's pick. A solo session is a room with one seat |
 | The card log | For each card: the film, how it got into your deck, its place, its score and what was used to pick it, your answer and when, any undo, whether you flipped the card and how long you looked at it. It is linked to your seat in the room, never to your name |

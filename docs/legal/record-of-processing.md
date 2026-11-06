@@ -258,17 +258,13 @@ Pour Harry et pour la revue de l'avocat (M8.11) :
 
 1. **L'adresse postale** du responsable n'apparaît nulle part (politique, conditions, registre). Faut-il en publier une ?
 2. **L'AIPD** n'est pas faite. Elle reprendrait les tests de mise en balance des fiches 4 à 7, 9 et 11.
-3. **La boîte de support.** Les serveurs de courrier de flimme.com sont chez OVH. Harry confirme où les e-mails sont stockés : dans une boîte OVH, ou renvoyés vers une autre messagerie. Dans le second cas, ce prestataire est un destinataire de plus, peut-être hors de l'Union.
+3. **La boîte de support.** Les enregistrements MX de flimme.com pointent vers le service de courrier d'OVH, et l'enregistrement SPF ne laisse qu'OVH envoyer pour le domaine (vérifié le 6 novembre 2026). La politique dit donc que la boîte est chez OVH, en France. Harry confirme qu'elle n'est pas renvoyée vers une autre messagerie : dans ce cas, ce prestataire serait un destinataire de plus, peut-être hors de l'Union, et la politique devrait le nommer.
 4. **La région du stockage des sauvegardes.** Selon le type de bucket, Tigris peut placer un objet près de la machine qui l'écrit, et la copie hebdomadaire part d'une machine de GitHub aux États-Unis. Harry vérifie que le bucket est limité à Francfort, comme le disent privacy.md et la politique. La copie est chiffrée de toute façon.
 5. **Les contrats de traitement (DPA).** Harry garde une copie de celui de chaque prestataire : Supabase, Fly.io, Tigris, GitHub, Sentry, PostHog, Expo et OVH.
 6. **Expo** : relever combien de temps il garde les données des vérifications de mise à jour (fiche 10).
-7. **Le journal d'audit de Supabase Auth** (`auth.audit_log_entries`) garde l'adresse IP de chaque connexion et de chaque rafraîchissement de jeton, sans limite de durée, même après la suppression du compte. Il faut une règle d'effacement (par exemple dans `internal.run_retention`), ou couper ce journal dans la base si Supabase le permet. Ni la politique ni privacy.md ne le mentionnaient.
-8. **Les violations de données.** Le délai de 72 heures pour prévenir la CNIL (article 33 du RGPD) est connu, mais la procédure n'est écrite nulle part, et le registre des violations que l'article 33(5) demande n'est pas tenu.
-9. **La politique de confidentialité** a quatre écarts avec le code, à corriger dans l'appli (`mobile/src/content/legal/privacy.fr.ts` et `privacy.en.ts`), puisque cette tâche ne touche que la documentation :
-   - Les limites anti-abus servent aussi à limiter les appels répétés, pas seulement à empêcher de deviner les codes de salle (fiche 6).
-   - Le journal des cartes note aussi si la carte a été retournée (fiche 4).
-   - OVH (le courrier de support et le serveur du site) manque dans la liste des prestataires.
-   - Le journal d'audit de Supabase Auth et son adresse IP n'y figurent pas (point 7).
+7. **Le journal d'audit de Supabase Auth** (`auth.audit_log_entries`) n'a aucune règle d'effacement, même après la suppression du compte. Pour un invité, il ne contient pas d'adresse IP dans la version actuelle de Supabase Auth (fiche 1), mais la politique dit qu'il peut en contenir une. Depuis le 6 novembre 2026, la politique promet 90 jours au plus. La tâche M8.14 tient cette promesse : un effacement quotidien dans `internal.run_retention`, ou la copie dans la base coupée (Authentication, Audit Logs, « Write audit logs to the database » : il reste alors les journaux de Supabase, 7 jours au plus). Harry choisit entre les deux. Elle doit sortir avant qu'une ligne de la production ait 90 jours.
+8. **Les violations de données.** Le délai de 72 heures pour prévenir la CNIL (article 33 du RGPD) est connu, mais la procédure n'est écrite nulle part, et le registre des violations que l'article 33(5) demande n'est pas tenu. La tâche M8.13 écrit les deux.
+9. **La politique de confidentialité** avait quatre écarts avec le code, corrigés le 6 novembre 2026 : les limites anti-abus servent aussi à limiter les appels répétés (fiche 6) ; le journal des cartes note aussi si la carte a été retournée (fiche 4) ; OVH, pour la boîte de support et le serveur du site, est dans la liste des prestataires ; le journal d'audit de Supabase Auth y figure, sous le nom « journal des connexions » (point 7).
 
 ## Choix pris par défaut
 
@@ -279,3 +275,5 @@ Personne n'avait tranché ces points ; ce sont les options les plus prudentes, �
 - Trois bases légales que la documentation ne donnait pas : le contrat pour les mises à jour d'Expo, l'intérêt légitime pour les sauvegardes et pour les statistiques de jeu agrégées, l'obligation légale pour les demandes d'exercice des droits. Elles sont à revoir avec l'avocat.
 - Aucun délégué à la protection des données (comme le dit privacy.md) et aucun représentant dans l'Union.
 - Les demandes d'exercice des droits reçues par e-mail suivent la durée des e-mails de support (12 mois au plus après le dernier échange).
+- Le journal d'audit de Supabase Auth (6 novembre 2026) : 90 jours au plus, sur la base de notre intérêt légitime (la sécurité), et la politique dit qu'il peut contenir l'adresse IP même si la version actuelle n'en note pas pour un invité. Cette durée reste vraie que M8.14 efface les lignes ou coupe la copie dans la base.
+- La boîte de support (6 novembre 2026) : la politique dit qu'elle est chez OVH, en France, d'après les enregistrements MX et SPF, tant qu'Harry n'a pas dit qu'elle renvoie ailleurs.
