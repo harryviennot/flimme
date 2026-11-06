@@ -35,6 +35,8 @@ export const EVENT_READS: Partial<Record<RoomEvent, 'seats' | 'room'>> = {
   settings_changed: 'room',
   room_locked: 'room',
   state_changed: 'room',
+  // Play again (M6.23): the room row carries the next room's code.
+  next_room: 'room',
 };
 
 /**

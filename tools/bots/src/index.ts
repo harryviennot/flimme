@@ -2,6 +2,7 @@
 import { execSync } from 'node:child_process';
 
 import { startBot, type Bot } from './bot';
+import { runPlayAgain } from './play-again';
 import { localBackend, parseArgs, stagingBackend, UsageError } from './config';
 
 async function main() {
@@ -19,6 +20,18 @@ async function main() {
   // The host of the backend is not personal data: printing it shows where the bots go.
   console.log(`Seed ${config.seed}, personalities ${config.personality}`);
   console.log(`Target ${config.target}: ${new URL(backend.url).host}`);
+
+  if (config.action === 'play-again') {
+    const stop = await runPlayAgain(config, backend, console.log);
+    const end = async () => {
+      await stop();
+      process.exit(0);
+    };
+    process.on('SIGINT', () => void end());
+    process.on('SIGTERM', () => void end());
+    console.log('play-again bots running. Ctrl-C to leave.');
+    return;
+  }
 
   const bots: Bot[] = [];
   const stopAll = async (exitCode = 0) => {

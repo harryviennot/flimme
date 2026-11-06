@@ -139,7 +139,7 @@ describe('events', () => {
     },
   );
 
-  it.each(['settings_changed', 'state_changed', 'room_locked'])(
+  it.each(['settings_changed', 'state_changed', 'room_locked', 'next_room'])(
     '%s reads the room again',
     async (event) => {
       await opened();

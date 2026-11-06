@@ -11,6 +11,7 @@ import enLobby from './locales/en/lobby.json';
 import enMatch from './locales/en/match.json';
 import enMyFilms from './locales/en/myFilms.json';
 import enOnboarding from './locales/en/onboarding.json';
+import enPlayAgain from './locales/en/playAgain.json';
 import enRecap from './locales/en/recap.json';
 import enReport from './locales/en/report.json';
 import enSettings from './locales/en/settings.json';
@@ -28,6 +29,7 @@ import frLobby from './locales/fr/lobby.json';
 import frMatch from './locales/fr/match.json';
 import frMyFilms from './locales/fr/myFilms.json';
 import frOnboarding from './locales/fr/onboarding.json';
+import frPlayAgain from './locales/fr/playAgain.json';
 import frRecap from './locales/fr/recap.json';
 import frReport from './locales/fr/report.json';
 import frSettings from './locales/fr/settings.json';
@@ -48,6 +50,7 @@ export const resources = {
     match: frMatch,
     myFilms: frMyFilms,
     onboarding: frOnboarding,
+    playAgain: frPlayAgain,
     recap: frRecap,
     report: frReport,
     settings: frSettings,
@@ -67,6 +70,7 @@ export const resources = {
     match: enMatch,
     myFilms: enMyFilms,
     onboarding: enOnboarding,
+    playAgain: enPlayAgain,
     recap: enRecap,
     report: enReport,
     settings: enSettings,
