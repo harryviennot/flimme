@@ -119,6 +119,11 @@ export type SwipeActionProps = {
   /** Hides the label under the button. */
   hideLabel?: boolean;
   disabled?: boolean;
+  /**
+   * The answer is already on record (Seen it on a film the player has seen): the button is disabled
+   * and shows a tick in place of its icon, dimmed like any disabled button.
+   */
+  done?: boolean;
   /** What a screen reader says when it is not the visible label ("Super like, 2 left"). */
   accessibilityLabel?: string;
   accessibilityHint?: string;
@@ -130,10 +135,12 @@ export function SwipeAction({
   lit = false,
   left,
   hideLabel = false,
-  disabled,
+  disabled: disabledProp,
+  done = false,
   accessibilityLabel,
   accessibilityHint,
 }: SwipeActionProps) {
+  const disabled = disabledProp || done;
   const { t } = useTranslation();
   const [pressed, setPressed] = useState(false);
   const offset = useSharedValue(0);
@@ -170,10 +177,10 @@ export function SwipeAction({
           )}
         >
           <Icon
-            name={look.icon}
+            name={done ? 'check' : look.icon}
             size={look.iconSize}
             color={glowing && (kind === 'undo' || kind === 'seen') ? 'accent-text' : look.iconColor}
-            filled={look.filled}
+            filled={done ? false : look.filled}
             strokeWidth={look.stroke}
           />
         </Animated.View>

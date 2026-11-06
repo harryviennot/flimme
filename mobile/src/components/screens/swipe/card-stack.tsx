@@ -147,12 +147,17 @@ export function CardStack({
     ...(swipe.superLikesLeft > 0
       ? [{ name: 'superLike', label: t('a11y.actions.superLike') }]
       : []),
-    { name: 'seen', label: t('a11y.actions.seen') },
+    ...(top?.seen ? [] : [{ name: 'seen', label: t('a11y.actions.seen') }]),
     { name: 'flip', label: t('a11y.actions.flip') },
     // The bookmark sits inside the card, which is one element for a screen reader.
-    topSaved
-      ? { name: 'unsave', label: t('a11y.actions.unsave') }
-      : { name: 'save', label: t('a11y.actions.save') },
+    // Solo has no bookmark; a film already in My films cannot be saved or unsaved from the card.
+    ...(swipe.solo || top?.saved
+      ? []
+      : [
+          topSaved
+            ? { name: 'unsave', label: t('a11y.actions.unsave') }
+            : { name: 'save', label: t('a11y.actions.save') },
+        ]),
     // The Trailer button sits inside the card, which is one element for a screen reader.
     ...(flipped && top?.trailer_key && trailerAllowed(maxAge)
       ? [{ name: 'trailer', label: t('a11y.actions.trailer') }]

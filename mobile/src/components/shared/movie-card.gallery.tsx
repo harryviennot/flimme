@@ -51,7 +51,15 @@ const bare: Omit<MovieCardProps, 'flipped' | 'onFlip'> = {
   back: { ...film.back, services: [], tmdbRating: undefined },
 };
 
-function Demo({ card, start = false }: { card: typeof film; start?: boolean }) {
+function Demo({
+  card,
+  start = false,
+  alreadySaved = false,
+}: {
+  card: typeof film;
+  start?: boolean;
+  alreadySaved?: boolean;
+}) {
   const [flipped, setFlipped] = useState(start);
   const [stamp, setStamp] = useState<StampKind | null>(null);
   const [saved, setSaved] = useState(false);
@@ -62,7 +70,7 @@ function Demo({ card, start = false }: { card: typeof film; start?: boolean }) {
         stamp={stamp}
         flipped={flipped}
         onFlip={() => setFlipped((f) => !f)}
-        bookmark={{ saved, onToggle: () => setSaved((s) => !s) }}
+        bookmark={{ saved, alreadySaved, onToggle: () => setSaved((s) => !s) }}
       />
       <View className="flex-row flex-wrap gap-2">
         {(['like', 'nope', 'seen', 'super'] as const).map((kind) => (
@@ -84,7 +92,7 @@ export const gallery: GalleryEntry = {
   name: 'Movie card',
   tier: 'shared',
   description:
-    'The swipe card. Tap to flip; the like, nope, seen it and super stamps show while it is dragged. The bookmark (low on the right, front and back) saves the film as a solo like in My films: empty, then filled. The back: the poster crop and fade, the score in the meta line, "Read more" under a cut synopsis, one row of logos with "+n".',
+    'The swipe card. Tap to flip; the like, nope, seen it and super stamps show while it is dragged. The bookmark (low on the right, front and back) saves the film as a solo like in My films: empty, then filled (a tick, disabled, when the film is already there). The back: the poster crop and fade, the score in the meta line, "Read more" under a cut synopsis, one row of logos with "+n".',
   render: () => (
     <View className="gap-6">
       <Demo card={film} />
@@ -96,6 +104,10 @@ export const gallery: GalleryEntry = {
         No services, no score
       </Text>
       <Demo card={bare} start />
+      <Text variant="mono-eyebrow" tone="secondary">
+        Already in My films: the bookmark is a tick, disabled
+      </Text>
+      <Demo card={film} alreadySaved />
       <Text variant="mono-eyebrow" tone="secondary">
         Still back (film sheet): long synopsis shown whole, the card grows
       </Text>

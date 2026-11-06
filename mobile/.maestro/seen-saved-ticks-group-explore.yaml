@@ -1,0 +1,30 @@
+# M6.66, part three: on a card whose bookmark is a tick (seen-saved-ticks-group-play.yaml stopped
+# there), a tap on the tick does nothing, the back shows the tick too, and Like still answers.
+# Then nope on until Seen it is a tick. French or English.
+#   maestro --device <sim> test mobile/.maestro/seen-saved-ticks-group-explore.yaml
+appId: com.harryviennot.flimme.dev
+---
+- assertVisible: 'Already in My films|Déjà dans Mes films'
+# A tap on the disabled tick does nothing: the card stays on the front.
+- tapOn: 'Already in My films|Déjà dans Mes films'
+- assertVisible: 'Already in My films|Déjà dans Mes films'
+- takeScreenshot: ticks-group-4-after-tap
+# The back has the tick in the same spot.
+- tapOn:
+    point: 50%,40%
+- takeScreenshot: ticks-group-5-back
+- assertVisible: 'Already in My films|Déjà dans Mes films'
+- tapOn:
+    point: 50%,40%
+# Like still works on a saved film.
+- tapOn: 'Like|J.aime'
+- takeScreenshot: ticks-group-6-after-like
+- repeat:
+    while:
+      notVisible: 'Seen it, already marked|Déjà vu, déjà noté'
+    times: ${CARDS || 60}
+    commands:
+      - tapOn:
+          text: 'Nope|Bof'
+          optional: true
+- takeScreenshot: ticks-group-7-seen-tick

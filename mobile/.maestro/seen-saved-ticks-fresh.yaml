@@ -1,0 +1,32 @@
+# M6.66: a fresh guest on staging, then the solo seed (seen-saved-ticks-seed.yaml).
+#   maestro --device <sim> test mobile/.maestro/seen-saved-ticks-fresh.yaml -e METRO_URL=http://localhost:<port> -e PAIRS=40
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Continue|Staging'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: 'Continue'
+    commands:
+      - tapOn: 'Continue'
+# The dev tools sheet can sit over the page: its close button is the circle at its top right.
+- runFlow:
+    when:
+      visible: 'Go home'
+    commands:
+      - tapOn:
+          point: 90%,49%
+# subflows/use-staging.yaml waits for English Home texts; the simulator may be in French.
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Staging'
+    timeout: 20000
+- tapOn: 'Staging'
+- extendedWaitUntil:
+    visible: 'Running on (mfpkphxjndvtafgeeoeh|localhost).*'
+    timeout: 60000
+- openLink: flimme-dev:///
+- runFlow: seen-saved-ticks-seed.yaml

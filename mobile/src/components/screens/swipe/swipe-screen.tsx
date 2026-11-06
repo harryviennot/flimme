@@ -72,6 +72,8 @@ export function SwipeScreen({
 
   const { stack } = swipe;
   const topId = useStore(stack, (s) => s.mounted[0]?.title_id);
+  // The film is already in the player's Seen: the Seen it button shows a tick and is off.
+  const topSeen = useStore(stack, (s) => s.mounted[0]?.seen === true);
   const status = useStore(stack, (s) => s.status);
   const maxAge = useRoom(roomId).data?.max_age;
   useFirstCardView(roomId, status === 'ready' && topId !== undefined && !swipe.solo);
@@ -148,6 +150,7 @@ export function SwipeScreen({
             onAnswer={(kind) => throwAndSay(kind, false)}
             lit={lit}
             hideSuperCount={swipe.solo}
+            topSeen={topSeen}
           />
           {beating ? (
             // The buttons keep their look during the beat; a press does nothing, with no haptic.

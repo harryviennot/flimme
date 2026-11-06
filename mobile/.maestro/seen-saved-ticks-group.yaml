@@ -1,0 +1,51 @@
+# M6.66, part one: the phone from seen-saved-ticks-seed.yaml (some films seen and liked) opens a
+# group room on staging and waits in the lobby, in French or English. Read the code, fill the room
+# with bots (see bots-game.yaml), then run seen-saved-ticks-group-play.yaml.
+#   maestro --device <sim> test mobile/.maestro/seen-saved-ticks-group.yaml
+appId: com.harryviennot.flimme.dev
+---
+- runFlow:
+    when:
+      visible: 'Undo|Annuler'
+    commands:
+      - tapOn:
+          point: 10%,10%
+      - runFlow:
+          when:
+            visible: '(?i).*(leave|quitter).*'
+          commands:
+            - tapOn: '(?i).*(leave|quitter).*'
+- extendedWaitUntil:
+    visible: '(?i)open a room|ouvrir une salle'
+    timeout: 30000
+- tapOn: '(?i)open a room|ouvrir une salle'
+- extendedWaitUntil:
+    visible: '(?i).*(open the room|ouvrir la salle).*'
+    timeout: 20000
+- runFlow:
+    when:
+      visible: '(?i).*(pick at least one|choisis au moins).*'
+    commands:
+      - tapOn:
+          point: 15%,30%
+      - tapOn:
+          point: 38%,30%
+      - tapOn:
+          point: 84%,30%
+      - tapOn:
+          point: 38%,40%
+- scrollUntilVisible:
+    element: '(?i)open the room|ouvrir la salle'
+    optional: true
+- tapOn: '(?i)open the room|ouvrir la salle'
+- extendedWaitUntil:
+    visible: '(?i)any genre|tous les genres'
+    timeout: 8000
+    optional: true
+- tapOn:
+    text: '(?i)any genre|tous les genres'
+    optional: true
+- extendedWaitUntil:
+    visible: '(?i)in the room|dans la salle'
+    timeout: 20000
+- takeScreenshot: ticks-group-1-lobby

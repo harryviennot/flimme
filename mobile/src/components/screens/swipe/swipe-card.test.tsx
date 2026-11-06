@@ -435,6 +435,23 @@ describe('the finger', () => {
     expect(screen.queryByTestId('movie-card-bookmark-slot')).toBeNull();
   });
 
+  it('ticks the bookmark and disables it for a film already in My films', async () => {
+    await render(<Card card={{ ...card, saved: true }} />);
+    await act(async () => {
+      jest.advanceTimersByTime(250);
+    });
+    const button = screen.getAllByTestId('movie-card-bookmark')[0]!;
+    expect(button.props.accessibilityLabel).toBe('Already in My films');
+    expect(button.props.accessibilityState).toMatchObject({ disabled: true, selected: true });
+    await fireEvent.press(button);
+    expect(mockToggleSaved).not.toHaveBeenCalled();
+  });
+
+  it('shows no bookmark at all in solo, even for a saved film', async () => {
+    await render(<Card solo card={{ ...card, saved: true }} />);
+    expect(screen.queryByTestId('movie-card-bookmark')).toBeNull();
+  });
+
   it('saves as a solo like from the bookmark without flipping or answering', async () => {
     const onFlip = jest.fn();
     const onRelease = jest.fn();

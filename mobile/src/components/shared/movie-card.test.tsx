@@ -315,6 +315,19 @@ describe('the bookmark (a solo like)', () => {
     ).toBeNull();
   });
 
+  it('shows a tick, disabled, when the film is already in My films', async () => {
+    const onToggle = jest.fn();
+    await render(<MovieCard {...film} bookmark={{ saved: false, alreadySaved: true, onToggle }} />);
+    const buttons = screen.getAllByRole('button', {
+      name: 'Already in My films',
+      includeHiddenElements: true,
+    });
+    expect(buttons).toHaveLength(2);
+    expect(buttons[0]!.props.accessibilityState).toMatchObject({ disabled: true, selected: true });
+    await fireEvent.press(buttons[0]!);
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+
   it('tells the card a touch started on it, so the tap does not flip', async () => {
     const onTouch = jest.fn();
     await render(<MovieCard {...film} bookmark={{ saved: false, onToggle: jest.fn(), onTouch }} />);

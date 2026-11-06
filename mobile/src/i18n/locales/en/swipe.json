@@ -65,6 +65,8 @@
     "superLeft_other": "Super like, {{count}} left",
     "superNone": "No super likes left",
     "undoNone": "Nothing to undo",
+    "seenAlready": "Seen it, already marked",
+    "seenAlreadyHint": "This film is already in My films, Seen",
     "undone": "{{title}} is back",
     "seenYes": "Yes, watch it again tonight",
     "pill_one": "{{name}}, {{count}} film",
