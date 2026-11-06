@@ -398,13 +398,13 @@ Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its 
 
 **The times** (from the first signal; the beat's table is the reference):
 
-| Time                              | What moves                                                                                                                                                                                                                                              | Haptic                |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| 0                                 | A drag springs back (`spring.card`); a thrown card finishes its flight. The scrim fades in. The poster pops in (`layout.popIn`). The near-miss toast fades out (`layout.fadeOut`) and the glow goes                                                     | `haptics.shortlist()` |
-| 150 ms                            | The title pops in (`layout.popIn`); the vote count fades in (`layout.fadeIn`), or when the event lands                                                                                                                                                  | None                  |
-| `duration.shortlist-hold` (1.2 s) | The title and count fade out (`layout.fadeOut`). The poster flies to its slot: translate and scale from its frame to the slot's (`measureInWindow` on the slot), with its corner radius going from 12 to 4, over `duration.slow` with `easing.standard` | None                  |
-| + `duration.slow` (1.6 s)         | The flying poster unmounts as the slot shows the film; the slot scales from 1.15 to 1 (`spring.snappy`); the count changes in place. The scrim fades out                                                                                                | None                  |
-| + `duration.fast` (1.75 s)        | The layer unmounts and the stack takes input. A near-miss toast still due on the top card fades back in (`layout.fadeIn`)                                                                                                                               | None                  |
+| Time | What moves | Haptic |
+| --- | --- | --- |
+| 0 | A drag springs back (`spring.card`); a thrown card finishes its flight. The scrim fades in. The poster pops in (`layout.popIn`). The near-miss toast fades out (`layout.fadeOut`) and the glow goes | `haptics.shortlist()` and the bell (`playSound('shortlist')`) |
+| 150 ms | The title pops in (`layout.popIn`); the vote count fades in (`layout.fadeIn`), or when the event lands | None |
+| `duration.shortlist-hold` (1.2 s) | The title and count fade out (`layout.fadeOut`). The poster flies to its slot: translate and scale from its frame to the slot's (`measureInWindow` on the slot), with its corner radius going from 12 to 4, over `duration.slow` with `easing.standard` | None |
+| + `duration.slow` (1.6 s) | The flying poster unmounts as the slot shows the film; the slot scales from 1.15 to 1 (`spring.snappy`); the count changes in place. The scrim fades out | None |
+| + `duration.fast` (1.75 s) | The layer unmounts and the stack takes input. A near-miss toast still due on the top card fades back in (`layout.fadeIn`) | None |
 
 **The matched film in this phone's stack** (it hasn't answered it yet, under the 70% rule): as the top card, the poster pops in from that card's frame instead of the middle, and the card fades out under it (`layout.fadeOut`), so the next card is on top when the scrim leaves. As the second or third mounted card, it fades out under the scrim (`layout.fadeOut`) and the cards behind move up (`spring.snappy`). Further back, `features/swipe/card-stack.ts` drops it from the held cards. An open rewatch question on it closes with no vote. A vote on it already queued is still sent.
 
@@ -414,7 +414,7 @@ Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its 
 
 **The pick arrives during a beat** (`match` with `decided: true`, `only_match`): the beat's layer unmounts at once and the match overlay takes over ([match.md](match.md#when-it-shows)).
 
-**Reduce Motion.** The poster and the title fade in (`layout.fadeIn`) instead of popping. The flight becomes a crossfade: the poster fades out over the stack while the slot's poster fades in (`duration.slow`); nothing travels and the slot doesn't pop. The times stay the same. The haptic is unchanged.
+**Reduce Motion.** The poster and the title fade in (`layout.fadeIn`) instead of popping. The flight becomes a crossfade: the poster fades out over the stack while the slot's poster fades in (`duration.slow`); nothing travels and the slot doesn't pop. The times stay the same. The haptic and the bell are unchanged.
 
 **Screen reader.** At 0, `swipe:shortlisted.a11y` is announced once, assertively (`shortlisted.a11yNoTitle` without the film's card), with the vote count when the event has arrived. Focus doesn't move. The shortlist's label reads the new film from then on.
 
@@ -635,7 +635,7 @@ The stack's label joins `a11y.players`, then `a11y.playersDone` and `a11y.player
 
 - Motion as in the sections above; tokens only. A new touch cancels anything still moving on the top card; a thrown card finishes on its own.
 - Haptics: `commit` at the line, `throw` on every throw, `press` from the buttons, the bookmark and the player stack, `shortlist` once per shortlisted beat (M6.37). Nothing for the flip, the near miss, the hints, a disc turning Done, a refusal or the shortlist filling on a re-read.
-- No sound on this screen.
+- Sound: only the shortlisted beat's bell, with its haptic ([sounds.md](../sounds.md#a-match-joins-the-shortlist)), and the match overlay's own ([match.md](match.md)). Swipes, the flip, the near miss and the hints are silent.
 
 ## Accessibility
 
@@ -790,7 +790,7 @@ French counts 0 and 1 as singular; the zero case has its own line (`checkpoint.n
 ### Solo motion, haptics, sound
 
 - The checkpoint: [its beat](../moments.md#the-checkpoint) (the fan with `spring.snappy`, `haptics.checkpoint()` once when it's on top, new in `lib/haptics`).
-- The pick: [the solo pick](../moments.md#the-solo-pick) (`haptics.match()` on landing, no sound).
+- The pick: [the solo pick](../moments.md#the-solo-pick) (`haptics.match()` and the solo pick's sound on landing, [sounds.md](../sounds.md#the-solo-pick)).
 - Out of films and the cap card: `layout.fadeIn`, no haptic, no sound.
 - Swipes, flips and undo as in a group game. No other sound.
 
