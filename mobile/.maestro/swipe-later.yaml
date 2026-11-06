@@ -8,16 +8,16 @@ appId: com.harryviennot.flimme.dev
     visible: 'Seen it'
     timeout: 90000
 - takeScreenshot: later-1-front-empty
-- assertVisible: 'Add to your likes'
+- assertVisible: 'Add to My films'
 # Saving is not an answer: the card stays, the bookmark fills.
-- tapOn: 'Add to your likes'
-- assertVisible: 'Remove from your likes'
+- tapOn: 'Add to My films'
+- assertVisible: 'Remove from My films'
 - takeScreenshot: later-2-front-saved
 # A second tap takes it back, and a third saves again.
-- tapOn: 'Remove from your likes'
-- assertVisible: 'Add to your likes'
-- tapOn: 'Add to your likes'
-- assertVisible: 'Remove from your likes'
+- tapOn: 'Remove from My films'
+- assertVisible: 'Add to My films'
+- tapOn: 'Add to My films'
+- assertVisible: 'Remove from My films'
 # The card is still there to swipe, and a tap elsewhere on it still flips it.
 - tapOn:
     point: 50%,60%
@@ -35,7 +35,7 @@ appId: com.harryviennot.flimme.dev
 - takeScreenshot: later-5-back-saved-again
 - tapOn:
     point: 50%,60%
-- assertVisible: 'Remove from your likes'
+- assertVisible: 'Remove from My films'
 # Swipe the saved card away: the answer is a normal one.
 - tapOn: 'Nope'
 - waitForAnimationToEnd

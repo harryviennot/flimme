@@ -54,8 +54,8 @@
     "stars": "★ {{rating}}",
     "stampSeen": "Seen it",
     "stampSuper": "Super",
-    "bookmarkSave": "Add to your likes",
-    "bookmarkRemove": "Remove from your likes"
+    "bookmarkSave": "Add to My films",
+    "bookmarkRemove": "Remove from My films"
   },
   "ticket": {
     "roomCode": "Room code",

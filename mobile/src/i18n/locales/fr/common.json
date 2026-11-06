@@ -54,8 +54,8 @@
     "stars": "★ {{rating}}",
     "stampSeen": "Déjà vu",
     "stampSuper": "Super",
-    "bookmarkSave": "Ajouter à tes envies",
-    "bookmarkRemove": "Retirer de tes envies"
+    "bookmarkSave": "Ajouter à Mes films",
+    "bookmarkRemove": "Retirer de Mes films"
   },
   "ticket": {
     "roomCode": "Code de la salle",

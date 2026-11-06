@@ -574,10 +574,10 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 | `a11y.cardBackServices` | Sur {{services}}. | On {{services}}. |
 | `a11y.actions.flip` | Retourner la carte | Flip the card |
 | `a11y.actions.trailer` | Voir la bande-annonce | Watch the trailer |
-| `a11y.actions.save` | Ajouter à tes envies | Add to your likes |
-| `a11y.actions.unsave` | Retirer de tes envies | Remove from your likes |
-| `a11y.saved` | {{title}} : ajouté à tes envies | {{title}}: added to your likes |
-| `a11y.unsaved` | {{title}} : retiré de tes envies | {{title}}: removed from your likes |
+| `a11y.actions.save` | Ajouter à Mes films | Add to My films |
+| `a11y.actions.unsave` | Retirer de Mes films | Remove from My films |
+| `a11y.saved` | {{title}} : ajouté à Mes films | {{title}}: added to My films |
+| `a11y.unsaved` | {{title}} : retiré de Mes films | {{title}}: removed from My films |
 | `a11y.superLeft_one` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superLeft_other` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superNone` | Plus de coup de cœur | No super likes left |
@@ -625,7 +625,7 @@ In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes
 
 The stack's label joins `a11y.players`, then `a11y.playersDone` and `a11y.playersAway` when their count isn't 0, with commas: "4 players in Harry's room, 1 is done". On your own room, `host` is your own name. Reused: `lobby:seat.you`, `lobby:seat.away`, `lobby:seat.host`, `lobby:a11y.seat`, `pills.done`, `common:actions.close`.
 
-**In `common`, added by M6.51:** `card.bookmarkSave` (Ajouter à tes envies / Add to your likes) and `card.bookmarkRemove` (Retirer de tes envies / Remove from your likes), the bookmark's label by state. M6.58 reworded them: a save is a solo like, so "Later" is gone from the copy. The wording follows Harry's example of 6 November 2026 ("Ajouté à tes envies"); My films still calls the segment Aimés.
+**In `common`, added by M6.51:** `card.bookmarkSave` (Ajouter à Mes films / Add to My films) and `card.bookmarkRemove` (Retirer de Mes films / Remove from My films), the bookmark's label by state. M6.58 reworded them: a save is a solo like, so "Later" is gone from the copy. The wording names the place the film goes, My films, and is consistent with the Aimés segment (Liked) it appears under.
 
 **In `common`, added by M6.9** (the card is shared): `card.stampSeen` (Déjà vu / Seen it) and `card.stampSuper` (Super / Super; "COUP DE CŒUR" doesn't fit a 52-point stamp).
 

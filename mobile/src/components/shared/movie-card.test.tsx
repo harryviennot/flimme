@@ -289,7 +289,7 @@ describe('the bookmark (a solo like)', () => {
     const onToggle = jest.fn();
     await render(<MovieCard {...film} bookmark={{ saved: false, onToggle }} />);
     const buttons = screen.getAllByRole('button', {
-      name: 'Add to your likes',
+      name: 'Add to My films',
       includeHiddenElements: true,
     });
     expect(buttons).toHaveLength(2);
@@ -297,15 +297,15 @@ describe('the bookmark (a solo like)', () => {
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
-  it('says Remove from your likes once saved, with the selected state', async () => {
+  it('says Remove from My films once saved, with the selected state', async () => {
     await render(<MovieCard {...film} bookmark={{ saved: true, onToggle: jest.fn() }} />);
     const button = screen.getAllByRole('button', {
-      name: 'Remove from your likes',
+      name: 'Remove from My films',
       includeHiddenElements: true,
     })[0]!;
     expect(button.props.accessibilityState).toMatchObject({ selected: true });
     expect(
-      screen.queryByRole('button', { name: 'Add to your likes', includeHiddenElements: true }),
+      screen.queryByRole('button', { name: 'Add to My films', includeHiddenElements: true }),
     ).toBeNull();
   });
 
@@ -337,7 +337,7 @@ describe('the bookmark (a solo like)', () => {
     await i18n.changeLanguage('fr');
     await render(<MovieCard {...film} bookmark={{ saved: false, onToggle: jest.fn() }} />);
     expect(
-      screen.getAllByRole('button', { name: 'Ajouter à tes envies', includeHiddenElements: true }),
+      screen.getAllByRole('button', { name: 'Ajouter à Mes films', includeHiddenElements: true }),
     ).toHaveLength(2);
     await i18n.changeLanguage('en');
   });
