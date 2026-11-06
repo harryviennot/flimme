@@ -150,7 +150,6 @@ export function FilmsGrid(props: FilmsGridProps) {
       friends: 'users',
       solo: 'user',
       seen: 'eye',
-      later: 'bookmark',
     } as const;
     empty = (
       <EmptyState

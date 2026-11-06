@@ -33,9 +33,6 @@ describe('badgeOf', () => {
     expect(badgeOf('liked', film(1))).toBeNull();
     expect(badgeOf('seen', film(1, { is_picked: true, is_super_liked: true }))).toBeNull();
   });
-  it('shows nothing on a Later tile (a save is not a like)', () => {
-    expect(badgeOf('later', film(1, { is_picked: true, is_super_liked: true }))).toBeNull();
-  });
 });
 
 describe('tileLabel', () => {
@@ -62,7 +59,6 @@ describe('emptyKind', () => {
     expect(emptyKind('liked', 'friends')).toBe('friends');
     expect(emptyKind('liked', 'solo')).toBe('solo');
     expect(emptyKind('seen', 'solo')).toBe('seen');
-    expect(emptyKind('later', 'friends')).toBe('later');
   });
 });
 

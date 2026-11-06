@@ -2,8 +2,7 @@
   "title": "Mes films",
   "segments": {
     "liked": "Aimés",
-    "seen": "Vus",
-    "later": "Plus tard"
+    "seen": "Vus"
   },
   "filters": {
     "label": "Afficher",
@@ -21,8 +20,7 @@
     "friends": "Les films que tu aimes entre amis arrivent ici.",
     "solo": "Les films que tu aimes en jouant seul arrivent ici.",
     "seen": "Les films que tu as déjà vus arrivent ici.",
-    "playAlone": "Jouer seul",
-    "later": "Les films que tu gardes pour plus tard arrivent ici. Touche le signet sur une carte."
+    "playAlone": "Jouer seul"
   },
   "offline": {
     "title": "Tu es hors ligne",
@@ -53,11 +51,7 @@
     "error": "Impossible de charger le film.",
     "offline": "Tu es hors ligne. Le film s'affiche dès ton retour.",
     "offlineActions": "Tu es hors ligne. Reconnecte-toi pour modifier tes films.",
-    "notListed": "Aucune de tes plateformes ne l'a.",
-    "removeLater": "Retirer de Plus tard",
-    "saveLater": "Garder pour plus tard",
-    "a11yRemovedLater": "Retiré de Plus tard",
-    "a11ySavedLater": "Gardé pour plus tard"
+    "notListed": "Aucune de tes plateformes ne l'a."
   },
   "removed": {
     "title": "Retiré de Mes films",
