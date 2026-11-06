@@ -236,6 +236,59 @@ describe('super likes', () => {
   });
 });
 
+describe('Yes on the rewatch chip', () => {
+  it('replaces a waiting seen with seen_rewatch: one vote, no undo, the card stays gone', async () => {
+    const { result } = await open();
+    await act(async () => void result.current.answer('seen'));
+    let ok = false;
+    await act(async () => void (ok = result.current.rewatch(1)));
+    expect(ok).toBe(true);
+    expect(mockQueue.store.getState().votes.map((v) => [v.title_id, v.answer])).toEqual([
+      [1, 'seen_rewatch'],
+    ]);
+    expect(mockQueue.enqueueUndo).not.toHaveBeenCalled();
+    expect(result.current.stack.getState().mounted.map((c) => c.title_id)).toEqual([2, 3, 4]);
+    expect(result.current.count).toBe(1);
+  });
+
+  it('queues the undo and then the new vote when the seen already left, in that order', async () => {
+    const { result } = await open();
+    await act(async () => void result.current.answer('seen'));
+    await act(async () => mockQueue.store.setState({ votes: [] }));
+    await act(async () => void result.current.rewatch(1));
+    expect(mockQueue.enqueueUndo).toHaveBeenCalledTimes(1);
+    expect(mockQueue.enqueueUndo).toHaveBeenCalledWith(expect.objectContaining({ title_id: 1 }));
+    expect(mockQueue.store.getState().votes.map((v) => v.answer)).toEqual(['seen_rewatch']);
+  });
+
+  it('keeps Undo awake for the new answer, and takes that one back', async () => {
+    const { result } = await open();
+    await act(async () => void result.current.answer('seen'));
+    await act(async () => void result.current.rewatch(1));
+    expect(result.current.canUndo).toBe(true);
+    await act(async () => void result.current.undo());
+    expect(mockQueue.store.getState().votes).toEqual([]);
+    expect(result.current.stack.getState().mounted[0]?.title_id).toBe(1);
+  });
+
+  it('refuses for another film, for an answer that is not seen, and once the room moved on', async () => {
+    const { result } = await open();
+    let ok = true;
+    await act(async () => void (ok = result.current.rewatch(1)));
+    expect(ok).toBe(false);
+    await act(async () => void result.current.answer('nope'));
+    await act(async () => void (ok = result.current.rewatch(1)));
+    expect(ok).toBe(false);
+    await act(async () => void result.current.answer('seen'));
+    await act(async () => void (ok = result.current.rewatch(1)));
+    expect(ok).toBe(false);
+    await act(async () => mockHandlers.get('match')?.({ title_id: 9 }));
+    await act(async () => void (ok = result.current.rewatch(2)));
+    expect(ok).toBe(false);
+    expect(mockQueue.store.getState().votes.map((v) => v.answer)).toEqual(['nope', 'seen']);
+  });
+});
+
 describe('undo', () => {
   it('is asleep until the first answer, then removes a vote still waiting and puts the card back', async () => {
     const { result } = await open();

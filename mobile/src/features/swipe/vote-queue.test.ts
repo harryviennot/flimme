@@ -61,6 +61,7 @@ function setup(
   let undoAttempts = 0;
   const kv = options.kv ?? memoryKv();
   const sent: Sent[] = [];
+  const answers: string[] = [];
   const attempts = new Map<number, number>();
   const events: VoteQueueEvent[] = [];
   const reported: { error: unknown; context: object }[] = [];
@@ -72,6 +73,7 @@ function setup(
     castVote: async (args) => {
       const s = { room_id: args.room_id, title_id: args.title_id };
       sent.push({ ...s, flipped: args.flipped });
+      answers.push(args.answer);
       log.push(`vote ${args.title_id}`);
       const n = (attempts.get(args.title_id) ?? 0) + 1;
       attempts.set(args.title_id, n);
@@ -88,7 +90,7 @@ function setup(
     keptRoomId: () => kept.id,
   });
   queue.onAnswer((e) => void events.push(e));
-  return { queue, kv, sent, log, events, reported, invalidated, refreshSession, kept };
+  return { queue, kv, sent, answers, log, events, reported, invalidated, refreshSession, kept };
 }
 
 beforeEach(() => jest.useFakeTimers());
@@ -647,5 +649,101 @@ describe('undo', () => {
     queue.enqueue(vote(2));
     await jest.advanceTimersByTimeAsync(0);
     expect(log).toEqual(['vote 1', 'vote 2']);
+  });
+});
+
+// M6.49: the rewatch chip's Yes turns a seen into seen_rewatch the way the phone does it
+// (use-swipe `rewatch`): take the seen out if it still waits, else queue an undo behind it,
+// then queue the new vote. The server must end with one vote for the film, the like.
+describe('the rewatch chip', () => {
+  const seen = () => vote(1, { answer: 'seen' });
+  const rewatch = (queue: ReturnType<typeof setup>['queue']) => {
+    // removeLast refuses a vote that is in flight or already sent, as the phone's undoer sees it.
+    if (!queue.removeLast(ROOM, 1)) queue.enqueueUndo(undoItem(1));
+    queue.enqueue(vote(1, { answer: 'seen_rewatch' }));
+  };
+
+  it('with the seen in flight: seen, undo, seen_rewatch, once each and in that order', async () => {
+    let release: (r: CastVoteResult) => void = () => undefined;
+    const { queue, log, answers } = setup((s, n) =>
+      n === 1 && s.title_id === 1
+        ? new Promise<CastVoteResult>((r) => (release = r))
+        : { status: 'ok', match: false },
+    );
+    queue.enqueue(seen());
+    rewatch(queue);
+    expect(log).toEqual(['vote 1']);
+    release({ status: 'ok', match: false });
+    await jest.advanceTimersByTimeAsync(0);
+    expect(log).toEqual(['vote 1', 'undo', 'vote 1']);
+    expect(answers).toEqual(['seen', 'seen_rewatch']);
+    expect(queue.pending(ROOM)).toBe(0);
+  });
+
+  it('with the seen still waiting behind another vote: only seen_rewatch is ever sent', async () => {
+    let release: (r: CastVoteResult) => void = () => undefined;
+    const { queue, log, answers } = setup((s) =>
+      s.title_id === 9
+        ? new Promise<CastVoteResult>((r) => (release = r))
+        : { status: 'ok', match: false },
+    );
+    queue.enqueue(vote(9));
+    queue.enqueue(seen());
+    rewatch(queue);
+    release({ status: 'ok', match: false });
+    await jest.advanceTimersByTimeAsync(0);
+    expect(log).toEqual(['vote 9', 'vote 1']);
+    expect(answers).toEqual(['like', 'seen_rewatch']);
+  });
+
+  it('with the seen already settled: the undo and the new vote go out in order', async () => {
+    const { queue, log, answers } = setup();
+    queue.enqueue(seen());
+    await jest.advanceTimersByTimeAsync(0);
+    rewatch(queue);
+    await jest.advanceTimersByTimeAsync(0);
+    expect(log).toEqual(['vote 1', 'undo', 'vote 1']);
+    expect(answers).toEqual(['seen', 'seen_rewatch']);
+  });
+
+  it('a seen the server never recorded loses its undo, and seen_rewatch still goes out alone', async () => {
+    let release: (r: CastVoteResult) => void = () => undefined;
+    const { queue, log } = setup((_s, n) =>
+      n === 1 ? new Promise<CastVoteResult>((r) => (release = r)) : { status: 'ok', match: false },
+    );
+    queue.enqueue(seen());
+    rewatch(queue);
+    release({ status: 'dropped' } as CastVoteResult);
+    await jest.advanceTimersByTimeAsync(0);
+    expect(log).toEqual(['vote 1', 'vote 1']);
+  });
+
+  it.each([
+    ['nothing_to_undo', { status: 'nothing_to_undo' }],
+    ['locked', { status: 'locked' }],
+  ] as const)(
+    'an undo answered %s does not stop seen_rewatch from being sent',
+    async (_n, undo) => {
+      const { queue, log } = setup(undefined, { undo: () => undo as UndoLastVoteResult });
+      queue.enqueue(seen());
+      await jest.advanceTimersByTimeAsync(0);
+      rewatch(queue);
+      await jest.advanceTimersByTimeAsync(0);
+      expect(log).toEqual(['vote 1', 'undo', 'vote 1']);
+    },
+  );
+
+  it('Yes then Undo while the seen is in flight leaves seen and an undo, nothing else', async () => {
+    let release: (r: CastVoteResult) => void = () => undefined;
+    const { queue, log } = setup((_s, n) =>
+      n === 1 ? new Promise<CastVoteResult>((r) => (release = r)) : { status: 'ok', match: false },
+    );
+    queue.enqueue(seen());
+    rewatch(queue);
+    // Undo of the seen_rewatch: it is still waiting, so it is simply removed.
+    expect(queue.removeLast(ROOM, 1)?.answer).toBe('seen_rewatch');
+    release({ status: 'ok', match: false });
+    await jest.advanceTimersByTimeAsync(0);
+    expect(log).toEqual(['vote 1', 'undo']);
   });
 });
