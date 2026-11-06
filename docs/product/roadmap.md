@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 162 of 291 tasks done.
+Progress: 163 of 291 tasks done.
 
 ```mermaid
 flowchart LR
@@ -527,7 +527,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: tested.
 - [x] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · M · needs M6.22, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
   Done when: a group starts a second room in two taps.
-- [ ] **M6.24** The sounds: the files in `mobile/assets/sounds/` wired into `lib/sound`, each played where sounds.md says (the match, the reveal, the game start, arrivals in the lobby, the Final Cut's last 5 seconds, refusals, and the Join, Start swiping and Lock in buttons) · app · M · needs M3.14 · [sounds](../design/sounds.md), [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
+- [x] **M6.24** The sounds: the files in `mobile/assets/sounds/` wired into `lib/sound`, each played where sounds.md says (the match, the reveal, the game start, arrivals in the lobby, the Final Cut's last 5 seconds, refusals, and the Join, Start swiping and Lock in buttons) · app · M · needs M3.14 · [sounds](../design/sounds.md), [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: each sound plays at its moment on the right phones, mixed with other audio, quiet on silent and off with the Sound switch, with a test per rule in sounds.md; the button tick lands with the press haptic on a low-end Android.
 
 ## M7 Safety and moderation
