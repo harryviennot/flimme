@@ -18,7 +18,6 @@ export type SheetView =
       card: Card;
       seen: boolean;
       liked: boolean;
-      saved: boolean;
       services: ServiceLogo[];
       watchLink: string | null;
     };
@@ -54,7 +53,6 @@ export function useFilmSheet(titleId: number, language: string) {
       card: answer.card,
       seen: answer.seen,
       liked: answer.liked,
-      saved: answer.saved,
       services: serviceLogos(answer.card.providers, imageBase),
       watchLink: answer.card.watch_link,
     };
@@ -72,9 +70,5 @@ export function useFilmSheet(titleId: number, language: string) {
   const setSeen = (seen: boolean) =>
     client.setQueryData<CardAnswer>(key, (old) => (old?.status === 'ok' ? { ...old, seen } : old));
 
-  /** Keeps the cached card in step with a Later change that went through. */
-  const setSaved = (saved: boolean) =>
-    client.setQueryData<CardAnswer>(key, (old) => (old?.status === 'ok' ? { ...old, saved } : old));
-
-  return { view, setSeen, setSaved };
+  return { view, setSeen };
 }

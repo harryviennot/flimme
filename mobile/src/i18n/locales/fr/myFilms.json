@@ -42,22 +42,16 @@
     "loadingFilm": "Chargement du film"
   },
   "sheet": {
-    "markSeen": "Marquer comme vu",
-    "notSeen": "Pas encore vu",
-    "seenHelper": "Il reste hors de tes parties.",
+    "seen": "Vu",
     "remove": "Retirer des aimés",
-    "a11ySeen": "Marqué comme vu",
+    "a11ySeen": "Marqué comme vu. Il reste hors de tes parties.",
     "a11yNotSeen": "Plus marqué comme vu. Il peut revenir dans tes parties.",
     "failed": "Impossible d'enregistrer. Réessaie dans un instant.",
     "notFound": "Ce film n'est plus dans Mes films.",
     "error": "Impossible de charger le film.",
     "offline": "Tu es hors ligne. Le film s'affiche dès ton retour.",
     "offlineActions": "Tu es hors ligne. Reconnecte-toi pour modifier tes films.",
-    "notListed": "Aucune de tes plateformes ne l'a.",
-    "removeLater": "Retirer de Plus tard",
-    "saveLater": "Garder pour plus tard",
-    "a11yRemovedLater": "Retiré de Plus tard",
-    "a11ySavedLater": "Gardé pour plus tard"
+    "notListed": "Aucune de tes plateformes ne l'a."
   },
   "removed": {
     "title": "Retiré de Mes films",
