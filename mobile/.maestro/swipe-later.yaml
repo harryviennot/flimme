@@ -25,12 +25,18 @@ appId: com.harryviennot.flimme.dev
     visible: 'Synopsis'
     timeout: 5000
 - takeScreenshot: later-3-back-saved
-# The back has its own bookmark in the same state; remove from there.
-- tapOn: 'Remove from Later'
-- assertVisible: 'Save for later'
-- tapOn: 'Save for later'
+# The back has its own bookmark in the same state, at the same corner. Tapped by point: the
+# turned-away front's bookmark is in the tree too, mirrored at the top right, so a label would
+# find it first.
+- tapOn:
+    point: 13%,18%
+- takeScreenshot: later-4-back-removed
+- tapOn:
+    point: 13%,18%
+- takeScreenshot: later-5-back-saved-again
 - tapOn:
     point: 50%,60%
+- assertVisible: 'Remove from Later'
 # Swipe the saved card away: the answer is a normal one.
 - tapOn: 'Nope'
 - waitForAnimationToEnd
