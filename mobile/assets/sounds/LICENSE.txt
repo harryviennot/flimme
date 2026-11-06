@@ -1,0 +1,5 @@
+Flimme's sounds
+
+Original sounds made for Flimme in November 2026, by synthesis in the Flimme
+sound lab: no samples, recordings or third-party material went into them, so
+they need no licence. Where and when each one plays: docs/design/sounds.md.
