@@ -28,6 +28,7 @@ import {
   MY_FILMS_ANSWERS,
   MY_FILM_CARD_ANSWERS,
   SET_FILM_SEEN_ANSWERS,
+  MY_FILMS_SEGMENTS,
   REMOVE_MY_FILM_ANSWERS,
   SET_FILM_SAVED_ANSWERS,
   UPDATE_PROFILE_ANSWERS,
@@ -317,7 +318,7 @@ const cases = [
     name: 'my_film_card',
     answers: MY_FILM_CARD_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.myFilmCard({ title_id: 7 }),
-    full: { ok: { card: CARD, seen: false, liked: true, saved: false } },
+    full: { ok: { card: CARD, seen: false, liked: true } },
   },
   {
     name: 'set_film_seen',
@@ -912,13 +913,11 @@ describe('my films', () => {
     ).rejects.toMatchObject({ kind: 'unexpected' });
   });
 
-  it('my_film_card carries seen, liked and saved next to the card', async () => {
-    const { client, calls } = fake(() =>
-      ok({ status: 'ok', card: CARD, seen: true, liked: false, saved: true }),
-    );
+  it('my_film_card carries seen and liked next to the card, and no saved flag', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok', card: CARD, seen: true, liked: true }));
     await expect(
       createApi(client, { validate: true }).myFilmCard({ title_id: 7, language: 'en' }),
-    ).resolves.toEqual({ status: 'ok', card: CARD, seen: true, liked: false, saved: true });
+    ).resolves.toEqual({ status: 'ok', card: CARD, seen: true, liked: true });
     expect(calls[0]).toEqual({ fn: 'my_film_card', args: { p_title_id: 7, p_language: 'en' } });
   });
 
@@ -1193,12 +1192,7 @@ describe('avatars', () => {
     expect(calls).toEqual([{ fn: 'set_film_saved', args: { p_title_id: 7, p_saved: false } }]);
   });
 
-  it('my_films lists Later with the all filter', async () => {
-    const { client, calls } = fake(() => ok({ status: 'ok', films: [], next_cursor: null }));
-    await createApi(client, { validate: true }).myFilms({ segment: 'later' });
-    expect(calls[0]).toMatchObject({
-      fn: 'my_films',
-      args: { p_segment: 'later', p_filter: 'all' },
-    });
+  it('my_films has two segments, Liked and Seen: a saved film is a solo like', () => {
+    expect(MY_FILMS_SEGMENTS).toEqual(['liked', 'seen']);
   });
 });

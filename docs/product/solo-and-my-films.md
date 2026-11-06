@@ -185,7 +185,7 @@ As 4A, but solo answers skip `votes` and go to `user_titles` only. It saves noth
 
 Three questions: what solo decks remember, whether solo likes change group decks, and whether a solo like counts as a watchlist.
 
-**What solo decks remember.** Without card memory (M17), the launch deck is quality and popularity, reshuffled each time. A player who swipes solo every evening would meet the same top films again and again: "I already said no". Recommended: the solo deal skips every film the player answered in an earlier solo room (a lookup on their own `votes`) and every film in their My films, films saved for Later included (Harry, 6 November 2026). Group decks are unchanged, and never read a save: a film you noped alone yesterday can come up tonight with friends, which is right (tonight the question is the group's).
+**What solo decks remember.** Without card memory (M17), the launch deck is quality and popularity, reshuffled each time. A player who swipes solo every evening would meet the same top films again and again: "I already said no". Recommended: the solo deal skips every film the player answered in an earlier solo room (a lookup on their own `votes`) and every film in their My films, films saved with the bookmark included (a save is a solo like, Harry, 6 November 2026). Group decks are unchanged, and never read a save: a film you noped alone yesterday can come up tonight with friends, which is right (tonight the question is the group's).
 
 **Do solo likes shape group decks?**
 
@@ -304,7 +304,7 @@ Solo needs Pick one (option 3A) for this: "the reviewer reaches a pick" is what 
 | `liked_at` | When you liked it (null when you didn't, or removed it). Written by `api.cast_vote` on a like, super like or "Watch it again tonight? Yes"; undo clears it if the like set it (the pattern Seen it's mark already uses) |
 | `super_liked` | For the star |
 | `picked_at` | On `app` rows: a group picked it while you were seated. Written for every seated profile when the pick is made, so the badge never depends on the room's rows |
-| Reads | `api.my_films(segment, filter, cursor)` returns your own rows only, newest first. `api.set_film_seen(title, seen)`, `api.remove_my_film(title)` and `api.set_film_saved(title, saved)` (Later, M6.50, in `saved_at`) change your own rows |
+| Reads | `api.my_films(segment, filter, cursor)` returns your own rows only, newest first. `api.set_film_seen(title, seen)`, `api.remove_my_film(title)` and `api.set_film_saved(title, saved)` change your own rows. A save with the card's bookmark is a solo like (`liked_at` on the `solo` row, `saved_at` marking it as a save's; decided on 6 November 2026, replacing M6.50's Later segment): it is under Liked with the Solo chip, and unsaving takes back only a save's like |
 
 ### Option 10B: a new `my_films` table
 
