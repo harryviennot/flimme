@@ -66,6 +66,10 @@ jest.mock('expo-file-system', () => ({
   },
 }));
 
+jest.mock('@/features/profile', () => ({
+  useMyProfile: () => ({ data: { country: 'FR' } }),
+}));
+
 let mockStrict = true;
 jest.mock('@/features/analytics', () => ({ useAnalyticsStrict: () => mockStrict }));
 
@@ -143,6 +147,15 @@ describe('the Settings rows', () => {
     ]) {
       expect(screen.getByLabelText(label)).toBeOnTheScreen();
     }
+  });
+
+  it('shows the chosen country and opens the country list', async () => {
+    await renderScreen(<SettingsScreen />);
+    await fireEvent.press(screen.getByLabelText('Country, France'));
+    expect(router.push).toHaveBeenCalledWith('/settings/country');
+    await i18n.changeLanguage('fr');
+    await renderScreen(<SettingsScreen />);
+    expect(screen.getAllByLabelText('Pays, France').length).toBeGreaterThan(0);
   });
 
   it('opens the phone settings from Language', async () => {

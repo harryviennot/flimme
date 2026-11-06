@@ -80,6 +80,8 @@ import {
   roomRow,
   roomSeatRow,
   countryProvidersSchema,
+  catalogCountriesSchema,
+  type CatalogCountry,
   gameModesSchema,
   myNextCardsResult,
   titleCardsResult,
@@ -755,6 +757,26 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         return parsed.data;
       }
       return (rows ?? []) as CountryProvider[];
+    },
+
+    /** The countries that have a catalog, by code (the country choice). */
+    async catalogCountries(): Promise<CatalogCountry[]> {
+      const rows = await readView(
+        () => client.from('catalog_countries').select('code, default_language').order('code'),
+        'catalog_countries',
+      );
+      if (options.validate) {
+        const parsed = catalogCountriesSchema.safeParse(rows ?? []);
+        if (!parsed.success) {
+          throw new ApiError(
+            'unexpected',
+            'catalog_countries',
+            `wrong shape: ${parsed.error.message}`,
+          );
+        }
+        return parsed.data;
+      }
+      return (rows ?? []) as CatalogCountry[];
     },
 
     /** The game modes and their player limits, in display order. */

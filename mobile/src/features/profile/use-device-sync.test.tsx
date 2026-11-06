@@ -6,8 +6,12 @@ import type { ReactNode } from 'react';
 import { useDeviceSync } from './use-device-sync';
 
 const mockUpdateProfile = jest.fn(async () => ({ status: 'ok' }));
+const mockCatalog = jest.fn(async () => [{ code: 'FR' }]);
 jest.mock('@/api', () => ({
-  api: { updateProfile: (...args: unknown[]) => mockUpdateProfile(...(args as [])) },
+  api: {
+    updateProfile: (...args: unknown[]) => mockUpdateProfile(...(args as [])),
+    catalogCountries: () => mockCatalog(),
+  },
 }));
 jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
@@ -41,5 +45,48 @@ describe('useDeviceSync', () => {
 
     await rerender({ profile: profileOf('u2') });
     await waitFor(() => expect(mockUpdateProfile).toHaveBeenCalledTimes(2));
+  });
+
+  it('mends a saved country without a catalog with the region, which has one', async () => {
+    mockUpdateProfile.mockClear();
+    const client = new QueryClient();
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    await renderHook(
+      () => useDeviceSync({ ...profileOf('m1'), country: 'US', language: 'fr' }, true),
+      {
+        wrapper,
+      },
+    );
+    await waitFor(() => expect(mockUpdateProfile).toHaveBeenCalledWith({ country: 'FR' }));
+  });
+
+  it('keeps a saved country that has a catalog, and a country when the list fails', async () => {
+    mockUpdateProfile.mockClear();
+    mockCatalog.mockResolvedValueOnce([{ code: 'FR' }, { code: 'BE' }]);
+    const client = new QueryClient();
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    await renderHook(
+      () => useDeviceSync({ ...profileOf('k1'), country: 'BE', language: 'fr' }, true),
+      {
+        wrapper,
+      },
+    );
+    await waitFor(() => expect(mockCatalog).toHaveBeenCalled());
+    mockCatalog.mockRejectedValueOnce(new Error('offline'));
+    const other = new QueryClient();
+    await renderHook(
+      () => useDeviceSync({ ...profileOf('k2'), country: 'US', language: 'fr' }, true),
+      {
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <QueryClientProvider client={other}>{children}</QueryClientProvider>
+        ),
+      },
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    expect(mockUpdateProfile).not.toHaveBeenCalled();
   });
 });

@@ -251,7 +251,7 @@ This answers the "Countries at launch" question in [decisions.md](../decisions.m
 - its default language,
 - checking a sample of decks by hand.
 
-**Recommendation:** France for the closed beta. Belgium and Switzerland next: French-speaking, so no new copy. Then the UK, Ireland, the US and Canada once the English copy is done. A player in a country that isn't enabled can join rooms but not host one, and sees "Not available in your country yet".
+**Recommendation:** France for the closed beta. Belgium and Switzerland next: French-speaking, so no new copy. Then the UK, Ireland, the US and Canada once the English copy is done. A player in a country that isn't enabled can join rooms, and can choose the catalog of a country that is enabled to host and play alone (decisions.md, 5 Nov 2026, Q0.4); until they do, they see "Not in your country yet".
 
 ## Requests and cost
 

@@ -1,0 +1,27 @@
+{
+  "title": "Country",
+  "row": "Country",
+  "use": "Use the catalog: {{country}}",
+  "choose": "Choose a country",
+  "helper": "You'll see the services and films available in this country. You can change it any time.",
+  "selected": "Selected",
+  "empty": {
+    "title": "No country to choose",
+    "body": "We couldn't load the list. Try again in a moment.",
+    "action": "Try again"
+  },
+  "errors": {
+    "save": "Couldn't change the country. Try again."
+  },
+  "names": {
+    "FR": "France",
+    "BE": "Belgium",
+    "CH": "Switzerland",
+    "LU": "Luxembourg",
+    "MC": "Monaco",
+    "GB": "United Kingdom",
+    "IE": "Ireland",
+    "US": "United States",
+    "CA": "Canada"
+  }
+}
