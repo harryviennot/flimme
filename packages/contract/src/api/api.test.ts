@@ -28,6 +28,7 @@ import {
   MY_FILM_CARD_ANSWERS,
   SET_FILM_SEEN_ANSWERS,
   REMOVE_MY_FILM_ANSWERS,
+  SET_FILM_SAVED_ANSWERS,
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
 } from '../answers';
@@ -165,7 +166,23 @@ const cases = [
         consents: [],
         linked_accounts: [],
         letterboxd_diary: [],
-        film_history: [],
+        film_history: [
+          {
+            tmdb_id: 603,
+            title: 'The Matrix',
+            source: 'app',
+            seen: false,
+            rating: null,
+            on_watchlist: false,
+            reaction: null,
+            last_watched_on: null,
+            liked_at: null,
+            super_liked: false,
+            picked_at: null,
+            seen_at: null,
+            saved_at: '2026-11-04T20:02:00Z',
+          },
+        ],
         taste: null,
         games: [
           {
@@ -293,7 +310,7 @@ const cases = [
     name: 'my_film_card',
     answers: MY_FILM_CARD_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.myFilmCard({ title_id: 7 }),
-    full: { ok: { card: CARD, seen: false, liked: true } },
+    full: { ok: { card: CARD, seen: false, liked: true, saved: false } },
   },
   {
     name: 'set_film_seen',
@@ -305,6 +322,12 @@ const cases = [
     name: 'remove_my_film',
     answers: REMOVE_MY_FILM_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.removeMyFilm({ title_id: 7 }),
+    full: {},
+  },
+  {
+    name: 'set_film_saved',
+    answers: SET_FILM_SAVED_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.setFilmSaved({ title_id: 7, saved: true }),
     full: {},
   },
   {
@@ -856,13 +879,13 @@ describe('my films', () => {
     ).rejects.toMatchObject({ kind: 'unexpected' });
   });
 
-  it('my_film_card carries seen and liked next to the card', async () => {
+  it('my_film_card carries seen, liked and saved next to the card', async () => {
     const { client, calls } = fake(() =>
-      ok({ status: 'ok', card: CARD, seen: true, liked: false }),
+      ok({ status: 'ok', card: CARD, seen: true, liked: false, saved: true }),
     );
     await expect(
       createApi(client, { validate: true }).myFilmCard({ title_id: 7, language: 'en' }),
-    ).resolves.toEqual({ status: 'ok', card: CARD, seen: true, liked: false });
+    ).resolves.toEqual({ status: 'ok', card: CARD, seen: true, liked: false, saved: true });
     expect(calls[0]).toEqual({ fn: 'my_film_card', args: { p_title_id: 7, p_language: 'en' } });
   });
 
@@ -1127,5 +1150,22 @@ describe('swiping', () => {
 describe('avatars', () => {
   it('pins the six preset keys, in order', () => {
     expect(AVATAR_KEYS).toEqual(['blue', 'green', 'gold', 'red', 'violet', 'teal']);
+  });
+
+  it('set_film_saved sends the film and the flag, and resolves not_found as a value', async () => {
+    const { client, calls } = fake(() => ok({ status: 'not_found' }));
+    await expect(
+      createApi(client, { validate: true }).setFilmSaved({ title_id: 7, saved: false }),
+    ).resolves.toEqual({ status: 'not_found' });
+    expect(calls).toEqual([{ fn: 'set_film_saved', args: { p_title_id: 7, p_saved: false } }]);
+  });
+
+  it('my_films lists Later with the all filter', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok', films: [], next_cursor: null }));
+    await createApi(client, { validate: true }).myFilms({ segment: 'later' });
+    expect(calls[0]).toMatchObject({
+      fn: 'my_films',
+      args: { p_segment: 'later', p_filter: 'all' },
+    });
   });
 });

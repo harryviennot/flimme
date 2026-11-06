@@ -343,6 +343,7 @@ An export row and a feed item for the same film and watched date are the same en
 | super_liked | boolean | A super like. Cleared by undo unless another room of the same source gave the star |
 | picked_at | timestamptz | A group's pick: set on the `app` row of every seat still in the room (not left, not removed) when a `matches` row becomes pick 1, by the trigger `matches_mark_pick`. A solo pick sets nothing |
 | seen_at | timestamptz | When the seen mark was made in the app (Seen it, Mark as seen). Seen in My films sorts by `coalesce(seen_at, updated_at)` |
+| saved_at | timestamptz | Later in My films (M6.50): when the player saved the film with the card's bookmark (`api.set_film_saved`), always on the `app` row. A repeat save keeps the first time; Remove from Later clears it. Never `on_watchlist`, never an answer: no room, deck counter, match, label or card payload reads it. Only the solo deal skips it, as it skips the rest of My films |
 
 My films reads these columns, only for the caller, through `api.my_films`, `api.my_film_card`, `api.set_film_seen` and `api.remove_my_film`. Nothing in a room, a label, a card back, a deck score or a broadcast reads `liked_at`, `super_liked` or `picked_at`, and no write sets `on_watchlist`. A solo deck leaves out films with `liked_at` or `picked_at`. Under a My films filter, `is_super_liked` looks only at the rows that filter lists. The rows go with the account (cascade) and are in the export; retention never deletes them.
 
