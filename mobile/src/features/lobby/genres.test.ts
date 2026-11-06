@@ -40,12 +40,12 @@ describe('toggleGenre (the cap is 3)', () => {
 });
 
 describe('genreChips', () => {
-  it('keeps the server order, names in the language, and skips ids with no known genre', () => {
+  it('sorts by the name in the language, and skips ids with no known genre', () => {
     const chips = genreChips(options, genres, 'fr', [], []);
     expect(chips.map((c) => [c.id, c.name, c.count])).toEqual([
       [35, 'Comédie', 3],
-      [27, 'Horreur', 0],
       [18, 'Drama', 1],
+      [27, 'Horreur', 0],
     ]);
   });
 

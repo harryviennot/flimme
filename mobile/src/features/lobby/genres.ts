@@ -27,7 +27,7 @@ export function toggleGenre(
 }
 
 /**
- * The chips, in the server's display order. The server's count includes the player's saved picks;
+ * The chips, sorted by name in the player's language (the server gives genre id order). The server's count includes the player's saved picks;
  * the chip shows the count as if the unsaved selection were saved, so a tap answers at once.
  * Offered ids with no known genre are skipped.
  */
@@ -52,7 +52,7 @@ export function genreChips(
       selected,
     });
   }
-  return chips;
+  return chips.sort((a, b) => a.name.localeCompare(b.name, language));
 }
 
 /** The names of the player's saved picks that are still offered, for the lobby row. */

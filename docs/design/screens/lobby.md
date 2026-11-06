@@ -94,7 +94,7 @@ Each player can pick up to 3 TMDB movie genres for tonight's deck. It is optiona
 
 - **Cap 3.** The sheet stops a 4th pick with a quiet note, not an error: no toast, no buzz, no call. Dropping a pick makes room again.
 - **Counts, never names.** A chip shows how many [present](#present-and-away) players picked the genre ("Comedy 3"), your own pick included. The phone never shows or learns who picked what, and genre ids never reach analytics or logs (privacy rule 7: counts only, like "2 of 3 of you liked this").
-- **Only genres with 30 films or more tonight** are offered, in the order the server gives (`api.room_genres.options`). The phone does not filter or reorder.
+- **Only genres with 30 films or more tonight** are offered (`api.room_genres.options`, in genre id order). The phone does not filter, and sorts the chips by the genre's name in the player's language (`localeCompare`), in the sheet and in the row.
 - **Picks lock at Start.** The row is dimmed and shut while the room is dealing; the sheet only exists over the lobby (`isAllowed`). A late joiner plays the room's deck as it is.
 - **No picks** means today's deck. Nothing is asked of anyone.
 
@@ -104,14 +104,14 @@ Each player can pick up to 3 TMDB movie genres for tonight's deck. It is optiona
 | --- | --- | --- |
 | Loading | none | yes (the sheet shows its own loading) |
 | No picks | `yourGenres.optional` | yes |
-| Picks | their names, in the offered order | yes |
+| Picks | their names, sorted | yes |
 | No genre offered tonight | `yourGenres.none` | no (dimmed) |
 | Dealing (after Start) | as above | no (dimmed, picks are locked) |
 | Offline or the read failed | the last value, or none | yes (the sheet explains) |
 
 **The sheet.** `Screen` with `scroll` and `footer`, as the services sheet. Title `display-s` `genresSheet.title`, helper `body-s` muted `genresSheet.helper`, the chips in a wrapping row (`gap-2`), `Button` primary L `genresSheet.done` in the footer. A chip is the `Chip` with `count`: the name, then the count in `mono-data`; selected shows the check and the accent fill. Its screen reader label is `genresSheet.chip` ("Comedy, 3 players"), role checkbox. The counts include your own unsaved tap at once (the sheet adds or removes 1 locally), so a tap answers without waiting for the network; the server's number replaces it after Done.
 
-Done sends only the genre ids, only when the selection changed (`api.set_seat_prefs` with `p_genre_ids`), then closes. The sheet starts on your saved picks that are still offered; a saved pick that left the offer takes no place in the cap and is dropped on the next save.
+Done sends only the genre ids, alone (a genres-only call sends `genres_changed` and no `seat_updated`, which would name the seat: never bundle genres with services), only when the selection changed (`api.set_seat_prefs` with `p_genre_ids`), then closes. The sheet starts on your saved picks that are still offered; a saved pick that left the offer takes no place in the cap and is dropped on the next save.
 
 | State or answer | What the player sees |
 | --- | --- |
@@ -120,8 +120,8 @@ Done sends only the genre ids, only when the selection changed (`api.set_seat_pr
 | Cap reached (a 4th tap) | `body-s` secondary `genresSheet.cap` under the helper, announced politely; the chip stays off; no haptic, no toast |
 | `ok` | The sheet closes; the row shows the names; other phones' counts follow `genres_changed` |
 | Nothing changed | The sheet closes, with no call |
-| `closed` | The sheet closes; the layout follows the room's state |
-| `locked` (Start happened while the sheet was open) | `showToast` info `genresLocked.*`, the sheet closes |
+| `closed` (the room is done) | The sheet closes; the layout follows the room's state |
+| `locked` (Start happened while the sheet was open: dealing, swiping or the finale) | `showToast` info `genresLocked.*`, the sheet closes |
 | `unknown_genre` (a genre left tonight's offer) | `showToast` warn `errors.genresStale`; the sheet stays open and reads the offer again, your selection resets to the saved picks |
 | `too_many` | A bug (the sheet stops a 4th pick): `showToast` warn `common:errors.generic.title`, reported to Sentry, stays open |
 | The read failed (online) | `EmptyState` error with `genresSheet.failed` and `genresSheet.retry`; Done disabled |
@@ -130,7 +130,7 @@ Done sends only the genre ids, only when the selection changed (`api.set_seat_pr
 | The save call failed | `showToast` warn `errors.genres`; the sheet stays open, Done works again |
 | A non-member | 42501, reported as `denied`; the room layout already sends a removed seat Home |
 
-**Live.** The server sends `genres_changed` (an empty payload) on `room:<id>` when a seat's picks change. The phone re-reads `api.room_genres` and updates the row and any open sheet in place. It also re-reads on every reconnect and when the app returns to the foreground (the same re-read as the room, under the room's query prefix). Counts move without animation: the numbers change in place. Reduce Motion needs nothing.
+**Live.** The server sends `genres_changed` (an empty payload) on `room:<id>` when a seat's picks change. The phone re-reads `api.room_genres` and updates the row and any open sheet in place. Counts cover present seats, so it also re-reads on `member_joined`, `member_left`, `member_removed` and `settings_changed`, which change them with no `genres_changed`. It re-reads on every reconnect and when the app returns to the foreground (the same re-read as the room, under the room's query prefix). Counts move without animation: the numbers change in place. Reduce Motion needs nothing.
 
 **Accessibility.** The row reads "Your genres tonight, Comedy and Drama" (or "Optional") as a button; a dimmed row is announced as disabled. In the sheet the helper comes right after the title; each chip is a checkbox ("Comedy, 3 players", checked or not); the cap note is a polite live region (and `announceForAccessibility` on iOS). The tap targets are 44 points (`Chip` is 36 high with the `Pressable` target padding); at the largest text size the chips wrap onto more lines and Done stays in the footer.
 
@@ -145,7 +145,7 @@ Done sends only the genre ids, only when the selection changed (`api.set_seat_pr
 | `member_removed` | The seats are re-read; the row leaves as for `member_left` (nothing says it was removed). On the removed phone: [the removed side](host-menu.md#the-removed-players-side) |
 | `room_locked` | The room is re-read; the ticket's lock tag comes or goes |
 | `seat_updated` | The row's services change |
-| `genres_changed` | `api.room_genres` is read again; the genres row and an open genres sheet update in place ([Your genres tonight](#your-genres-tonight)) |
+| `genres_changed`, and `member_joined`, `member_left`, `member_removed`, `settings_changed` | `api.room_genres` is read again; the genres row and an open genres sheet update in place ([Your genres tonight](#your-genres-tonight)) |
 | `settings_changed` | The room is re-read (the services line) |
 | `host_changed`, or `member_left` with `new_host_member_id` | The crown moves. On the new host's phone: `showToast` info `lobby:youreHost.*`, and the footer becomes Start |
 | Presence on `room:<id>:live` | Online dots and the away tag |

@@ -820,13 +820,13 @@ describe('the genres sheet', () => {
   };
   const done = () => screen.getByRole('button', { name: 'Done' });
 
-  it('shows the chips in the server order with counts, never names', async () => {
+  it('shows the chips sorted by name with counts, never names', async () => {
     await open();
     expect(screen.getAllByRole('checkbox').map((chip) => chip.props.accessibilityLabel)).toEqual([
-      'Comedy, 3 players',
-      'Horror, 0 players',
-      'Drama, 1 player',
       'Adventure, 2 players',
+      'Comedy, 3 players',
+      'Drama, 1 player',
+      'Horror, 0 players',
     ]);
   });
 

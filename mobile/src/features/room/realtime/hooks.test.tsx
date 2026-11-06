@@ -160,6 +160,17 @@ describe('events', () => {
     await waitFor(() => expect(api.roomGenres.mock.calls.length).toBeGreaterThan(before));
   });
 
+  it.each(['member_joined', 'member_left', 'member_removed', 'settings_changed'])(
+    '%s also reads the genre counts again: they follow presence and the offer',
+    async (event) => {
+      await opened(<Genres />);
+      await waitFor(() => expect(screen.getByTestId('genres')).toHaveTextContent('1'));
+      const before = api.roomGenres.mock.calls.length;
+      await act(async () => events().broadcast?.({ event, payload: {} }));
+      await waitFor(() => expect(api.roomGenres.mock.calls.length).toBe(before + 1));
+    },
+  );
+
   it('genres_changed reads the genre counts again, and nothing else', async () => {
     await opened(<Genres />);
     await waitFor(() => expect(screen.getByTestId('genres')).toHaveTextContent('1'));
