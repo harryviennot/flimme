@@ -62,7 +62,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | Getting in | Guest play with no account: a name and a colour. French and English |
 | Rooms | Create a room, join by code, link or QR code, a live lobby. The host picks the room's services, an age cap and a time budget |
 | Safety | The host can remove a player and lock the room. Names are filtered. Anyone can report a player |
-| The game | Quick Match for 2 to 10 players: like, nope, super like, seen it, undo. Instant matches, the Final Cut round when no match comes, a winner screen that says where to watch, the recap card to share, Play again, sound for the match and the reveal |
+| The game | Quick Match for 2 to 10 players: like, nope, super like, seen it, undo. Instant matches, the Final Cut round when no match comes, a winner screen that says where to watch, the recap card to share, Play again, sound for the match, the reveal and a few small moments ([sounds](../design/sounds.md)) |
 | Solo and My films | Play alone, with a film for tonight when you want one, up to 100 solo cards a day. My films: the films you liked and the films you've seen, in a grid |
 | The deck | Built in SQL: films on the room's services in France, ranked by quality and popularity, shuffled differently every game, one film per franchise, films a player marked as seen left out, likes moved into the others' next cards |
 | Catalog | France only, from TMDB, refreshed every night |
@@ -527,8 +527,8 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: tested.
 - [x] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · M · needs M6.22, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
   Done when: a group starts a second room in two taps.
-- [ ] **M6.24** The match and reveal sounds: commissioned or licensed for use in an app, each under about 1.5 seconds, wired into `lib/sound` · content · S · needs M3.14 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
-  Done when: both play on the match and the reveal, mixed with other audio and quiet on silent.
+- [ ] **M6.24** The sounds: the files in `mobile/assets/sounds/` wired into `lib/sound`, each played where sounds.md says (the match, the reveal, the game start, arrivals in the lobby, the Final Cut's last 5 seconds, refusals, and the Join, Start swiping and Lock in buttons) · app · M · needs M3.14 · [sounds](../design/sounds.md), [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
+  Done when: each sound plays at its moment on the right phones, mixed with other audio, quiet on silent and off with the Sound switch, with a test per rule in sounds.md; the button tick lands with the press haptic on a low-end Android.
 
 ## M7 Safety and moderation
 
@@ -636,7 +636,7 @@ M11.7 (the reviewers' demo room: a reserved code that `api.create_room` never dr
   Done when: uploaded at the sizes required today.
 - [ ] **M11.10** Final screenshots from the alpha build: re-run M11.3's rig after M10.4 and replace what changed · design · S · needs M10.4, M11.3 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: the changed screenshots are uploaded to both stores, from the alpha build.
-- [ ] **M11.4** A 15 to 30-second preview video from screen captures (optional) · design · M · needs M11.3, M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [ ] **M11.4** A 15 to 30-second preview video from screen captures (optional), ending on the sonic logo · design · M · needs M11.3, M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video), [the sonic logo](../design/sounds.md#the-sonic-logo)
   Done when: uploaded, or skipped in decisions.md.
 - [ ] **M11.5** The age rating questionnaires (Apple, IARC) and Play's 13-and-over audience · publishing · S · needs M10.1 · [store-listing](store-listing.md#age-ratings)
   Done when: both ratings issued.
@@ -722,7 +722,7 @@ Done when: players can save an account, and "Did you watch it?" feeds the time t
   Done when: tested with a real Apple account.
 - [ ] **M15.4** "Already have an account? Sign in" on Welcome · app · needs M15.2 · [onboarding](onboarding.md#first-launch)
   Done when: a new phone restores an account.
-- [ ] **M15.5** "Did you watch it?" as a local notification 3 hours after the pick, or a Home card without notifications · app · needs M6.16 · [onboarding](onboarding.md#permissions), [game-modes](game-modes.md#after-the-pick)
+- [ ] **M15.5** "Did you watch it?" as a local notification 3 hours after the pick, or a Home card without notifications; its sound is `notify.wav` · app · needs M6.16 · [onboarding](onboarding.md#permissions), [game-modes](game-modes.md#after-the-pick), [the reminder's sound](../design/sounds.md#the-did-you-watch-it-reminder)
   Done when: the answer reaches `api.answer_followup`.
 - [ ] **M15.6** The time to first watch in the metric views · backend · needs M15.5, M9.3 · [analytics](analytics.md#every-metric)
   Done when: the view returns it.

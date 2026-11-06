@@ -1,6 +1,6 @@
 ---
 name: motion
-description: How things move, buzz and sound in the app (motion tokens, springs, layout presets, the haptic vocabulary, the two sounds, the signature moments, performance rules for gestures). Use before building or reviewing any animation, gesture, haptic, sound or signature moment (swipe, near miss, flip, match, Final Cut, reveal, winner).
+description: How things move, buzz and sound in the app (motion tokens, springs, layout presets, the haptic vocabulary, the sounds, the signature moments, performance rules for gestures). Use before building or reviewing any animation, gesture, haptic, sound or signature moment (swipe, near miss, flip, match, Final Cut, reveal, winner).
 ---
 
 # Motion, haptics and sound
@@ -40,7 +40,7 @@ description: How things move, buzz and sound in the app (motion tokens, springs,
 
 ## Sound (`@/lib/sound`)
 
-Decided: **only the match and the reveal**, `playSound('match' | 'reveal')`. Mixed with other audio, quiet on silent, a setting to turn off. The files come with the sounds task (M6.24); until then the call is a no-op. Don't add other sounds without a decision.
+Every sound, its file and the moment it plays: [docs/design/sounds.md](../../../docs/design/sounds.md) (decided on 6 November 2026). The two big ones are the match and the reveal, `playSound('match' | 'reveal')`; the rest are quiet: the game start, arrivals in the lobby, the Final Cut's last 5 seconds, refusals (with every `haptics.error()`) and three buttons (Join, Start swiping, Lock in). Mixed with other audio, quiet on silent, a setting to turn off, files in `mobile/assets/sounds/` at volume 1. M6.24 wires them; until then the call is a no-op. Don't add other sounds without a decision.
 
 ## Signature moments
 

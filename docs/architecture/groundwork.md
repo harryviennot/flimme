@@ -298,7 +298,7 @@ What's left for the reviewer: a new component that duplicates an existing one, o
 - **Motion tokens come from the Figma:** instant 80 ms (taps, toggles), fast 150 ms (chips, button presses), base 250 ms (card return, sheet fade), slow 400 ms (sheet slide, card fly-out), celebrate 800 ms (the match reveal, the bulb chase). Three easings: standard, exit (cards leaving) and arcade (an overshoot for stamps and buttons). Code adds springs for anything a finger drives (the card's drag and throw, presses) and the Reduce Motion fallbacks.
 - **Layout animations** (entering and exiting) as named presets, so lists and toasts move the same way everywhere.
 - **`lib/haptics.ts`:** one function per meaning (`commit`, `press`, `throw`, `match`, `veto`, `countdown`), the vocabulary in [the agent workflow](../agent-workflow.md#the-motion-system), and a setting to turn them off.
-- **`lib/sound.ts`** with `expo-audio`. Decided on 29 October 2026: sound for the match and the reveal only. Preloaded, mixed with other audio so it never pauses the TV or music, quiet when the phone is set to silent, and a setting to turn it off. The sounds themselves are a content task: commissioned, or licensed for use in an app, each under about 1.5 seconds.
+- **`lib/sound.ts`** with `expo-audio`. Decided on 29 October 2026 for the match and the reveal only; widened on 6 November 2026 to a few quiet small moments, each with its file and moment in [sounds.md](../design/sounds.md). Preloaded, mixed with other audio so it never pauses the TV or music, quiet when the phone is set to silent, and a setting to turn it off. The sounds are original, made for Flimme in the sound lab.
 
 ### The app shell
 
