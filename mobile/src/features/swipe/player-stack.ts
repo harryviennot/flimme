@@ -51,7 +51,10 @@ export function stackLayout(
   return { mode: 'overlapped', visible, hidden: total - visible.length };
 }
 
-/** The numbers the stack's screen reader label gives: players, how many others are done and away. */
+/**
+ * The numbers the stack's screen reader label gives: players, how many others are done and away.
+ * Your own seat is left out of both: you know whether you are done, and you are never away.
+ */
 export function stackCounts(seats: readonly { done: boolean; away: boolean; isMe: boolean }[]): {
   total: number;
   done: number;
