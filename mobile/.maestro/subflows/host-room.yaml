@@ -20,6 +20,14 @@ appId: com.harryviennot.flimme.dev
 - tapOn: 'Disney Plus'
 - tapOn: 'Canal\+'
 - tapOn: '(?i)open the room'
+# The genre step (M6.64) comes first when genres are offered: skip it.
+- extendedWaitUntil:
+    visible: 'Any genre'
+    timeout: 8000
+    optional: true
+- tapOn:
+    text: 'Any genre'
+    optional: true
 - extendedWaitUntil:
     visible: '(?i)in the room'
     timeout: 15000
