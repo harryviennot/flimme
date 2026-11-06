@@ -42,6 +42,7 @@ export function createSaveSettler(deps: SaveSettlerDeps) {
             }
             continue;
           }
+          // Dropped: a save is a wish, not a vote. The bookmark may stay filled for this session.
           deps.store.getState().settle(item);
           return 'next';
         }

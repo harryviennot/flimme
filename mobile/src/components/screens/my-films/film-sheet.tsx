@@ -113,11 +113,8 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
     );
     const outcome = await changeSaved(titleId, next, (args) => api.setFilmSaved(args));
     busy.current = false;
-    if (outcome === 'ok') {
-      recordSaved(titleId, next);
-      changed.current = true;
-    } else if (outcome === 'not_found') {
-      // Nothing to change: it was not saved, or the film left the list elsewhere.
+    if (outcome !== 'failed') {
+      // `not_found` means nothing to change (it was not saved): the sheet's state stands.
       recordSaved(titleId, next);
       changed.current = true;
     } else {
