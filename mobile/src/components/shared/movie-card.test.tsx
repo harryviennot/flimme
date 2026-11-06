@@ -144,12 +144,12 @@ describe('the back of the card', () => {
   });
 });
 
-describe('the Later bookmark', () => {
+describe('the bookmark (a solo like)', () => {
   it('shows on the front and the back, empty, and saves on a press', async () => {
     const onToggle = jest.fn();
     await render(<MovieCard {...film} bookmark={{ saved: false, onToggle }} />);
     const buttons = screen.getAllByRole('button', {
-      name: 'Save for later',
+      name: 'Add to your likes',
       includeHiddenElements: true,
     });
     expect(buttons).toHaveLength(2);
@@ -157,15 +157,15 @@ describe('the Later bookmark', () => {
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
-  it('says Remove from Later once saved, with the selected state', async () => {
+  it('says Remove from your likes once saved, with the selected state', async () => {
     await render(<MovieCard {...film} bookmark={{ saved: true, onToggle: jest.fn() }} />);
     const button = screen.getAllByRole('button', {
-      name: 'Remove from Later',
+      name: 'Remove from your likes',
       includeHiddenElements: true,
     })[0]!;
     expect(button.props.accessibilityState).toMatchObject({ selected: true });
     expect(
-      screen.queryByRole('button', { name: 'Save for later', includeHiddenElements: true }),
+      screen.queryByRole('button', { name: 'Add to your likes', includeHiddenElements: true }),
     ).toBeNull();
   });
 
@@ -174,6 +174,18 @@ describe('the Later bookmark', () => {
     await render(<MovieCard {...film} bookmark={{ saved: false, onToggle: jest.fn(), onTouch }} />);
     await fireEvent(screen.getAllByTestId('movie-card-bookmark-wrap')[0]!, 'touchStart');
     expect(onTouch).toHaveBeenCalledTimes(1);
+  });
+
+  it('is a 44-point round button low on the right of both faces, never at the top left', async () => {
+    await render(<MovieCard {...film} bookmark={{ saved: false, onToggle: jest.fn() }} />);
+    const wraps = screen.getAllByTestId('movie-card-bookmark-wrap');
+    expect(wraps).toHaveLength(2);
+    for (const wrap of wraps) {
+      expect(wrap.props.className).toContain('right-5');
+      expect(wrap.props.className).toContain('bottom-3.5');
+      expect(wrap.props.className).not.toContain('left-');
+      expect(wrap.props.className).not.toContain('top-');
+    }
   });
 
   it('is absent without the prop (the film sheet)', async () => {
@@ -185,7 +197,7 @@ describe('the Later bookmark', () => {
     await i18n.changeLanguage('fr');
     await render(<MovieCard {...film} bookmark={{ saved: false, onToggle: jest.fn() }} />);
     expect(
-      screen.getAllByRole('button', { name: 'Garder pour plus tard', includeHiddenElements: true }),
+      screen.getAllByRole('button', { name: 'Ajouter à tes envies', includeHiddenElements: true }),
     ).toHaveLength(2);
     await i18n.changeLanguage('en');
   });

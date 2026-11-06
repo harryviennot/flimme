@@ -58,8 +58,8 @@ The words players see, used the same way everywhere. French terms marked "propos
 | No pick | Nothing fits tonight | Rien à l'affiche ce soir (decided on 4 November 2026) |
 | Playing on your own | Play alone | Jouer seul (proposed) |
 | A solo session's pick | tonight's pick | ton film du soir (proposed; « le film du soir » stays the room's) |
-| Your list of films | My films; its segments Liked, Seen and Later | Mes films; Aimés, Vus et Plus tard (proposed) |
-| Saving a film from the card's bookmark | Save for later; Remove from Later | Garder pour plus tard; Retirer de Plus tard (proposed) |
+| Your list of films | My films; its segments Liked and Seen | Mes films; Aimés et Vus (proposed) |
+| Saving a film from the card's bookmark (a solo like) | Add to your likes; Remove from your likes | Ajouter à tes envies; Retirer de tes envies (proposed) |
 | A group's pick, on a tile | Picked | Choisi (proposed) |
 | The share image | recap card | récap (proposed) |
 | Streaming services | services | plateformes |

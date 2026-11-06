@@ -58,8 +58,8 @@
       "seen": "Seen it",
       "flip": "Flip the card",
       "trailer": "Watch the trailer",
-      "save": "Save for later",
-      "unsave": "Remove from Later"
+      "save": "Add to your likes",
+      "unsave": "Remove from your likes"
     },
     "superLeft_one": "Super like, {{count}} left",
     "superLeft_other": "Super like, {{count}} left",
@@ -73,8 +73,8 @@
     "pillHost": "{{name}}, host",
     "done": "{{name}} is done",
     "thrown": "{{answer}}: {{title}}",
-    "saved": "{{title}}: saved for later",
-    "unsaved": "{{title}}: removed from Later",
+    "saved": "{{title}}: added to your likes",
+    "unsaved": "{{title}}: removed from your likes",
     "players_one": "{{count}} player in {{host}}'s room",
     "players_other": "{{count}} players in {{host}}'s room",
     "playersDone_one": "{{count}} is done",

@@ -323,7 +323,7 @@ M6.51 (PR #275), moved by design pass (b) (M6.60) after Harry's feel test of 6 N
 
 **Accessibility.** Unchanged: the card is one element, so it offers a custom action `save` (`swipe:a11y.actions.save`) that becomes `unsave`; the bookmark's own label follows the state (`common:card.bookmarkSave`, `common:card.bookmarkRemove`) and it reports `selected`. After a save or unsave `swipe:a11y.saved` or `swipe:a11y.unsaved` is announced politely. The landing guard does not apply to the custom action.
 
-**Solo** uses the same card, so the bookmark moves there too. The copy is unchanged.
+**Solo** uses the same card, so the bookmark moves there too. The copy is the same as in a room.
 
 ## The buttons row
 
@@ -574,10 +574,10 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 | `a11y.cardBackServices` | Sur {{services}}. | On {{services}}. |
 | `a11y.actions.flip` | Retourner la carte | Flip the card |
 | `a11y.actions.trailer` | Voir la bande-annonce | Watch the trailer |
-| `a11y.actions.save` | Garder pour plus tard | Save for later |
-| `a11y.actions.unsave` | Retirer de Plus tard | Remove from Later |
-| `a11y.saved` | {{title}} : gardé pour plus tard | {{title}}: saved for later |
-| `a11y.unsaved` | {{title}} : retiré de Plus tard | {{title}}: removed from Later |
+| `a11y.actions.save` | Ajouter à tes envies | Add to your likes |
+| `a11y.actions.unsave` | Retirer de tes envies | Remove from your likes |
+| `a11y.saved` | {{title}} : ajouté à tes envies | {{title}}: added to your likes |
+| `a11y.unsaved` | {{title}} : retiré de tes envies | {{title}}: removed from your likes |
 | `a11y.superLeft_one` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superLeft_other` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superNone` | Plus de coup de cœur | No super likes left |
@@ -625,7 +625,7 @@ In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes
 
 The stack's label joins `a11y.players`, then `a11y.playersDone` and `a11y.playersAway` when their count isn't 0, with commas: "4 players in Harry's room, 1 is done". On your own room, `host` is your own name. Reused: `lobby:seat.you`, `lobby:seat.away`, `lobby:seat.host`, `lobby:a11y.seat`, `pills.done`, `common:actions.close`.
 
-**In `common`, added by M6.51:** `card.bookmarkSave` (Garder pour plus tard / Save for later) and `card.bookmarkRemove` (Retirer de Plus tard / Remove from Later), the bookmark's label by state.
+**In `common`, added by M6.51:** `card.bookmarkSave` (Ajouter à tes envies / Add to your likes) and `card.bookmarkRemove` (Retirer de tes envies / Remove from your likes), the bookmark's label by state. M6.58 reworded them: a save is a solo like, so "Later" is gone from the copy. The wording follows Harry's example of 6 November 2026 ("Ajouté à tes envies"); My films still calls the segment Aimés.
 
 **In `common`, added by M6.9** (the card is shared): `card.stampSeen` (Déjà vu / Seen it) and `card.stampSuper` (Super / Super; "COUP DE CŒUR" doesn't fit a 52-point stamp).
 
