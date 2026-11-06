@@ -9,6 +9,7 @@ import { api } from '@/api';
  */
 export const ROOM_KEY = (roomId: string) => ['room', roomId] as const;
 export const SEATS_KEY = (roomId: string) => ['room', roomId, 'seats'] as const;
+export const GENRES_KEY = (roomId: string) => ['room', roomId, 'genres'] as const;
 
 // A dropped connection pauses the query and resumes it by itself; anything else gets one retry.
 const retry = (count: number, error: unknown) =>
@@ -48,4 +49,19 @@ export function mySeatOf(seats: readonly RoomSeat[] | undefined): RoomSeat | nul
 export function useMySeat(roomId: string | undefined): RoomSeat | null {
   const seats = useRoomSeats(roomId);
   return mySeatOf(seats.data);
+}
+
+/**
+ * Tonight's offered genres with their counts, and this seat's own picks (lobby.md#your-genres-tonight).
+ * Under the room's prefix, so a reconnect and the foreground re-read it; `genres_changed` does too.
+ */
+export function useRoomGenres(roomId: string | undefined) {
+  return useQuery({
+    queryKey: GENRES_KEY(roomId ?? ''),
+    enabled: !!roomId,
+    queryFn: () => api.roomGenres({ room_id: roomId ?? '' }),
+    staleTime: 0,
+    refetchOnMount: 'always',
+    retry,
+  });
 }

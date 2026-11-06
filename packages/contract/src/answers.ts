@@ -86,9 +86,25 @@ export type RoomRunnersUpAnswer = (typeof ROOM_RUNNERS_UP_ANSWERS)[number];
 export const UPDATE_ROOM_SETTINGS_ANSWERS = ['ok', 'closed', 'invalid_settings'] as const;
 export type UpdateRoomSettingsAnswer = (typeof UPDATE_ROOM_SETTINGS_ANSWERS)[number];
 
-/** `api.set_seat_prefs` answers. */
-export const SET_SEAT_PREFS_ANSWERS = ['ok', 'closed', 'too_many'] as const;
+/**
+ * `api.set_seat_prefs` answers. `too_many` is more than 3 genres (M6.53); `unknown_genre` is an id
+ * that is not a movie genre; `locked` means the room started and the picks are fixed.
+ */
+export const SET_SEAT_PREFS_ANSWERS = [
+  'ok',
+  'closed',
+  'too_many',
+  'unknown_genre',
+  'locked',
+] as const;
 export type SetSeatPrefsAnswer = (typeof SET_SEAT_PREFS_ANSWERS)[number];
+
+/**
+ * `api.room_genres` answers (M6.53): tonight's offered genres with how many present seats picked
+ * each, and the caller's own picks. A caller who is not a member raises 42501.
+ */
+export const ROOM_GENRES_ANSWERS = ['ok'] as const;
+export type RoomGenresAnswer = (typeof ROOM_GENRES_ANSWERS)[number];
 
 /**
  * `api.start_game` answers. `ok` means the SQL baseline dealt and the game started:

@@ -10,11 +10,16 @@ import { RoomBanner } from '@/components/screens/room/room-banner';
 import { RoomRealtimeProvider } from './context';
 import type { RealtimeClient } from './controller';
 import { useRoomChannels, useRoomConnection, useRoomEvent } from './hooks';
-import { useRoom } from '../queries';
+import { useRoom, useRoomGenres } from '../queries';
 
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
 jest.mock('@/api', () => ({
-  api: { room: jest.fn(), roomSeats: jest.fn(), touchRoom: jest.fn(async () => undefined) },
+  api: {
+    room: jest.fn(),
+    roomSeats: jest.fn(),
+    roomGenres: jest.fn(),
+    touchRoom: jest.fn(async () => undefined),
+  },
 }));
 const mockOnline = { value: true };
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline.value }));
@@ -76,6 +81,11 @@ function Room() {
   return <Text testID="state">{room.data?.state ?? '-'}</Text>;
 }
 
+function Genres() {
+  const genres = useRoomGenres('r1');
+  return <Text testID="genres">{genres.data?.options.map((o) => o.count).join(',') ?? '-'}</Text>;
+}
+
 async function mountWith(children: ReactNode) {
   return await render(
     <QueryClientProvider client={queryClient}>
@@ -94,6 +104,9 @@ beforeEach(() => {
   api.room.mockReset().mockResolvedValue({ id: 'r1', code: '482913', state: 'lobby' });
   api.roomSeats.mockReset().mockResolvedValue([seat]);
   api.touchRoom.mockClear();
+  api.roomGenres
+    .mockReset()
+    .mockResolvedValue({ status: 'ok', options: [{ genre_id: 35, count: 1 }], mine: [] });
 });
 
 async function opened(children: ReactNode = <Room />) {
@@ -138,6 +151,22 @@ describe('events', () => {
       expect(calls().room).toBe(before.room);
     },
   );
+
+  it('genres_changed reads the genre counts again, and nothing else', async () => {
+    await opened(<Genres />);
+    await waitFor(() => expect(screen.getByTestId('genres')).toHaveTextContent('1'));
+    const before = { ...calls(), genres: api.roomGenres.mock.calls.length };
+    api.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [{ genre_id: 35, count: 2 }],
+      mine: [],
+    });
+    await act(async () => events().broadcast?.({ event: 'genres_changed', payload: {} }));
+    await waitFor(() => expect(screen.getByTestId('genres')).toHaveTextContent('2'));
+    expect(api.roomGenres.mock.calls.length).toBe(before.genres + 1);
+    expect(calls().seats).toBe(before.seats);
+    expect(calls().room).toBe(before.room);
+  });
 
   it.each(['settings_changed', 'state_changed', 'room_locked', 'next_room'])(
     '%s reads the room again',

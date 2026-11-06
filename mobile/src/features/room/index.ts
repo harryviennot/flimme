@@ -20,5 +20,14 @@ export { homeExit, useExitRoomToHome, type HomeExit } from './exit-home';
 export { removedExit, useRemovedExit, useRemovedListener } from './removed';
 export { leaveRoom } from './leave';
 export { registerRoomGuard, releaseRoomGuards } from './leave-guard';
-export { mySeatOf, ROOM_KEY, SEATS_KEY, useMySeat, useRoom, useRoomSeats } from './queries';
+export {
+  GENRES_KEY,
+  mySeatOf,
+  ROOM_KEY,
+  SEATS_KEY,
+  useMySeat,
+  useRoom,
+  useRoomGenres,
+  useRoomSeats,
+} from './queries';
 export { isAllowed, isSheet, roomScreenFor, type RoomScreen, type RoomSheet } from './screens';

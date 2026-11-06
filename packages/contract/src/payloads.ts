@@ -220,7 +220,7 @@ export const updateRoomSettingsResult = z.discriminatedUnion('status', [
 export type UpdateRoomSettingsResult = z.infer<typeof updateRoomSettingsResult>;
 
 export const setSeatPrefsResult = z.discriminatedUnion('status', [
-  z.object({ status: z.enum(['ok', 'closed']) }),
+  z.object({ status: z.enum(['ok', 'closed', 'unknown_genre', 'locked']) }),
   z.object({
     status: z.literal('too_many'),
     field: z.enum(['provider_ids', 'mood_slugs', 'genre_ids']),
@@ -228,6 +228,24 @@ export const setSeatPrefsResult = z.discriminatedUnion('status', [
   }),
 ]);
 export type SetSeatPrefsResult = z.infer<typeof setSeatPrefsResult>;
+
+// `api.room_genres` (M6.53): tonight's offered genres in display order, each with how many present
+// seats picked it (a count, never who), and the caller's own picks.
+export const roomGenresResult = z.object({
+  status: z.literal('ok'),
+  options: z.array(z.object({ genre_id: z.number(), count: z.number() })),
+  mine: z.array(z.number()),
+});
+export type RoomGenresResult = z.infer<typeof roomGenresResult>;
+
+// The `api.genres` view: a TMDB genre with its names by language.
+export const genreRow = z.object({
+  id: z.number(),
+  slug: z.string(),
+  names: z.object({ fr: z.optional(z.string()), en: z.optional(z.string()) }),
+});
+export const genresSchema = z.array(genreRow);
+export type Genre = z.infer<typeof genreRow>;
 
 export const startGameResult = z.discriminatedUnion('status', [
   // Under deck_engine `sql` the start deals at once (`ok`); `fallback` marks the 8-second path.

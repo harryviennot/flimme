@@ -19,6 +19,8 @@ function Demo() {
         />
       ))}
       <Chip label="Disabled" disabled />
+      <Chip label="Comedy" count={3} />
+      <Chip label="Horror" count={0} selected />
     </View>
   );
 }

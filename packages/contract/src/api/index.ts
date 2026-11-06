@@ -24,6 +24,7 @@ import {
   PLAY_AGAIN_ANSWERS,
   ROOM_RUNNERS_UP_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
+  ROOM_GENRES_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
   START_SOLO_ANSWERS,
@@ -95,7 +96,11 @@ import {
   type TitleCardsResult,
   type CountryProvider,
   type GameMode,
+  type Genre,
+  type RoomGenresResult,
   setMyProvidersResult,
+  genresSchema,
+  roomGenresResult,
   setSeatPrefsResult,
   startGameResult,
   startSoloResult,
@@ -358,6 +363,21 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         },
         SET_SEAT_PREFS_ANSWERS,
         setSeatPrefsResult,
+      );
+    },
+
+    /**
+     * Tonight's offered genres with their counts, and the caller's own picks (M6.53). The types
+     * from M6.53 aren't generated yet, so the name and arguments are cast until `mise run typegen`.
+     */
+    roomGenres(args: { room_id: string }): Promise<RoomGenresResult> {
+      return callAnswer(
+        client,
+        options,
+        'room_genres' as unknown as 'start_game',
+        { p_room_id: args.room_id },
+        ROOM_GENRES_ANSWERS,
+        roomGenresResult,
       );
     },
 
@@ -777,6 +797,22 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         return parsed.data;
       }
       return (rows ?? []) as CatalogCountry[];
+    },
+
+    /** The TMDB genres with their French and English names. */
+    async genres(): Promise<Genre[]> {
+      const rows = await readView(
+        () => client.from('genres').select('id, slug, names').order('id'),
+        'genres',
+      );
+      if (options.validate) {
+        const parsed = genresSchema.safeParse(rows ?? []);
+        if (!parsed.success) {
+          throw new ApiError('unexpected', 'genres', `wrong shape: ${parsed.error.message}`);
+        }
+        return parsed.data;
+      }
+      return (rows ?? []) as unknown as Genre[];
     },
 
     /** The game modes and their player limits, in display order. */

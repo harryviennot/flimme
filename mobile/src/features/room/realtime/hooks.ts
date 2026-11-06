@@ -15,7 +15,7 @@ import { useOnline } from '@/features/network';
 import { supabase } from '@/lib/supabase';
 
 import { beatNow } from '../heartbeat';
-import { ROOM_KEY, SEATS_KEY, useMySeat, useRoomSeats } from '../queries';
+import { GENRES_KEY, ROOM_KEY, SEATS_KEY, useMySeat, useRoomSeats } from '../queries';
 import { useRoomRealtime } from './context';
 import {
   openRoomRealtime,
@@ -26,11 +26,13 @@ import {
 import { bannerFor, isFresh, nextBannerChange, presenceOf, type BannerKind } from './derive';
 
 /** Which re-read each known event asks for. The others have no handler yet (later slices). */
-export const EVENT_READS: Partial<Record<RoomEvent, 'seats' | 'room'>> = {
+export const EVENT_READS: Partial<Record<RoomEvent, 'seats' | 'room' | 'genres'>> = {
   member_joined: 'seats',
   member_left: 'seats',
   member_removed: 'seats',
   seat_updated: 'seats',
+  // Only counts changed, never who (M6.53): the phone re-reads api.room_genres.
+  genres_changed: 'genres',
   host_changed: 'seats',
   settings_changed: 'room',
   room_locked: 'room',
@@ -69,6 +71,8 @@ export function useRoomChannels(
         const what = EVENT_READS[event];
         if (what === 'seats') void queryClient.invalidateQueries({ queryKey: SEATS_KEY(roomId) });
         // `exact`: the room alone. The layout routes on what this read says, never on the payload.
+        else if (what === 'genres')
+          void queryClient.invalidateQueries({ queryKey: GENRES_KEY(roomId) });
         else if (what === 'room')
           void queryClient.invalidateQueries({ queryKey: ROOM_KEY(roomId), exact: true });
       },

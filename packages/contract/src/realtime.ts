@@ -11,6 +11,7 @@ export const ROOM_EVENTS = [
   'member_removed',
   'room_locked',
   'seat_updated',
+  'genres_changed',
   'settings_changed',
   'state_changed',
   'host_changed',
@@ -45,6 +46,8 @@ export type RoomEventPayloads = {
   /** The saved value; only sent when it changed (api.set_room_locked, M4.23). */
   room_locked: { locked: boolean };
   seat_updated: { member_id: string };
+  /** A seat's genre picks changed (M6.53). Empty: re-read `api.room_genres`; never who picked. */
+  genres_changed: Record<string, never>;
   /**
    * The host opened the next room (api.play_again, M6.22). `host_member_id` is the host's seat in
    * this room, so phones name them from their seat list; the payload carries no name.

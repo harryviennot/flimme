@@ -6,6 +6,10 @@ import { Text } from './text';
 
 export type ChipProps = {
   label: string;
+  /** A small number after the label ("Comedy 3"): how many in the room picked it. */
+  count?: number;
+  /** What a screen reader says instead of the label, when the count needs words. */
+  accessibilityLabel?: string;
   selected?: boolean;
   onPress?: () => void;
   disabled?: boolean;
@@ -17,10 +21,18 @@ export type ChipProps = {
 };
 
 /** Figma "Chip": a selectable filter (moods, time budget). A check appears when selected. */
-export function Chip({ label, selected = false, onPress, disabled, role = 'checkbox' }: ChipProps) {
+export function Chip({
+  label,
+  count,
+  accessibilityLabel,
+  selected = false,
+  onPress,
+  disabled,
+  role = 'checkbox',
+}: ChipProps) {
   return (
     <Pressable
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityRole={role}
       accessibilityState={role === 'radio' ? { selected } : { checked: selected }}
       onPress={onPress}
@@ -37,6 +49,11 @@ export function Chip({ label, selected = false, onPress, disabled, role = 'check
       <Text variant="body-m-strong" tone={selected ? 'on-accent' : 'primary'}>
         {label}
       </Text>
+      {count !== undefined ? (
+        <Text variant="mono-data" tone={selected ? 'on-accent' : 'secondary'}>
+          {count}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }
