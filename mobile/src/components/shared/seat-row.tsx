@@ -20,7 +20,7 @@ export type SeatRowProps = {
   /** In the live channel's presence now: the avatar's dot. */
   present: boolean;
   /** Missing for 90 seconds: the Away tag and a muted name. */
-  away: boolean;
+  away?: boolean;
   /** No cards left (the swipe screen's players sheet): the Done tag, unless away. */
   done?: boolean;
   /** No hairline under the last row of the group. */
@@ -41,7 +41,7 @@ export function SeatRow({
   isHost,
   isMe,
   present,
-  away,
+  away = false,
   done = false,
   last = false,
   onPress,
