@@ -81,7 +81,7 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-      - run: node --test tools/*.test.mjs
+      - run: node --test tools/*.test.mjs tools/sim/*.test.mjs
       - name: Every action is pinned to a commit SHA
         run: node tools/check-ci.mjs pins
 

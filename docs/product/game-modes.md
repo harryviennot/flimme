@@ -315,6 +315,8 @@ What the simulation says:
 
 **With up to 3 matches** (5 November 2026), the third match or the card count ends swiping in every mode. In the [proposal's simulation](three-matches-and-fair-finalists.md#the-simulation), with medium agreement and 2 to 6 players, the median time to a pick goes from 0:28 to 2:38 to 1:58 to 3:28, and 95 to 100% of games still pick within 5 minutes. The worst case doesn't change. Bot tastes are made up there too.
 
+**With per-player genres** (6 November 2026, M6.52), the [genre simulation](simulations.md#per-player-genres) finds split picks within a few seconds of today's deck at every size, 3:34 at the median at worst (4 players), so the under-5-minute gate passes. Shared picks are faster: with 8 players, games without a match fall from 13% to 9%. Bot tastes and the catalog are made up.
+
 ## Functions still to write
 
 Behaviour only; the SQL comes with the schema update. All of them take the room lock, like `api.cast_vote`, so they can't race a vote.
