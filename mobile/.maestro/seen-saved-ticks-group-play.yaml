@@ -1,0 +1,23 @@
+# M6.66, part two: with the bots in the lobby (seen-saved-ticks-group.yaml), start the game and nope
+# cards until a film the phone has seen or liked shows up: Seen it is a disabled tick and the
+# bookmark is a disabled tick (a film can be both). Like and Nope still answer. French or English.
+#   maestro --device <sim> test mobile/.maestro/seen-saved-ticks-group-play.yaml
+appId: com.harryviennot.flimme.dev
+---
+- extendedWaitUntil:
+    visible: 'Bot 3.*'
+    timeout: 240000
+- tapOn: '(?i)start swiping|lancer la séance'
+- extendedWaitUntil:
+    visible: 'Like|J.aime'
+    timeout: 60000
+- takeScreenshot: ticks-group-2-first-card
+- repeat:
+    while:
+      notVisible: 'Seen it, already marked|Déjà vu, déjà noté'
+    times: ${CARDS || 60}
+    commands:
+      - tapOn:
+          text: 'Nope|Bof'
+          optional: true
+- takeScreenshot: ticks-group-3-tick
