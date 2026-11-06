@@ -172,26 +172,30 @@ If the app supports tablets (an open question in [app structure](../architecture
 
 ## Age ratings
 
+The answers to enter, one per question in each console, are in [store/age-ratings.md](../store/age-ratings.md) (M11.5, checked against Apple's and Google's current questionnaires on 6 November 2026). This section keeps the reasoning.
+
 ### Apple
 
 Apple's ratings are now 4+, 9+, 13+, 16+ and 18+ (12+ and 17+ were retired; the new questionnaire was due by 31 January 2026). The rating follows the content the app can show, and ours is mainstream films' posters, titles, synopses and trailer links (adult titles are always excluded).
 
 | Questionnaire item | Our honest answer | Rating it implies |
 | --- | --- | --- |
-| Horror/Fear Themes | Infrequent (horror posters only reach rooms that like horror) | 9+ |
+| Horror/Fear Themes | Infrequent (horror posters can show in any room; the first release's deck doesn't learn tastes) | 9+ |
 | Cartoon or Fantasy Violence, Profanity or Crude Humor, Mature or Suggestive Themes | Infrequent | 9+ |
 | Realistic Violence | Infrequent (action and crime posters, synopses) | **13+** |
 | Sexual Content or Nudity | Infrequent (suggestive posters and synopses of some R-rated films) | **13+** |
-| User-generated content | Display names and preset emoji reactions, seen only by the room. Answer yes to be safe; it doesn't raise the rating | 4+ |
+| User-generated content | Display names, seen only by the room (reactions aren't in the first release). Answer yes to be safe; it doesn't raise the rating | 4+ |
 | Messaging and chat | No: no free text between players | |
-| Unrestricted web access | No: the app only opens specific pages (Letterboxd's export page, TMDB's watch page) in the system browser sheet, with no address to type. Open those "More details" links in the external browser if a reviewer disagrees | (16+ if yes) |
+| Unrestricted web access | No: the app only opens specific pages (TMDB's watch page, the privacy policy and the terms) in the system browser sheet, with no address to type, and trailers open in YouTube outside the app. Open those "More details" links in the external browser if a reviewer disagrees | (16+ if yes) |
 | Advertising, gambling, contests | None | |
 
-**Expected: 13+.** For comparison, JustWatch is rated 13+ with the same infrequent descriptors, and Letterboxd 16+ (it has messaging). A 9+ rating would need a catalog with no realistic violence or suggestive images at all, which isn't the product.
+Apple's current form has more items than this table (alcohol, tobacco or drugs, guns or other weapons, medical topics, loot boxes, social media and others): the answers file covers every one. Infrequent alcohol, tobacco or drug references also imply 13+.
+
+**Expected: 13+.** For comparison (App Store France, 6 November 2026), JustWatch is rated 13+ with much the same infrequent descriptors, and Letterboxd 16+ (not for its messaging, which Apple's scale puts at 4+). A 9+ rating would need a catalog with no realistic violence or suggestive images at all, which isn't the product.
 
 ### Google Play
 
-Google's content rating comes from the IARC questionnaire in Play Console; each region's authority applies its own rules (PEGI in Europe, so France; ESRB in the Americas). Answer it with the same facts as Apple's. The result can't be known before filling it in.
+Google's content rating comes from the IARC questionnaire in Play Console; each region's authority applies its own rules (PEGI in Europe, so France; ESRB in the Americas). Answer it with the same facts as Apple's; Google also counts content reached through links, so the trailers count. The result can't be known before filling it in; comparable film apps are PEGI 12 or "Parental guidance" in France and Teen in the US.
 
 **Target audience** is a separate Play Console setting. Choosing any age group under 13 brings in Google's Families policy: only self-certified ad SDKs, disclosure and parental consent for children's data where required, and a neutral age screen for mixed audiences. **Recommendation: target 13 and over at launch**, and keep the listing free of youthful imagery so it isn't judged to "appeal to children".
 
