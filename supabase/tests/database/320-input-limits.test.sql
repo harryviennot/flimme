@@ -1,7 +1,7 @@
 -- M1.11: input limits and codes that cannot be guessed (security.md#the-database-gaps-found,
 -- gaps 8 to 10; security.md#starting-values: services per call 50). Harry's answers of 2 Nov 2026:
 -- dwell 0 to 120,000 ms, client_at between the room's start and now, at most 50 services,
--- 3 moods and 20 genres, and a refusal (too_many) over a cap.
+-- 3 moods and 3 genres (20 until M6.53), and a refusal (too_many) over a cap.
 
 begin;
 select plan(24);
@@ -126,7 +126,7 @@ select ok(
   'T6 the foreign service does not reach rooms.provider_ids'
 );
 
--- T7: at most 3 moods and 20 genres.
+-- T7: at most 3 moods and 3 genres (M6.53, decisions 6 Nov 2026; it was 20).
 select tests.authenticate_as('q1');
 select is(
   api.set_seat_prefs(tests.room_id(), null, array['a', 'b', 'c', 'd']),
@@ -134,9 +134,9 @@ select is(
   'T7 4 moods answer too_many'
 );
 select is(
-  api.set_seat_prefs(tests.room_id(), null, null, (select array_agg(n) from generate_series(1, 21) n)),
-  jsonb_build_object('status', 'too_many', 'field', 'genre_ids', 'max', 20),
-  'T7 21 genres answer too_many'
+  api.set_seat_prefs(tests.room_id(), null, null, (select array_agg(n) from generate_series(1, 4) n)),
+  jsonb_build_object('status', 'too_many', 'field', 'genre_ids', 'max', 3),
+  'T7 4 genres answer too_many'
 );
 select tests.clear_authentication();
 
