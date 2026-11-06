@@ -8,7 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { matchShownStore } from '@/features/room/match-shown';
 import { revealStore } from '@/features/finale/reveal-store';
 import type { RevealData } from '@/features/finale/reveal';
-import { revealPlan } from '@/features/finale/reveal';
+import { revealPlan, revealSoundStart } from '@/features/finale/reveal';
 import { useRevealView } from '@/features/finale/use-reveal';
 import type { FinalCutModel } from '@/features/finale/use-final-cut';
 import { LeaveContext } from '@/features/lobby/leave-context';
@@ -87,10 +87,10 @@ function Harness() {
   return <FinalCutScreen roomId="r1" model={model()} reveal={reveal} />;
 }
 
-async function play(data: RevealData) {
+async function play(data: RevealData, live = true) {
   await i18n.changeLanguage('en');
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  revealStore.getState().play('r1', data);
+  revealStore.getState().play('r1', data, live);
   const view = await render(
     <QueryClientProvider client={client}>
       <SafeAreaProvider
@@ -126,16 +126,22 @@ afterEach(() => jest.useRealTimers());
 const advance = (ms: number) => act(async () => void jest.advanceTimersByTime(ms));
 
 describe('the reveal', () => {
-  it('plays once: the sound at 0, the veto at the knock-outs, the match buzz at the winner', async () => {
+  it('plays once: the sound so its ta-dum lands on the winner, the veto at the knock-outs, the match buzz at the winner', async () => {
     await play(withKnockout);
     const plan = revealPlan(withKnockout);
-    expect(playSound).toHaveBeenCalledTimes(1);
-    expect(playSound).toHaveBeenCalledWith('reveal');
+    const soundAt = revealSoundStart(plan);
+    expect(soundAt).toBe(906);
+    expect(playSound).not.toHaveBeenCalled();
     expect(haptics.veto).not.toHaveBeenCalled();
     await advance(plan.knockouts ?? 0);
     expect(haptics.veto).toHaveBeenCalledTimes(1);
     expect(screen.getByLabelText(/Delta, 2020. Vetoed/)).toBeTruthy();
-    await advance(plan.winner - (plan.knockouts ?? 0));
+    await advance(soundAt - (plan.knockouts ?? 0) - 1);
+    expect(playSound).not.toHaveBeenCalled();
+    await advance(1);
+    expect(playSound).toHaveBeenCalledTimes(1);
+    expect(playSound).toHaveBeenCalledWith('reveal');
+    await advance(plan.winner - soundAt);
     expect(haptics.match).toHaveBeenCalledTimes(1);
     expect(haptics.veto).toHaveBeenCalledTimes(1);
     expect(matchShownStore.getState().has('r1')).toBe(true);
@@ -144,6 +150,13 @@ describe('the reveal', () => {
     await advance(plan.handOver - plan.winner);
     expect(revealStore.getState().phase).toBe('over');
     expect(playSound).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays no sound for a reveal read afterwards or replayed', async () => {
+    await play(withKnockout, false);
+    await advance(revealPlan(withKnockout).handOver);
+    expect(playSound).not.toHaveBeenCalled();
+    expect(haptics.match).toHaveBeenCalledTimes(1);
   });
 
   it('shows the points on the films still in, and never on a knocked-out one', async () => {

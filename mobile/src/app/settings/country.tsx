@@ -13,7 +13,7 @@ import { showToast } from '@/components/ui/toast';
 import { TopBar } from '@/components/ui/top-bar';
 import { countryName, useCatalogCountries, useChooseCountry } from '@/features/country';
 import { useMyProfile } from '@/features/profile';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 
 /** The country choice (decisions.md, Q0.4): the countries that have a catalog, one selected. */
 export default function CountryScreen() {
@@ -27,7 +27,7 @@ export default function CountryScreen() {
     if (busy || code === current) return;
     const outcome = await choose(code);
     if (outcome === 'failed') {
-      haptics.error();
+      errorFeedback();
       showToast({ tone: 'warn', title: t('errors.save') });
       return;
     }

@@ -20,7 +20,7 @@ import {
   submitName,
   useMyProfile,
 } from '@/features/profile';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 import { trackNameSubmit } from '@/features/analytics/events';
 
 type NameError = 'invalid' | 'notAllowed';
@@ -96,7 +96,7 @@ export default function NameScreen() {
       case 'invalid':
       case 'notAllowed':
         setError(outcome.kind);
-        haptics.error();
+        errorFeedback();
         return;
       case 'offline':
         showToast({ tone: 'warn', title: t('name.errors.offline') });

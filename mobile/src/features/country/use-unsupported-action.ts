@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { showToast } from '@/components/ui/toast';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 
 import { countryName, useCatalogCountries, useChooseCountry } from './queries';
 
@@ -26,7 +26,7 @@ export function useUnsupportedAction(): { label: string; onPress: () => void } |
         if (busy) return;
         void choose(code).then((outcome) => {
           if (outcome === 'failed') {
-            haptics.error();
+            errorFeedback();
             showToast({ tone: 'warn', title: t('errors.save') });
           }
         });

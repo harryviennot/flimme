@@ -22,7 +22,7 @@ import { markJustPicked, pickFilm } from '@/features/solo/pick';
 import { likesOf, soloSessionOf, useSoloEntries, type SessionEntry } from '@/features/solo/session';
 import { voteQueue } from '@/features/swipe';
 import { posterUrl } from '@/features/swipe/poster-url';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 import { layout, spring } from '@/theme/motion';
 
 // The pick sheet (swipe.md#the-pick-sheet): this session's likes, super likes first and newest
@@ -128,7 +128,7 @@ export function PickSheet({ roomId }: { roomId: string }) {
         break;
       case 'failed':
         showToast({ tone: 'warn', title: t('pickSheet.error') });
-        haptics.error();
+        errorFeedback();
         break;
     }
     busy.current = false;

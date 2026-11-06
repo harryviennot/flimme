@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { showToast } from '@/components/ui/toast';
 import { TopBar } from '@/components/ui/top-bar';
+import { noteLive } from '@/features/room/live-moments';
 import { useCountryProviders } from '@/features/host/queries';
 import { useInvite } from '@/features/invite/invite-link';
 import { useSeatAnnouncements } from '@/features/lobby/announce';
@@ -48,7 +49,7 @@ import {
   useRoomPresence,
   useRoomSeats,
 } from '@/features/room';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 
 /** The lobby (docs/design/screens/lobby.md): who is here, live, and the host starts when ready. */
 export default function RoomLobbyScreen() {
@@ -107,6 +108,8 @@ export default function RoomLobbyScreen() {
   );
   const callStart = useCallback(async () => {
     const outcome = await runStart(() => api.startGame({ room_id: id ?? '' }));
+    // The host's own answer is a live start: the lobby going to dealing plays the start sound.
+    if (outcome.kind === 'reread') noteLive(id ?? '', 'state');
     if (outcome.kind === 'reread' || outcome.kind === 'too_few') await reread();
     return outcome;
   }, [id, reread]);
@@ -130,7 +133,7 @@ export default function RoomLobbyScreen() {
     // While the host's own Start is in flight its answer says the same: one buzz, one announcement.
     if (eligible === null || !isHost || busy.current) return;
     setTooFew(eligible);
-    haptics.error();
+    errorFeedback();
     refused(tooFewLine(eligible));
   });
 
@@ -145,11 +148,11 @@ export default function RoomLobbyScreen() {
     setStarting(false);
     if (outcome.kind === 'need_players') {
       setNeedFromServer(outcome.need);
-      haptics.error();
+      errorFeedback();
       refused(t('start.needPlayers', { count: outcome.need }));
     } else if (outcome.kind === 'too_few') {
       setTooFew(outcome.eligible);
-      haptics.error();
+      errorFeedback();
       refused(tooFewLine(outcome.eligible));
     } else if (outcome.kind === 'failed') {
       // The call may have gone through (or the room moved on under a retry): look again first.

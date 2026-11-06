@@ -8,7 +8,7 @@ import { trackJoinAttempt } from '@/features/analytics/events';
 import { useOnline } from '@/features/network';
 import { MY_PROFILE_KEY } from '@/features/profile';
 import { track } from '@/lib/analytics';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 
 import { CODE_LENGTH, digitsOf, readPasted, roomRouteFor } from './link';
 import { keptRoomId, leaveOldSeat } from './old-seat';
@@ -93,7 +93,7 @@ export function useJoinAttempt() {
           );
         } catch {
           if (id !== runId.current) return;
-          haptics.error();
+          errorFeedback();
           setView({ kind: 'message', ...NETWORK_ROW });
           return;
         }
@@ -102,7 +102,7 @@ export function useJoinAttempt() {
         const row = JOIN_ROWS[result.status as keyof typeof JOIN_ROWS];
         if (!row) {
           // An answer this build doesn't know: treat it like a failed call.
-          haptics.error();
+          errorFeedback();
           setView({ kind: 'message', ...NETWORK_ROW });
           return;
         }
@@ -122,7 +122,7 @@ export function useJoinAttempt() {
         }
         if (row.kind === 'wait') {
           if (tries >= STARTING_RETRIES) {
-            haptics.error();
+            errorFeedback();
             setView({ kind: 'message', ...STARTING_GAVE_UP });
             return;
           }
@@ -134,7 +134,7 @@ export function useJoinAttempt() {
           continue;
         }
 
-        haptics.error();
+        errorFeedback();
         setView({
           kind: 'message',
           message: row.message,
