@@ -1,0 +1,36 @@
+# M6.51, Later: run on a phone in a swiping room (solo is the simplest), after the first card shows.
+# The bookmark saves from the front, the card stays and can still be swiped; it saves from the back;
+# the film shows under My films, Later; the film sheet removes it. Needs staging (set_film_saved).
+# Run: `maestro --device <sim> test mobile/.maestro/swipe-later.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- extendedWaitUntil:
+    visible: 'Seen it'
+    timeout: 90000
+- takeScreenshot: later-1-front-empty
+- assertVisible: 'Save for later'
+# Saving is not an answer: the card stays, the bookmark fills.
+- tapOn: 'Save for later'
+- assertVisible: 'Remove from Later'
+- takeScreenshot: later-2-front-saved
+# A second tap takes it back, and a third saves again.
+- tapOn: 'Remove from Later'
+- assertVisible: 'Save for later'
+- tapOn: 'Save for later'
+- assertVisible: 'Remove from Later'
+# The card is still there to swipe, and a tap elsewhere on it still flips it.
+- tapOn:
+    point: 50%,60%
+- extendedWaitUntil:
+    visible: 'Synopsis'
+    timeout: 5000
+- takeScreenshot: later-3-back-saved
+# The back has its own bookmark in the same state; remove from there.
+- tapOn: 'Remove from Later'
+- assertVisible: 'Save for later'
+- tapOn: 'Save for later'
+- tapOn:
+    point: 50%,60%
+# Swipe the saved card away: the answer is a normal one.
+- tapOn: 'Nope'
+- waitForAnimationToEnd
