@@ -20,10 +20,10 @@
   },
   "nearMiss_one": "{{count}} sur {{of}} a aimé",
   "nearMiss_other": "{{count}} sur {{of}} ont aimé",
-  "seenQuestion": {
-    "title": "On le revoit ce soir ?",
+  "rewatchChip": {
+    "text": "Déjà vu. On le revoit ce soir ?",
     "yes": "Oui",
-    "no": "Non"
+    "done": "Partant pour le revoir"
   },
   "hints": {
     "swipe": "À droite : j'aime. À gauche : bof.",
@@ -65,7 +65,6 @@
     "undoNone": "Rien à annuler",
     "undone": "{{title}} est de retour",
     "seenYes": "Oui, on le revoit ce soir",
-    "seenNo": "Non, pas ce soir",
     "pill_one": "{{name}}, {{count}} film",
     "pill_other": "{{name}}, {{count}} films",
     "pillAway": "{{name}}, pas là",

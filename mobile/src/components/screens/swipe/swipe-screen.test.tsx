@@ -4,7 +4,7 @@ import i18n from '@/i18n';
 import type { NextCard, RoomSeat } from '@flimme/contract';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
-import { Linking } from 'react-native';
+import { AccessibilityInfo, Linking } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createStore } from 'zustand/vanilla';
@@ -211,6 +211,13 @@ async function makeSwipe(
         if (back?.kind === 'super_like') answerer.giveBackSuperLike();
         state.setState({ superLikesLeft: answerer.superLikesLeft(), returning: back });
         return back;
+      },
+      rewatch: (titleId: number) => {
+        const last = undoer.state.getState().last;
+        if (!last || last.card.title_id !== titleId || last.kind !== 'seen') return false;
+        if (!undoer.change('seen_rewatch')) return false;
+        answerer.change(titleId, 'seen_rewatch');
+        return true;
       },
       get canUndo() {
         return undoer.state.getState().last !== null;
@@ -745,90 +752,160 @@ describe('the first-game hints', () => {
   });
 });
 
-describe('the rewatch question', () => {
-  const ask = async (rule: 'allow_rewatch' | 'show_all' = 'allow_rewatch') => {
+describe('the rewatch chip', () => {
+  const CHIP = 'Seen it. Watch it again tonight?';
+  const DONE = 'Up for a rewatch';
+  const YES = 'Yes, watch it again tonight';
+
+  const seenIt = async (rule: 'allow_rewatch' | 'show_all' | 'hide_seen' = 'allow_rewatch') => {
     const made = await setup({ seenRule: rule });
     await layoutStack();
     await fireEvent.press(screen.getByLabelText('Seen it'));
     return made;
   };
 
+  beforeEach(() => jest.useFakeTimers({ doNotFake: ['setImmediate'] }));
+  afterEach(() => jest.useRealTimers());
+
   it.each(['allow_rewatch', 'show_all'] as const)(
-    'opens on Seen it under %s and queues nothing',
+    'one tap on Seen it sends seen at once and shows the chip under %s',
     async (rule) => {
-      const { votes, stack } = await ask(rule);
-      expect(screen.getByText('Watch it again tonight?')).toBeTruthy();
-      expect(votes).toEqual([]);
-      expect(stack.getState().mounted[0]?.title_id).toBe(1);
+      const { votes, stack } = await seenIt(rule);
+      expect(votes.map((v) => [v.title_id, v.answer])).toEqual([[1, 'seen']]);
+      expect(stack.getState().mounted[0]?.title_id).toBe(2);
+      expect(screen.getByText(CHIP)).toBeTruthy();
+      expect(screen.getByLabelText(YES)).toBeTruthy();
     },
   );
 
-  it('opens from the screen reader action too', async () => {
+  it('shows the chip after the screen reader action too', async () => {
     const { votes } = await setup({ seenRule: 'allow_rewatch' });
     await layoutStack();
     await fireEvent(screen.getByTestId('swipe-card-1'), 'accessibilityAction', {
       nativeEvent: { actionName: 'seen' },
     });
-    expect(screen.getByText('Watch it again tonight?')).toBeTruthy();
-    expect(votes).toEqual([]);
+    expect(votes.map((v) => v.answer)).toEqual(['seen']);
+    expect(screen.getByText(CHIP)).toBeTruthy();
   });
 
-  it('Yes sends seen_rewatch and takes the card', async () => {
-    const { votes } = await ask();
-    await fireEvent.press(screen.getByLabelText('Yes, watch it again tonight'));
-    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([[1, 'seen_rewatch']]);
-    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
+  it('is not offered under hide_seen: the film just leaves', async () => {
+    const { votes } = await seenIt('hide_seen');
+    expect(votes.map((v) => v.answer)).toEqual(['seen']);
+    expect(screen.queryByText(CHIP)).toBeNull();
   });
 
-  it.each(['Yes, watch it again tonight', 'No, not tonight'])(
-    'undoing the answer ("%s") brings the card back without asking again',
-    async (label) => {
-      const { undone } = await ask();
-      await fireEvent.press(screen.getByLabelText(label));
-      expect(screen.getByLabelText('Film 2, 2020 · 1 h 40 · ★ 7.0')).toBeTruthy();
-      await fireEvent.press(screen.getByLabelText('Undo'));
-      expect(undone).toEqual([1]);
-      expect(screen.getByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0')).toBeTruthy();
-      expect(screen.queryByText('Watch it again tonight?')).toBeNull();
-    },
-  );
-
-  it('No sends seen and takes the card', async () => {
-    const { votes } = await ask();
-    await fireEvent.press(screen.getByLabelText('No, not tonight'));
-    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([[1, 'seen']]);
+  it('is not offered for a like or a nope', async () => {
+    await setup({ seenRule: 'allow_rewatch' });
+    await layoutStack();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    await fireEvent.press(screen.getByLabelText('Nope'));
+    expect(screen.queryByText(CHIP)).toBeNull();
   });
 
-  it('answers once when Yes is tapped twice', async () => {
-    const { votes } = await ask();
-    const yes = screen.getByLabelText('Yes, watch it again tonight');
+  it('a fast double tap on Seen it sends two seen votes and never a like', async () => {
+    const { votes, undone } = await seenIt();
+    await fireEvent.press(screen.getByLabelText('Seen it'));
+    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([
+      [1, 'seen'],
+      [2, 'seen'],
+    ]);
+    expect(undone).toEqual([]);
+    expect(screen.getByText(CHIP)).toBeTruthy();
+  });
+
+  it('Yes turns the answer into seen_rewatch: an undo, then the new vote, for the same film', async () => {
+    const { votes, undone, stack } = await seenIt();
+    await fireEvent.press(screen.getByLabelText(YES));
+    expect(undone).toEqual([1]);
+    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([
+      [1, 'seen'],
+      [1, 'seen_rewatch'],
+    ]);
+    // No card comes back or moves.
+    expect(stack.getState().mounted[0]?.title_id).toBe(2);
+    expect(screen.getByText(DONE)).toBeTruthy();
+    expect(screen.queryByText(CHIP)).toBeNull();
+  });
+
+  it('Yes tapped twice changes the answer once', async () => {
+    const { votes, undone } = await seenIt();
+    const yes = screen.getByLabelText(YES);
     await fireEvent.press(yes);
     await fireEvent.press(yes);
-    expect(votes).toHaveLength(1);
+    expect(undone).toEqual([1]);
+    expect(votes.filter((v) => v.answer === 'seen_rewatch')).toHaveLength(1);
   });
 
-  it('closes with no vote when the screen reader escapes', async () => {
-    const { votes, stack } = await ask();
-    await fireEvent(screen.getByTestId('seen-question'), 'accessibilityEscape');
-    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
-    expect(votes).toEqual([]);
-    expect(stack.getState().mounted[0]?.title_id).toBe(1);
+  it('confirms for 1.5 seconds, then the line is empty', async () => {
+    await seenIt();
+    await fireEvent.press(screen.getByLabelText(YES));
+    await act(async () => void jest.advanceTimersByTime(1499));
+    expect(screen.getByText(DONE)).toBeTruthy();
+    await act(async () => void jest.advanceTimersByTime(1));
+    expect(screen.queryByText(DONE)).toBeNull();
+    expect(screen.queryByText(CHIP)).toBeNull();
   });
 
-  it('closes with no vote when the room moves on', async () => {
-    const { votes, swipe, rerender, tree } = await ask();
+  it('leaves after 5 seconds with no vote changed', async () => {
+    const { votes, undone } = await seenIt();
+    await act(async () => void jest.advanceTimersByTime(4999));
+    expect(screen.getByText(CHIP)).toBeTruthy();
+    await act(async () => void jest.advanceTimersByTime(1));
+    expect(screen.queryByText(CHIP)).toBeNull();
+    expect(votes.map((v) => v.answer)).toEqual(['seen']);
+    expect(undone).toEqual([]);
+  });
+
+  it('stays past 5 seconds while a screen reader is on', async () => {
+    jest.spyOn(AccessibilityInfo, 'isScreenReaderEnabled').mockResolvedValue(true);
+    await seenIt();
+    await act(async () => void jest.advanceTimersByTime(60_000));
+    expect(screen.getByText(CHIP)).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText(YES));
+    expect(screen.getByText(DONE)).toBeTruthy();
+  });
+
+  it('leaves at the next answer', async () => {
+    await seenIt();
+    await fireEvent.press(screen.getByLabelText('Like'));
+    expect(screen.queryByText(CHIP)).toBeNull();
+  });
+
+  it('leaves when Undo takes the Seen it back, and a new Seen it brings it again', async () => {
+    const { undone } = await seenIt();
+    await fireEvent.press(screen.getByLabelText('Undo'));
+    expect(undone).toEqual([1]);
+    expect(screen.queryByText(CHIP)).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Seen it'));
+    expect(screen.getByText(CHIP)).toBeTruthy();
+  });
+
+  it('leaves when the room moves on', async () => {
+    const { swipe, rerender, tree } = await seenIt();
     (swipe as { locked: boolean }).locked = true;
     await rerender(tree());
-    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
-    expect(votes).toEqual([]);
+    expect(screen.queryByText(CHIP)).toBeNull();
   });
 
-  it('is not asked under hide_seen: Seen it sends seen at once', async () => {
-    const { votes } = await setup({ seenRule: 'hide_seen' });
-    await layoutStack();
-    await fireEvent.press(screen.getByLabelText('Seen it'));
-    expect(screen.queryByText('Watch it again tonight?')).toBeNull();
-    expect(votes.map((v) => v.answer)).toEqual(['seen']);
+  it('Undo after Yes takes the rewatch back', async () => {
+    const { undone } = await seenIt();
+    await fireEvent.press(screen.getByLabelText(YES));
+    await fireEvent.press(screen.getByLabelText('Undo'));
+    expect(undone).toEqual([1, 1]);
+  });
+
+  it('shows in French too', async () => {
+    await i18n.changeLanguage('fr');
+    try {
+      await setup({ seenRule: 'allow_rewatch' });
+      await layoutStack();
+      await fireEvent.press(screen.getByLabelText('Déjà vu'));
+      expect(screen.getByText('Déjà vu. On le revoit ce soir ?')).toBeTruthy();
+      await fireEvent.press(screen.getByLabelText('Oui, on le revoit ce soir'));
+      expect(screen.getByText('Partant pour le revoir')).toBeTruthy();
+    } finally {
+      await i18n.changeLanguage('en');
+    }
   });
 });
 

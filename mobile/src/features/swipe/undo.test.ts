@@ -158,3 +158,57 @@ describe('Undo in a solo room', () => {
     expect(queue.enqueueUndo).toHaveBeenCalledWith(expect.objectContaining({ solo: true }));
   });
 });
+
+describe('changing the last answer in place', () => {
+  it('takes a waiting vote out of the queue, leaves the card where it is and records the new kind', async () => {
+    const t = await setup({ waiting: true });
+    t.answer('seen');
+    const before = t.stack.getState().mounted.map((c) => c.title_id);
+    expect(t.undoer.change('seen_rewatch')?.card.title_id).toBe(1);
+    expect(t.queue.removeLast).toHaveBeenCalledWith(ROOM, 1);
+    expect(t.queue.enqueueUndo).not.toHaveBeenCalled();
+    expect(t.stack.getState().mounted.map((c) => c.title_id)).toEqual(before);
+    expect(t.undoer.state.getState().last).toEqual({
+      card: expect.objectContaining({ title_id: 1 }),
+      kind: 'seen_rewatch',
+    });
+  });
+
+  it('queues one undo behind a vote that was sent', async () => {
+    const t = await setup({ waiting: false });
+    t.answer('seen');
+    t.undoer.change('seen_rewatch');
+    expect(t.queue.enqueueUndo).toHaveBeenCalledTimes(1);
+    expect(t.queue.enqueueUndo).toHaveBeenCalledWith({
+      room_id: ROOM,
+      member_id: 'm1',
+      title_id: 1,
+    });
+  });
+
+  it('asks the server for nothing when it never recorded the vote', async () => {
+    const t = await setup({ waiting: false });
+    t.answer('seen');
+    t.undoer.markNotRecorded(1);
+    expect(t.undoer.change('seen_rewatch')).not.toBeNull();
+    expect(t.queue.enqueueUndo).not.toHaveBeenCalled();
+    expect(t.undoer.state.getState().last?.dropped).toBeUndefined();
+  });
+
+  it('does nothing before an answer or once the room moved on', async () => {
+    const t = await setup({ locked: true });
+    expect(t.undoer.change('seen_rewatch')).toBeNull();
+    t.answer('seen');
+    expect(t.undoer.change('seen_rewatch')).toBeNull();
+    expect(t.queue.removeLast).not.toHaveBeenCalled();
+    expect(t.queue.enqueueUndo).not.toHaveBeenCalled();
+  });
+
+  it('keeps Undo awake: it still takes the new answer back', async () => {
+    const t = await setup({ waiting: false });
+    t.answer('seen');
+    t.undoer.change('seen_rewatch');
+    expect(t.undoer.undo()?.kind).toBe('seen_rewatch');
+    expect(t.queue.enqueueUndo).toHaveBeenCalledTimes(2);
+  });
+});

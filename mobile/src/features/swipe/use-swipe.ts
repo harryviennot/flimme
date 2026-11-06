@@ -160,6 +160,25 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     [answerer, answered, thrown, undoer, refunded, soloSession],
   );
 
+  /**
+   * The rewatch chip's Yes (swipe.md#seen-it-the-rewatch-question): the last answer, a `seen`
+   * for this film, becomes `seen_rewatch`. In the queue that is the first vote taken out (or an
+   * undo behind it if it already left) and then the new vote, so the order holds and the server
+   * ends with one vote for the card. No card moves. False when it is not the last answer.
+   */
+  const rewatch = useCallback(
+    (titleId: number): boolean => {
+      const last = undoer.state.getState().last;
+      if (!last || last.card.title_id !== titleId || last.kind !== 'seen') return false;
+      if (!undoer.change('seen_rewatch')) return false;
+      answerer.change(titleId, 'seen_rewatch');
+      soloSession.getState().undo(titleId);
+      soloSession.getState().answer(last.card, 'seen_rewatch');
+      return true;
+    },
+    [undoer, answerer, soloSession],
+  );
+
   /** `direction` is the side the card left from (a No to the rewatch question goes left). */
   const undo = useCallback(
     (direction?: Direction): LastAnswer | null => {
@@ -350,6 +369,7 @@ export function useSwipe(roomId: string, seat: RoomSeat, screenWidth: number) {
     answer,
     count,
     undo,
+    rewatch,
     canUndo,
     /** The last card answered is on the shortlist: Undo is off, and says why. */
     undoShortlisted,
