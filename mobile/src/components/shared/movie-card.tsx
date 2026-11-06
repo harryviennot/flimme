@@ -59,7 +59,7 @@ export type MovieCardProps = {
   /** Each stamp's progress while the card is dragged, driven on the UI thread (0 to 1). */
   stampProgress?: Partial<Record<StampKind, SharedValue<number>>>;
   /**
-   * The Later bookmark in the poster's top left corner, front and back. Not an answer: the card
+   * The bookmark (a solo like) low on the card's right, 44 points, front and back, the same spot. Not an answer: the card
    * stays and is still swiped. Without it there is no bookmark (the film sheet, the gallery).
    */
   bookmark?: {
@@ -347,7 +347,7 @@ function BookmarkBadge({ bookmark }: { bookmark: NonNullable<MovieCardProps['boo
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
   return (
     <View
-      className="absolute top-3.5 left-3.5"
+      className="absolute right-5 bottom-3.5"
       onTouchStart={bookmark.onTouch}
       testID="movie-card-bookmark-wrap"
     >
@@ -359,11 +359,14 @@ function BookmarkBadge({ bookmark }: { bookmark: NonNullable<MovieCardProps['boo
       >
         <Animated.View
           style={style}
-          className="size-9 items-center justify-center rounded-pill bg-bg-sunken"
+          className={cn(
+            'size-11 items-center justify-center rounded-pill border bg-bg-sunken',
+            saved ? 'border-marquee-default' : 'border-border-default',
+          )}
         >
           <Icon
             name="bookmark"
-            size={18}
+            size={22}
             filled={saved}
             color={saved ? 'marquee-default' : 'text-primary'}
           />
@@ -576,7 +579,6 @@ function Front({
         <GradientFill gradient="card-front-scrim" />
       </View>
       <FlipBadge icon="info" />
-      {bookmark ? <BookmarkBadge bookmark={bookmark} /> : null}
       <View className="absolute right-5 bottom-5 left-5 gap-2">
         {reason ? (
           <Tag label={reason.label} tone={reason.tone ?? 'accent'} icon={reason.icon ?? 'zap'} />
@@ -584,11 +586,14 @@ function Front({
         <Text variant="title-l" numberOfLines={3}>
           {title}
         </Text>
-        <Text variant="mono-data" numberOfLines={2}>
+        <Text variant="mono-data" numberOfLines={2} className="pr-14">
           {meta}
         </Text>
-        <Services services={services} />
+        <View className="min-h-6 pr-14">
+          <Services services={services} />
+        </View>
       </View>
+      {bookmark ? <BookmarkBadge bookmark={bookmark} /> : null}
       {stamps?.map(({ kind, progress }) => (
         <Stamp key={kind} kind={kind} progress={progress} />
       ))}
@@ -627,7 +632,6 @@ function Back({
           <GradientFill gradient="card-front-scrim" />
         </View>
         {still ? null : <FlipBadge icon="refresh" />}
-        {bookmark ? <BookmarkBadge bookmark={bookmark} /> : null}
         {large ? null : (
           <View className="absolute right-16 bottom-4 left-5 gap-0.5">
             <Text variant="title-l" numberOfLines={1}>
@@ -702,6 +706,7 @@ function Back({
           </View>
         </View>
       </View>
+      {bookmark ? <BookmarkBadge bookmark={bookmark} /> : null}
       {stamps?.map(({ kind, progress }) => (
         <Stamp key={kind} kind={kind} progress={progress} />
       ))}

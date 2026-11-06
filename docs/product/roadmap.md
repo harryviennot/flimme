@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 173 of 303 tasks done.
+Progress: 174 of 303 tasks done.
 
 ```mermaid
 flowchart LR
@@ -517,7 +517,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a sound plays with the phone on silent, every enabled button plays `tap.wav` on press-in, a disabled one stays silent, and the Sound switch still turns them all off, with a test per rule.
 - [x] **M6.56** The shortlist match sound: wiring Harry's file when it lands (`shortlist.wav`, the bell he picked in the sound lab) · app · S · needs M6.37, M6.55 · [sounds](../design/sounds.md#a-match-joins-the-shortlist)
   Done when: the sound plays once when a match joins the shortlist, and nothing plays until the file exists. Harry provides the file.
-- [ ] **M6.58** Later as solo likes, app: remove the Later segment; the bookmark within the thumb's reach, per the design pass · app · M · needs M6.57, M6.60 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles), [swipe](../design/screens/swipe.md#the-top-bar)
+- [x] **M6.58** Later as solo likes, app: remove the Later segment; the bookmark within the thumb's reach, per the design pass · app · M · needs M6.57, M6.60 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles), [swipe](../design/screens/swipe.md#the-top-bar)
   Done when: a touch run on the simulator against staging saves a film during a game, finds it under Liked with the Solo chip and not in any match, shows no Later segment, and reaches the bookmark with the thumb on the front and the back.
 - [x] **M6.59** The design pass for the UI reworks (a): the card back, the card stack and the film sheet · design · M · [swipe](../design/screens/swipe.md), [film sheet](../design/screens/film-sheet.md), [my films](../design/screens/my-films.md)
   Done when: the card back (the poster's fade as on the front, the poster centred on its middle, a synopsis never clipped, a compact TMDB rating, compact services), the card stack (cards underneath dimmed, not see-through) and the film sheet in My films (full page, quick actions beside the close button) each have a spec with its states, in French and English.

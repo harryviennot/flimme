@@ -1,5 +1,5 @@
 import type { NextCard } from '@flimme/contract';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AccessibilityActionEvent } from 'react-native';
 import {
@@ -48,6 +48,7 @@ import {
   TOUCH_SLOP,
   type Direction,
 } from '@/features/swipe/feel';
+import { isLanding } from '@/features/swipe/bookmark-guard';
 import { isTrailerTap, markTrailerTouch, openTrailerUrl } from '@/features/swipe/trailer';
 import { registerTopCard, useCardMotion } from '@/features/swipe/top-card';
 import { haptics } from '@/lib/haptics';
@@ -134,8 +135,11 @@ export function SwipeCard(props: SwipeCardProps) {
     depthValue.set(withSpring(flight ? 0 : depth, spring.snappy));
   }, [depth, flight, isTop, isTopValue, depthValue]);
 
+  // When the card came on top: its bookmark ignores taps for a moment (a finger still coming down).
+  const landedAt = useRef(0);
   useEffect(() => {
     if (!isTop) return;
+    landedAt.current = Date.now();
     registerTopCard(motion);
     return () => registerTopCard(null);
     // The values are stable for the card's life.
@@ -391,7 +395,10 @@ export function SwipeCard(props: SwipeCardProps) {
   const bookmark = {
     saved,
     // Not an answer: the card stays on top and is still swiped.
-    onToggle: () => announceSaved(card.title, toggleSaved(titleId)),
+    onToggle: () => {
+      if (isLanding(landedAt.current)) return;
+      announceSaved(card.title, toggleSaved(titleId));
+    },
     onTouch: () => markTrailerTouch(),
   };
 

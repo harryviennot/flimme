@@ -389,10 +389,46 @@ describe('the finger', () => {
     expect(onFlip).toHaveBeenCalledTimes(1);
   });
 
-  it('saves for Later from the bookmark without flipping or answering', async () => {
+  it('ignores a tap on the bookmark for 250 ms after the card lands on top', async () => {
+    await render(<Card />);
+    await fireEvent.press(screen.getAllByTestId('movie-card-bookmark')[0]!);
+    expect(mockToggleSaved).not.toHaveBeenCalled();
+    await act(async () => {
+      jest.advanceTimersByTime(249);
+    });
+    await fireEvent.press(screen.getAllByTestId('movie-card-bookmark')[0]!);
+    expect(mockToggleSaved).not.toHaveBeenCalled();
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+    await fireEvent.press(screen.getAllByTestId('movie-card-bookmark')[0]!);
+    expect(mockToggleSaved).toHaveBeenCalledWith(7);
+  });
+
+  it('still moves the card when a drag starts on the bookmark', async () => {
+    const onRelease = jest.fn();
+    await render(<Card onRelease={onRelease} />);
+    await fireEvent(screen.getAllByTestId('movie-card-bookmark-wrap')[0]!, 'touchStart');
+    await act(async () =>
+      fireGestureHandler(getByGestureTestId('swipe-pan-7'), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE, translationX: 100, translationY: 0 },
+        { state: State.ACTIVE, translationX: 200, translationY: 0, velocityX: 900, velocityY: 0 },
+        { state: State.END, translationX: 200, translationY: 0, velocityX: 900, velocityY: 0 },
+      ]),
+    );
+    await settle();
+    expect(onRelease).toHaveBeenCalledWith(7, 'right');
+    expect(mockToggleSaved).not.toHaveBeenCalled();
+  });
+
+  it('saves as a solo like from the bookmark without flipping or answering', async () => {
     const onFlip = jest.fn();
     const onRelease = jest.fn();
     await render(<Card onFlip={onFlip} onRelease={onRelease} />);
+    await act(async () => {
+      jest.advanceTimersByTime(250);
+    });
     const wrap = screen.getAllByTestId('movie-card-bookmark-wrap')[0]!;
     await fireEvent(wrap, 'touchStart');
     await fireEvent.press(screen.getAllByTestId('movie-card-bookmark')[0]!);

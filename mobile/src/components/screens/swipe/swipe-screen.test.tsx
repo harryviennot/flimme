@@ -408,7 +408,7 @@ describe('the card for screen readers', () => {
       'flip',
       'save',
     ]);
-    // Saving for Later is not an answer: it sends no vote and the card stays.
+    // Saving (a solo like) is not an answer: it sends no vote and the card stays.
     await fireEvent(card, 'accessibilityAction', { nativeEvent: { actionName: 'save' } });
     expect(mockToggleSaved).toHaveBeenCalledWith(1);
     expect(votes).toHaveLength(0);
