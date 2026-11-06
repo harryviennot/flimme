@@ -113,7 +113,14 @@ function Providers({ children }: { children: ReactNode }) {
 jest.mock('@/features/room/leave', () => ({
   leaveRoom: jest.fn(async () => ({ status: 'ok' })),
 }));
-jest.mock('@/lib/sound', () => ({ setSoundEnabled: jest.fn(), playSound: jest.fn() }));
+jest.mock('@/lib/sound', () => ({
+  setSoundEnabled: jest.fn(),
+  playSound: jest.fn(),
+  preloadSounds: jest.fn(),
+  releaseSounds: jest.fn(),
+  arriveSoundFor: jest.fn(),
+  countdownSoundFor: jest.fn(),
+}));
 jest.mock('expo-haptics', () => ({
   selectionAsync: jest.fn(async () => undefined),
   impactAsync: jest.fn(async () => undefined),
