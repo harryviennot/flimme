@@ -46,7 +46,19 @@ describe('Text', () => {
     expect(screen.getByText('Body').props.style).toBeUndefined();
   });
 
-  it.each(['display-xl', 'display-l', 'display-m', 'display-stamp'] as const)(
+  // Staatliches: accented capitals (É, È, Ê, À, Ô) reach 0.928 em above the baseline, and iOS
+  // puts the baseline 0.3 em above the bottom of the line box and clips to the box.
+  const ACCENT_TOP = 0.928;
+  const BASELINE_FROM_BOTTOM = 0.3;
+  it.each(staatliches.filter((v) => v !== 'display-stamp' && v !== 'display-ticket'))(
+    'leaves room above %s for the accent on a capital (iOS clips to the line box)',
+    (variant) => {
+      const { fontSize, lineHeight } = tokens.typography[variant];
+      expect(lineHeight).toBeGreaterThanOrEqual(fontSize * (ACCENT_TOP + BASELINE_FROM_BOTTOM));
+    },
+  );
+
+  it.each(['display-stamp', 'display-ticket'] as const)(
     'never sets a line height below the font size on %s: iOS clips the glyph tops',
     (variant) => {
       const { fontSize, lineHeight } = tokens.typography[variant];

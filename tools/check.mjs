@@ -127,7 +127,7 @@ if (touched('supabase/')) {
 if (touched('.github/', 'tools/')) {
   add(
     'ci: tools tests, actions pinned',
-    'node --test tools/*.test.mjs && node tools/check-ci.mjs pins',
+    'node --test tools/*.test.mjs tools/sim/*.test.mjs && node tools/check-ci.mjs pins',
   );
 }
 // The store listing (M11.1): its values, the checker, and the app strings it quotes as credits.

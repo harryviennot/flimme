@@ -22,9 +22,9 @@ import {
   REMOVE_MEMBER_ANSWERS,
   SET_ROOM_LOCKED_ANSWERS,
   PLAY_AGAIN_ANSWERS,
+  ROOM_GENRES_ANSWERS,
   ROOM_RUNNERS_UP_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
-  ROOM_GENRES_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
   START_GAME_ANSWERS,
   START_SOLO_ANSWERS,
@@ -34,6 +34,7 @@ import {
   MY_FILM_CARD_ANSWERS,
   SET_FILM_SEEN_ANSWERS,
   REMOVE_MY_FILM_ANSWERS,
+  SET_FILM_SAVED_ANSWERS,
   type MyFilmsFilter,
   type MyFilmsSegment,
   UPDATE_PROFILE_ANSWERS,
@@ -75,6 +76,8 @@ import {
   setRoomLockedResult,
   playAgainResult,
   type PlayAgainResult,
+  roomGenresResult,
+  type RoomGenresResult,
   runnersUpResult,
   type RunnersUpResult,
   myProfileRow,
@@ -97,10 +100,8 @@ import {
   type CountryProvider,
   type GameMode,
   type Genre,
-  type RoomGenresResult,
   setMyProvidersResult,
   genresSchema,
-  roomGenresResult,
   setSeatPrefsResult,
   startGameResult,
   startSoloResult,
@@ -324,6 +325,21 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
       );
     },
 
+    /**
+     * Tonight's genres with how many present seats picked each, and the caller's own picks. Read it
+     * again on `genres_changed`. Still answers after Start, with the locked picks (M6.53).
+     */
+    roomGenres(args: { room_id: string }): Promise<RoomGenresResult> {
+      return callAnswer(
+        client,
+        options,
+        'room_genres',
+        { p_room_id: args.room_id },
+        ROOM_GENRES_ANSWERS,
+        roomGenresResult,
+      );
+    },
+
     /** Marks the seat active. Returns nothing. */
     touchRoom(args: { room_id: string }): Promise<void> {
       return callVoid(client, 'touch_room', { p_room_id: args.room_id });
@@ -363,21 +379,6 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         },
         SET_SEAT_PREFS_ANSWERS,
         setSeatPrefsResult,
-      );
-    },
-
-    /**
-     * Tonight's offered genres with their counts, and the caller's own picks (M6.53). The types
-     * from M6.53 aren't generated yet, so the name and arguments are cast until `mise run typegen`.
-     */
-    roomGenres(args: { room_id: string }): Promise<RoomGenresResult> {
-      return callAnswer(
-        client,
-        options,
-        'room_genres' as unknown as 'start_game',
-        { p_room_id: args.room_id },
-        ROOM_GENRES_ANSWERS,
-        roomGenresResult,
       );
     },
 
@@ -526,6 +527,21 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         'remove_my_film',
         { p_title_id: args.title_id },
         REMOVE_MY_FILM_ANSWERS,
+        myFilmEditResult,
+      );
+    },
+
+    /**
+     * Save a film for Later (only one dealt to the caller, or already in their rows) or remove it from
+     * Later. Not an answer: it counts for nothing in the room. A repeat save is `ok`; `not_found` is an answer.
+     */
+    setFilmSaved(args: { title_id: number; saved: boolean }): Promise<MyFilmEditResult> {
+      return callAnswer(
+        client,
+        options,
+        'set_film_saved',
+        { p_title_id: args.title_id, p_saved: args.saved },
+        SET_FILM_SAVED_ANSWERS,
         myFilmEditResult,
       );
     },

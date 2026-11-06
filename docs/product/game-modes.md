@@ -89,14 +89,16 @@ Later modes are in [Later modes](#later-modes).
 | **Seen it** | Swipe up, or the eye button | Depends on the room's seen rule (below) |
 | **Undo** | The rewind button | Takes back the last swipe (below) |
 
+**Later is not an answer.** The bookmark on a card (front corner and back) saves the film to My films > Later (decided on 6 November 2026). The player still swipes the card; the save counts for nothing tonight, is never broadcast or shown to other players, and changes no deck, count or match.
+
 **Seen it, by seen rule**
 
 | Seen rule | What "Seen it" does |
 | --- | --- |
 | `hide_seen` (Date Night) | The film leaves the game for everyone: it's dropped from every deck that hasn't reached it. It can't match |
-| `allow_rewatch` (the default) and `show_all` | **Default to confirm:** the card asks one more question, "Watch it again tonight?". Yes counts as a like, No as a nope. Either way the film is recorded as seen |
+| `allow_rewatch` (the default) and `show_all` | **Decided on 6 November 2026:** one tap on Seen it sends `seen` (a nope) and the card flies up; a chip then offers "Watch it again tonight? Yes", which turns the answer into a like (`seen_rewatch`) for 5 seconds or until the next answer. Either way the film is recorded as seen |
 
-Today the data model makes "Seen it" an abstention under these rules: the film can match without that player. Now that `allow_rewatch` is the default, that would let a film match while someone who has seen it and doesn't want to rewatch it said nothing against it. The follow-up question removes abstentions; it costs one tap, only in rooms that allow rewatches. For taste, both answers count as "seen" (0), as the deck engine's [signals](../architecture/deck-engine.md#signals) already say.
+Today the data model makes "Seen it" an abstention under these rules: the film can match without that player. Now that `allow_rewatch` is the default, that would let a film match while someone who has seen it and doesn't want to rewatch it said nothing against it. The seen nope removes abstentions; the chip's Yes costs one tap, only in rooms that allow rewatches. For taste, both answers count as "seen" (0), as the deck engine's [signals](../architecture/deck-engine.md#signals) already say.
 
 **Undo**
 
@@ -153,6 +155,17 @@ When the finale starts is in [The finale](#the-finale); the card counts and time
 | **Fewer than 2 players present while swiping** | If it lasts 5 minutes, the room is abandoned. If someone comes back before that, the game carries on. A player who tapped Leave counts the same as a dropped connection: the room waits the 5 minutes from the moment they left (from 90 seconds after the last sign of life, for a dropped one), so a lone player can still bring someone in by code |
 
 > The host can also remove a player, who can't rejoin, and lock the room against new seats, and anyone can report a player: see [security.md](../architecture/security.md#room-codes-joining-and-the-host). Apple's guideline 1.2 asks for it ([store-listing.md](store-listing.md#passing-review)).
+
+## Genres tonight
+
+Each player can pick genres for tonight in the lobby (decisions.md, 6 November 2026; the genre simulation, "Per-player genres" in [simulations.md](simulations.md), passed the gate). The deck leans toward them; the match rule doesn't change.
+
+- **Which genres:** TMDB's movie genres, but not TV Movie. A genre with fewer than 30 eligible films tonight (the room's services, age cap, time budget and the other filters) isn't offered, so a pick can't starve the deck.
+- **Optional, never blocking Start.** At most 3 per player: more is refused (`too_many`), not cut.
+- **Counts, never who.** Everyone sees how many players picked each genre, never which ones. A change of picks tells the other phones only that the counts changed (`genres_changed`, no seat), and they read the counts again.
+- **Who counts:** the present players who picked. A player who picks nothing doesn't count in the weight, and with no picks at all the deck is exactly today's.
+- **Locked at Start.** From Start, a change is refused (`locked`), and the picks of the players present at Start drive the whole game, refills included. A late joiner plays the deck as it is, and can't pick.
+- **What the deck does with them:** about 3 cards in 4 come from films matching at least one pick, films matching more players' picks first; 1 in 4 stays open. The shared opening of 10 follows the same mix (8 from the picks), so everyone sees the same start. The details are in [deck-engine.md](../architecture/deck-engine.md#per-player-genres).
 
 ## What players see: Party and Blind
 
@@ -315,6 +328,8 @@ What the simulation says:
 
 **With up to 3 matches** (5 November 2026), the third match or the card count ends swiping in every mode. In the [proposal's simulation](three-matches-and-fair-finalists.md#the-simulation), with medium agreement and 2 to 6 players, the median time to a pick goes from 0:28 to 2:38 to 1:58 to 3:28, and 95 to 100% of games still pick within 5 minutes. The worst case doesn't change. Bot tastes are made up there too.
 
+**With per-player genres** (6 November 2026, M6.52), the [genre simulation](simulations.md#per-player-genres) finds split picks within a few seconds of today's deck at every size, 3:34 at the median at worst (4 players), so the under-5-minute gate passes. Shared picks are faster: with 8 players, games without a match fall from 13% to 9%. Bot tastes and the catalog are made up.
+
 ## Functions still to write
 
 Behaviour only; the SQL comes with the schema update. All of them take the room lock, like `api.cast_vote`, so they can't race a vote.
@@ -456,6 +471,8 @@ All placeholders until playtests.
 | The vote | One round of 60 seconds; 2 seconds of grace for late ballots |
 | Vote now | After 10 cards each and 2 liked films, or once the room has a match |
 | Too few films to start | Fewer than 20 eligible |
+| Genres per player | At most 3, optional; TV Movie never offered |
+| A genre is offered | With 30 eligible films or more tonight |
 | Everyone out of cards, nothing liked | 5 minutes for the host to change filters |
 | Fewer than 2 players present | 5 minutes, then abandoned (not in a solo room) |
 | Solo room without a vote | 30 minutes, then done |

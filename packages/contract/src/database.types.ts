@@ -310,6 +310,9 @@ export type Database = {
 "request_cards":
 { Args: { "p_member_id"?: string,"p_room_id": string }; Returns: Json
                            },
+"room_genres":
+{ Args: { "p_room_id": string }; Returns: Json
+                           },
 "room_preview":
 { Args: { "p_code": string,"p_ref": string }; Returns: Json
                            },
@@ -321,6 +324,9 @@ export type Database = {
                            },
 "set_analytics_choice":
 { Args: { "p_choice": "on"|"off"|"detailed","p_version": string }; Returns: Json
+                           },
+"set_film_saved":
+{ Args: { "p_saved": boolean,"p_title_id": number }; Returns: Json
                            },
 "set_film_seen":
 { Args: { "p_seen": boolean,"p_title_id": number }; Returns: Json

@@ -43,7 +43,7 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 
 **Haptics** use the vocabulary in `@/lib/haptics`, one meaning each: `commit`, `throw` and `match` here, `shortlist` for the shortlisted beat, `veto` and `countdown` in the Final Cut, `veto` and `match` again in the reveal; `press` comes with every `Pressable`. The shortlisted beat is the only moment that adds a haptic (`haptics.shortlist()`, M6.37): a shortlisted match needs a buzz that says "yes, together", and `match` must keep meaning "this is the night's film". The haptics setting turns all of them off.
 
-**Sound** is only for the match (`playSound('match')`) and the Final Cut's reveal (`playSound('reveal')`), decided on 29 October 2026. Every other moment is silent.
+**Sound:** the match (`playSound('match')`) and the Final Cut's reveal (`playSound('reveal')`) are the night's two big sounds. Since 6 November 2026 a few small moments have quiet ones too (the game start, arrivals in the lobby, the Final Cut's last 5 seconds, refusals, three buttons). Every sound, its file and its moment: [sounds.md](sounds.md). The beats below say which play; the rest are silent.
 
 **Reduce Motion.** Reanimated skips animations by default when the system setting is on, which would make things jump. Each beat says what replaces its movement: flights become short slides or fades, scales become fades, chases and pulses become still. Fades use opacity only. Haptics and sound don't change with Reduce Motion; they follow their own settings.
 
@@ -80,11 +80,11 @@ Like, Nope, Seen it and Super like are the four answers; Undo is the safety net 
 
 **Super like** (the star button, 2 per game). The card takes the `marquee` border and a SUPER LIKE stamp, then flies right like a like. The badge on the star counts down with `layout.popIn`. At 0 the button is disabled (no error haptic: running out isn't a mistake). A super like is spent on the phone at once (the vote queue's rule) and comes back with Undo. Whether the others see a star on a super-liked card is [question 6](#questions-for-harry).
 
-**Seen it.** In the first release every room uses `allow_rewatch`, so "Seen it" asks one more question before the card leaves (M6.12, M6.2):
+**Seen it.** In the first release every room uses `allow_rewatch`, so "Seen it" is followed by a chip that offers a rewatch (M6.12, M6.49, M6.2):
 
-1. The swipe up (or the eye button) lifts the card a little and stops: the SEEN IT stamp stays, and the question "Watch it again tonight?" appears with Yes and No. The card doesn't fly yet.
-2. Yes throws the card right as a like, No throws it left as a nope, each with `haptics.throw()`. Either way the film is saved as seen (the M5.4 migration).
-3. Any other touch on the card (a drag back down, a tap outside the two answers) puts the card back at rest with no vote. Undoing later brings the card back to its front, without the question.
+1. The swipe up (or the eye button) throws the card up as a nope with the SEEN IT stamp and `haptics.throw()`. The film is saved as seen (the M5.4 migration).
+2. A chip takes the hint line: "Seen it. Watch it again tonight?" and Yes. Yes turns the answer into a like and shows "Up for a rewatch" for 1.5 s. The chip leaves at the next answer or after 5 seconds (no timer under a screen reader).
+3. Undoing brings the card back to its front, without the chip.
 
 Under `hide_seen` (Date Night, after the first release) the card flies straight up and the film leaves the room.
 
@@ -279,7 +279,7 @@ Every phone in the room shows the same overlay on the `match` event, within netw
 - **Two matches at once.** In the launch modes they both join the shortlist, one [shortlisted beat](#edge-cases-7) after the other, and the overlay doesn't play for either; the shortlist stops at `matches_to_end`, most liked first. In a mode with 1, votes in a room run one after another under the room's lock, the first match ends the room, and any later vote gets `closed`; the re-check after someone leaves stops at the first film that decides the night ([question 5](#questions-for-harry)). Either way the phone shows one overlay per room and ignores a second decided `match` for a room it already showed.
 - **A shortlisted beat is playing** when the pick arrives (a match on the vote that also reached the card count, then `only_match`). The overlay takes over at once.
 - **A card mid-flip or on its back.** The overlay covers it; the card's side doesn't matter. If it's the matched film, the poster is the same film.
-- **The "Watch it again tonight?" question is open.** It closes without a vote; the overlay takes over.
+- **The rewatch chip is showing.** It leaves; the overlay takes over.
 - **`only_match`.** The overlay plays over the swipe screen or the done card, from the event (no phone's own answer carries it). The count is the match's own ("3 of 3"), from when it matched. The film is already in the top bar's shortlist; the poster still scales from a card-size frame centred on the stack.
 - **A near-miss toast is showing.** It leaves with `layout.fadeOut` as the scrim comes in.
 - **The phone was offline or in the background.** It didn't get the event. When the connection comes back or the app returns to the foreground, it re-reads the room ([missed messages are normal](../architecture/app-structure.md#realtime)); its queued votes come back `closed` and are dropped quietly. It then plays the overlay once, in full, because a player who missed the moment still deserves it, and goes on to the winner screen. A phone that already showed the overlay for this room goes straight to the winner screen.
@@ -344,7 +344,7 @@ Every round says once, the same in every room, where the films came from: "From 
 
 The server sends `finale_started {round_id, title_ids, kind, closes_at}`, then `state_changed {state: 'finale'}` (Q0.5). Every phone moves on `state_changed`: the room re-read maps `finale` to the Final Cut screen. `finale_started` on its own may start loading the posters, but never moves the screen, so all phones move on the same signal. A phone that missed both gets there on its next re-read (back in the foreground, a reconnect, or a vote answered `closed`).
 
-On the swipe screen, the stack stops taking input and a card mid-drag springs back (`spring.card`). A near-miss toast leaves, an open "Watch it again tonight?" question closes without a vote, and votes still queued come back `closed` and are dropped quietly ([the swipe](#edge-cases)). A player on the done card moves the same way. No overlay, no haptic, no sound: it isn't a match, and `haptics.match()` keeps its one meaning. When the third match starts the finale, [the shortlisted beat](#the-sequence-6) plays first and the layout holds the route until it ends (about 1.75 s); then the Final Cut arrives the same way.
+On the swipe screen, the stack stops taking input and a card mid-drag springs back (`spring.card`). A near-miss toast leaves, a showing rewatch chip leaves, and votes still queued come back `closed` and are dropped quietly ([the swipe](#edge-cases)). A player on the done card moves the same way. No overlay, no haptic, no sound: it isn't a match, and `haptics.match()` keeps its one meaning. When the third match starts the finale, [the shortlisted beat](#the-sequence-6) plays first and the layout holds the route until it ends (about 1.75 s); then the Final Cut arrives the same way.
 
 ### The sequence
 
@@ -382,7 +382,7 @@ Times on this phone's clock (Q15.2). The deadline is `closes_at` (`stage_closes_
 - `haptics.countdown()` on each of the last 5 seconds, only while this phone hasn't locked in (`Countdown`'s `tick` turns off at lock-in). A player who has locked in has nothing left to hurry for.
 - No `commit` on lock-in: `commit` keeps its one meaning (a card crossing the line). The "Locked in" look carries the moment.
 - No haptic on another player's lock-in, on arrival, at zero, or at the close.
-- No sound. The reveal's sound is M6.31's.
+- Sound: the countdown's tick with each `haptics.countdown()`, and Lock in's button tick ([sounds.md](sounds.md#the-final-cuts-last-5-seconds)). Nothing else; the reveal's sound is M6.31's.
 
 ### What the other phones see
 
@@ -442,7 +442,7 @@ Times from the event. A step with nothing to show is skipped, and the next one m
 
 | Time | What every phone shows |
 | --- | --- |
-| 0 | "Counting the votes", the countdown and the lock-in row fade out (`layout.fadeOut`). The posters come back to full brightness where they were, in seed order, with every badge and this phone's own stamp gone. `playSound('reveal')` |
+| 0 | "Counting the votes", the countdown and the lock-in row fade out (`layout.fadeOut`). The posters come back to full brightness where they were, in seed order, with every badge and this phone's own stamp gone. The reveal sound starts later, timed to the winner ([sounds.md](sounds.md#the-reveal)) |
 | 300 ms | **The vetoes, together.** Every knocked-out film gets the Veto stamp at the same instant (`easing.arcade`, as in the round), with one `haptics.veto()`. The poster then falls away: it sinks a little and greys out (`timing.exit`) but keeps its place, so the row never reflows. No order, no stagger |
 | 800 ms | **The points.** Under each film still in, its points count up from 0, all together (`timing.celebrate`). Only from 3 ballots ([What never happens](#what-never-happens)) |
 | 1.8 s | **The winner.** The other films still in dim. The winner lifts slightly (`timing.celebrate`, the arcade overshoot) and `Spotlight tone="marquee"` fades in behind it. The heading becomes "Tonight's pick" and the reason's line pops in under it (`layout.popIn`). `haptics.match()`. "Where to watch" fades in (`layout.fadeIn`) |
@@ -465,7 +465,7 @@ A ranked vote has no vetoes, so it is always `points` without knock-outs. That i
 
 ### Haptics and sound
 
-- `playSound('reveal')` once at 0 (a no-op until M6.24). The match sound doesn't play: it belongs to the match.
+- `playSound('reveal')` once, starting at the winner's time minus 894 ms (or at 0 when that's earlier), so its ta-dum lands with the winner's lift and `haptics.match()` (decided on 6 November 2026, [sounds.md](sounds.md#the-reveal); a no-op until M6.24). The match sound doesn't play: it belongs to the match.
 - `haptics.veto()` once when the stamps land, however many films are knocked out; none when nothing is.
 - `haptics.match()` once when the winner lifts ("the winner is revealed").
 - Nothing on the points, and nothing on the winner screen after it.
@@ -550,7 +550,7 @@ Times from the first signal. Every phone shows the same thing.
 ### Haptics and sound
 
 - `haptics.shortlist()` once at 0: a light double tap, lighter than the match's success burst (M6.37 adds it to `lib/haptics`; the starting point is two `Light` impacts 100 ms apart, tuned in the feel check). It says "we agree on this one" without saying "this is the night's film", which stays `match`'s meaning.
-- No sound. The two sounds belong to the pick (`match`) and the reveal (decided on 29 October 2026); a sound here twice a game would wear them out.
+- No sound. The big sounds belong to the pick (`match`) and the reveal; a sound here twice a game would wear them out ([silent on purpose](sounds.md#silent-on-purpose)).
 - Nothing on the landing: the pop is enough.
 
 ### What every other phone sees, and when
@@ -578,7 +578,7 @@ The same beat, on the `match` event, within network latency of the others: on a 
 - **The near-miss toast.** It fades out at 0 (`layout.fadeOut`) and the glow goes with it. If its card is still on top after the beat, the toast fades back in (`layout.fadeIn`), with the new count if one came. If the near miss was on the matched film itself, it doesn't come back: that card left.
 - **An undo's return.** The card coming back finishes its flight under the scrim; nothing is cut.
 - **Undo right after the match.** The Undo button is disabled while the last card this phone answered is on the shortlist ("A card that matched or became a finalist can't be undone", [the answers](../product/game-modes.md#the-answers)). If the player tapped Undo before the phone knew (the card already came back, the vote was in flight), the beat takes that card with it as above, and the phone doesn't call the server. If the server answers `locked` anyway, the card that came back leaves again (`layout.fadeOut`), with no message.
-- **The rewatch question is open.** It stays, and its two buttons ignore taps until the beat ends. If the lifted card is the matched film, the question closes with no vote and the card leaves with the beat.
+- **The rewatch chip is showing.** It leaves when the beat starts; Yes does nothing once the room has moved on.
 - **The seat sheet, the report sheet or the leave alert is open.** It stays open and the beat plays under it, haptic included; the shortlist shows the film when the sheet closes. A host halfway through removing someone shouldn't lose that to a cheer. On the third match the sheet closes as the room leaves `swiping` (the layout's `SHEETS` rule), after the beat.
 - **The done card** (this player is out of cards). The beat plays over it the same way.
 - **Two matches at once** (a leave, a removal or the sweeper can make several films match together; the server sends them most liked first). One beat per match, back to back: the second starts as the first poster lands (at 1.6 s), the scrim stays, and the shortlist's count steps up ("1/3", then "2/3"). The stack wakes up after the last. If the second is the third match, the Final Cut follows it.
@@ -622,7 +622,7 @@ Only one phone plays solo, so nothing here reaches anyone else.
 ### Haptics and sound
 
 - `haptics.checkpoint()` once, when the card is on top: one `Light` impact (new in `lib/haptics`, M6.44). It means "a checkpoint", softer than `throw`, which the 20th card fired just before.
-- No sound: the two sounds belong to a group's match and the reveal.
+- No sound: the big sounds belong to a group's match and the reveal.
 
 ### Reduce Motion
 

@@ -46,15 +46,6 @@ export type CardStackProps = {
   glowId?: number;
   flying: Flying[];
   throwCard: (kind: AnswerKind, fromGesture: boolean) => Flying | null;
-  /** The room asks the rewatch question under Seen it. */
-  asksSeen: boolean;
-  /** Seen it was released past the line (the card is held); the screen opens the question. */
-  onHold: (titleId: number) => void;
-  /** A finger took the held card. */
-  onGrab: () => void;
-  /** A tap on the card while the question is open (it puts the card back instead of flipping). */
-  held: boolean;
-  onDismiss: () => void;
   landed: (titleId: number) => void;
   dragProgress: SharedValue<number>;
   lit: SharedValue<number>;
@@ -68,11 +59,6 @@ export function CardStack({
   glowId,
   flying,
   throwCard,
-  asksSeen,
-  onHold,
-  onGrab,
-  held,
-  onDismiss,
   landed,
   dragProgress,
   lit,
@@ -161,7 +147,6 @@ export function CardStack({
   ];
 
   const flip = () => {
-    if (held) return onDismiss();
     stack.getState().setFlipped(!stack.getState().flipped);
   };
   const onAction = (name: string) => {
@@ -236,9 +221,6 @@ export function CardStack({
               dragging={dragging}
               locked={swipe.locked || swipe.beating || checkpointOn}
               a11y={{ label: labelOf(card), actions, onAction }}
-              asksSeen={asksSeen}
-              onHold={onHold}
-              onGrab={onGrab}
               onRelease={onRelease}
               onFlip={flip}
               onLanded={landed}

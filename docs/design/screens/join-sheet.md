@@ -171,7 +171,7 @@ The code is shown with a space in the middle ("482 913"), as `RoomTicket` does. 
 
 - The sheet uses the system's presentation; on `ok` the room screen comes in with `layout.fadeIn`.
 - Loading to Confirm: the ticket stays put; the title, the host line and Join replace the skeletons with `layout.fadeIn`. No haptic: the preview isn't a moment.
-- Join: `haptics.press()` (Pressable's default), then `loading` on the button. No celebration until the room.
+- Join: `haptics.press()` (Pressable's default) and the button tick on press-in ([sounds.md](../sounds.md#key-buttons)), then `loading` on the button. No celebration until the room.
 - Refusals: `haptics.error()` once, when the `EmptyState` appears (`layout.fadeIn`), on open for a preview refusal.
 
 ## Accessibility

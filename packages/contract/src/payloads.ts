@@ -139,6 +139,7 @@ export const exportMyData = z.object({
       super_liked: z.boolean(),
       picked_at: z.nullable(z.string()),
       seen_at: z.nullable(z.string()),
+      saved_at: z.nullable(z.string()),
     }),
   ),
   taste: z.nullable(z.unknown()),
@@ -229,13 +230,18 @@ export const setSeatPrefsResult = z.discriminatedUnion('status', [
 ]);
 export type SetSeatPrefsResult = z.infer<typeof setSeatPrefsResult>;
 
-// `api.room_genres` (M6.53): tonight's offered genres in display order, each with how many present
-// seats picked it (a count, never who), and the caller's own picks.
-export const roomGenresResult = z.object({
-  status: z.literal('ok'),
-  options: z.array(z.object({ genre_id: z.number(), count: z.number() })),
-  mine: z.array(z.number()),
-});
+/**
+ * `api.room_genres` (M6.53): `options` are the genres offered tonight (30 eligible films or more,
+ * never TV Movie) in genre id order, each with how many present seats picked it; `mine` is the
+ * caller's own picks. Counts only: never a seat or a name.
+ */
+export const roomGenresResult = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('ok'),
+    options: z.array(z.object({ genre_id: z.number(), count: z.number() })),
+    mine: z.array(z.number()),
+  }),
+]);
 export type RoomGenresResult = z.infer<typeof roomGenresResult>;
 
 // The `api.genres` view: a TMDB genre with its names by language.
@@ -570,7 +576,7 @@ export type NextCard = z.infer<typeof nextCardRow>;
 /** `api.my_next_cards` answers an array of cards, with no status. */
 export const myNextCardsResult = z.array(nextCardRow);
 
-/** One tile of My films: `at` is the film's latest time under the segment. */
+/** One tile of My films: `at` is the film's latest time under the segment (for `later`, when it was saved). */
 export const myFilmTile = z.object({
   title_id: z.number(),
   title: z.string(),
@@ -590,15 +596,21 @@ export const myFilmsResult = z.object({
 });
 export type MyFilmsResult = z.infer<typeof myFilmsResult>;
 
-/** `api.my_film_card`: the film sheet's card, and whether the caller marked it seen and liked it. */
+/** `api.my_film_card`: the film sheet's card, and whether the caller marked it seen, liked it and saved it. */
 export const myFilmCardResult = z.discriminatedUnion('status', [
-  z.object({ status: z.literal('ok'), card: cardRow, seen: z.boolean(), liked: z.boolean() }),
+  z.object({
+    status: z.literal('ok'),
+    card: cardRow,
+    seen: z.boolean(),
+    liked: z.boolean(),
+    saved: z.boolean(),
+  }),
   z.object({ status: z.literal('not_found') }),
   z.object({ status: z.literal('rate_limited') }),
 ]);
 export type MyFilmCardResult = z.infer<typeof myFilmCardResult>;
 
-/** `api.set_film_seen` and `api.remove_my_film`. */
+/** `api.set_film_seen`, `api.remove_my_film` and `api.set_film_saved`. */
 export const myFilmEditResult = z.discriminatedUnion('status', [
   z.object({ status: z.literal('ok') }),
   z.object({ status: z.literal('not_found') }),

@@ -21,7 +21,7 @@ The event list lives in `packages/contract/src/realtime.ts`. Adding an event mea
 | Event | Sent when | The phone |
 | --- | --- | --- |
 | `member_joined`, `member_left`, `seat_updated` | Seats change | Refetches seats |
-| `genres_changed` | A seat's genre picks changed (empty payload, M6.53) | Refetches `api.room_genres`: counts per genre and the seat's own picks, never who |
+| `genres_changed` | A seat's genre picks changed (empty payload; a genres-only change sends no `seat_updated`, which would name the seat) | Re-reads `api.room_genres` |
 | `settings_changed` | The host changes settings | Refetches the room |
 | `room_locked` | The host locks or unlocks the room (only when the value changes) | Refetches the room |
 | `state_changed` | lobby, dealing, swiping, finale, done, abandoned | Refetches the room; the room layout moves to that state's screen |
@@ -35,6 +35,7 @@ The event list lives in `packages/contract/src/realtime.ts`. Adding an event mea
 ## Who sees what
 
 - **Never, in any mode:** who noped a film, another player's swipes while the game runs, anyone's taste check answers.
+- **In the lobby:** genre picks as a count per genre (`api.room_genres`), never who picked what.
 - **During the game:** counts only ("2 of 3"), and a star on super-liked cards in Party mode, never who.
 - **The finale:** who has locked in, not what they voted; vetoed films shown knocked out, never by whom.
 - **After the pick:** Party mode may show who liked the runners-up; Blind mode shows counts.

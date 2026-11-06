@@ -62,7 +62,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | Getting in | Guest play with no account: a name and a colour. French and English |
 | Rooms | Create a room, join by code, link or QR code, a live lobby. The host picks the room's services, an age cap and a time budget |
 | Safety | The host can remove a player and lock the room. Names are filtered. Anyone can report a player |
-| The game | Quick Match for 2 to 10 players: like, nope, super like, seen it, undo. Instant matches, the Final Cut round when no match comes, a winner screen that says where to watch, the recap card to share, Play again, sound for the match and the reveal |
+| The game | Quick Match for 2 to 10 players: like, nope, super like, seen it, undo. Instant matches, the Final Cut round when no match comes, a winner screen that says where to watch, the recap card to share, Play again, sound for the match, the reveal and a few small moments ([sounds](../design/sounds.md)) |
 | Solo and My films | Play alone, with a film for tonight when you want one, up to 100 solo cards a day. My films: the films you liked and the films you've seen, in a grid |
 | The deck | Built in SQL: films on the room's services in France, ranked by quality and popularity, shuffled differently every game, one film per franchise, films a player marked as seen left out, likes moved into the others' next cards |
 | Catalog | France only, from TMDB, refreshed every night |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 156 of 291 tasks done.
+Progress: 161 of 291 tasks done.
 
 ```mermaid
 flowchart LR
@@ -448,9 +448,9 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: the cap, undo giving nothing back, group rooms never counted, and the metric views are tested.
 - [x] **M6.48** `api.room_runners_up`: after the pick, the other finalists or the most liked films, with who liked each in Party mode and how many in Blind · backend · M · needs M6.16 · [game-modes](game-modes.md#what-players-see-party-and-blind)
   Done when: each rule of "Runners-up" and the Party and Blind rows is tested, a room still playing included.
-- [ ] **M6.50** Later on the server: `user_titles.saved_at` (its own column, not `on_watchlist`), `api.set_film_saved(title, saved)` answering `ok`, the `later` segment in `api.my_films`, and the export; a saved film is never a like and no room reads it · backend · M · needs M6.41, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [game-modes](game-modes.md#the-answers)
+- [x] **M6.50** Later on the server: `user_titles.saved_at` (its own column, not `on_watchlist`), `api.set_film_saved(title, saved)` answering `ok`, the `later` segment in `api.my_films`, and the export; a saved film is never a like and no room reads it · backend · M · needs M6.41, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [game-modes](game-modes.md#the-answers)
   Done when: tested: saving and unsaving, the `later` segment, the export with `saved_at`, and that nothing in a room reads a saved film.
-- [ ] **M6.53** Per-player genres on the server: `api.set_seat_prefs` capped at 3 genres, each film weighted by how many players' picks it hits, the weight in `internal.deck_candidates` and `internal.deal_baseline` (3 slots in 4 from the picks, the rest open), the starvation guard (a pick pool of 100 eligible films, genres under 30 films left out), counts only. Ships in the first release only if the genre simulation passes; otherwise right after launch · backend · M · needs M6.52, M5.1 · [deck-engine](../architecture/deck-engine.md#scoring-a-film-for-a-player)
+- [x] **M6.53** Per-player genres on the server: `api.set_seat_prefs` capped at 3 genres, each film weighted by how many players' picks it hits, the weight in `internal.deck_candidates` and `internal.deal_baseline` (3 slots in 4 from the picks, the rest open), the starvation guard (a pick pool of 100 eligible films, genres under 30 films left out), counts only. Ships in the first release only if the genre simulation passes; otherwise right after launch · backend · M · needs M6.52, M5.1 · [deck-engine](../architecture/deck-engine.md#scoring-a-film-for-a-player)
   Done when: pgTAP tests cover the cap of 3, the weight, the 100-film guard, the 30-film floor, and that no response names who picked a genre.
 
 **App**
@@ -503,7 +503,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: each event shows in PostHog from a test device, and none leaves a phone in a solo session with an age cap under 13.
 - [x] **M6.47** After the pick specs: the runners-up, Share recap and the recap card, Play again and the Join offer on the winner screen · design · M · [game-modes](game-modes.md#after-the-pick), [winner](../design/screens/winner.md)
   Done when: winner.md and recap.md cover each piece with every state, in French and English, and the Figma map points the recap card at its spec.
-- [ ] **M6.49** The rewatch chip: one tap on Seen it (or a swipe up) is a nope and the card flies up; the centred chip offers Yes as a like, with the copy and timing of the rewatch decisions · app · S · needs M6.9, M6.12 · [swipe](../design/screens/swipe.md#seen-it-the-rewatch-question), [game-modes](game-modes.md#the-answers)
+- [x] **M6.49** The rewatch chip: one tap on Seen it (or a swipe up) is a nope and the card flies up; the centred chip offers Yes as a like, with the copy and timing of the rewatch decisions · app · S · needs M6.9, M6.12 · [swipe](../design/screens/swipe.md#seen-it-the-rewatch-question), [game-modes](game-modes.md#the-answers)
   Done when: a touch run on the simulator against staging shows that a fast double tap on Seen it never adds a like, that the chip's Yes counts as a like, and that the chip leaves at the next answer or after 5 seconds (never on a timer with a screen reader on).
 - [ ] **M6.51** Later in the app: the bookmark on the card's front corner and on the card back, sent through the queue so it works offline, the Later segment and its empty state in My films, "Remove from Later" on the film sheet, in French and English · app · M · needs M6.50, M6.45, M6.10 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles), [game-modes](game-modes.md#the-answers)
   Done when: a touch run on the simulator against staging saves a film from the front and from the back, shows it under Later, removes it, and saves one offline that arrives once the phone is back online.
@@ -516,7 +516,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: bots can fill a room on staging.
 - [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, every way to a pick (a single match, a vote between matches, the Final Cut from swipes), leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12, M6.29, M6.30, M6.31, M6.37, M6.38, M6.49 · [game-modes](game-modes.md#a-game-at-a-glance)
   Done when: every run ends with a pick within the limits; the swiping after the first match is timed, and every player is asked "was there a film for you in the vote?" and "would you use it on your own?"; bugs become tasks.
-- [ ] **M6.52** The genre simulation: bots with made-up tastes, split and shared picks, cap 3, measuring the median time to a pick, matches and Final Cuts against today's deck. Owner: the game designer · test · M · needs M6.19, M6.34, M6.35 · [simulations](simulations.md), [game-modes](game-modes.md#time-to-a-pick)
+- [x] **M6.52** The genre simulation: bots with made-up tastes, split and shared picks, cap 3, measuring the median time to a pick, matches and Final Cuts against today's deck. Owner: the game designer · test · M · needs M6.19, M6.34, M6.35 · [simulations](simulations.md), [game-modes](game-modes.md#time-to-a-pick)
   Done when: simulations.md has the median time to a pick for split picks against today's deck, and says whether the under-5-minute gate for the first release passes.
 
 **Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
@@ -527,8 +527,8 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: tested.
 - [x] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · M · needs M6.22, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
   Done when: a group starts a second room in two taps.
-- [ ] **M6.24** The match and reveal sounds: commissioned or licensed for use in an app, each under about 1.5 seconds, wired into `lib/sound` · content · S · needs M3.14 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
-  Done when: both play on the match and the reveal, mixed with other audio and quiet on silent.
+- [ ] **M6.24** The sounds: the files in `mobile/assets/sounds/` wired into `lib/sound`, each played where sounds.md says (the match, the reveal, the game start, arrivals in the lobby, the Final Cut's last 5 seconds, refusals, and the Join, Start swiping and Lock in buttons) · app · M · needs M3.14 · [sounds](../design/sounds.md), [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
+  Done when: each sound plays at its moment on the right phones, mixed with other audio, quiet on silent and off with the Sound switch, with a test per rule in sounds.md; the button tick lands with the press haptic on a low-end Android.
 
 ## M7 Safety and moderation
 
@@ -632,11 +632,11 @@ M11.7 (the reviewers' demo room: a reserved code that `api.create_room` never dr
   Done when: entered in both consoles.
 - [ ] **M11.2** The icon, and Play's feature graphic · design · S · needs M0.1 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: exported at every size the stores ask.
-- [ ] **M11.3** Screenshots with fictional posters, captioned in French and English · design · L · needs M6.44, M6.21 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [x] **M11.3** Screenshots with fictional posters, captioned in French and English · design · L · needs M6.44, M6.21 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: uploaded at the sizes required today.
 - [ ] **M11.10** Final screenshots from the alpha build: re-run M11.3's rig after M10.4 and replace what changed · design · S · needs M10.4, M11.3 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: the changed screenshots are uploaded to both stores, from the alpha build.
-- [ ] **M11.4** A 15 to 30-second preview video from screen captures (optional) · design · M · needs M11.3, M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [ ] **M11.4** A 15 to 30-second preview video from screen captures (optional), ending on the sonic logo · design · M · needs M11.3, M10.4 · [store-listing](store-listing.md#screenshots-and-the-preview-video), [the sonic logo](../design/sounds.md#the-sonic-logo)
   Done when: uploaded, or skipped in decisions.md.
 - [ ] **M11.5** The age rating questionnaires (Apple, IARC) and Play's 13-and-over audience · publishing · S · needs M10.1 · [store-listing](store-listing.md#age-ratings)
   Done when: both ratings issued.
@@ -722,7 +722,7 @@ Done when: players can save an account, and "Did you watch it?" feeds the time t
   Done when: tested with a real Apple account.
 - [ ] **M15.4** "Already have an account? Sign in" on Welcome · app · needs M15.2 · [onboarding](onboarding.md#first-launch)
   Done when: a new phone restores an account.
-- [ ] **M15.5** "Did you watch it?" as a local notification 3 hours after the pick, or a Home card without notifications · app · needs M6.16 · [onboarding](onboarding.md#permissions), [game-modes](game-modes.md#after-the-pick)
+- [ ] **M15.5** "Did you watch it?" as a local notification 3 hours after the pick, or a Home card without notifications; its sound is `notify.wav` · app · needs M6.16 · [onboarding](onboarding.md#permissions), [game-modes](game-modes.md#after-the-pick), [the reminder's sound](../design/sounds.md#the-did-you-watch-it-reminder)
   Done when: the answer reaches `api.answer_followup`.
 - [ ] **M15.6** The time to first watch in the metric views · backend · needs M15.5, M9.3 · [analytics](analytics.md#every-metric)
   Done when: the view returns it.

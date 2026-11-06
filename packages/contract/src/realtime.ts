@@ -46,7 +46,7 @@ export type RoomEventPayloads = {
   /** The saved value; only sent when it changed (api.set_room_locked, M4.23). */
   room_locked: { locked: boolean };
   seat_updated: { member_id: string };
-  /** A seat's genre picks changed (M6.53). Empty: re-read `api.room_genres`; never who picked. */
+  /** A seat's genre picks changed (M6.53). Empty: phones re-read api.room_genres. */
   genres_changed: Record<string, never>;
   /**
    * The host opened the next room (api.play_again, M6.22). `host_member_id` is the host's seat in

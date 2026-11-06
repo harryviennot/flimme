@@ -246,8 +246,8 @@ The away names are listed with `Intl.ListFormat`. The host alone leaving has no 
 ## Motion, haptics, sound
 
 - Arrivals: the row with `layout.fadeIn`, the avatar with `layout.popIn` (the arcade overshoot). Small, because a friend arriving is good news, not the match.
-- No haptic for arrivals or departures: phones shouldn't buzz for every friend, and the vocabulary has no word for it.
-- The shuffling overlay comes in with `layout.fadeIn` on every phone at once; no haptic and no sound (sound is only for the match and the reveal).
+- No haptic for arrivals or departures: phones shouldn't buzz for every friend, and the vocabulary has no word for it. An arrival plays one note, a step higher per player, on every phone already in the lobby ([sounds.md](../sounds.md#a-friend-arrives)); a departure plays nothing.
+- The shuffling overlay comes in with `layout.fadeIn` on every phone at once, with the start sound on each ([sounds.md](../sounds.md#the-game-starts)) and no haptic. Start swiping also plays the button tick on press-in ([sounds.md](../sounds.md#key-buttons)).
 - The host-change toast uses `Toast` (`layout.toastIn`).
 - `haptics.error()` only for `not_enough_players` and `too_few_films` (the host's phone).
 - The too-few line replaces the helper's text in place, with no movement.
