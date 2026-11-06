@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, useWindowDimensions, View } from 'react-native';
 // Gesture Handler's ScrollView: a plain one paints nothing inside this formSheet (the nested
@@ -17,7 +17,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { showToast } from '@/components/ui/toast';
 import { useAppConfig } from '@/features/app-config/use-app-config';
+import { recordSaved } from '@/features/later/record';
 import {
+  changeSaved,
   changeSeen,
   refreshMyFilms,
   sheetCardProps,
@@ -56,10 +58,12 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
   const insets = useSafeAreaInsets();
   const window = useWindowDimensions();
   const imageBase = useAppConfig().data?.tmdb_image_base;
-  const { view, setSeen } = useFilmSheet(titleId, i18n.language);
+  const { view, setSeen, setSaved } = useFilmSheet(titleId, i18n.language);
   const removeFilm = useRemoveFilm();
   const busy = useRef(false);
   const changed = useRef(false);
+  // Remove from Later turns into Save for later, so a slip can be taken back in the sheet.
+  const [touchedSaved, setTouchedSaved] = useState(false);
 
   // A seen mark that went through changes Seen (and Liked's film): the grid reads again when the
   // sheet is gone, so a tile never moves under it.
@@ -94,6 +98,27 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
       onClose();
     } else {
       setSeen(!next);
+      showToast({ tone: 'warn', title: t('sheet.failed') });
+    }
+  };
+
+  const toggleSaved = async () => {
+    if (!ready || busy.current) return;
+    busy.current = true;
+    setTouchedSaved(true);
+    const next = !ready.saved;
+    setSaved(next);
+    AccessibilityInfo.announceForAccessibility(
+      next ? t('sheet.a11ySavedLater') : t('sheet.a11yRemovedLater'),
+    );
+    const outcome = await changeSaved(titleId, next, (args) => api.setFilmSaved(args));
+    busy.current = false;
+    if (outcome !== 'failed') {
+      // `not_found` means nothing to change (it was not saved): the sheet's state stands.
+      recordSaved(titleId, next);
+      changed.current = true;
+    } else {
+      setSaved(!next);
       showToast({ tone: 'warn', title: t('sheet.failed') });
     }
   };
@@ -191,6 +216,17 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
             icon="trash"
             disabled={!canEdit}
             onPress={remove}
+          />
+        ) : null}
+        {ready && (ready.saved || touchedSaved) ? (
+          <Button
+            label={ready.saved ? t('sheet.removeLater') : t('sheet.saveLater')}
+            variant="ghost"
+            size="l"
+            block
+            icon="bookmark"
+            disabled={!canEdit}
+            onPress={() => void toggleSaved()}
           />
         ) : null}
       </View>

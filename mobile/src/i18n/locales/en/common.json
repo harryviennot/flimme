@@ -52,7 +52,9 @@
     "stampNope": "Nope",
     "stars": "★ {{rating}}",
     "stampSeen": "Seen it",
-    "stampSuper": "Super"
+    "stampSuper": "Super",
+    "bookmarkSave": "Save for later",
+    "bookmarkRemove": "Remove from Later"
   },
   "ticket": {
     "roomCode": "Room code",

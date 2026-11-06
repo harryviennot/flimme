@@ -19,9 +19,9 @@ export function mergePages(pages: readonly { films: readonly MyFilmTile[] }[]): 
 
 export type TileBadge = 'picked' | 'super' | null;
 
-/** "Picked" wins over the star (Q41.10); Seen tiles have no badge (Q39.3). */
+/** "Picked" wins over the star (Q41.10); Seen and Later tiles have no badge (Q39.3). */
 export function badgeOf(segment: MyFilmsSegment, film: MyFilmTile): TileBadge {
-  if (segment === 'seen') return null;
+  if (segment !== 'liked') return null;
   if (film.is_picked) return 'picked';
   return film.is_super_liked ? 'super' : null;
 }
@@ -38,10 +38,11 @@ export function tileLabel(segment: MyFilmsSegment, film: MyFilmTile, t: Translat
   return base;
 }
 
-export type EmptyKind = 'liked' | 'friends' | 'solo' | 'seen';
+export type EmptyKind = 'liked' | 'friends' | 'solo' | 'seen' | 'later';
 
 export function emptyKind(segment: MyFilmsSegment, filter: MyFilmsFilter): EmptyKind {
   if (segment === 'seen') return 'seen';
+  if (segment === 'later') return 'later';
   return filter === 'friends' ? 'friends' : filter === 'solo' ? 'solo' : 'liked';
 }
 

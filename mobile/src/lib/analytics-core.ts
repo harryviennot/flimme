@@ -87,7 +87,7 @@ export const ANALYTICS_EVENTS = {
   'solo:pick_submit': { card_count: 'number' },
   'solo:cap_show': { placement: ['deck', 'play'] },
   'my_films:grid_view': {
-    segment: ['liked', 'seen'],
+    segment: ['liked', 'seen', 'later'],
     filter: ['all', 'friends', 'solo', 'none'],
     film_count: COUNT_BUCKETS,
   },

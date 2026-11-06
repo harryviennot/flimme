@@ -97,6 +97,7 @@ export function MyFilmsScreen({ onOpenFilm, onPlayAlone }: MyFilmsScreenProps) {
           segments={[
             { key: 'liked', label: t('segments.liked') },
             { key: 'seen', label: t('segments.seen') },
+            { key: 'later', label: t('segments.later') },
           ]}
           selected={segment}
           onSelect={(key) => setSegment(key as MyFilmsSegment)}

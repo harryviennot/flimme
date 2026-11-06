@@ -11,6 +11,7 @@ let mockProfile: { display_name: string; avatar_key: string } | null = null;
 
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('@/features/solo/leave', () => ({ useSettleSolo: () => undefined }));
+jest.mock('@/features/later', () => ({ useSettleSaves: () => undefined }));
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline }));
 jest.mock('@/features/profile', () => ({
   toAvatarColor: jest.requireActual('@/features/profile/device').toAvatarColor,
