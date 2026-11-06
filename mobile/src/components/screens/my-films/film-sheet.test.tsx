@@ -11,7 +11,12 @@ import i18n from '@/i18n';
 import { FilmSheet } from './film-sheet';
 
 jest.mock('@/api', () => ({
-  api: { myFilmCard: jest.fn(), setFilmSeen: jest.fn(), removeMyFilm: jest.fn() },
+  api: {
+    myFilmCard: jest.fn(),
+    setFilmSeen: jest.fn(),
+    removeMyFilm: jest.fn(),
+    setFilmSaved: jest.fn(),
+  },
 }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -42,17 +47,19 @@ const card: Card = {
   providers: [{ provider_id: 8, kind: 'subscription', name: 'Netflix', logo_path: null }],
   watch_link: null,
 };
-const ok = (extra: { seen?: boolean; liked?: boolean } = {}) => ({
+const ok = (extra: { seen?: boolean; liked?: boolean; saved?: boolean } = {}) => ({
   status: 'ok',
   card,
   seen: false,
   liked: true,
+  saved: false,
   ...extra,
 });
 
 const myFilmCard = api.myFilmCard as jest.Mock;
 const setFilmSeen = api.setFilmSeen as jest.Mock;
 const removeMyFilm = api.removeMyFilm as jest.Mock;
+const setFilmSaved = api.setFilmSaved as jest.Mock;
 
 const onClose = jest.fn();
 async function showLoaded() {
@@ -74,6 +81,7 @@ beforeEach(async () => {
   mockOnline.current = true;
   setFilmSeen.mockResolvedValue({ status: 'ok' });
   removeMyFilm.mockResolvedValue({ status: 'ok' });
+  setFilmSaved.mockResolvedValue({ status: 'ok' });
   await i18n.changeLanguage('en');
 });
 afterEach(async () => {
@@ -136,13 +144,13 @@ describe('the film sheet', () => {
     myFilmCard.mockResolvedValue(ok({ liked: false, seen: true }));
     await show();
     await screen.findByRole('button', { name: 'Not seen' });
-    expect(screen.queryByRole('button', { name: 'Remove' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Remove from Liked' })).toBeNull();
   });
 
   it('removes at once on screen, and sends the call only after the toast', async () => {
     myFilmCard.mockResolvedValue(ok());
     await showLoaded();
-    await fireEvent.press(screen.getByRole('button', { name: 'Remove' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove from Liked' }));
     expect(onClose).toHaveBeenCalled();
     expect(hiddenFilms().has(7)).toBe(true);
     expect(removeMyFilm).not.toHaveBeenCalled();
@@ -150,6 +158,39 @@ describe('the film sheet', () => {
       await flushRemovals();
     });
     expect(removeMyFilm).toHaveBeenCalledWith({ title_id: 7 });
+  });
+
+  it('offers Remove from Later only on a saved film', async () => {
+    myFilmCard.mockResolvedValue(ok({ saved: false }));
+    await showLoaded();
+    expect(screen.queryByRole('button', { name: 'Remove from Later' })).toBeNull();
+  });
+
+  it('removes from Later with the call, and can save it again in the sheet', async () => {
+    myFilmCard.mockResolvedValue(ok({ saved: true }));
+    await showLoaded();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove from Later' }));
+    await screen.findByRole('button', { name: 'Save for later' });
+    expect(setFilmSaved).toHaveBeenLastCalledWith({ title_id: 7, saved: false });
+    await fireEvent.press(screen.getByRole('button', { name: 'Save for later' }));
+    await screen.findByRole('button', { name: 'Remove from Later' });
+    expect(setFilmSaved).toHaveBeenLastCalledWith({ title_id: 7, saved: true });
+  });
+
+  it('turns the Later button back and warns when the call fails', async () => {
+    myFilmCard.mockResolvedValue(ok({ saved: true }));
+    setFilmSaved.mockResolvedValue({ status: 'rate_limited' });
+    await showLoaded();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove from Later' }));
+    await waitFor(() => expect(setFilmSaved).toHaveBeenCalled());
+    await screen.findByRole('button', { name: 'Remove from Later' });
+  });
+
+  it('speaks French on the Later button', async () => {
+    await i18n.changeLanguage('fr');
+    myFilmCard.mockResolvedValue(ok({ saved: true }));
+    await show();
+    expect(await screen.findByRole('button', { name: 'Retirer de Plus tard' })).toBeTruthy();
   });
 
   it('shows the not found state with a Close action', async () => {
@@ -178,6 +219,6 @@ describe('the film sheet', () => {
     await show();
     expect(await screen.findByText('A crew and a cop.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Marquer comme vu' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Retirer' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Retirer des aimés' })).toBeTruthy();
   });
 });

@@ -15,9 +15,10 @@ A `ScrollView`, `px-5 pt-5 pb-4 gap-4`, with a pinned footer:
 3. **Where to watch:** `WhereToWatch` (it moves from `screens/winner/` to `shared/where-to-watch` in M6.45, with a gallery entry, since a second screen needs it): the player's saved services that have the film, the "not listed" line `solo:pick.notListed` when none does, the JustWatch credit, and More details. Tiles are not pressable.
 4. **The footer** (pinned, `px-5 pb-2 gap-3`, `bg-bg-surface` with a `border-t border-border-default` hairline):
    - `Button` secondary L, `block`, icon `eye`: `myFilms:sheet.markSeen`, or `myFilms:sheet.notSeen` on a seen film. Under it, on a seen film only, `myFilms:sheet.seenHelper` in `body-s` muted.
-   - `Button` ghost L, `block`, icon `trash`, `myFilms:sheet.remove`. Only for a film in Liked; a film that is only seen has no Remove (Q39.5).
+   - `Button` ghost L, `block`, icon `trash`, `myFilms:sheet.remove` ("Remove from Liked" since M6.51, so it is not mistaken for the next button). Only for a film in Liked; a film that is only seen has no Remove (Q39.5).
+   - `Button` ghost L, `block`, icon `bookmark`, `myFilms:sheet.removeLater` ("Remove from Later"). Only for a saved film. It is a toggle for the sheet's life: once removed it reads `myFilms:sheet.saveLater` ("Save for later"), so a slip is taken back without leaving the sheet.
 
-**What the sheet reads.** `api.my_film_card(title, language)` (M6.41) for the card, scoped to the player's own films (security gap 2). The tile's row gives the poster, the title and the year at once. The sheet also needs to know whether the film is seen and whether it's in Liked: `my_film_card`'s `ok` carries `seen` and `liked` (a contract addition to M6.41's brief, see [Changes this asks](#changes-this-asks)).
+**What the sheet reads.** `api.my_film_card(title, language)` (M6.41) for the card, scoped to the player's own films (security gap 2). The tile's row gives the poster, the title and the year at once. The sheet also needs to know whether the film is seen and whether it's in Liked: `my_film_card`'s `ok` carries `seen`, `liked` and, since M6.50, `saved` (a contract addition to M6.41's brief, see [Changes this asks](#changes-this-asks)).
 
 **Components:** `Text`, `IconButton`, `MovieCard`, `WhereToWatch`, `Button`, `Skeleton`, `EmptyState`, `Banner`, `showToast`. No new component; `MovieCard` gains `still`, `Toast` gains an action ([below](#design-system-changes)).
 
@@ -28,6 +29,7 @@ A `ScrollView`, `px-5 pt-5 pb-4 gap-4`, with a pinned footer:
 | Mark as seen | The button turns into Not seen, the helper appears; `haptics.press()`; announced `myFilms:sheet.a11ySeen` | `api.set_film_seen(title, true)` | `ok`: nothing. `not_found`: [the not found state](#states). `rate_limited` or a failure: the button turns back, `showToast` warn `myFilms:sheet.failed` |
 | Not seen | The button turns into Mark as seen; announced `myFilms:sheet.a11yNotSeen`. Opened from Seen, the tile leaves Seen when the sheet closes; the film can come back in decks | `api.set_film_seen(title, false)` | As above |
 | Remove | The sheet closes; the tile leaves Liked; `showToast` info `myFilms:removed.title` with the action `myFilms:removed.undo`, for 5 seconds | `api.remove_my_film(title)`, sent when the toast closes (Q41.6), or at once if the app goes to the background first | `ok`, `not_found`: nothing. `rate_limited` or a failure: the tile comes back, `showToast` warn `myFilms:removed.failed` |
+| Remove from Later / Save for later | The button flips its label; `haptics.press()`; announced `myFilms:sheet.a11yRemovedLater` or `a11ySavedLater` | `api.set_film_saved(title, false or true)`, sent at once (the sheet's edits need the network). No Undo toast: the button is the undo | `ok`, `not_found`: nothing (`not_found` on an unsave means it was not saved). `rate_limited` or a failure: the button turns back, `showToast` warn `myFilms:sheet.failed`. The grid reads again when the sheet closes |
 | Undo (in the toast) | The tile comes back in its place (`layout.fadeIn`); the call is never sent | | |
 
 No confirmation for Remove: the undo toast is the safety net. Remove never changes a game's votes, and `seen` stays (Q41.6). A removed film can come back if it's liked again later.
@@ -57,7 +59,11 @@ No confirmation for Remove: the undo toast is the safety net. Remove never chang
 | `sheet.markSeen` | Marquer comme vu | Mark as seen |
 | `sheet.notSeen` | Pas encore vu | Not seen |
 | `sheet.seenHelper` | Il reste hors de tes parties. | It stays out of your games. |
-| `sheet.remove` | Retirer | Remove |
+| `sheet.remove` | Retirer des aimés | Remove from Liked |
+| `sheet.removeLater` | Retirer de Plus tard | Remove from Later |
+| `sheet.saveLater` | Garder pour plus tard | Save for later |
+| `sheet.a11yRemovedLater` | Retiré de Plus tard | Removed from Later |
+| `sheet.a11ySavedLater` | Gardé pour plus tard | Saved for later |
 | `sheet.a11ySeen` | Marqué comme vu | Marked as seen |
 | `sheet.a11yNotSeen` | Plus marqué comme vu. Il peut revenir dans tes parties. | No longer marked as seen. It can come back in your games. |
 | `sheet.failed` | Impossible d'enregistrer. Réessaie dans un instant. | We couldn't save that. Try again in a moment. |

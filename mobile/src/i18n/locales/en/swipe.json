@@ -57,7 +57,9 @@
       "superLike": "Super like",
       "seen": "Seen it",
       "flip": "Flip the card",
-      "trailer": "Watch the trailer"
+      "trailer": "Watch the trailer",
+      "save": "Save for later",
+      "unsave": "Remove from Later"
     },
     "superLeft_one": "Super like, {{count}} left",
     "superLeft_other": "Super like, {{count}} left",
@@ -70,6 +72,8 @@
     "pillAway": "{{name}}, away",
     "pillHost": "{{name}}, host",
     "done": "{{name}} is done",
-    "thrown": "{{answer}}: {{title}}"
+    "thrown": "{{answer}}: {{title}}",
+    "saved": "{{title}}: saved for later",
+    "unsaved": "{{title}}: removed from Later"
   }
 }

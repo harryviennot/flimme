@@ -156,7 +156,7 @@ Besides PostHog's own app lifecycle events (`Application Installed`, `Applicatio
 | `solo:checkpoint_view` | A solo checkpoint card shows | `card_count` (20, 40...), `like_count` (bucket) |
 | `solo:pick_submit` | `api.solo_pick` answers `ok` | `card_count` (the session's answered cards) |
 | `solo:cap_show` | The daily cap card shows | `placement` (`deck`, `play`) |
-| `my_films:grid_view` | The first page of a segment or chip shows | `segment` (`liked`, `seen`), `filter` (`all`, `friends`, `solo`; `none` on Seen), `film_count` (bucket) |
+| `my_films:grid_view` | The first page of a segment or chip shows | `segment` (`liked`, `seen`, `later`), `filter` (`all`, `friends`, `solo`; `none` on Seen and Later), `film_count` (bucket) |
 | `followup:view` | "Did you watch it?" shows | `from` (`notification`, `app_open`, `home_card`) |
 | `prompt:show`, `prompt:accept`, `prompt:dismiss` | One of the asks from [onboarding](onboarding.md#after-the-first-game) | `prompt` (`notifications`, `letterboxd`, `save_account`), `placement` (`winner`, `home`, `profile`, `settings`) |
 | `notifications:permission_answer` | The system prompt returns | `is_granted`, `is_os_prompt_shown` |

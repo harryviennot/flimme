@@ -57,7 +57,9 @@
       "superLike": "Coup de cœur",
       "seen": "Déjà vu",
       "flip": "Retourner la carte",
-      "trailer": "Voir la bande-annonce"
+      "trailer": "Voir la bande-annonce",
+      "save": "Garder pour plus tard",
+      "unsave": "Retirer de Plus tard"
     },
     "superLeft_one": "Coup de cœur, il en reste {{count}}",
     "superLeft_other": "Coup de cœur, il en reste {{count}}",
@@ -70,6 +72,8 @@
     "pillAway": "{{name}}, pas là",
     "pillHost": "{{name}}, hôte",
     "done": "{{name}} a fini",
-    "thrown": "{{answer}} : {{title}}"
+    "thrown": "{{answer}} : {{title}}",
+    "saved": "{{title}} : gardé pour plus tard",
+    "unsaved": "{{title}} : retiré de Plus tard"
   }
 }

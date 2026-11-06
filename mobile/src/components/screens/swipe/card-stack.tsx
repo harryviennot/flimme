@@ -6,6 +6,8 @@ import type { SharedValue } from 'react-native-reanimated';
 import { useStore } from 'zustand';
 
 import type { AnswerKind } from '@/features/swipe/answer';
+import { announceSaved } from '@/features/later/announce';
+import { toggleSaved, useIsSaved } from '@/features/later';
 import { openTrailer } from '@/features/swipe/trailer';
 import { backServices, cardMeta, cardServices, trailerAllowed } from '@/features/swipe/card-props';
 import { STACK_STEP, type Direction } from '@/features/swipe/feel';
@@ -103,6 +105,7 @@ export function CardStack({
 
   const language = i18n.language;
   const top = mounted[0];
+  const topSaved = useIsSaved(top?.title_id ?? -1);
 
   const labelOf = (card: NonNullable<typeof top>) => {
     if (flipped) {
@@ -140,6 +143,10 @@ export function CardStack({
       : []),
     { name: 'seen', label: t('a11y.actions.seen') },
     { name: 'flip', label: t('a11y.actions.flip') },
+    // The bookmark sits inside the card, which is one element for a screen reader.
+    topSaved
+      ? { name: 'unsave', label: t('a11y.actions.unsave') }
+      : { name: 'save', label: t('a11y.actions.save') },
     // The Trailer button sits inside the card, which is one element for a screen reader.
     ...(flipped && top?.trailer_key && trailerAllowed(maxAge)
       ? [{ name: 'trailer', label: t('a11y.actions.trailer') }]
@@ -151,6 +158,10 @@ export function CardStack({
   };
   const onAction = (name: string) => {
     if (name === 'flip') return flip();
+    if (name === 'save' || name === 'unsave') {
+      if (top) announceSaved(top.title, toggleSaved(top.title_id));
+      return;
+    }
     if (name === 'trailer')
       return trailerAllowed(maxAge) ? openTrailer(top?.trailer_key) : undefined;
     const kind = ACTION[name];

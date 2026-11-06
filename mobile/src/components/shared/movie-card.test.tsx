@@ -1,4 +1,4 @@
-import '@/i18n';
+import i18n from '@/i18n';
 
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
@@ -141,5 +141,52 @@ describe('the back of the card', () => {
     for (const id of ['movie-card-front', 'movie-card-back']) {
       expect(JSON.stringify(screen.getByTestId(id).props.style)).not.toContain('rotateY');
     }
+  });
+});
+
+describe('the Later bookmark', () => {
+  it('shows on the front and the back, empty, and saves on a press', async () => {
+    const onToggle = jest.fn();
+    await render(<MovieCard {...film} bookmark={{ saved: false, onToggle }} />);
+    const buttons = screen.getAllByRole('button', {
+      name: 'Save for later',
+      includeHiddenElements: true,
+    });
+    expect(buttons).toHaveLength(2);
+    await fireEvent.press(buttons[0]!);
+    expect(onToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it('says Remove from Later once saved, with the selected state', async () => {
+    await render(<MovieCard {...film} bookmark={{ saved: true, onToggle: jest.fn() }} />);
+    const button = screen.getAllByRole('button', {
+      name: 'Remove from Later',
+      includeHiddenElements: true,
+    })[0]!;
+    expect(button.props.accessibilityState).toMatchObject({ selected: true });
+    expect(
+      screen.queryByRole('button', { name: 'Save for later', includeHiddenElements: true }),
+    ).toBeNull();
+  });
+
+  it('tells the card a touch started on it, so the tap does not flip', async () => {
+    const onTouch = jest.fn();
+    await render(<MovieCard {...film} bookmark={{ saved: false, onToggle: jest.fn(), onTouch }} />);
+    await fireEvent(screen.getAllByTestId('movie-card-bookmark-wrap')[0]!, 'touchStart');
+    expect(onTouch).toHaveBeenCalledTimes(1);
+  });
+
+  it('is absent without the prop (the film sheet)', async () => {
+    await render(<MovieCard {...film} flipped />);
+    expect(screen.queryByTestId('movie-card-bookmark')).toBeNull();
+  });
+
+  it('speaks French', async () => {
+    await i18n.changeLanguage('fr');
+    await render(<MovieCard {...film} bookmark={{ saved: false, onToggle: jest.fn() }} />);
+    expect(
+      screen.getAllByRole('button', { name: 'Garder pour plus tard', includeHiddenElements: true }),
+    ).toHaveLength(2);
+    await i18n.changeLanguage('en');
   });
 });

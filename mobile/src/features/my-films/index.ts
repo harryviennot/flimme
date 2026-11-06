@@ -1,6 +1,7 @@
 export { hiddenFilms, useHiddenFilms } from './hidden';
 export { MY_FILMS_KEY, refreshMyFilms, useMyFilms } from './queries';
 export { onScrollToTop, requestScrollToTop } from './scroll-top';
+export { changeSaved } from './saved';
 export { changeSeen } from './seen';
 export { sheetCardProps } from './sheet-card';
 export {
