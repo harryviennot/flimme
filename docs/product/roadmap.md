@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 160 of 291 tasks done.
+Progress: 161 of 291 tasks done.
 
 ```mermaid
 flowchart LR
@@ -450,7 +450,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: each rule of "Runners-up" and the Party and Blind rows is tested, a room still playing included.
 - [x] **M6.50** Later on the server: `user_titles.saved_at` (its own column, not `on_watchlist`), `api.set_film_saved(title, saved)` answering `ok`, the `later` segment in `api.my_films`, and the export; a saved film is never a like and no room reads it · backend · M · needs M6.41, M8.6 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [game-modes](game-modes.md#the-answers)
   Done when: tested: saving and unsaving, the `later` segment, the export with `saved_at`, and that nothing in a room reads a saved film.
-- [ ] **M6.53** Per-player genres on the server: `api.set_seat_prefs` capped at 3 genres, each film weighted by how many players' picks it hits, the weight in `internal.deck_candidates` and `internal.deal_baseline` (3 slots in 4 from the picks, the rest open), the starvation guard (a pick pool of 100 eligible films, genres under 30 films left out), counts only. Ships in the first release only if the genre simulation passes; otherwise right after launch · backend · M · needs M6.52, M5.1 · [deck-engine](../architecture/deck-engine.md#scoring-a-film-for-a-player)
+- [x] **M6.53** Per-player genres on the server: `api.set_seat_prefs` capped at 3 genres, each film weighted by how many players' picks it hits, the weight in `internal.deck_candidates` and `internal.deal_baseline` (3 slots in 4 from the picks, the rest open), the starvation guard (a pick pool of 100 eligible films, genres under 30 films left out), counts only. Ships in the first release only if the genre simulation passes; otherwise right after launch · backend · M · needs M6.52, M5.1 · [deck-engine](../architecture/deck-engine.md#scoring-a-film-for-a-player)
   Done when: pgTAP tests cover the cap of 3, the weight, the 100-film guard, the 30-film floor, and that no response names who picked a genre.
 
 **App**

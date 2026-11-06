@@ -445,7 +445,7 @@ erDiagram
 | created_at, dealing_at, started_at, finale_at, decided_at, ended_at | timestamptz | The funnel |
 | expires_at | timestamptz | Lobbies that never start are abandoned after 3 hours |
 
-**room_models**: the room's live taste. Starts as the average of the seated players' profiles; the server updates it from the votes at each refill and records genres the room dropped.
+**room_models**: the room's live taste. Starts as the average of the seated players' profiles; the server updates it from the votes at each refill and records genres the room dropped. Two columns hold the per-player genres (M6.53, [deck-engine.md](deck-engine.md#per-player-genres)): `genre_picks` (jsonb, null until Start) is one array per present seat that picked, offered genres only, copied by `api.start_game`; `pick_share` (real) is the share of slots the pick pool takes, set by the first SQL deal.
 
 ### Seats
 
@@ -460,7 +460,8 @@ erDiagram
 | role | member_role | `host` or `guest` |
 | display_name, avatar_key | text | Snapshot at join, so other players never read your profile |
 | provider_ids | integer[] | This player's services tonight, prefilled from their profile |
-| mood_slugs, genre_ids | | "Tonight I want", a soft boost in their fit |
+| mood_slugs | | "Tonight I want", a soft boost in their fit (later: only the host picks moods) |
+| genre_ids | integer[] | Up to 3 TMDB movie genres offered tonight (M6.53). Locked at Start. Never read by another phone: `api.room_genres` gives counts only |
 | joined_at, left_at | timestamptz | Rejoining clears left_at and keeps the same seat |
 | joined_via, link_opened_at | join_via, timestamptz | How the seat came in (`link`, `code`, `qr`, `rejoin`, `play_again`; null when the app sent none) and, for `link` only, when the phone opened the link (clamped between the room's creation and now). Set once at the first join, kept on a rejoin. Analytics only: `api.room_seats` does not list them |
 | removed_at | timestamptz | Set when the host removes the player (`api.remove_member`, M4.2, which also sets `left_at`). A removed seat is not a member: it reads nothing of the room, has no Realtime topic and gets no cards, except its own votes. Null otherwise, and a removed player can't rejoin |
@@ -608,7 +609,7 @@ sequenceDiagram
 
 ### Lobby
 
-- Each player sets tonight's services, moods and genres on their seat (`api.set_seat_prefs`). The host edits room settings (`api.update_room_settings`): time budget, seen rule, quality, reveal mode, age cap.
+- Each player sets tonight's services, moods and genres on their seat (`api.set_seat_prefs`). Genres are optional and never block Start: up to 3 of the genres `api.room_genres` offers, locked at Start ([game-modes.md](../product/game-modes.md#genres-tonight)). The host edits room settings (`api.update_room_settings`): time budget, seen rule, quality, reveal mode, age cap.
 - Players without Letterboxd answer the calibration films (`api.submit_calibration`). Answers become `user_titles` rows, `calibrated_at` is set so friends see the tick, and a taste refresh is queued; the server rebuilds the profile in well under a second, before the host taps start.
 - Phones send `api.touch_room` every 30 seconds and track presence on `room:<id>:live`.
 
@@ -751,7 +752,8 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | `remove_member(room, member)` | Host only: remove a player; they can't rejoin |
 | `set_room_locked(room, locked)` | Host only, any open state: lock or unlock the room; a locked room takes no new seat |
 | `update_room_settings(room, settings)` | Host, lobby only |
-| `set_seat_prefs(room, services, moods, genres)` | Your settings for tonight |
+| `set_seat_prefs(room, services, moods, genres)` | Your settings for tonight. Genres: at most 3 (`too_many`), only genres offered tonight (`unknown_genre`), refused once the room has started (`locked`). A call that changes only genres sends `genres_changed`, not `seat_updated`; the app sends genres alone, since a call that mixes them with services or moods also sends `seat_updated`, which names the seat |
+| `room_genres(room)` | The genres offered tonight (`options`: genre id and how many present seats picked it, in genre id order) and your own picks (`mine`). Never a seat or a name. Still answers after Start |
 | `start_game(room)` | Host: queue the deal; on a second tap after 8 seconds, deal the baseline. Under `deck_engine` `sql`, deal the baseline at once |
 | `request_cards(room)` | Running low with no refill: queue one, or deal the baseline after 8 seconds. Under `deck_engine` `sql`, deal at once |
 | `cast_vote(room, title, answer, seat, dwell_ms, client_at)` | The vote |
@@ -806,7 +808,8 @@ Every table in `public` and `rec` has row-level security on. Phones use the `aut
 | `member_left` | room | leave_room | seat, new host seat | Removes it, moves the crown |
 | `member_removed` | room | remove_member | seat | Refetches seats (the removed phone's own handling: M4.13) |
 | `room_locked` | room | set_room_locked | locked | Refetches the room (only sent when the value changes) |
-| `seat_updated` | room | set_seat_prefs, submit_calibration | seat | Refetches seats |
+| `seat_updated` | room | set_seat_prefs (not for a genres-only change), submit_calibration | seat | Refetches seats |
+| `genres_changed` | room | set_seat_prefs, when a seat's genre picks change | none | Re-reads `api.room_genres` |
 | `next_room` | room | play_again | `room_id`, `code`, `host_member_id` (the host's seat in this room, never a name) | Reads the room and offers "Join" (sent again on a repeat call) |
 | `settings_changed` | room | update_room_settings | the six saved settings | Refetches the room |
 | `state_changed` | room | start_game, deal_cards, finale, end | state, optional reason and eligible (a start sent back to the lobby: `too_few_films`) | Moves to the next screen ("Shuffling" while dealing) |
