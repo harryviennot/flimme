@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useMyProfile } from '@/features/profile';
+import { useGridServices } from '@/features/services/use-grid-services';
 
 import { useCountryProviders, useMyProviders } from './queries';
 import {
@@ -30,6 +31,7 @@ export function useSetupForm() {
   const [age, setAge] = useState<AgeChoice>(DEFAULT_AGE);
 
   const listed = providers.data ?? [];
+  const gridItems = useGridServices(listed);
   const start = initialSelection(
     mine.data ?? [],
     listed.map((p) => p.provider_id),
@@ -47,6 +49,7 @@ export function useSetupForm() {
     providers,
     mine,
     listed,
+    gridItems,
     start,
     selection,
     ready,

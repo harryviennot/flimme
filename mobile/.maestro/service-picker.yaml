@@ -1,0 +1,55 @@
+# The service picker's logo grid, on staging: Host setup shows the logo tiles, a tap selects one
+# (check badge) and a second tap clears it, the JustWatch credit shows, and Play alone has the
+# same grid. Run: `maestro test -e METRO_URL=http://localhost:<port> mobile/.maestro/service-picker.yaml`
+# with the development build installed and Metro started with the staging values.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Staging|Continue'
+    timeout: 20000
+- runFlow:
+    when:
+      visible: 'Continue'
+    commands:
+      - tapOn: 'Continue'
+- extendedWaitUntil:
+    visible: 'Staging'
+    timeout: 15000
+- tapOn: 'Staging'
+- extendedWaitUntil:
+    visible: 'Running on (mfpkphxjndvtafgeeoeh|localhost).*'
+    timeout: 60000
+- openLink: flimme-dev:///
+- extendedWaitUntil:
+    visible: '(?i)get started|c.est parti|open a room|organise une soirée.*|got a room code.*'
+    timeout: 60000
+- runFlow:
+    when:
+      visible: '(?i)get started|c.est parti'
+    commands:
+      - tapOn: '(?i)get started|c.est parti'
+      - inputText: 'Maestro'
+      - tapOn: '(?i)continue|continuer'
+- extendedWaitUntil:
+    visible: '(?i)open a room|organise une soirée.*'
+    timeout: 20000
+- tapOn: '(?i)open a room|ouvrir une salle'
+- extendedWaitUntil:
+    visible: '(?i)set up tonight|prépare la soirée'
+    timeout: 15000
+- extendedWaitUntil:
+    visible: '(?i).*JustWatch.*'
+    timeout: 20000
+- takeScreenshot: picker-1-grid
+- assertVisible: '(?i)pick at least one service|choisis au moins une plateforme'
+# Tiles are checkboxes named after the service: tap the first one in the grid.
+- tapOn:
+    point: 15%,40%
+- takeScreenshot: picker-2-one-picked
+- assertNotVisible: '(?i)pick at least one service|choisis au moins une plateforme'
+# Tap it again: cleared, Open the room waits again.
+- tapOn:
+    point: 15%,40%
+- assertVisible: '(?i)pick at least one service|choisis au moins une plateforme'

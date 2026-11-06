@@ -1,0 +1,25 @@
+# M6.23, guest path with a cold start: the phone sits in a room hosted by a bot
+# (`mise run bots -- play-again --as host --count 2 --target staging`, then it joins by link),
+# the app is killed while swiping, and relaunched here. It likes every film to the pick, and the
+# Join offer must show with the host named. Needs Metro on the staging backend.
+# Run: maestro --device <sim> test mobile/.maestro/play-again-guest-relaunch.yaml -e METRO_URL=http://localhost:<port>
+appId: com.harryviennot.flimme.dev
+---
+- launchApp:
+    stopApp: true
+- runFlow: subflows/connect-metro.yaml
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 90000
+- repeat:
+    while:
+      visible: 'Like'
+    times: 120
+    commands:
+      - tapOn:
+          text: 'Like'
+          optional: true
+- extendedWaitUntil:
+    visible: 'Bot 1 started another game.*|Another game is open.*'
+    timeout: 240000
+- takeScreenshot: play-again-8-relaunch-offer

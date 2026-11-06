@@ -68,6 +68,7 @@ jest.mock('@/api', () => ({
       { provider_id: 8, name: 'Netflix', logo_path: null, display_priority: 1 },
     ]),
     myProviders: jest.fn(async () => []),
+    catalogCountries: jest.fn(async () => [{ code: 'FR', default_language: 'fr' }]),
     updateProfile: jest.fn(async () => ({ status: 'ok', display_name: 'Léa', avatar_key: 'blue' })),
   },
 }));
@@ -75,6 +76,9 @@ jest.mock('@/features/session', () => ({
   startSession: jest.fn(async () => ({ status: 'ok', userId: 'u1', isNew: true })),
   useSession: () => ({ status: 'ok', userId: 'u1', isNew: true }),
   useSessionFailed: () => false,
+}));
+jest.mock('@/features/app-config/use-app-config', () => ({
+  useAppConfig: () => ({ data: { tmdb_image_base: 'https://img.test/t/p' } }),
 }));
 jest.mock('@/features/network', () => ({ useOnline: () => true, watchNetwork: jest.fn() }));
 // The room layout opens Realtime channels on this client; tests have no network.
@@ -135,6 +139,7 @@ const routes = {
   'join/[code]': require('@/app/join/[code]').default,
   host: require('@/app/host/index').default,
   settings: require('@/app/settings').default,
+  'settings/country': require('@/app/settings/country').default,
   'room/[id]/_layout': require('@/app/room/[id]/_layout').default,
   'room/[id]/lobby': require('@/app/room/[id]/lobby').default,
   'room/[id]/invite': require('@/app/room/[id]/invite').default,
@@ -169,6 +174,7 @@ const paths = [
   '/join/123456',
   '/host',
   '/settings',
+  '/settings/country',
   '/room/abc/lobby',
   '/room/abc/invite',
   '/room/abc/services',

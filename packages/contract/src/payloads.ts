@@ -491,6 +491,11 @@ export const countryProviderRow = z.object({
 export const countryProvidersSchema = z.array(countryProviderRow);
 export type CountryProvider = z.infer<typeof countryProviderRow>;
 
+// The `api.catalog_countries` view: the countries that have a catalog (the country choice).
+export const catalogCountryRow = z.object({ code: z.string(), default_language: z.string() });
+export const catalogCountriesSchema = z.array(catalogCountryRow);
+export type CatalogCountry = z.infer<typeof catalogCountryRow>;
+
 // The `api.game_modes` view: the rules of each mode that the phone needs before a game.
 export const gameModeRow = z.object({
   slug: z.string(),

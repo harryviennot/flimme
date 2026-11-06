@@ -1,23 +1,32 @@
-import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Image } from 'expo-image';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
+import { serviceInitials } from '@/lib/service-initials';
 import { cn } from '@/lib/cn';
+import { duration } from '@/theme/motion';
 
 export type ServiceTileProps = {
   name: string;
+  /** The logo's full address (TMDB, w92). Without it, or when it fails to load, the initials show. */
+  logo?: string;
   selected?: boolean;
   onPress?: () => void;
 };
 
 /**
- * Figma "Service tile": a streaming service the player has, or can tap to add. It fills the
- * width of its cell: put it in a row (three per row, `flex-row gap-2`), never a column.
+ * Figma "Service tile": a streaming service the player has, or can tap to add. A square with
+ * the logo; the name is the accessibility label, not text (four tiles a row leave no room for
+ * it, and the logos are what players know). It fills the width of its cell: put it in a row
+ * (`flex-row gap-2`), never a column. Selected: accent border and a check badge. Unselected:
+ * the logo is dimmed, so the state never rests on colour alone.
  */
-export function ServiceTile({ name, selected = false, onPress }: ServiceTileProps) {
-  const { t } = useTranslation();
+export function ServiceTile({ name, logo, selected = false, onPress }: ServiceTileProps) {
+  const [failed, setFailed] = useState(false);
+  const showLogo = Boolean(logo) && !failed;
   return (
     <Pressable
       accessibilityLabel={name}
@@ -25,30 +34,40 @@ export function ServiceTile({ name, selected = false, onPress }: ServiceTileProp
       accessibilityState={{ checked: selected }}
       onPress={onPress}
       className={cn(
-        // Fills the width its grid cell gives it (three per row, 106 points on a 375-wide
-        // iPhone). The unselected border is 1 point and the selected 2: the padding makes
-        // up the difference, so both are the same height.
-        'min-w-0 flex-1 gap-1 rounded-md',
-        selected
-          ? 'border-2 border-accent-default bg-accent-soft p-2.5'
-          : 'border border-border-default bg-bg-surface p-2.75',
+        'aspect-square min-w-0 flex-1 overflow-hidden rounded-md',
+        selected ? 'border-2 border-accent-default' : 'border border-border-default',
       )}
     >
-      <Text variant="title-m" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
-        {name}
-      </Text>
-      {/* The check sits beside "Added", not on the name line: names keep the full width. */}
-      <View className="flex-row items-center gap-1">
-        {selected ? <Icon name="check" size={16} color="accent-text" /> : null}
-        <Text
-          variant="body-s"
-          tone={selected ? 'accent' : 'muted'}
-          numberOfLines={1}
-          className="shrink"
-        >
-          {t(selected ? 'services.added' : 'services.tapToAdd')}
-        </Text>
+      <View
+        className={cn(
+          'flex-1 items-center justify-center bg-bg-raised',
+          selected ? '' : 'opacity-stack-near',
+        )}
+      >
+        {showLogo ? (
+          <Image
+            source={{ uri: logo }}
+            contentFit="cover"
+            transition={duration.fast}
+            style={StyleSheet.absoluteFill}
+            accessible={false}
+            onError={() => setFailed(true)}
+            testID="service-tile-logo"
+          />
+        ) : (
+          <Text variant="title-m" tone="secondary" testID="service-tile-initials">
+            {serviceInitials(name)}
+          </Text>
+        )}
       </View>
+      {selected ? (
+        <View
+          className="absolute top-1 right-1 size-5 items-center justify-center rounded-pill bg-accent-default"
+          testID="service-tile-check"
+        >
+          <Icon name="check" size={14} color="text-on-accent" />
+        </View>
+      ) : null}
     </Pressable>
   );
 }

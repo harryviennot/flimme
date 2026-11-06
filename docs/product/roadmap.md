@@ -105,7 +105,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 14 | In progress |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 9 | In progress |
 | [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | Not started |
-| [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the review notes are ready on both stores, and Play alone reaches a pick on one device | 10 | Not started |
+| [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the review notes are ready on both stores, and Play alone reaches a pick on one device | 10 | In progress |
 | [M12](#m12-closed-beta) | Closed beta | Friend groups and families play, Google's 12 testers have run 14 days, and the go decision is made | 7 | Not started |
 | [M13](#m13-public-launch) | Public launch | Live on both stores in France | 6 | Not started |
 | **After launch** | | | | |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 154 of 291 tasks done.
+Progress: 156 of 291 tasks done.
 
 ```mermaid
 flowchart LR
@@ -525,7 +525,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: shareable from the winner screen.
 - [x] **M6.22** `api.play_again` and the `next_room` event · backend · M · needs M6.6 · [game-modes](game-modes.md#functions-still-to-write)
   Done when: tested.
-- [ ] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · M · needs M6.22, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
+- [x] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · M · needs M6.22, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
   Done when: a group starts a second room in two taps.
 - [ ] **M6.24** The match and reveal sounds: commissioned or licensed for use in an app, each under about 1.5 seconds, wired into `lib/sound` · content · S · needs M3.14 · [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: both play on the match and the reveal, mixed with other audio and quiet on silent.
@@ -646,7 +646,7 @@ M11.7 (the reviewers' demo room: a reserved code that `api.create_room` never dr
   Done when: entered in both consoles.
 - [ ] **M11.9** Support, privacy and deletion URLs; content rights; the encryption exemption; Android target API 36 · publishing · M · needs M8.3, M10.1 · [store-listing](store-listing.md#release-checklist)
   Done when: both consoles show no missing item.
-- [ ] **M11.11** Choose a country: when the phone's region has no catalog, "Not in your country yet" offers the French catalog, and Settings gets a Country row listing the countries with a catalog; also mends a profile whose country was saved once at first launch · app · M · needs M8.7 · [store-listing](store-listing.md#price-and-countries), [onboarding](onboarding.md#empty-and-error-states)
+- [x] **M11.11** Choose a country: when the phone's region has no catalog, "Not in your country yet" offers the French catalog, and Settings gets a Country row listing the countries with a catalog; also mends a profile whose country was saved once at first launch · app · M · needs M8.7 · [store-listing](store-listing.md#price-and-countries), [onboarding](onboarding.md#empty-and-error-states)
   Done when: a phone with a US region plays alone and hosts on the French catalog after one tap, and Settings changes the country.
 
 ## M12 Closed beta
