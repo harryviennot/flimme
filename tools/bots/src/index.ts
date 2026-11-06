@@ -52,6 +52,8 @@ async function main() {
           likeRate: config.likeRate,
           seed: config.seed,
           personality: config.personality,
+          genres: config.genres,
+          leaveOnStop: config.leaveOnStop,
           log: console.log,
         }),
       );

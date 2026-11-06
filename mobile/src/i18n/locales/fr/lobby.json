@@ -56,7 +56,9 @@
     "start": "Impossible de lancer la séance. Réessaie.",
     "services": "Impossible d'enregistrer tes plateformes. Réessaie.",
     "remove": "Impossible de retirer ce joueur. Réessaie.",
-    "lock": "Impossible de changer le verrou. Réessaie."
+    "lock": "Impossible de changer le verrou. Réessaie.",
+    "genres": "Impossible d'enregistrer tes genres. Réessaie.",
+    "genresStale": "Les genres ont changé. Choisis à nouveau."
   },
   "seatSheet": {
     "remove": "Retirer de la salle",
@@ -98,5 +100,26 @@
   "lock": {
     "label": "Verrouiller la salle",
     "helper": "Personne de nouveau ne peut entrer. Ceux qui sont déjà venus peuvent revenir."
+  },
+  "yourGenres": {
+    "label": "Tes genres ce soir",
+    "optional": "Facultatif",
+    "none": "Rien à choisir ce soir"
+  },
+  "genresSheet": {
+    "title": "Tes genres ce soir",
+    "helper": "Choisis jusqu'à 3 genres. Les autres voient combien de joueurs ont choisi chaque genre, pas qui.",
+    "cap": "3 genres au maximum. Retire-en un pour en changer.",
+    "none": "Pas assez de films pour proposer des genres ce soir.",
+    "failed": "Impossible de charger les genres.",
+    "offline": "Pas de réseau. Les genres reviennent avec la connexion.",
+    "retry": "Réessayer",
+    "done": "C'est bon",
+    "chip_one": "{{name}}, {{count}} joueur",
+    "chip_other": "{{name}}, {{count}} joueurs"
+  },
+  "genresLocked": {
+    "title": "Genres verrouillés",
+    "message": "La séance a commencé."
   }
 }

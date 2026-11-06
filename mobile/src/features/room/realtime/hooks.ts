@@ -15,7 +15,7 @@ import { useOnline } from '@/features/network';
 import { supabase } from '@/lib/supabase';
 
 import { beatNow } from '../heartbeat';
-import { ROOM_KEY, SEATS_KEY, useMySeat, useRoomSeats } from '../queries';
+import { GENRES_KEY, ROOM_KEY, SEATS_KEY, useMySeat, useRoomSeats } from '../queries';
 import { useRoomRealtime } from './context';
 import {
   openRoomRealtime,
@@ -26,11 +26,13 @@ import {
 import { bannerFor, isFresh, nextBannerChange, presenceOf, type BannerKind } from './derive';
 
 /** Which re-read each known event asks for. The others have no handler yet (later slices). */
-export const EVENT_READS: Partial<Record<RoomEvent, 'seats' | 'room'>> = {
+export const EVENT_READS: Partial<Record<RoomEvent, 'seats' | 'room' | 'genres'>> = {
   member_joined: 'seats',
   member_left: 'seats',
   member_removed: 'seats',
   seat_updated: 'seats',
+  // Only counts changed, never who (M6.53): the phone re-reads api.room_genres.
+  genres_changed: 'genres',
   host_changed: 'seats',
   settings_changed: 'room',
   room_locked: 'room',
@@ -38,6 +40,18 @@ export const EVENT_READS: Partial<Record<RoomEvent, 'seats' | 'room'>> = {
   // Play again (M6.23): the room row carries the next room's code.
   next_room: 'room',
 };
+
+/**
+ * Events after which the genre counts may have changed with no `genres_changed`: the counts cover
+ * present seats (a seat joins, leaves or goes silent), and the host's services change what is
+ * offered (M6.53).
+ */
+export const GENRE_COUNT_EVENTS: readonly RoomEvent[] = [
+  'member_joined',
+  'member_left',
+  'member_removed',
+  'settings_changed',
+];
 
 /**
  * Opens the room's two channels once the phone's seat is known and closes them on unmount.
@@ -67,8 +81,12 @@ export function useRoomChannels(
       },
       onEvent: (event) => {
         const what = EVENT_READS[event];
+        if (GENRE_COUNT_EVENTS.includes(event))
+          void queryClient.invalidateQueries({ queryKey: GENRES_KEY(roomId) });
         if (what === 'seats') void queryClient.invalidateQueries({ queryKey: SEATS_KEY(roomId) });
         // `exact`: the room alone. The layout routes on what this read says, never on the payload.
+        else if (what === 'genres')
+          void queryClient.invalidateQueries({ queryKey: GENRES_KEY(roomId) });
         else if (what === 'room')
           void queryClient.invalidateQueries({ queryKey: ROOM_KEY(roomId), exact: true });
       },

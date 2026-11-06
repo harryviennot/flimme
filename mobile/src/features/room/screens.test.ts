@@ -15,6 +15,16 @@ describe('roomScreenFor', () => {
   });
 });
 
+describe('the genres sheet', () => {
+  it('sits over the lobby only: picks lock at Start', () => {
+    expect(isAllowed('lobby', 'genres')).toBe(true);
+    expect(isSheet('genres')).toBe(true);
+    for (const state of ['dealing', 'swiping', 'finale', 'done', 'abandoned'] as const) {
+      expect(isAllowed(state, 'genres')).toBe(false);
+    }
+  });
+});
+
 describe('isAllowed', () => {
   it('lets the invite and services sheets sit over the lobby and the dealing', () => {
     for (const state of ['lobby', 'dealing'] as const) {

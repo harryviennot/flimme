@@ -244,6 +244,15 @@ export const roomGenresResult = z.discriminatedUnion('status', [
 ]);
 export type RoomGenresResult = z.infer<typeof roomGenresResult>;
 
+// The `api.genres` view: a TMDB genre with its names by language.
+export const genreRow = z.object({
+  id: z.number(),
+  slug: z.string(),
+  names: z.object({ fr: z.optional(z.string()), en: z.optional(z.string()) }),
+});
+export const genresSchema = z.array(genreRow);
+export type Genre = z.infer<typeof genreRow>;
+
 export const startGameResult = z.discriminatedUnion('status', [
   // Under deck_engine `sql` the start deals at once (`ok`); `fallback` marks the 8-second path.
   z.object({
