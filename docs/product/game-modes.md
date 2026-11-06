@@ -96,9 +96,9 @@ Later modes are in [Later modes](#later-modes).
 | Seen rule | What "Seen it" does |
 | --- | --- |
 | `hide_seen` (Date Night) | The film leaves the game for everyone: it's dropped from every deck that hasn't reached it. It can't match |
-| `allow_rewatch` (the default) and `show_all` | **Default to confirm:** the card asks one more question, "Watch it again tonight?". Yes counts as a like, No as a nope. Either way the film is recorded as seen |
+| `allow_rewatch` (the default) and `show_all` | **Decided on 6 November 2026:** one tap on Seen it sends `seen` (a nope) and the card flies up; a chip then offers "Watch it again tonight? Yes", which turns the answer into a like (`seen_rewatch`) for 5 seconds or until the next answer. Either way the film is recorded as seen |
 
-Today the data model makes "Seen it" an abstention under these rules: the film can match without that player. Now that `allow_rewatch` is the default, that would let a film match while someone who has seen it and doesn't want to rewatch it said nothing against it. The follow-up question removes abstentions; it costs one tap, only in rooms that allow rewatches. For taste, both answers count as "seen" (0), as the deck engine's [signals](../architecture/deck-engine.md#signals) already say.
+Today the data model makes "Seen it" an abstention under these rules: the film can match without that player. Now that `allow_rewatch` is the default, that would let a film match while someone who has seen it and doesn't want to rewatch it said nothing against it. The seen nope removes abstentions; the chip's Yes costs one tap, only in rooms that allow rewatches. For taste, both answers count as "seen" (0), as the deck engine's [signals](../architecture/deck-engine.md#signals) already say.
 
 **Undo**
 
@@ -316,6 +316,8 @@ What the simulation says:
 - **The deck engine's phases follow automatically**, since they're a share of the card count: the narrowing phase ends at card 24 of 40, or 18 of 30.
 
 **With up to 3 matches** (5 November 2026), the third match or the card count ends swiping in every mode. In the [proposal's simulation](three-matches-and-fair-finalists.md#the-simulation), with medium agreement and 2 to 6 players, the median time to a pick goes from 0:28 to 2:38 to 1:58 to 3:28, and 95 to 100% of games still pick within 5 minutes. The worst case doesn't change. Bot tastes are made up there too.
+
+**With per-player genres** (6 November 2026, M6.52), the [genre simulation](simulations.md#per-player-genres) finds split picks within a few seconds of today's deck at every size, 3:34 at the median at worst (4 players), so the under-5-minute gate passes. Shared picks are faster: with 8 players, games without a match fall from 13% to 9%. Bot tastes and the catalog are made up.
 
 ## Functions still to write
 

@@ -20,10 +20,10 @@
   },
   "nearMiss_one": "{{count}} of {{of}} of you liked this",
   "nearMiss_other": "{{count}} of {{of}} of you liked this",
-  "seenQuestion": {
-    "title": "Watch it again tonight?",
+  "rewatchChip": {
+    "text": "Seen it. Watch it again tonight?",
     "yes": "Yes",
-    "no": "No"
+    "done": "Up for a rewatch"
   },
   "hints": {
     "swipe": "Swipe right to like, left to nope.",
@@ -65,7 +65,6 @@
     "undoNone": "Nothing to undo",
     "undone": "{{title}} is back",
     "seenYes": "Yes, watch it again tonight",
-    "seenNo": "No, not tonight",
     "pill_one": "{{name}}, {{count}} film",
     "pill_other": "{{name}}, {{count}} films",
     "pillAway": "{{name}}, away",

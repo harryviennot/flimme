@@ -1,9 +1,10 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
-import { AccessibilityInfo, View } from 'react-native';
+import { useEffect, useSyncExternalStore } from 'react';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cn } from '@/lib/cn';
+import { useScreenReader } from '@/lib/screen-reader';
 import type { ColorToken } from '@/theme/generated/tokens';
 import { layout } from '@/theme/motion';
 
@@ -100,22 +101,6 @@ const subscribe = (listener: () => void) => {
 const DEFAULT_DURATION = 3000;
 /** With a screen reader on, a toast that has an action stays long enough to be reached. */
 const SCREEN_READER_MIN = 10_000;
-
-function useScreenReader(): boolean {
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    let live = true;
-    AccessibilityInfo.isScreenReaderEnabled()
-      .then((enabled) => live && setOn(enabled))
-      .catch(() => {});
-    const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setOn);
-    return () => {
-      live = false;
-      subscription.remove();
-    };
-  }, []);
-  return on;
-}
 
 /** Renders the current toast under the status bar. Mounted once, in the root layout. */
 export function ToastHost() {

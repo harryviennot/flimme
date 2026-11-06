@@ -5,10 +5,9 @@ import { MAX_DWELL_MS } from './feel';
 import type { QueuedVote } from './vote-queue';
 
 // The answer path (swipe.md#the-screen's files): one function takes the top card off the stack
-// and puts its vote in the queue. The rewatch question (M6.12) only picks which answer is sent:
-// Yes is `seen_rewatch`, No is `seen`, and the card stays on top until one is tapped, so its
-// dwell time runs on. It is synchronous
-// and never touches the network: the swipe doesn't wait (rule 5).
+// and puts its vote in the queue. Seen it is a plain `seen` at once (a nope); in a room that
+// allows rewatches the rewatch chip (M6.49) can turn it into `seen_rewatch` afterwards, through
+// `change`. It is synchronous and never touches the network: the swipe doesn't wait (rule 5).
 
 /** The four answers a card can be given. */
 export type AnswerKind = Extract<
@@ -20,16 +19,16 @@ export type AnswerKind = Extract<
 export type SeenRule = 'hide_seen' | 'allow_rewatch' | 'show_all';
 
 /**
- * Whether "Seen it" asks "Watch it again tonight?" (swipe.md#seen-it-the-rewatch-question).
- * Under `hide_seen` the film leaves the room, so there is nothing to ask.
+ * Whether the room lets a seen film come back (swipe.md#seen-it-the-rewatch-question). Under
+ * `hide_seen` the film leaves the room, so there is nothing to offer.
  */
 export function asksRewatch(rule: SeenRule | undefined): boolean {
   return rule === 'allow_rewatch' || rule === 'show_all';
 }
 
-/** What Yes and No send: Yes counts as a like, No is a plain `seen` (a nope). */
-export function rewatchAnswer(yes: boolean): AnswerKind {
-  return yes ? 'seen_rewatch' : 'seen';
+/** Whether this answer brings up the rewatch chip: a Seen it in a room that allows rewatches. */
+export function offersRewatch(kind: AnswerKind, rule: SeenRule | undefined): boolean {
+  return kind === 'seen' && asksRewatch(rule);
 }
 
 /** Presence carries the swipe count every this many answers (decision M4.21, Q21.2). */
@@ -63,6 +62,8 @@ export function createAnswerer(deps: AnswererDeps) {
   let count = deps.initialCount;
   // The last count sent to the others (presence), to correct it when an undo lowers it.
   let sent: number | null = null;
+  // The last vote queued, so the rewatch chip can send the same card again with another answer.
+  let lastVote: QueuedVote | null = null;
 
   return {
     /** Takes the top card and queues the vote; null when nothing was answered. */
@@ -71,7 +72,7 @@ export function createAnswerer(deps: AnswererDeps) {
       if (kind === 'super_like' && superLikes <= 0) return null;
       const done = deps.stack.getState().answer();
       if (!done) return null;
-      deps.queue.enqueue({
+      const vote: QueuedVote = {
         room_id: deps.roomId,
         member_id: deps.memberId,
         title_id: done.card.title_id,
@@ -80,7 +81,9 @@ export function createAnswerer(deps: AnswererDeps) {
         client_at: new Date(deps.now()).toISOString(),
         flipped: done.flipped,
         ...(deps.solo?.() && { solo: true }),
-      });
+      };
+      lastVote = vote;
+      deps.queue.enqueue(vote);
       if (kind === 'super_like') superLikes -= 1;
       count += 1;
       if (count % PRESENCE_EVERY === 0) {
@@ -88,6 +91,18 @@ export function createAnswerer(deps: AnswererDeps) {
         deps.onCount(count);
       }
       return done;
+    },
+
+    /**
+     * Queues the last answer again with another kind (the rewatch chip's Yes). The caller has
+     * taken the first vote back (`undoer.change`) so the queue holds the undo, then this vote.
+     * Nothing is counted: it is still one answer. False when `titleId` is not the last answer.
+     */
+    change(titleId: number, kind: AnswerKind): boolean {
+      if (deps.locked() || !lastVote || lastVote.title_id !== titleId) return false;
+      lastVote = { ...lastVote, answer: kind, client_at: new Date(deps.now()).toISOString() };
+      deps.queue.enqueue(lastVote);
+      return true;
     },
 
     superLikesLeft: () => superLikes,
