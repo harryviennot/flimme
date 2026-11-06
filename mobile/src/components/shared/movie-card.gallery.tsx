@@ -96,6 +96,10 @@ export const gallery: GalleryEntry = {
         No services, no score
       </Text>
       <Demo card={bare} start />
+      <Text variant="mono-eyebrow" tone="secondary">
+        Still back (film sheet): long synopsis shown whole, the card grows
+      </Text>
+      <MovieCard {...long} still flipped />
     </View>
   ),
 };
