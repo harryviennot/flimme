@@ -152,6 +152,14 @@ describe('events', () => {
     },
   );
 
+  it('reads the genre counts again on every reconnect: they sit under the room key', async () => {
+    await opened(<Genres />);
+    await waitFor(() => expect(screen.getByTestId('genres')).toHaveTextContent('1'));
+    const before = api.roomGenres.mock.calls.length;
+    await act(async () => events().status('SUBSCRIBED'));
+    await waitFor(() => expect(api.roomGenres.mock.calls.length).toBeGreaterThan(before));
+  });
+
   it('genres_changed reads the genre counts again, and nothing else', async () => {
     await opened(<Genres />);
     await waitFor(() => expect(screen.getByTestId('genres')).toHaveTextContent('1'));

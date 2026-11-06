@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useRef, useState } from 'react';
+import { router, useLocalSearchParams, useSegments } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, Platform, View } from 'react-native';
 
@@ -30,6 +30,18 @@ export default function RoomGenresScreen() {
   const online = useOnline();
   const read = useRoomGenres(id);
   const names = useGenres();
+
+  // Start can close this sheet while a save is in flight: the room layout dismisses it and shows
+  // the next screen. A late answer must then not go back a second time and pop that screen.
+  const segments = useSegments() as string[];
+  const stillOpen = useRef(true);
+  const onGenres = segments[segments.length - 1] === 'genres';
+  useEffect(() => {
+    stillOpen.current = onGenres;
+  }, [onGenres]);
+  const closeSheet = () => {
+    if (stillOpen.current) router.back();
+  };
 
   // Starts on the picks the server holds that are still offered (a pick that left the offer would
   // take a place in the cap that no chip shows); the player's taps replace them until Done.
@@ -75,7 +87,7 @@ export default function RoomGenresScreen() {
       case 'close':
         void client.invalidateQueries({ queryKey: GENRES_KEY(id ?? '') });
         void client.invalidateQueries({ queryKey: SEATS_KEY(id ?? '') });
-        router.back();
+        closeSheet();
         return;
       case 'locked':
         showToast({
@@ -83,7 +95,7 @@ export default function RoomGenresScreen() {
           title: t('genresLocked.title'),
           message: t('genresLocked.message'),
         });
-        router.back();
+        closeSheet();
         return;
       case 'stale':
         // A genre left tonight's offer: read it again, keep the sheet open.

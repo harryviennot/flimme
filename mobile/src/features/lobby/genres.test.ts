@@ -75,6 +75,10 @@ describe('genreSummary', () => {
     expect(genreSummary(options, genres, 'en', [18, 35])).toEqual(['Comedy', 'Drama']);
   });
 
+  it('leaves out a pick that is no longer offered', () => {
+    expect(genreSummary(options, genres, 'en', [99, 35])).toEqual(['Comedy']);
+  });
+
   it('is empty with no picks', () => {
     expect(genreSummary(options, genres, 'en', [])).toEqual([]);
   });

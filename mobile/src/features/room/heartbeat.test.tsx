@@ -98,4 +98,16 @@ describe('useRefreshOnForeground', () => {
     await emit('active');
     expect(spy).toHaveBeenCalledWith({ queryKey: ['room', 'r1'] });
   });
+
+  it('marks the genre counts stale too: they sit under the room key', async () => {
+    const client = new QueryClient();
+    client.setQueryData(['room', 'r1', 'genres'], { status: 'ok', options: [], mine: [] });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    await renderHook(() => useRefreshOnForeground('r1'), { wrapper });
+    await emit('background');
+    await emit('active');
+    expect(client.getQueryState(['room', 'r1', 'genres'])?.isInvalidated).toBe(true);
+  });
 });
