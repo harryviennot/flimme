@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, type LayoutChangeEvent } from 'react-native';
-import Animated, { LinearTransition } from 'react-native-reanimated';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 
 import { Avatar } from '@/components/ui/avatar';
 import { Icon } from '@/components/ui/icon';
@@ -11,14 +11,16 @@ import { toAvatarColor } from '@/features/profile';
 import type { Pill } from '@/features/swipe/pills';
 import { DEFAULT_STACK_WIDTH, stackCounts, stackLayout } from '@/features/swipe/player-stack';
 import { cn } from '@/lib/cn';
-import { duration, layout } from '@/theme/motion';
+import { layout, stackMotion } from '@/theme/motion';
 
 // The top bar's players (swipe.md#the-player-stack): one 28-point avatar per seat, with the online
 // dot, a check badge for Done, dimmed when away and a crown for the host. They sit apart while
 // they fit, then overlap by 8, then end in a "+N" disc. The whole stack is one button that opens
 // the players sheet. Never anything about answers (rule 6).
+
 export function PlayerStack({ pills, onPress }: { pills: readonly Pill[]; onPress: () => void }) {
   const { t } = useTranslation('swipe');
+  const motion = stackMotion(useReducedMotion());
   const [width, setWidth] = useState(DEFAULT_STACK_WIDTH);
   const onLayout = (event: LayoutChangeEvent) => {
     const next = Math.floor(event.nativeEvent.layout.width);
@@ -61,9 +63,9 @@ export function PlayerStack({ pills, onPress }: { pills: readonly Pill[]; onPres
         {shown.map((pill, index) => (
           <Animated.View
             key={pill.memberId}
-            entering={layout.popIn}
+            entering={motion.entering}
             exiting={layout.fadeOut}
-            layout={LinearTransition.duration(duration.base)}
+            layout={motion.layout}
             className={cn(
               'size-8 items-center justify-center rounded-pill border-2 border-bg-canvas',
               shape.mode === 'overlapped' && index > 0 && '-ml-2',
@@ -80,7 +82,7 @@ export function PlayerStack({ pills, onPress }: { pills: readonly Pill[]; onPres
             />
             {pill.done && !pill.away ? (
               <Animated.View
-                entering={layout.popIn}
+                entering={motion.entering}
                 className="absolute -right-0.5 -bottom-0.5 size-3.5 items-center justify-center rounded-pill border-2 border-bg-canvas bg-like-default"
                 testID="player-done"
               >
