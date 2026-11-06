@@ -3,16 +3,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/api';
 import i18n from '@/i18n';
+import { CATALOG_COUNTRIES_KEY, fetchCatalogCodes } from './catalog';
 import { MY_PROFILE_KEY, saveCachedProfile } from '@/features/profile';
-
-export const CATALOG_COUNTRIES_KEY = ['catalog_countries'] as const;
 
 /** The countries that have a catalog, by code. Rarely changes: kept for the session. */
 export function useCatalogCountries() {
   return useQuery({
     queryKey: CATALOG_COUNTRIES_KEY,
     staleTime: 10 * 60 * 1000,
-    queryFn: async () => (await api.catalogCountries()).map((c) => c.code),
+    queryFn: fetchCatalogCodes,
   });
 }
 

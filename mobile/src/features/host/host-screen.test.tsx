@@ -280,6 +280,17 @@ describe('host setup', () => {
     expect(screen.queryByText('Not in your country yet')).toBeNull();
   });
 
+  it('lifts a refusal once another country is chosen', async () => {
+    mockApi.myProfile.mockResolvedValue({ ...profile, country: 'US' });
+    mockApi.createRoom.mockResolvedValue({ status: 'country_required' });
+    await show();
+    await waitFor(() => expect(open()).toBeEnabled());
+    await fireEvent.press(open());
+    await fireEvent.press(await screen.findByRole('button', { name: 'Use the catalog: France' }));
+    await waitFor(() => expect(screen.queryByText('Not in your country yet')).toBeNull());
+    expect(open()).toBeTruthy();
+  });
+
   it('opens the list when several countries have a catalog', async () => {
     mockApi.catalogCountries.mockResolvedValue([
       { code: 'FR', default_language: 'fr' },

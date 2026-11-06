@@ -4,6 +4,7 @@ import { getLocales } from 'expo-localization';
 import { useEffect, useRef } from 'react';
 
 import { api } from '@/api';
+import { CATALOG_COUNTRIES_KEY, fetchCatalogCodes } from '@/features/country/catalog';
 import { deviceLanguage } from '@/i18n';
 
 import { saveCachedProfile } from './cache';
@@ -32,10 +33,7 @@ export function useDeviceSync(profile: MyProfile | null | undefined, fresh: bool
       profile.country !== device.regionCode;
     const catalog = needsCatalog
       ? client
-          .fetchQuery({
-            queryKey: ['catalog_countries'],
-            queryFn: async () => (await api.catalogCountries()).map((c) => c.code),
-          })
+          .fetchQuery({ queryKey: CATALOG_COUNTRIES_KEY, queryFn: fetchCatalogCodes })
           .catch(() => null)
       : Promise.resolve(null);
     void catalog.then((codes) => {

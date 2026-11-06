@@ -20,6 +20,8 @@ jest.mock('@/api', () => ({
     setMyProviders: jest.fn(),
     startSolo: jest.fn(),
     leaveRoom: jest.fn(),
+    catalogCountries: jest.fn(),
+    updateProfile: jest.fn(),
   },
 }));
 jest.mock('expo-router', () => ({
@@ -36,7 +38,14 @@ jest.mock('@/lib/haptics', () => ({ haptics: { error: jest.fn(), press: jest.fn(
 
 type Mocks<K extends string> = Record<K, jest.Mock>;
 const mockApi = api as unknown as Mocks<
-  'myProfile' | 'countryProviders' | 'myProviders' | 'setMyProviders' | 'startSolo' | 'leaveRoom'
+  | 'myProfile'
+  | 'countryProviders'
+  | 'myProviders'
+  | 'setMyProviders'
+  | 'startSolo'
+  | 'leaveRoom'
+  | 'catalogCountries'
+  | 'updateProfile'
 >;
 const mockRouter = router as unknown as Mocks<'replace' | 'push' | 'back' | 'dismissTo'>;
 
@@ -78,6 +87,8 @@ beforeEach(() => {
   mockApi.countryProviders.mockResolvedValue(providers);
   mockApi.myProviders.mockResolvedValue([8]);
   mockApi.setMyProviders.mockResolvedValue({ status: 'ok' });
+  mockApi.catalogCountries.mockResolvedValue([{ code: 'FR', default_language: 'fr' }]);
+  mockApi.updateProfile.mockResolvedValue({ status: 'ok' });
   mockApi.startSolo.mockResolvedValue({
     status: 'ok',
     room_id: 'r1',
@@ -187,6 +198,29 @@ describe('Play alone setup', () => {
     await waitFor(() => expect(start()).toBeEnabled());
     await fireEvent.press(start());
     await waitFor(() => expect(screen.getByText('Not in your country yet')).toBeTruthy());
+  });
+
+  it('offers the catalog country, and one tap saves it and the setup carries on', async () => {
+    mockApi.myProfile.mockResolvedValue({ ...profile, country: 'US' });
+    mockApi.countryProviders.mockImplementation(async ({ country }: { country: string }) =>
+      country === 'FR' ? providers : [],
+    );
+    await show();
+    await fireEvent.press(await screen.findByRole('button', { name: 'Use the catalog: France' }));
+    await waitFor(() => expect(mockApi.updateProfile).toHaveBeenCalledWith({ country: 'FR' }));
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Netflix' })).toBeTruthy());
+    expect(screen.queryByText('Not in your country yet')).toBeNull();
+  });
+
+  it('lifts a refusal once another country is chosen', async () => {
+    mockApi.myProfile.mockResolvedValue({ ...profile, country: 'US' });
+    mockApi.startSolo.mockResolvedValue({ status: 'country_required' });
+    await show();
+    await waitFor(() => expect(start()).toBeEnabled());
+    await fireEvent.press(start());
+    await fireEvent.press(await screen.findByRole('button', { name: 'Use the catalog: France' }));
+    await waitFor(() => expect(screen.queryByText('Not in your country yet')).toBeNull());
+    expect(start()).toBeTruthy();
   });
 
   it('says so on rate_limited and when the call fails, and the form stays', async () => {
