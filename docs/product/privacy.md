@@ -236,7 +236,7 @@ The first release's answers, field by field, are in [docs/store/privacy-forms.md
 | Identifiers: User ID (the profile id) | Yes | App Functionality, Analytics |
 | Identifiers: Device ID (the anonymous analytics install id, Expo's update token, Sentry's installation id) | No | Analytics, App Functionality |
 | Usage Data: Product Interaction | Yes | Analytics |
-| Usage Data: Other Usage Data (when the profile was created and last used) | Yes | App Functionality |
+| Usage Data: Other Usage Data (when the profile was created and last used, the sign-in log) | Yes | App Functionality |
 | Diagnostics: Crash Data | No | App Functionality |
 | Diagnostics: Performance Data (the time to the first card, app hangs) | Yes | Analytics, App Functionality |
 | Other Data (country, language, IP addresses, the stats choice) | Yes | App Functionality, Analytics, Other Purposes |
