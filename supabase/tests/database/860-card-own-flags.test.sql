@@ -131,9 +131,6 @@ select is((select c->'saved' from jsonb_array_elements(api.my_next_cards(current
 select tests.clear_authentication();
 
 -- ---------------------------------------------------------------------------
--- Never broadcast
--- ---------------------------------------------------------------------------
--- ---------------------------------------------------------------------------
 -- api.title_cards: the room's films, with the caller's own flags
 -- ---------------------------------------------------------------------------
 select pg_temp.mark_seen('p1');
