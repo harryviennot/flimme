@@ -117,6 +117,8 @@ function film(id: number): NextCard {
     reason_code: null,
     reason_params: {},
     member_ratings: [],
+    seen: false,
+    saved: false,
   };
 }
 
