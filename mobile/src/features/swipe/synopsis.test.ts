@@ -1,7 +1,7 @@
 import type { NextCard } from '@flimme/contract';
 import { act, renderHook } from '@testing-library/react-native';
 
-import { setSynopsisCard, synopsisCardOf, synopsisHref, useSynopsisCard } from './synopsis';
+import { setSynopsisCard, synopsisCardOf, useSynopsisCard } from './synopsis';
 
 const card = { title_id: 7, title: 'Paddington 2' } as NextCard;
 
@@ -24,9 +24,5 @@ describe('the synopsis sheet card', () => {
     expect(result.current).toBe(card);
     await act(async () => setSynopsisCard(null));
     expect(result.current).toBeNull();
-  });
-
-  it('names the route', () => {
-    expect(synopsisHref('r1', 7)).toBe('/room/r1/synopsis/7');
   });
 });

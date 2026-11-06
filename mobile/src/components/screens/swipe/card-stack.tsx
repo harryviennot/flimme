@@ -10,7 +10,7 @@ import type { AnswerKind } from '@/features/swipe/answer';
 import { announceSaved } from '@/features/later/announce';
 import { toggleSaved, useIsSaved } from '@/features/later';
 import { openTrailer } from '@/features/swipe/trailer';
-import { setSynopsisCard, synopsisHref } from '@/features/swipe/synopsis';
+import { setSynopsisCard } from '@/features/swipe/synopsis';
 import { backServices, cardMeta, cardServices, trailerAllowed } from '@/features/swipe/card-props';
 import { STACK_STEP, type Direction } from '@/features/swipe/feel';
 import type { Flying } from '@/features/swipe/use-flights';
@@ -92,7 +92,7 @@ export function CardStack({
   }, [checkpointShown]);
   const openSynopsis = (card: NextCard) => {
     setSynopsisCard(card);
-    router.push(synopsisHref(roomId, card.title_id));
+    router.push(`/room/${roomId}/synopsis/${card.title_id}`);
   };
   const openPick = () => router.push(`/room/${roomId}/pick`);
 

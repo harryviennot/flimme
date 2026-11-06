@@ -30,16 +30,15 @@ export function splitServices<T>(services: T[], slots: number): { shown: T[]; hi
 
 /**
  * The synopsis's line limit. `room` is the height it has, `line` one line's height, `full` the
- * line count of the whole text unclipped. When the text is cut and a "Read more" link follows,
- * the link takes the last line's place, so the text stops one line earlier.
+ * line count of the whole text unclipped. A "Read more" link takes its own line below the text
+ * box, so a cut text only has to show the link: the box shrinks and the cut stays a cut.
  */
-export function synopsisFit(args: { room: number; line: number; full: number; link: boolean }): {
+export function synopsisFit(args: { room: number; line: number; full: number }): {
   lines: number | undefined;
   cut: boolean;
 } {
-  const { room, line, full, link } = args;
+  const { room, line, full } = args;
   if (room <= 0 || line <= 0) return { lines: undefined, cut: false };
   const fits = Math.max(1, Math.floor(room / line + 0.01));
-  const cut = full > fits;
-  return { lines: cut && link ? Math.max(1, fits - 1) : fits, cut };
+  return { lines: fits, cut: full > fits };
 }

@@ -31,8 +31,3 @@ export function useSynopsisCard(titleId: number): NextCard | null {
     () => null,
   );
 }
-
-/** The route of a card's synopsis sheet. */
-export function synopsisHref(roomId: string, titleId: number): string {
-  return `/room/${roomId}/synopsis/${titleId}`;
-}

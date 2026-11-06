@@ -54,39 +54,27 @@ describe('splitServices', () => {
 
 describe('synopsisFit', () => {
   it('has no limit until the room and a line are measured', () => {
-    expect(synopsisFit({ room: 0, line: 20, full: 9, link: true })).toEqual({
-      lines: undefined,
-      cut: false,
-    });
+    expect(synopsisFit({ room: 0, line: 20, full: 9 })).toEqual({ lines: undefined, cut: false });
   });
 
   it('shows the whole text when it fits', () => {
-    expect(synopsisFit({ room: 160, line: 20, full: 6, link: true })).toEqual({
-      lines: 8,
-      cut: false,
-    });
+    expect(synopsisFit({ room: 160, line: 20, full: 6 })).toEqual({ lines: 8, cut: false });
   });
 
-  it('is cut a line earlier when "Read more" needs the line', () => {
-    expect(synopsisFit({ room: 160, line: 20, full: 12, link: true })).toEqual({
-      lines: 7,
-      cut: true,
-    });
+  it('cuts at the room, and says so', () => {
+    expect(synopsisFit({ room: 160, line: 20, full: 12 })).toEqual({ lines: 8, cut: true });
   });
 
-  it('is cut at the room without a link', () => {
-    expect(synopsisFit({ room: 160, line: 20, full: 12, link: false })).toEqual({
-      lines: 8,
-      cut: true,
-    });
-  });
-
-  it('keeps one line in a tiny room', () => {
-    expect(synopsisFit({ room: 5, line: 20, full: 12, link: true }).lines).toBe(1);
+  it('keeps one line in a tiny room, still cut', () => {
+    expect(synopsisFit({ room: 5, line: 20, full: 12 })).toEqual({ lines: 1, cut: true });
   });
 
   it('reads an exact fit as not cut', () => {
-    expect(synopsisFit({ room: 160, line: 20, full: 8, link: true }).cut).toBe(false);
+    expect(synopsisFit({ room: 160, line: 20, full: 8 }).cut).toBe(false);
+  });
+
+  it('stays cut when the box shrinks to make room for the link', () => {
+    expect(synopsisFit({ room: 140, line: 20, full: 8 })).toEqual({ lines: 7, cut: true });
   });
 });
 

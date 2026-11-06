@@ -471,34 +471,41 @@ function Synopsis({
   const [room, setRoom] = useState(0);
   const [line, setLine] = useState(0);
   const [full, setFull] = useState(0);
-  const { lines, cut } = synopsisFit({ room, line, full, link: Boolean(onReadMore) });
+  const { lines, cut } = synopsisFit({ room, line, full });
   return (
-    <View
-      className="min-h-0 flex-1 overflow-hidden"
-      onLayout={(e: LayoutChangeEvent) => setRoom(e.nativeEvent.layout.height)}
-    >
-      <Text
-        variant="body-m"
-        numberOfLines={lines}
-        onTextLayout={(e) => {
-          const height = e.nativeEvent.lines[0]?.height;
-          if (height) setLine(height);
-        }}
+    <>
+      <View
+        className="min-h-0 flex-1 overflow-hidden"
+        // Never less than one line: a sliver of a line reads as a bug, and one line plus
+        // "Read more" is the least the back can show of the story.
+        style={line > 0 ? { minHeight: line } : undefined}
+        onLayout={(e: LayoutChangeEvent) => setRoom(e.nativeEvent.layout.height)}
       >
-        {children}
-      </Text>
-      <Text
-        variant="body-m"
-        className="absolute inset-x-0 top-0 opacity-0"
-        pointerEvents="none"
-        accessible={false}
-        importantForAccessibility="no-hide-descendants"
-        testID="synopsis-measure"
-        onTextLayout={(e) => setFull(e.nativeEvent.lines.length)}
-      >
-        {children}
-      </Text>
+        <Text
+          variant="body-m"
+          numberOfLines={lines}
+          onTextLayout={(e) => {
+            const height = e.nativeEvent.lines[0]?.height;
+            if (height) setLine(height);
+          }}
+        >
+          {children}
+        </Text>
+        <Text
+          variant="body-m"
+          className="absolute inset-x-0 top-0 opacity-0"
+          pointerEvents="none"
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+          testID="synopsis-measure"
+          onTextLayout={(e) => setFull(e.nativeEvent.lines.length)}
+        >
+          {children}
+        </Text>
+      </View>
       {cut && onReadMore ? (
+        // Outside the clipped box, so the link keeps its own line at any text size: the text
+        // above it gives up the room (a cut stays a cut when the box shrinks).
         <View className="self-start" onTouchStart={onControlTouch}>
           <Pressable
             accessibilityLabel={t('card.readMore')}
@@ -512,7 +519,7 @@ function Synopsis({
           </Pressable>
         </View>
       ) : null}
-    </View>
+    </>
   );
 }
 
@@ -625,7 +632,7 @@ function Back({
             </Text>
           ) : null}
           {back.cast ? (
-            <Text variant="body-s" tone="secondary" numberOfLines={2}>
+            <Text variant="body-s" tone="secondary" numberOfLines={large ? 1 : 2}>
               {t('card.cast', { names: back.cast })}
             </Text>
           ) : null}

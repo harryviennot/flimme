@@ -202,7 +202,7 @@ describe('the back of the card', () => {
       });
     };
 
-    it('shows when the text is cut, a line earlier, and opens the sheet without flipping', async () => {
+    it('shows when the text is cut and opens the sheet without flipping', async () => {
       const onReadMore = jest.fn();
       const onControlTouch = jest.fn();
       const onFlip = jest.fn();
@@ -215,7 +215,7 @@ describe('the back of the card', () => {
         />,
       );
       await lay(160, 12);
-      expect(screen.getByText('A bear in prison.').props.numberOfLines).toBe(7);
+      expect(screen.getByText('A bear in prison.').props.numberOfLines).toBe(8);
       const link = screen.getByRole('button', { name: 'Read more' });
       await fireEvent(link.parent!, 'touchStart');
       expect(onControlTouch).toHaveBeenCalledTimes(1);

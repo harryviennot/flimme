@@ -4,21 +4,21 @@ Screens 11 Swipe (`99:4065`), 12 Mid-swipe (`99:4093`) and 13 Card flipped (`99:
 
 Built in parts, each with its own section here:
 
-| Task | Builds | Section |
-| --- | --- | --- |
-| M6.9 | The stack, gestures, the buttons row, the loading and waiting cards, offline, the whole `swipe` copy namespace, the presence swipe count, and the empty slot files below | [Layout](#layout), [The stack](#the-stack), [The buttons row](#the-buttons-row), [States](#states) |
-| M6.10, M7.3 | The card back (screen 13); no trailer under 13 | [The card](#the-card) |
-| M6.12 | "Watch it again tonight?" | [Seen it](#seen-it-the-rewatch-question) |
-| M6.13 | The near-miss toast and glow | [The near miss](#the-near-miss) |
-| M6.18 | The four first-game hints | [Hints](#first-game-hints) |
-| M6.26 | Undo | [Undo](#undo) |
-| M6.27 | The top bar: pills, done, Leave, the host menu | [The top bar](#the-top-bar) |
-| M6.17 | The done card's filters and liked count ("Nothing left", screen 26) | [The done card](#the-done-card-nothing-left) |
-| M6.63 | The top bar's player stack and the players sheet (design pass (b), M6.60) | [The top bar](#the-top-bar) |
-| M6.58 | The bookmark's new place, low on the card's right (design pass (b), M6.60) | [The bookmark](#the-bookmark) |
-| M6.37 | The shortlist in the top bar, the shortlisted beat over the stack, the route held on the third match, Undo after a shortlisted match | [The top bar](#the-top-bar), [The shortlisted beat](#the-shortlisted-beat), [Undo](#undo) |
-| M6.44 | The solo variant: the solo top bar, the checkpoint card, the pick sheet, out of films, the cap card | [Solo](#solo) |
-| M6.61 | The card back reworked (the poster's middle, the front's fade, the score in the meta line, one row of logos, the synopsis sheet) and the solid stack, from Harry's feel test of 6 November 2026 (specified in M6.59) | [The card back, reworked](#the-card-back-reworked), [The stack](#the-stack) |
+| Task        | Builds                                                                                                                                                                                                               | Section                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| M6.9        | The stack, gestures, the buttons row, the loading and waiting cards, offline, the whole `swipe` copy namespace, the presence swipe count, and the empty slot files below                                             | [Layout](#layout), [The stack](#the-stack), [The buttons row](#the-buttons-row), [States](#states) |
+| M6.10, M7.3 | The card back (screen 13); no trailer under 13                                                                                                                                                                       | [The card](#the-card)                                                                              |
+| M6.12       | "Watch it again tonight?"                                                                                                                                                                                            | [Seen it](#seen-it-the-rewatch-question)                                                           |
+| M6.13       | The near-miss toast and glow                                                                                                                                                                                         | [The near miss](#the-near-miss)                                                                    |
+| M6.18       | The four first-game hints                                                                                                                                                                                            | [Hints](#first-game-hints)                                                                         |
+| M6.26       | Undo                                                                                                                                                                                                                 | [Undo](#undo)                                                                                      |
+| M6.27       | The top bar: pills, done, Leave, the host menu                                                                                                                                                                       | [The top bar](#the-top-bar)                                                                        |
+| M6.17       | The done card's filters and liked count ("Nothing left", screen 26)                                                                                                                                                  | [The done card](#the-done-card-nothing-left)                                                       |
+| M6.63       | The top bar's player stack and the players sheet (design pass (b), M6.60)                                                                                                                                            | [The top bar](#the-top-bar)                                                                        |
+| M6.58       | The bookmark's new place, low on the card's right (design pass (b), M6.60)                                                                                                                                           | [The bookmark](#the-bookmark)                                                                      |
+| M6.37       | The shortlist in the top bar, the shortlisted beat over the stack, the route held on the third match, Undo after a shortlisted match                                                                                 | [The top bar](#the-top-bar), [The shortlisted beat](#the-shortlisted-beat), [Undo](#undo)          |
+| M6.44       | The solo variant: the solo top bar, the checkpoint card, the pick sheet, out of films, the cap card                                                                                                                  | [Solo](#solo)                                                                                      |
+| M6.61       | The card back reworked (the poster's middle, the front's fade, the score in the meta line, one row of logos, the synopsis sheet) and the solid stack, from Harry's feel test of 6 November 2026 (specified in M6.59) | [The card back, reworked](#the-card-back-reworked), [The stack](#the-stack)                        |
 
 ## Purpose
 
@@ -57,11 +57,11 @@ One `Pressable` (`flex-1 min-w-0 h-11 flex-row items-center`, the whole stack is
 - **You:** your own disc has no mark; the sheet says which row is yours.
 - **Spacing:** `gap-1` while every disc fits; otherwise the discs overlap by 8 (`-ml-2` from the second), each disc drawn above the next (`zIndex` falling with the order) so the dots and badges on the right stay visible; when even that doesn't fit, the last place is a **"+N" disc** (32, `rounded-pill bg-bg-raised border border-border-default`, `swipe:players.more` in `mono-data` tone `secondary`, `maxFontSizeMultiplier` 1.2). The choice is a pure function, `stackLayout(width, seats)` in `features/swipe/player-stack.ts` (tested), from the stack's `onLayout` width:
 
-| Stack width | Spaced | Overlapped | "+N" |
-| --- | --- | --- | --- |
-| 167 (a 375-point phone) | 2 to 4 | 5 and 6 | 7 to 10: 5 discs and "+2" to "+5" |
-| 185 (393 points) | 2 to 5 | 6 and 7 | 8 to 10: 6 discs and "+2" to "+4" |
-| 222 (430 points) | 2 to 6 | 7 to 8 | 9 and 10: 7 discs and "+2" or "+3" |
+| Stack width             | Spaced | Overlapped | "+N"                               |
+| ----------------------- | ------ | ---------- | ---------------------------------- |
+| 167 (a 375-point phone) | 2 to 4 | 5 and 6    | 7 to 10: 5 discs and "+2" to "+5"  |
+| 185 (393 points)        | 2 to 5 | 6 and 7    | 8 to 10: 6 discs and "+2" to "+4"  |
+| 222 (430 points)        | 2 to 6 | 7 to 8     | 9 and 10: 7 discs and "+2" or "+3" |
 
 - **Which discs hide behind "+N":** the last in seat order, never your own (yours takes the last visible place if it would hide). A seat that becomes Done or away does not reorder anything: nothing in the bar jumps mid-game.
 - **Largest text:** nothing in the stack is text but "+N", capped at 1.2, so the stack keeps its size; the bar stays 56.
@@ -79,12 +79,12 @@ Layout, `p-5 gap-3`, in Gesture Handler's `ScrollView` (the lobby genre sheet's 
 2. **One `SeatRow` per seat** (moved to `shared/seat-row`, [design-system changes](#design-system-changes)), in seat order: `Avatar` M with `online`, the name (`lobby:seat.you` on your own), and as detail `swipe:players.films` (the count: exact for you, in steps of 5 for the others, as the pills had). On the right at most one `Tag`: away (`neutral`, `lobby:seat.away`), else Done (`like`, icon `check`, `swipe:pills.done`), else the host (`marquee`, `crown`, `lobby:seat.host`). When the host's row shows another tag, a `crown` icon (14, `marquee-default`) follows the name.
 3. **A tap on any row but your own** replaces the sheet with the [seat sheet](host-menu.md#the-seat-sheet) (`router.replace`, so only one sheet is ever open): Report for everyone, Remove for the host, exactly as the pills did (the seat and report rows of `SHEETS` stay).
 
-| While the sheet is open | The sheet |
-| --- | --- |
-| A seat joins, leaves or is removed | Its row comes in (`layout.fadeIn`) or goes (`layout.fadeOut`) |
-| Presence, counts or Done change | The row follows in place, no animation |
-| The room leaves `swiping` (the finale, an end) | Closes by itself (`isAllowed`) |
-| Offline | The rows keep their last values; away follows presence as it comes back |
+| While the sheet is open                        | The sheet                                                               |
+| ---------------------------------------------- | ----------------------------------------------------------------------- |
+| A seat joins, leaves or is removed             | Its row comes in (`layout.fadeIn`) or goes (`layout.fadeOut`)           |
+| Presence, counts or Done change                | The row follows in place, no animation                                  |
+| The room leaves `swiping` (the finale, an end) | Closes by itself (`isAllowed`)                                          |
+| Offline                                        | The rows keep their last values; away follows presence as it comes back |
 
 Focus order: the title, close, the rows in order (each a button but your own, hint `lobby:a11y.seat`). At the largest text the names wrap to two lines and the sheet scrolls.
 
@@ -127,11 +127,11 @@ M6.61, from Harry's feel test of 6 November 2026: "when swiping, the card undern
 - **Its opacity** comes from the same `depthValue` that drives the scale, on the UI thread: `interpolate(d, [0, 1, 2], [0, opacity.stack-dim-near, opacity.stack-dim-far])`. So when the top card is thrown, the second card brightens with the same `spring.snappy` that brings it forward.
 - **With the drag**, the second card brightens as it grows: its layer is `stack-dim-near * (1 - progress)`, clear at the commit line (the progress that already scales it).
 
-| Depth | Scale | Offset | Dim layer | Looks like |
-| --- | --- | --- | --- | --- |
-| 0, the top card | 1 | none | none | Full brightness |
-| 1 | 0.95, growing to 1 with the drag | `translate-y-2` | `opacity.stack-dim-near`, 0.3 (to 0 with the drag) | About 70% bright, as before, but solid |
-| 2 | 0.9 | `translate-y-4` | `opacity.stack-dim-far`, 0.55 | About 45% bright, solid |
+| Depth           | Scale                            | Offset          | Dim layer                                          | Looks like                             |
+| --------------- | -------------------------------- | --------------- | -------------------------------------------------- | -------------------------------------- |
+| 0, the top card | 1                                | none            | none                                               | Full brightness                        |
+| 1               | 0.95, growing to 1 with the drag | `translate-y-2` | `opacity.stack-dim-near`, 0.3 (to 0 with the drag) | About 70% bright, as before, but solid |
+| 2               | 0.9                              | `translate-y-4` | `opacity.stack-dim-far`, 0.55                      | About 45% bright, solid                |
 
 Starting values that keep today's brightness without the see-through; tuned at the feel check.
 
@@ -143,31 +143,31 @@ Starting values that keep today's brightness without the see-through; tuned at t
 
 A `Pan` and a `Tap` on the top card, exclusive: a touch that moves past the slop is a drag and never flips. Everything runs on the UI thread (Reanimated shared values, no `setState` per frame).
 
-| Gesture | What happens |
-| --- | --- |
-| Tap | [The flip](#the-card) |
-| Drag | The card follows the finger 1:1 and rotates around a point below the card, up to the tilt at the commit line. Toward an answer, the stamp fades and grows in with the distance (none at rest, full at the commit line), the card takes the answer's 3-point border, the matching `SwipeAction` goes `lit`, and the second card grows toward full size |
-| Right | Like: LIKE stamp, `like.default` border, Like lit |
-| Left | Nope: NOPE stamp, `nope.default` border, Nope lit |
-| Up, within the up angle | Seen it: SEEN IT stamp, `accent.default` border, Seen it lit. Otherwise the larger sideways direction wins. Down is no answer |
-| Crossing the commit line | `haptics.commit()`, each time the drag goes out past it, never on the way back |
-| Release past the line, or a flick faster than the throw speed toward an answer | Thrown: the card carries the finger's speed off screen (about `duration.slow`, `easing.exit`), keeping its tilt; `haptics.throw()` at release; the vote joins the queue at release. Up, in a room that asks, opens the [rewatch question](#seen-it-the-rewatch-question) instead |
-| Release before the line, slowly | Back to the middle (`spring.card`); the stamp, border and lit button fade with the distance. No haptic, no vote |
+| Gesture                                                                        | What happens                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tap                                                                            | [The flip](#the-card)                                                                                                                                                                                                                                                                                                                                 |
+| Drag                                                                           | The card follows the finger 1:1 and rotates around a point below the card, up to the tilt at the commit line. Toward an answer, the stamp fades and grows in with the distance (none at rest, full at the commit line), the card takes the answer's 3-point border, the matching `SwipeAction` goes `lit`, and the second card grows toward full size |
+| Right                                                                          | Like: LIKE stamp, `like.default` border, Like lit                                                                                                                                                                                                                                                                                                     |
+| Left                                                                           | Nope: NOPE stamp, `nope.default` border, Nope lit                                                                                                                                                                                                                                                                                                     |
+| Up, within the up angle                                                        | Seen it: SEEN IT stamp, `accent.default` border, Seen it lit. Otherwise the larger sideways direction wins. Down is no answer                                                                                                                                                                                                                         |
+| Crossing the commit line                                                       | `haptics.commit()`, each time the drag goes out past it, never on the way back                                                                                                                                                                                                                                                                        |
+| Release past the line, or a flick faster than the throw speed toward an answer | Thrown: the card carries the finger's speed off screen (about `duration.slow`, `easing.exit`), keeping its tilt; `haptics.throw()` at release; the vote joins the queue at release. Up, in a room that asks, opens the [rewatch question](#seen-it-the-rewatch-question) instead                                                                      |
+| Release before the line, slowly                                                | Back to the middle (`spring.card`); the stamp, border and lit button fade with the distance. No haptic, no vote                                                                                                                                                                                                                                       |
 
 ### Starting values (Q9.3)
 
 Placeholders, tuned at the first feel check. The gesture rules live in `features/swipe/feel.ts`, one named constant each with a line pointing here; the angles and the hint wait are tokens ([Design-system changes](#design-system-changes)).
 
-| Value | Start |
-| --- | --- |
-| Commit line, sideways | 30% of the screen's width from the middle |
-| Commit line, up | 18% of the screen's height |
-| Up angle | Within 30 degrees of straight up |
-| Throw speed | 800 points per second toward an answer |
-| Touch slop | 10 points |
-| Tilt at the commit line | `rotation.card-tilt` (10 degrees), never more than `rotation.card-tilt-max` (15) |
-| The second card at rest | 95% of full size, full at the commit line |
-| The card 1 lean | A third of the commit line, `duration.slow` each way, after `duration.hint-delay` (600 ms) without a touch |
+| Value                   | Start                                                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Commit line, sideways   | 30% of the screen's width from the middle                                                                  |
+| Commit line, up         | 18% of the screen's height                                                                                 |
+| Up angle                | Within 30 degrees of straight up                                                                           |
+| Throw speed             | 800 points per second toward an answer                                                                     |
+| Touch slop              | 10 points                                                                                                  |
+| Tilt at the commit line | `rotation.card-tilt` (10 degrees), never more than `rotation.card-tilt-max` (15)                           |
+| The second card at rest | 95% of full size, full at the commit line                                                                  |
+| The card 1 lean         | A third of the commit line, `duration.slow` each way, after `duration.hint-delay` (600 ms) without a touch |
 
 ## The card
 
@@ -188,14 +188,14 @@ M6.61, specified on 6 November 2026 (M6.59) from Harry's feel test on his iPhone
 
 Top to bottom, on a 345-point card (393-point phone):
 
-| Part | Layout | Height |
-| --- | --- | --- |
-| The header | `h-33`, `overflow-hidden`: the poster, the fade, the badges, the title block | 132 |
-| The body | `flex-1 gap-3 px-5 py-3.5` | 386 |
-| The synopsis | `min-h-0 flex-1 gap-1`: `common:card.synopsis` (`mono-eyebrow` `text-secondary`), the overview (`body-m`), "Read more" when it is cut | What's left: about 175, 8 lines (about 80, 4 lines, before) |
-| The credits | `gap-0.5`: director (one line), cast (two lines), `body-s` `text-secondary` | 54 |
-| The services row | `flex-row items-center gap-1.5`: the logos (`flex-1`), then the Trailer button. Full width: it ends above the bookmark, never beside or under it | 36 (the button's height) |
-| The last row | [The bookmark](#the-bookmark)'s row from design pass (b): `flex-row items-end gap-3`, the JustWatch credit (`body-s` `text-muted`) in a `flex-1` column, then the 44-point bookmark, which lands at `right-5 bottom-3.5`, its place on the front too. `gap-1` under the services row | 44 (the bookmark's height) |
+| Part             | Layout                                                                                                                                                                                                                                                                               | Height                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| The header       | `h-33`, `overflow-hidden`: the poster, the fade, the badges, the title block                                                                                                                                                                                                         | 132                                                         |
+| The body         | `flex-1 gap-3 px-5 py-3.5`                                                                                                                                                                                                                                                           | 386                                                         |
+| The synopsis     | `min-h-0 flex-1 gap-1`: `common:card.synopsis` (`mono-eyebrow` `text-secondary`), the overview (`body-m`), "Read more" when it is cut                                                                                                                                                | What's left: about 175, 8 lines (about 80, 4 lines, before) |
+| The credits      | `gap-0.5`: director (one line), cast (two lines), `body-s` `text-secondary`                                                                                                                                                                                                          | 54                                                          |
+| The services row | `flex-row items-center gap-1.5`: the logos (`flex-1`), then the Trailer button. Full width: it ends above the bookmark, never beside or under it                                                                                                                                     | 36 (the button's height)                                    |
+| The last row     | [The bookmark](#the-bookmark)'s row from design pass (b): `flex-row items-end gap-3`, the JustWatch credit (`body-s` `text-muted`) in a `flex-1` column, then the 44-point bookmark, which lands at `right-5 bottom-3.5`, its place on the front too. `gap-1` under the services row | 44 (the bookmark's height)                                  |
 
 **The poster's middle.** The poster fills the header straight away (`Poster`, `absoluteFill`, `contentFit="cover"` with its default centred position), so the header shows the poster's vertical middle: the middle 132 points of a 518-point poster at the card's width. The wrapper that drew a whole card-shaped poster from `-top-5` goes. `Poster` itself doesn't change.
 
@@ -205,7 +205,7 @@ Top to bottom, on a 345-point card (393-point phone):
 
 **The synopsis, readable in full.** The space freed (the score box, about 80 points; the services, 25 to 50; the flip-back line, 26) goes to the synopsis, so most overviews now fit whole. When one still doesn't (a long overview, a 375 by 667 phone, large text):
 
-- The text is cut one line earlier than it would be, with an ellipsis, and **"Read more"** shows under its last line: a `Pressable` `self-start`, `Text` `mono-eyebrow` tone `accent`, `common:card.readMore`, hit slop to 44 points, `haptic="press"`. The app knows it is cut by comparing the overview's full line count (from an unclipped, invisible measure) with the lines that fit.
+- The text is cut with an ellipsis, and **"Read more"** takes its own line under the text box (outside the clipped box, so it is never cut, even when the largest text leaves the box one line: the box never gets smaller than one line, and the cast shows one line there): a `Pressable` `self-start`, `Text` `mono-eyebrow` tone `accent`, `common:card.readMore`, hit slop to 44 points, `haptic="press"`. The app knows it is cut by comparing the overview's full line count (from an unclipped, invisible measure) with the lines that fit.
 - A tap opens [the synopsis sheet](#the-synopsis-sheet). A touch that starts on the link is the link's: the card's tap doesn't flip (the Trailer's touch mark, renamed `onControlTouch`), and a drag that starts on it moves the card as anywhere else.
 - **Why a sheet.** A scroll inside the back would fight the drag and the swipe up for Seen it (Q10.1 stands). Expanding in place can't grow past the card's fixed size, and at the largest text even the whole body can't hold a long overview. A sheet holds any length at any size, leaves the gestures alone, and the card is there, still flipped, when it closes.
 
@@ -221,18 +221,18 @@ Top to bottom, on a 345-point card (393-point phone):
 
 **States.**
 
-| State | The back shows |
-| --- | --- |
-| Loaded | Everything above |
-| A short overview | The whole text, no "Read more"; the space under it stays empty |
-| A long overview | The cut text and "Read more" |
-| No overview | `swipe:card.noSynopsis`, never with "Read more" |
-| No score, no director, no cast | Each part left out, as in Missing data above |
-| More services than fit | The logos that fit, then "+n" |
-| No services | No logos and no credit: the Trailer button alone at its row's right, above the bookmark, which keeps the last row by itself |
-| A logo that fails | The initials in its square |
-| A missing poster | The thumbhash, or `bg-bg-raised`, under the fade |
-| Offline | The same: everything is in the card's payload |
+| State                          | The back shows                                                                                                              |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Loaded                         | Everything above                                                                                                            |
+| A short overview               | The whole text, no "Read more"; the space under it stays empty                                                              |
+| A long overview                | The cut text and "Read more"                                                                                                |
+| No overview                    | `swipe:card.noSynopsis`, never with "Read more"                                                                             |
+| No score, no director, no cast | Each part left out, as in Missing data above                                                                                |
+| More services than fit         | The logos that fit, then "+n"                                                                                               |
+| No services                    | No logos and no credit: the Trailer button alone at its row's right, above the bookmark, which keeps the last row by itself |
+| A logo that fails              | The initials in its square                                                                                                  |
+| A missing poster               | The thumbhash, or `bg-bg-raised`, under the fade                                                                            |
+| Offline                        | The same: everything is in the card's payload                                                                               |
 
 **The largest text** (font scale above 1.3, the threshold `serviceColumns` uses). The title and the meta leave the header and open the body, in the flow (`title-l` up to two lines, the meta wrapping), so text never climbs over the poster's light top; the header keeps the poster, the fade and the badges. The synopsis is often cut there: "Read more" carries it. The logos keep 32 points; "+n" grows to `mono-eyebrow`'s cap (1.4) and still fits its square; the Trailer label to its cap (1.2). The credit wraps beside the bookmark, which keeps 44 points.
 
@@ -242,7 +242,7 @@ Top to bottom, on a 345-point card (393-point phone):
 
 `screens/swipe/synopsis-sheet.tsx`, route `/room/[id]/synopsis/[title]` (`app/room/[id]/synopsis/[title].tsx`), a `formSheet` registered in the room layout like the others: `gestureEnabled: true` (the room stack turns gestures off), `sheetGrabberVisible: true`, `sheetAllowedDetents: [0.6]`. M6.61.
 
-- **What it reads.** The card from the card stack store, by its title id: no network, so it opens offline. If the card isn't in the store (it can't leave while the sheet covers it, but a re-read could), the sheet closes.
+- **What it reads.** The card on top hands itself over when "Read more" is tapped (`features/swipe/synopsis.ts`, a small store, since the sheet is its own route and the stack lives in the swipe screen), and the sheet reads it by title id: no network, so it opens offline. If the card isn't in the store (it can't leave while the sheet covers it, but a re-read could), the sheet closes.
 - **Layout.** Gesture Handler's `ScrollView`, `px-5 pt-5 gap-3`, bottom padding `max(insets.bottom, 16)`: a row with the title (`title-m`, role `header`, wraps, `flex-1`) and `IconButton` plain `x` (`common:actions.close`); the back's meta line, score included; `common:card.synopsis` (`mono-eyebrow` `text-secondary`); the whole overview in `body-l` (17 on 26, easier to read at length than the card's `body-m`). Nothing else: no Trailer, no services, no answers.
 - **Closing.** Close, a swipe down, or the screen reader's escape gesture. The card is still on top and still flipped, as it was.
 - **The room moves on while it's open** (the finale starts, the room closes, this seat is removed): it closes with the screen under it, as the room's other sheets do. A near miss or a shortlisted beat plays on the swipe screen under it; nothing is replayed.
@@ -254,11 +254,11 @@ Top to bottom, on a 345-point card (393-point phone):
 
 **Copy (`common` namespace, new keys).**
 
-| Key | French | English |
-| --- | --- | --- |
-| `card.tmdbScore` | ★ {{score}} TMDB | ★ {{score}} TMDB |
-| `card.readMore` | Lire la suite | Read more |
-| `card.moreServices` | +{{count}} | +{{count}} |
+| Key                 | French           | English          |
+| ------------------- | ---------------- | ---------------- |
+| `card.tmdbScore`    | ★ {{score}} TMDB | ★ {{score}} TMDB |
+| `card.readMore`     | Lire la suite    | Read more        |
+| `card.moreServices` | +{{count}}       | +{{count}}       |
 
 Removed once unused: `card.tmdbRating` (the box's label) and `card.flipBack`. "LIRE LA SUITE" fits under the synopsis at 375 points.
 
@@ -296,13 +296,13 @@ M6.51 (PR #275), moved by design pass (b) (M6.60) after Harry's feel test of 6 N
 
 **Options weighed** (for Harry, question 9):
 
-| | A. A sixth button in the row | B. A long press on the card | C. A button low on the card's right edge |
-| --- | --- | --- | --- |
-| Reach | Best: the row is where the thumb lives | Anywhere on the card | Good: inside a right thumb's arc, about 60 points above the row |
-| Found | Best: labelled like the answers | Hidden: needs a first-game hint | Visible on every card |
-| Accidental saves | A sixth button next to Undo or Seen it invites the fast second tap the rewatch chip taught us about | A thumb resting on the card while reading saves after the press delay. A double tap is out: it would hold every flip by about 250 ms | Low: a drag from it still moves the card; only a deliberate tap saves |
-| Screen readers | A plain button | The card's custom action only | The card's custom action, as today |
-| What moves | Five equal columns become six: at 375 points a column is 60 wide, under the 68-point Nope and Like caps. Something leaves: Undo to the top bar (far from the thumb, where mistakes get fixed) or the labels of the small buttons. "PLUS TARD" beside "DÉJÀ VU" does not fit | The card's gestures gain a third member on the UI thread (`LongPress` beside `Pan` and `Tap`) | One view on each face of `MovieCard` |
+|                  | A. A sixth button in the row                                                                                                                                                                                                                                                | B. A long press on the card                                                                                                          | C. A button low on the card's right edge                              |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| Reach            | Best: the row is where the thumb lives                                                                                                                                                                                                                                      | Anywhere on the card                                                                                                                 | Good: inside a right thumb's arc, about 60 points above the row       |
+| Found            | Best: labelled like the answers                                                                                                                                                                                                                                             | Hidden: needs a first-game hint                                                                                                      | Visible on every card                                                 |
+| Accidental saves | A sixth button next to Undo or Seen it invites the fast second tap the rewatch chip taught us about                                                                                                                                                                         | A thumb resting on the card while reading saves after the press delay. A double tap is out: it would hold every flip by about 250 ms | Low: a drag from it still moves the card; only a deliberate tap saves |
+| Screen readers   | A plain button                                                                                                                                                                                                                                                              | The card's custom action only                                                                                                        | The card's custom action, as today                                    |
+| What moves       | Five equal columns become six: at 375 points a column is 60 wide, under the 68-point Nope and Like caps. Something leaves: Undo to the top bar (far from the thumb, where mistakes get fixed) or the labels of the small buttons. "PLUS TARD" beside "DÉJÀ VU" does not fit | The card's gestures gain a third member on the UI thread (`LongPress` beside `Pan` and `Tap`)                                        | One view on each face of `MovieCard`                                  |
 
 **Recommended: C.** It fixes the reach with the least change, keeps the row as tuned, and stays visible. B can come later as a shortcut if the playtest asks for one.
 
@@ -329,13 +329,13 @@ M6.51 (PR #275), moved by design pass (b) (M6.60) after Harry's feel test of 6 N
 
 `screens/swipe/action-row.tsx`, M6.9. Five `SwipeAction`s in equal columns, `flex-row items-end justify-between`, labels from `common:answers.*`. The row uses `px-2` instead of the screen's `px-5`, so the French labels ("J'AIME", "DÉJÀ VU") keep at least 12 points between them at 375 points wide ([components.md](../components.md#swipe-action-sharedswipe-action)); check French on the iPhone 16e and at 375.
 
-| Button | Does | Disabled when |
-| --- | --- | --- |
-| Undo (48) | [Undo](#undo) | Always until M6.26 ships (Q9.4); then at the first card, right after an undo until the next answer, and while the last card answered is on the shortlist (M6.37) |
-| Nope (68) | Throws left | No top card |
-| Super (56), badge with the super likes left | Throws right with the SUPER stamp and the `marquee.default` border; the badge counts down with `layout.popIn` | No top card, or 0 left (no error haptic: running out isn't a mistake) |
-| Like (68) | Throws right | No top card |
-| Seen it (48) | Throws the card up and sends `seen`; in a room that allows rewatches the [rewatch chip](#seen-it-the-rewatch-question) then shows | No top card |
+| Button                                      | Does                                                                                                                              | Disabled when                                                                                                                                                    |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Undo (48)                                   | [Undo](#undo)                                                                                                                     | Always until M6.26 ships (Q9.4); then at the first card, right after an undo until the next answer, and while the last card answered is on the shortlist (M6.37) |
+| Nope (68)                                   | Throws left                                                                                                                       | No top card                                                                                                                                                      |
+| Super (56), badge with the super likes left | Throws right with the SUPER stamp and the `marquee.default` border; the badge counts down with `layout.popIn`                     | No top card, or 0 left (no error haptic: running out isn't a mistake)                                                                                            |
+| Like (68)                                   | Throws right                                                                                                                      | No top card                                                                                                                                                      |
+| Seen it (48)                                | Throws the card up and sends `seen`; in a room that allows rewatches the [rewatch chip](#seen-it-the-rewatch-question) then shows | No top card                                                                                                                                                      |
 
 A press gives `haptics.press()` (from `Pressable`), then the card plays the same throw as a drag with the stamp at full from the start (`duration.instant`) and `haptics.throw()` as it leaves. Buttons work while the last card is still flying, and from either side of the card. While a card is dragged, the matching button is `lit`.
 
@@ -363,14 +363,14 @@ Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its 
 - **Tapped before the phone knew** (the vote was still in flight, so the card already came back): when the answer says `match: true`, the shortlisted beat takes that card away as the matched film on top of the stack, the super like (if any) leaves the badge again, and the phone doesn't call `api.undo_last_vote`.
 - The phone never waits: if the vote is still in the queue it's removed; otherwise `api.undo_last_vote` is called once the queue is empty, and the card is already back.
 
-| `api.undo_last_vote` answers | What the player sees |
-| --- | --- |
-| `ok` | Nothing more: the card is already back |
-| `nothing_to_undo` | Nothing; the card stays. Reported to Sentry (the phone and the server disagree) |
-| `locked` while swiping (the card's film is on the shortlist) | The card that came back leaves again (`layout.fadeOut`), the card behind settles on top (`spring.snappy`), a super like leaves the badge again. No message, no haptic. The button stays disabled until the next answer. The shortlist shows the film from the event or the next re-read |
-| `locked` after the room left swiping (the card became a finalist, or the match was the pick) | Nothing: the layout follows the room to the Final Cut or the match overlay |
-| `closed` | The room is re-read and the layout follows its state |
-| Offline or a failed call | The call waits in line like a vote and is retried; the card stays back |
+| `api.undo_last_vote` answers                                                                 | What the player sees                                                                                                                                                                                                                                                                    |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ok`                                                                                         | Nothing more: the card is already back                                                                                                                                                                                                                                                  |
+| `nothing_to_undo`                                                                            | Nothing; the card stays. Reported to Sentry (the phone and the server disagree)                                                                                                                                                                                                         |
+| `locked` while swiping (the card's film is on the shortlist)                                 | The card that came back leaves again (`layout.fadeOut`), the card behind settles on top (`spring.snappy`), a super like leaves the badge again. No message, no haptic. The button stays disabled until the next answer. The shortlist shows the film from the event or the next re-read |
+| `locked` after the room left swiping (the card became a finalist, or the match was the pick) | Nothing: the layout follows the room to the Final Cut or the match overlay                                                                                                                                                                                                              |
+| `closed`                                                                                     | The room is re-read and the layout follows its state                                                                                                                                                                                                                                    |
+| Offline or a failed call                                                                     | The call waits in line like a vote and is retried; the card stays back                                                                                                                                                                                                                  |
 
 ## The near miss
 
@@ -398,13 +398,13 @@ Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its 
 
 **The times** (from the first signal; the beat's table is the reference):
 
-| Time | What moves | Haptic |
-| --- | --- | --- |
-| 0 | A drag springs back (`spring.card`); a thrown card finishes its flight. The scrim fades in. The poster pops in (`layout.popIn`). The near-miss toast fades out (`layout.fadeOut`) and the glow goes | `haptics.shortlist()` |
-| 150 ms | The title pops in (`layout.popIn`); the vote count fades in (`layout.fadeIn`), or when the event lands | None |
-| `duration.shortlist-hold` (1.2 s) | The title and count fade out (`layout.fadeOut`). The poster flies to its slot: translate and scale from its frame to the slot's (`measureInWindow` on the slot), with its corner radius going from 12 to 4, over `duration.slow` with `easing.standard` | None |
-| + `duration.slow` (1.6 s) | The flying poster unmounts as the slot shows the film; the slot scales from 1.15 to 1 (`spring.snappy`); the count changes in place. The scrim fades out | None |
-| + `duration.fast` (1.75 s) | The layer unmounts and the stack takes input. A near-miss toast still due on the top card fades back in (`layout.fadeIn`) | None |
+| Time                              | What moves                                                                                                                                                                                                                                              | Haptic                |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| 0                                 | A drag springs back (`spring.card`); a thrown card finishes its flight. The scrim fades in. The poster pops in (`layout.popIn`). The near-miss toast fades out (`layout.fadeOut`) and the glow goes                                                     | `haptics.shortlist()` |
+| 150 ms                            | The title pops in (`layout.popIn`); the vote count fades in (`layout.fadeIn`), or when the event lands                                                                                                                                                  | None                  |
+| `duration.shortlist-hold` (1.2 s) | The title and count fade out (`layout.fadeOut`). The poster flies to its slot: translate and scale from its frame to the slot's (`measureInWindow` on the slot), with its corner radius going from 12 to 4, over `duration.slow` with `easing.standard` | None                  |
+| + `duration.slow` (1.6 s)         | The flying poster unmounts as the slot shows the film; the slot scales from 1.15 to 1 (`spring.snappy`); the count changes in place. The scrim fades out                                                                                                | None                  |
+| + `duration.fast` (1.75 s)        | The layer unmounts and the stack takes input. A near-miss toast still due on the top card fades back in (`layout.fadeIn`)                                                                                                                               | None                  |
 
 **The matched film in this phone's stack** (it hasn't answered it yet, under the 70% rule): as the top card, the poster pops in from that card's frame instead of the middle, and the card fades out under it (`layout.fadeOut`), so the next card is on top when the scrim leaves. As the second or third mounted card, it fades out under the scrim (`layout.fadeOut`) and the cards behind move up (`spring.snappy`). Further back, `features/swipe/card-stack.ts` drops it from the held cards. An open rewatch question on it closes with no vote. A vote on it already queued is still sent.
 
@@ -424,12 +424,12 @@ Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its 
 
 `screens/swipe/hints.tsx`, M6.18, from [the first game](../../product/onboarding.md#the-first-game) and moments.md#first-game-hints-m618. In the hint line, `body-s` tone `secondary`, centred, one hint at a time. Each is remembered on its own, per phone (Q18.2); one not finished in the first game shows in the next. "Card N" is the player's Nth card this game.
 
-| Hint | Shows | Gone when |
-| --- | --- | --- |
-| `swipe:hints.swipe` | Card 1. After `duration.hint-delay` with no touch, the card leans right to a third of the commit line with the LIKE stamp at the same share, comes back (`spring.card`), then leans left with NOPE, once (through `features/swipe/top-card.ts`). No haptic | The first answer |
-| `swipe:hints.seen` (Q18.1), or `swipe:hints.seenHide` under `hide_seen` | Card 2 | The first Seen it, card 10, or a later hint |
-| `swipe:hints.flip` | Card 3 | The first flip, card 10, or a later hint |
-| `swipe:hints.superLikes` | The first tap on the star, or card 5 | A tap on the hint, or 3 answers later |
+| Hint                                                                    | Shows                                                                                                                                                                                                                                                      | Gone when                                   |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `swipe:hints.swipe`                                                     | Card 1. After `duration.hint-delay` with no touch, the card leans right to a third of the commit line with the LIKE stamp at the same share, comes back (`spring.card`), then leans left with NOPE, once (through `features/swipe/top-card.ts`). No haptic | The first answer                            |
+| `swipe:hints.seen` (Q18.1), or `swipe:hints.seenHide` under `hide_seen` | Card 2                                                                                                                                                                                                                                                     | The first Seen it, card 10, or a later hint |
+| `swipe:hints.flip`                                                      | Card 3                                                                                                                                                                                                                                                     | The first flip, card 10, or a later hint    |
+| `swipe:hints.superLikes`                                                | The first tap on the star, or card 5                                                                                                                                                                                                                       | A tap on the hint, or 3 answers later       |
 
 - A later hint replaces the one showing, and the replaced one counts as shown.
 - The super likes hint is a `Pressable` (label `swipe:hints.dismiss`) with a 14-point `x` after the text.
@@ -450,13 +450,13 @@ Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its 
    - `ending:nothingLeft.filters` in `mono-eyebrow`, tone `secondary`.
    - **The filter tags:** a centred `flex-row flex-wrap justify-center gap-1.5` of `Tag` tone `neutral`, in this order, each only when it applies (a filter that doesn't narrow the deck has no tag, and no empty line is ever left):
 
-     | Tag | Icon | Shown when | Label |
-     | --- | --- | --- | --- |
-     | The services | `tv` on the first only | Always: up to 2 names from `api.rooms.provider_ids`, in `useCountryProviders(country)` order (`display_priority`), one tag each | The service's name. Then one more tag `ending:filters.moreServices` (`+{{count}}`) for the rest. If the providers list hasn't loaded or failed, one tag `ending:filters.services_*` with the count instead |
-     | The time budget | `clock` | `runtime_max` is set | `ending:filters.runtime`, the duration through `formatRuntime` ("1 h 45", "2 h 00") |
-     | The age cap | `shield` | `max_age` is set (null is "Adults") | `ending:filters.age` with the age, or `ending:filters.allAges` for 0 |
-     | The seen rule | `eye` | `seen_rule` is `hide_seen` | `ending:filters.hideSeen` |
-     | The quality | `star` | `quality` is `hidden_gems` or `guilty_pleasures` | `ending:filters.hiddenGems` or `ending:filters.guiltyPleasures` |
+     | Tag             | Icon                   | Shown when                                                                                                                      | Label                                                                                                                                                                                                      |
+     | --------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     | The services    | `tv` on the first only | Always: up to 2 names from `api.rooms.provider_ids`, in `useCountryProviders(country)` order (`display_priority`), one tag each | The service's name. Then one more tag `ending:filters.moreServices` (`+{{count}}`) for the rest. If the providers list hasn't loaded or failed, one tag `ending:filters.services_*` with the count instead |
+     | The time budget | `clock`                | `runtime_max` is set                                                                                                            | `ending:filters.runtime`, the duration through `formatRuntime` ("1 h 45", "2 h 00")                                                                                                                        |
+     | The age cap     | `shield`               | `max_age` is set (null is "Adults")                                                                                             | `ending:filters.age` with the age, or `ending:filters.allAges` for 0                                                                                                                                       |
+     | The seen rule   | `eye`                  | `seen_rule` is `hide_seen`                                                                                                      | `ending:filters.hideSeen`                                                                                                                                                                                  |
+     | The quality     | `star`                 | `quality` is `hidden_gems` or `guilty_pleasures`                                                                                | `ending:filters.hiddenGems` or `ending:filters.guiltyPleasures`                                                                                                                                            |
 
    - **The liked count:** `ending:nothingLeft.liked_*` with `liked`, in `mono-data`, tone `like`. Left out while `liked` is unknown.
 3. No button inside the card: no Change filters (M18.6), no Vote now (M18.5). The answer buttons below stay disabled; Undo follows [its own rule](#undo) (an undo gives a card back, clears `done_at`, and the done card gives way to the card).
@@ -473,135 +473,135 @@ Measured at 375 by 667 (a card about 324 by 487): the icon, a two-line title, th
 
 **Copy** (`ending` namespace; the `swipe` files are not touched, [closed.md](closed.md) lists the namespace's other keys):
 
-| Key | French | English |
-| --- | --- | --- |
-| `nothingLeft.filters` | Les filtres du soir | Tonight's filters |
-| `nothingLeft.liked_one` | {{count}} film aimé pour l'instant | {{count}} film liked so far |
+| Key                       | French                               | English                      |
+| ------------------------- | ------------------------------------ | ---------------------------- |
+| `nothingLeft.filters`     | Les filtres du soir                  | Tonight's filters            |
+| `nothingLeft.liked_one`   | {{count}} film aimé pour l'instant   | {{count}} film liked so far  |
 | `nothingLeft.liked_other` | {{count}} films aimés pour l'instant | {{count}} films liked so far |
-| `filters.moreServices` | +{{count}} | +{{count}} |
-| `filters.services_one` | {{count}} plateforme | {{count}} service |
-| `filters.services_other` | {{count}} plateformes | {{count}} services |
-| `filters.runtime` | Moins de {{duration}} | Under {{duration}} |
-| `filters.age` | Dès {{age}} ans | Ages {{age}}+ |
-| `filters.allAges` | Tous publics | All ages |
-| `filters.hideSeen` | Jamais vus | Unseen only |
-| `filters.hiddenGems` | Pépites cachées | Hidden gems |
-| `filters.guiltyPleasures` | Plaisirs coupables | Guilty pleasures |
-| `a11y.filters` | Les filtres du soir : {{list}} | Tonight's filters: {{list}} |
+| `filters.moreServices`    | +{{count}}                           | +{{count}}                   |
+| `filters.services_one`    | {{count}} plateforme                 | {{count}} service            |
+| `filters.services_other`  | {{count}} plateformes                | {{count}} services           |
+| `filters.runtime`         | Moins de {{duration}}                | Under {{duration}}           |
+| `filters.age`             | Dès {{age}} ans                      | Ages {{age}}+                |
+| `filters.allAges`         | Tous publics                         | All ages                     |
+| `filters.hideSeen`        | Jamais vus                           | Unseen only                  |
+| `filters.hiddenGems`      | Pépites cachées                      | Hidden gems                  |
+| `filters.guiltyPleasures` | Plaisirs coupables                   | Guilty pleasures             |
+| `a11y.filters`            | Les filtres du soir : {{list}}       | Tonight's filters: {{list}}  |
 
 French puts 0 in the singular ("0 film aimé pour l'instant"), English in the plural ("0 films liked so far"). Counts go through `Intl` (i18next's `count`).
 
 ## States
 
-| State | What the player sees |
-| --- | --- |
-| First load (no cards read yet) | The loading card in the stack; the buttons disabled (Undo too); the player stack from `api.room_seats` |
-| Playing | The stack and the buttons |
-| Past the mounted cards, waiting for a refill | **The loading card:** a `Skeleton` the card's size, `rounded-xl`, label `swipe:loading.a11y`. No haptic, no text. Answer buttons disabled. After 10 seconds (a starting value), `swipe:loading.slow` in `body-s` muted and `Button` secondary S `common:actions.retry` (it refetches the cards) inside the card |
-| Offline, cards left | Swiping carries on, feel unchanged. `RoomBanner` shows `common:states.offlineVotes_*` with the queue's count, or `common:states.offlineRoom` while nothing waits. M6.9 gives `RoomBanner` an optional `waitingVotes` count for this |
-| Offline, no cards left | **The waiting card:** a card-size `bg-bg-surface` frame, `rounded-xl`, `border-border-default`, with `EmptyState` icon `wifi-off`, `swipe:waiting.title`, `swipe:waiting.body`. Answer buttons disabled. When the connection is back, the queue sends, the cards are fetched, and the next card replaces it with `layout.fadeIn` |
-| Reconnecting | `RoomBanner` as in [Reconnecting](reconnecting.md); on `SUBSCRIBED` the re-read includes the matches and the next cards |
-| This player is out of cards (`request_cards` answered `done`, M6.29) | **[The done card](#the-done-card-nothing-left):** the same frame, `EmptyState` icon `popcorn`, `swipe:done.title`, `swipe:done.body`, tonight's filters and the liked count (M6.17). Answer buttons disabled; Undo follows its own rule. Presence says `done`. A seat that only reached the card count keeps its cards and keeps swiping (decision row 14) |
-| A match that joins the shortlist (`decided: false`) | [The shortlisted beat](#the-shortlisted-beat) over the stack for about 1.75 s, then the next card. The question stays open with its buttons idle, unless its card is the matched film |
-| The third match | The beat, then the layout moves to the Final Cut |
-| A match that is the pick (`decided: true`: `only_match`, or a mode with 1) | The [match overlay](match.md) takes over from the room layout. A drag springs back (`spring.card`), thrown cards finish their flight, the question closes, the near-miss toast leaves with `layout.fadeOut` |
-| The room moves on (`finale`, `abandoned`) | The layout replaces the screen. A drag springs back first |
-| Removed | Home with `join:errors.removed` ([the removed side](host-menu.md#the-removed-players-side)) |
+| State                                                                      | What the player sees                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First load (no cards read yet)                                             | The loading card in the stack; the buttons disabled (Undo too); the player stack from `api.room_seats`                                                                                                                                                                                                                                                     |
+| Playing                                                                    | The stack and the buttons                                                                                                                                                                                                                                                                                                                                  |
+| Past the mounted cards, waiting for a refill                               | **The loading card:** a `Skeleton` the card's size, `rounded-xl`, label `swipe:loading.a11y`. No haptic, no text. Answer buttons disabled. After 10 seconds (a starting value), `swipe:loading.slow` in `body-s` muted and `Button` secondary S `common:actions.retry` (it refetches the cards) inside the card                                            |
+| Offline, cards left                                                        | Swiping carries on, feel unchanged. `RoomBanner` shows `common:states.offlineVotes_*` with the queue's count, or `common:states.offlineRoom` while nothing waits. M6.9 gives `RoomBanner` an optional `waitingVotes` count for this                                                                                                                        |
+| Offline, no cards left                                                     | **The waiting card:** a card-size `bg-bg-surface` frame, `rounded-xl`, `border-border-default`, with `EmptyState` icon `wifi-off`, `swipe:waiting.title`, `swipe:waiting.body`. Answer buttons disabled. When the connection is back, the queue sends, the cards are fetched, and the next card replaces it with `layout.fadeIn`                           |
+| Reconnecting                                                               | `RoomBanner` as in [Reconnecting](reconnecting.md); on `SUBSCRIBED` the re-read includes the matches and the next cards                                                                                                                                                                                                                                    |
+| This player is out of cards (`request_cards` answered `done`, M6.29)       | **[The done card](#the-done-card-nothing-left):** the same frame, `EmptyState` icon `popcorn`, `swipe:done.title`, `swipe:done.body`, tonight's filters and the liked count (M6.17). Answer buttons disabled; Undo follows its own rule. Presence says `done`. A seat that only reached the card count keeps its cards and keeps swiping (decision row 14) |
+| A match that joins the shortlist (`decided: false`)                        | [The shortlisted beat](#the-shortlisted-beat) over the stack for about 1.75 s, then the next card. The question stays open with its buttons idle, unless its card is the matched film                                                                                                                                                                      |
+| The third match                                                            | The beat, then the layout moves to the Final Cut                                                                                                                                                                                                                                                                                                           |
+| A match that is the pick (`decided: true`: `only_match`, or a mode with 1) | The [match overlay](match.md) takes over from the room layout. A drag springs back (`spring.card`), thrown cards finish their flight, the question closes, the near-miss toast leaves with `layout.fadeOut`                                                                                                                                                |
+| The room moves on (`finale`, `abandoned`)                                  | The layout replaces the screen. A drag springs back first                                                                                                                                                                                                                                                                                                  |
+| Removed                                                                    | Home with `join:errors.removed` ([the removed side](host-menu.md#the-removed-players-side))                                                                                                                                                                                                                                                                |
 
 **Answers the screen can get.** Nothing here is an error shown to the player unless it says so.
 
-| Call and answer | What the player sees |
-| --- | --- |
-| `cast_vote` `ok` | Nothing. With `match: true`: `decided: false` starts the shortlisted beat, `decided: true` the overlay. `state: 'finale'`: the beat plays, then the layout follows |
-| `cast_vote` `duplicate`, `dropped` | Nothing |
-| `cast_vote` `closed` | Every queued vote for the room is dropped quietly; the room is re-read |
-| `cast_vote` `no_super_likes` | The super like goes back to the badge |
-| `cast_vote` "card not dealt to this seat" | Nothing; Sentry, and the cards are refetched |
-| `cast_vote` denied (`42501`, an expired session) | The session is refreshed once and the vote retried; a second denial drops it, to Sentry (Q11.1) |
-| `request_cards` `ok`, `enough` | Nothing (the cards arrive) |
-| `request_cards` `queued` | The loading card if the stack is empty |
-| `request_cards` `done` `{liked}` | [The done card](#the-done-card-nothing-left) once the stack is empty, with the count |
-| `request_cards` `closed` | The room is re-read |
+| Call and answer                                  | What the player sees                                                                                                                                               |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cast_vote` `ok`                                 | Nothing. With `match: true`: `decided: false` starts the shortlisted beat, `decided: true` the overlay. `state: 'finale'`: the beat plays, then the layout follows |
+| `cast_vote` `duplicate`, `dropped`               | Nothing                                                                                                                                                            |
+| `cast_vote` `closed`                             | Every queued vote for the room is dropped quietly; the room is re-read                                                                                             |
+| `cast_vote` `no_super_likes`                     | The super like goes back to the badge                                                                                                                              |
+| `cast_vote` "card not dealt to this seat"        | Nothing; Sentry, and the cards are refetched                                                                                                                       |
+| `cast_vote` denied (`42501`, an expired session) | The session is refreshed once and the vote retried; a second denial drops it, to Sentry (Q11.1)                                                                    |
+| `request_cards` `ok`, `enough`                   | Nothing (the cards arrive)                                                                                                                                         |
+| `request_cards` `queued`                         | The loading card if the stack is empty                                                                                                                             |
+| `request_cards` `done` `{liked}`                 | [The done card](#the-done-card-nothing-left) once the stack is empty, with the count                                                                               |
+| `request_cards` `closed`                         | The room is re-read                                                                                                                                                |
 
 ## Live changes
 
-| Event | The screen |
-| --- | --- |
-| `deck_updated` naming this seat | Only the cards behind the 3 mounted ones are replaced |
-| `near_miss` | [The near miss](#the-near-miss) |
-| `match` with `decided: false` | [The shortlisted beat](#the-shortlisted-beat); the film goes into [the shortlist](#the-shortlist) and leaves this phone's stack |
-| `match` with `decided: true` | [The match](match.md) |
-| `finale_started` | Nothing visible; the finalists' cards may start loading |
+| Event                                            | The screen                                                                                                                                               |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `deck_updated` naming this seat                  | Only the cards behind the 3 mounted ones are replaced                                                                                                    |
+| `near_miss`                                      | [The near miss](#the-near-miss)                                                                                                                          |
+| `match` with `decided: false`                    | [The shortlisted beat](#the-shortlisted-beat); the film goes into [the shortlist](#the-shortlist) and leaves this phone's stack                          |
+| `match` with `decided: true`                     | [The match](match.md)                                                                                                                                    |
+| `finale_started`                                 | Nothing visible; the finalists' cards may start loading                                                                                                  |
 | `member_joined`, `member_left`, `member_removed` | The seats re-read; a new disc pops in (`layout.popIn`), a leaving one goes with `layout.fadeOut`, the others slide (`LinearTransition`, `duration.base`) |
-| `host_changed` | The crown moves; the new host gets `lobby:youreHost.title` as a toast, with no message line |
-| Presence | Dots, away, counts, done |
-| `state_changed` | The layout follows the state, after the shortlisted beat if one is playing (the hold) |
+| `host_changed`                                   | The crown moves; the new host gets `lobby:youreHost.title` as a toast, with no message line                                                              |
+| Presence                                         | Dots, away, counts, done                                                                                                                                 |
+| `state_changed`                                  | The layout follows the state, after the shortlisted beat if one is playing (the hold)                                                                    |
 
 ## Copy
 
 M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swipe.json`) at once, so later tasks never edit the same locale files. Proposed French terms follow the glossary.
 
-| Key | French | English |
-| --- | --- | --- |
-| `pills.you` | Toi | You |
-| `pills.done` | Fini | Done |
-| `loading.a11y` | Chargement du film suivant | Loading the next film |
-| `loading.slow` | On distribue encore les cartes. | Still dealing the cards. |
-| `waiting.title` | En attente du réseau | Waiting for the connection |
-| `waiting.body` | Tes votes sont gardés. Ils partiront dès ton retour. | Your swipes are saved. They'll go as soon as you're back. |
-| `done.title` | Tu as vu toutes tes cartes | That's all your cards |
-| `done.body` | On attend que les autres finissent. | Waiting for the others to finish. |
-| `card.noSynopsis` | Pas encore de résumé pour ce film. | No synopsis for this one yet. |
-| `nearMiss_one` | {{count}} sur {{of}} a aimé | {{count}} of {{of}} of you liked this |
-| `nearMiss_other` | {{count}} sur {{of}} ont aimé | {{count}} of {{of}} of you liked this |
-| `rewatchChip.text` | Déjà vu. On le revoit ce soir ? | Seen it. Watch it again tonight? |
-| `rewatchChip.yes` | Oui | Yes |
-| `rewatchChip.done` | Partant pour le revoir | Up for a rewatch |
-| `hints.swipe` | À droite : j'aime. À gauche : bof. | Swipe right to like, left to nope. |
-| `hints.seen` | Déjà vu ? Glisse vers le haut. On te demandera si tu le reverrais. | Seen it? Swipe up. We'll ask if you'd watch it again. |
-| `hints.seenHide` | Déjà vu ? Glisse vers le haut, il quitte la partie. | Seen it? Swipe up and it leaves the game. |
-| `hints.flip` | Touche la carte pour voir l'histoire. | Tap the card for the story. |
-| `hints.superLikes_one` | {{count}} coup de cœur par partie. Il compte double s'il faut un vote final. | {{count}} super like per game. It counts double if it comes to a final vote. |
+| Key                      | French                                                                           | English                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `pills.you`              | Toi                                                                              | You                                                                            |
+| `pills.done`             | Fini                                                                             | Done                                                                           |
+| `loading.a11y`           | Chargement du film suivant                                                       | Loading the next film                                                          |
+| `loading.slow`           | On distribue encore les cartes.                                                  | Still dealing the cards.                                                       |
+| `waiting.title`          | En attente du réseau                                                             | Waiting for the connection                                                     |
+| `waiting.body`           | Tes votes sont gardés. Ils partiront dès ton retour.                             | Your swipes are saved. They'll go as soon as you're back.                      |
+| `done.title`             | Tu as vu toutes tes cartes                                                       | That's all your cards                                                          |
+| `done.body`              | On attend que les autres finissent.                                              | Waiting for the others to finish.                                              |
+| `card.noSynopsis`        | Pas encore de résumé pour ce film.                                               | No synopsis for this one yet.                                                  |
+| `nearMiss_one`           | {{count}} sur {{of}} a aimé                                                      | {{count}} of {{of}} of you liked this                                          |
+| `nearMiss_other`         | {{count}} sur {{of}} ont aimé                                                    | {{count}} of {{of}} of you liked this                                          |
+| `rewatchChip.text`       | Déjà vu. On le revoit ce soir ?                                                  | Seen it. Watch it again tonight?                                               |
+| `rewatchChip.yes`        | Oui                                                                              | Yes                                                                            |
+| `rewatchChip.done`       | Partant pour le revoir                                                           | Up for a rewatch                                                               |
+| `hints.swipe`            | À droite : j'aime. À gauche : bof.                                               | Swipe right to like, left to nope.                                             |
+| `hints.seen`             | Déjà vu ? Glisse vers le haut. On te demandera si tu le reverrais.               | Seen it? Swipe up. We'll ask if you'd watch it again.                          |
+| `hints.seenHide`         | Déjà vu ? Glisse vers le haut, il quitte la partie.                              | Seen it? Swipe up and it leaves the game.                                      |
+| `hints.flip`             | Touche la carte pour voir l'histoire.                                            | Tap the card for the story.                                                    |
+| `hints.superLikes_one`   | {{count}} coup de cœur par partie. Il compte double s'il faut un vote final.     | {{count}} super like per game. It counts double if it comes to a final vote.   |
 | `hints.superLikes_other` | {{count}} coups de cœur par partie. Ils comptent double s'il faut un vote final. | {{count}} super likes per game. They count double if it comes to a final vote. |
-| `hints.dismiss` | Masquer l'astuce | Hide this tip |
-| `a11y.card` | {{title}}, {{meta}}. Sur {{services}}. | {{title}}, {{meta}}. On {{services}}. |
-| `a11y.cardBack` | {{title}}. Note TMDB {{rating}}. {{synopsis}} | {{title}}. TMDB rating {{rating}}. {{synopsis}} |
-| `a11y.actions.like` | J'aime | Like |
-| `a11y.actions.nope` | Bof | Nope |
-| `a11y.actions.superLike` | Coup de cœur | Super like |
-| `a11y.actions.seen` | Déjà vu | Seen it |
-| `a11y.cardBackNoRating` | {{title}}. {{synopsis}} | {{title}}. {{synopsis}} |
-| `a11y.cardBackServices` | Sur {{services}}. | On {{services}}. |
-| `a11y.actions.flip` | Retourner la carte | Flip the card |
-| `a11y.actions.trailer` | Voir la bande-annonce | Watch the trailer |
-| `a11y.actions.save` | Garder pour plus tard | Save for later |
-| `a11y.actions.unsave` | Retirer de Plus tard | Remove from Later |
-| `a11y.saved` | {{title}} : gardé pour plus tard | {{title}}: saved for later |
-| `a11y.unsaved` | {{title}} : retiré de Plus tard | {{title}}: removed from Later |
-| `a11y.superLeft_one` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
-| `a11y.superLeft_other` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
-| `a11y.superNone` | Plus de coup de cœur | No super likes left |
-| `a11y.undoNone` | Rien à annuler | Nothing to undo |
-| `a11y.seenYes` | Oui, on le revoit ce soir | Yes, watch it again tonight |
-| `a11y.seenNo` | Non, pas ce soir | No, not tonight |
-| `a11y.pill_one` | {{name}}, {{count}} film | {{name}}, {{count}} film |
-| `a11y.pill_other` | {{name}}, {{count}} films | {{name}}, {{count}} films |
-| `a11y.pillAway` | {{name}}, pas là | {{name}}, away |
-| `a11y.pillHost` | {{name}}, hôte | {{name}}, host |
-| `a11y.done` | {{name}} a fini | {{name}} is done |
-| `a11y.thrown` | {{answer}} : {{title}} | {{answer}}: {{title}} |
+| `hints.dismiss`          | Masquer l'astuce                                                                 | Hide this tip                                                                  |
+| `a11y.card`              | {{title}}, {{meta}}. Sur {{services}}.                                           | {{title}}, {{meta}}. On {{services}}.                                          |
+| `a11y.cardBack`          | {{title}}. Note TMDB {{rating}}. {{synopsis}}                                    | {{title}}. TMDB rating {{rating}}. {{synopsis}}                                |
+| `a11y.actions.like`      | J'aime                                                                           | Like                                                                           |
+| `a11y.actions.nope`      | Bof                                                                              | Nope                                                                           |
+| `a11y.actions.superLike` | Coup de cœur                                                                     | Super like                                                                     |
+| `a11y.actions.seen`      | Déjà vu                                                                          | Seen it                                                                        |
+| `a11y.cardBackNoRating`  | {{title}}. {{synopsis}}                                                          | {{title}}. {{synopsis}}                                                        |
+| `a11y.cardBackServices`  | Sur {{services}}.                                                                | On {{services}}.                                                               |
+| `a11y.actions.flip`      | Retourner la carte                                                               | Flip the card                                                                  |
+| `a11y.actions.trailer`   | Voir la bande-annonce                                                            | Watch the trailer                                                              |
+| `a11y.actions.save`      | Garder pour plus tard                                                            | Save for later                                                                 |
+| `a11y.actions.unsave`    | Retirer de Plus tard                                                             | Remove from Later                                                              |
+| `a11y.saved`             | {{title}} : gardé pour plus tard                                                 | {{title}}: saved for later                                                     |
+| `a11y.unsaved`           | {{title}} : retiré de Plus tard                                                  | {{title}}: removed from Later                                                  |
+| `a11y.superLeft_one`     | Coup de cœur, il en reste {{count}}                                              | Super like, {{count}} left                                                     |
+| `a11y.superLeft_other`   | Coup de cœur, il en reste {{count}}                                              | Super like, {{count}} left                                                     |
+| `a11y.superNone`         | Plus de coup de cœur                                                             | No super likes left                                                            |
+| `a11y.undoNone`          | Rien à annuler                                                                   | Nothing to undo                                                                |
+| `a11y.seenYes`           | Oui, on le revoit ce soir                                                        | Yes, watch it again tonight                                                    |
+| `a11y.seenNo`            | Non, pas ce soir                                                                 | No, not tonight                                                                |
+| `a11y.pill_one`          | {{name}}, {{count}} film                                                         | {{name}}, {{count}} film                                                       |
+| `a11y.pill_other`        | {{name}}, {{count}} films                                                        | {{name}}, {{count}} films                                                      |
+| `a11y.pillAway`          | {{name}}, pas là                                                                 | {{name}}, away                                                                 |
+| `a11y.pillHost`          | {{name}}, hôte                                                                   | {{name}}, host                                                                 |
+| `a11y.done`              | {{name}} a fini                                                                  | {{name}} is done                                                               |
+| `a11y.thrown`            | {{answer}} : {{title}}                                                           | {{answer}}: {{title}}                                                          |
 
 **Added by M6.37** (the shortlist), in the same files:
 
-| Key | French | English |
-| --- | --- | --- |
-| `shortlist.count` | {{count}}/{{of}} | {{count}}/{{of}} |
-| `shortlist.a11y` | Sélection, {{count}} sur {{of}} : {{titles}} | Shortlist, {{count}} of {{of}}: {{titles}} |
-| `shortlist.a11yEmpty` | Sélection vide. Le vote commence à {{of}} matchs. | Shortlist empty. The vote starts at {{of}} matches. |
-| `shortlisted.title` | C'est un match : {{count}} sur {{of}} | It's a match: {{count}} of {{of}} |
-| `shortlisted.a11y` | C'est un match : {{title}}. {{count}} sur {{of}} dans la sélection. {{votes}} | It's a match: {{title}}. {{count}} of {{of}} on the shortlist. {{votes}} |
-| `shortlisted.a11yNoTitle` | C'est un match. {{count}} sur {{of}} dans la sélection. {{votes}} | It's a match. {{count}} of {{of}} on the shortlist. {{votes}} |
-| `a11y.undoShortlisted` | Ce film est dans la sélection | This film is on the shortlist |
+| Key                       | French                                                                        | English                                                                  |
+| ------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `shortlist.count`         | {{count}}/{{of}}                                                              | {{count}}/{{of}}                                                         |
+| `shortlist.a11y`          | Sélection, {{count}} sur {{of}} : {{titles}}                                  | Shortlist, {{count}} of {{of}}: {{titles}}                               |
+| `shortlist.a11yEmpty`     | Sélection vide. Le vote commence à {{of}} matchs.                             | Shortlist empty. The vote starts at {{of}} matches.                      |
+| `shortlisted.title`       | C'est un match : {{count}} sur {{of}}                                         | It's a match: {{count}} of {{of}}                                        |
+| `shortlisted.a11y`        | C'est un match : {{title}}. {{count}} sur {{of}} dans la sélection. {{votes}} | It's a match: {{title}}. {{count}} of {{of}} on the shortlist. {{votes}} |
+| `shortlisted.a11yNoTitle` | C'est un match. {{count}} sur {{of}} dans la sélection. {{votes}}             | It's a match. {{count}} of {{of}} on the shortlist. {{votes}}            |
+| `a11y.undoShortlisted`    | Ce film est dans la sélection                                                 | This film is on the shortlist                                            |
 
 In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes}}` is the `match:count.*` line, or empty before the event. In French, the space before each colon is a no-break space (U+00A0). "Sélection" for "the shortlist" is proposed (the `copy` skill's glossary). No exclamation mark: this is a small cheer, and the pick's overlay keeps "C'est un match !". "C'EST UN MATCH : 3 SUR 3" takes 2 lines at 375 points in `display-m`, which the title allows.
 
@@ -609,19 +609,19 @@ In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes
 
 **Added by M6.63** (the player stack and the players sheet), in the same files:
 
-| Key | French | English |
-| --- | --- | --- |
-| `players.more` | +{{count}} | +{{count}} |
-| `players.title` | Joueurs | Players |
-| `players.films_one` | {{count}} film | {{count}} film |
-| `players.films_other` | {{count}} films | {{count}} films |
-| `a11y.players_one` | {{count}} joueur dans la salle de {{host}} | {{count}} player in {{host}}'s room |
-| `a11y.players_other` | {{count}} joueurs dans la salle de {{host}} | {{count}} players in {{host}}'s room |
-| `a11y.playersDone_one` | {{count}} a fini | {{count}} is done |
-| `a11y.playersDone_other` | {{count}} ont fini | {{count}} are done |
-| `a11y.playersAway_one` | {{count}} pas là | {{count}} away |
-| `a11y.playersAway_other` | {{count}} pas là | {{count}} away |
-| `a11y.playersHint` | Affiche qui joue et où chacun en est | Shows who is playing and how far each is |
+| Key                      | French                                      | English                                  |
+| ------------------------ | ------------------------------------------- | ---------------------------------------- |
+| `players.more`           | +{{count}}                                  | +{{count}}                               |
+| `players.title`          | Joueurs                                     | Players                                  |
+| `players.films_one`      | {{count}} film                              | {{count}} film                           |
+| `players.films_other`    | {{count}} films                             | {{count}} films                          |
+| `a11y.players_one`       | {{count}} joueur dans la salle de {{host}}  | {{count}} player in {{host}}'s room      |
+| `a11y.players_other`     | {{count}} joueurs dans la salle de {{host}} | {{count}} players in {{host}}'s room     |
+| `a11y.playersDone_one`   | {{count}} a fini                            | {{count}} is done                        |
+| `a11y.playersDone_other` | {{count}} ont fini                          | {{count}} are done                       |
+| `a11y.playersAway_one`   | {{count}} pas là                            | {{count}} away                           |
+| `a11y.playersAway_other` | {{count}} pas là                            | {{count}} away                           |
+| `a11y.playersHint`       | Affiche qui joue et où chacun en est        | Shows who is playing and how far each is |
 
 The stack's label joins `a11y.players`, then `a11y.playersDone` and `a11y.playersAway` when their count isn't 0, with commas: "4 players in Harry's room, 1 is done". On your own room, `host` is your own name. Reused: `lobby:seat.you`, `lobby:seat.away`, `lobby:seat.host`, `lobby:a11y.seat`, `pills.done`, `common:actions.close`.
 
@@ -652,23 +652,23 @@ The stack's label joins `a11y.players`, then `a11y.playersDone` and `a11y.player
 
 Spec here; app-dev builds them with their gallery states in the task named.
 
-| Change | Task |
-| --- | --- |
-| `MovieCard`: two more stamps, `seen` (SEEN IT, `accent.default` border, centred over the poster's middle, not rotated) and `super` (SUPER, `marquee.default`, where LIKE sits, -14 degrees) | M6.9 |
-| `MovieCard`: the stamp's opacity and scale and the border's opacity driven by shared values from the drag (on the UI thread), as well as the `stamp` prop for the gallery and the buttons | M6.9 |
-| `MovieCard`: `glow` (the near miss's `glow-like` around the card, under the drag's border) | M6.13 |
-| `PlayerPill`: `you` (the label), `away` (muted name, no dot), `done` (the count replaced by `swipe:pills.done` in tone `like`), `host` (the crown), and `onPress` | M6.27 |
-| `SeatRow` moves from `screens/lobby/` to `shared/seat-row` for the players sheet: `services` becomes `detail` (any string), and a new `done` gives the `like` Tag with `check` and `swipe:pills.done` (at most one tag: away, then Done, then the host; the crown icon follows the name when the host's tag gives way). The lobby passes its services line as `detail` and no `done`, so it looks the same. A gallery entry with every state | M6.63 |
-| `PlayerPill` leaves the swipe screen; it stays in `shared/` for the store scenes, unchanged | M6.63 |
-| `MovieCard`: the bookmark moves to the bottom right of both faces, 44 points, with the landing guard ([The bookmark](#the-bookmark)); the gallery shows it empty, saved, on the back, and at the largest text on a 375-point card | M6.58 |
-| `RoomBanner`: an optional `waitingVotes` count for the offline note | M6.9 |
-| `EmptyState`: an optional `children` slot between the body and the action (the done card's filters and count). A gallery state with a row of tags | M6.17 |
-| Tokens: `rotation.card-tilt` 10 and `rotation.card-tilt-max` 15 (degrees, the swipe), `duration.hint-delay` 600ms (the card 1 lean's wait), each with a `$description`, then `mise run tokens` | M6.9, M6.18 |
-| `PosterThumb`: a size `xs`, 24 by 36 (`h-9 w-6`), with `rounded-xs` instead of `rounded-sm`. A gallery state with a missing poster | M6.37 |
-| Token: `duration.shortlist-hold`, 1200ms, "The shortlisted beat: the poster over the stack before it flies to the shortlist (a starting value)", then `mise run tokens` | M6.37 |
-| Haptic: `haptics.shortlist()` in `lib/haptics`, "A match joins the shortlist": two `Light` impacts 100 ms apart, a starting point for the feel check. The `motion` skill's haptics table gets the row | M6.37 |
-| Tokens: `opacity.stack-dim-near` 0.3, "The dark layer over the swipe stack's second card: dims it without letting the third show through (a starting value)", and `opacity.stack-dim-far` 0.55, the same for the third card. `opacity.stack-far` goes (nothing else uses it); `opacity.stack-near` stays for `ServiceTile`'s dimmed logo, and its description says so. Then `mise run tokens`; the `design-system` skill's opacity line follows | M6.61 |
-| `MovieCard`, the back: the poster's middle, `card-front-scrim`, the inline score, "Read more", one row of logos with "+n", no flip-back line ([The card back, reworked](#the-card-back-reworked)) | M6.61 |
+| Change                                                                                                                                                                                                                                                                                                                                                                                                                                          | Task        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `MovieCard`: two more stamps, `seen` (SEEN IT, `accent.default` border, centred over the poster's middle, not rotated) and `super` (SUPER, `marquee.default`, where LIKE sits, -14 degrees)                                                                                                                                                                                                                                                     | M6.9        |
+| `MovieCard`: the stamp's opacity and scale and the border's opacity driven by shared values from the drag (on the UI thread), as well as the `stamp` prop for the gallery and the buttons                                                                                                                                                                                                                                                       | M6.9        |
+| `MovieCard`: `glow` (the near miss's `glow-like` around the card, under the drag's border)                                                                                                                                                                                                                                                                                                                                                      | M6.13       |
+| `PlayerPill`: `you` (the label), `away` (muted name, no dot), `done` (the count replaced by `swipe:pills.done` in tone `like`), `host` (the crown), and `onPress`                                                                                                                                                                                                                                                                               | M6.27       |
+| `SeatRow` moves from `screens/lobby/` to `shared/seat-row` for the players sheet: `services` becomes `detail` (any string), and a new `done` gives the `like` Tag with `check` and `swipe:pills.done` (at most one tag: away, then Done, then the host; the crown icon follows the name when the host's tag gives way). The lobby passes its services line as `detail` and no `done`, so it looks the same. A gallery entry with every state    | M6.63       |
+| `PlayerPill` leaves the swipe screen; it stays in `shared/` for the store scenes, unchanged                                                                                                                                                                                                                                                                                                                                                     | M6.63       |
+| `MovieCard`: the bookmark moves to the bottom right of both faces, 44 points, with the landing guard ([The bookmark](#the-bookmark)); the gallery shows it empty, saved, on the back, and at the largest text on a 375-point card                                                                                                                                                                                                               | M6.58       |
+| `RoomBanner`: an optional `waitingVotes` count for the offline note                                                                                                                                                                                                                                                                                                                                                                             | M6.9        |
+| `EmptyState`: an optional `children` slot between the body and the action (the done card's filters and count). A gallery state with a row of tags                                                                                                                                                                                                                                                                                               | M6.17       |
+| Tokens: `rotation.card-tilt` 10 and `rotation.card-tilt-max` 15 (degrees, the swipe), `duration.hint-delay` 600ms (the card 1 lean's wait), each with a `$description`, then `mise run tokens`                                                                                                                                                                                                                                                  | M6.9, M6.18 |
+| `PosterThumb`: a size `xs`, 24 by 36 (`h-9 w-6`), with `rounded-xs` instead of `rounded-sm`. A gallery state with a missing poster                                                                                                                                                                                                                                                                                                              | M6.37       |
+| Token: `duration.shortlist-hold`, 1200ms, "The shortlisted beat: the poster over the stack before it flies to the shortlist (a starting value)", then `mise run tokens`                                                                                                                                                                                                                                                                         | M6.37       |
+| Haptic: `haptics.shortlist()` in `lib/haptics`, "A match joins the shortlist": two `Light` impacts 100 ms apart, a starting point for the feel check. The `motion` skill's haptics table gets the row                                                                                                                                                                                                                                           | M6.37       |
+| Tokens: `opacity.stack-dim-near` 0.3, "The dark layer over the swipe stack's second card: dims it without letting the third show through (a starting value)", and `opacity.stack-dim-far` 0.55, the same for the third card. `opacity.stack-far` goes (nothing else uses it); `opacity.stack-near` stays for `ServiceTile`'s dimmed logo, and its description says so. Then `mise run tokens`; the `design-system` skill's opacity line follows | M6.61       |
+| `MovieCard`, the back: the poster's middle, `card-front-scrim`, the inline score, "Read more", one row of logos with "+n", no flip-back line ([The card back, reworked](#the-card-back-reworked))                                                                                                                                                                                                                                               | M6.61       |
 
 No new component: the new pieces are single-use screen pieces in `components/screens/swipe/` (the shortlist and the beat's layer are M6.37's, the player stack M6.63's). No new token for design pass (b): the player stack, its badges and the bookmark use existing sizes, colors and motion tokens. Design pass (a) adds two (`opacity.stack-dim-near` and `opacity.stack-dim-far`, above), and the synopsis sheet is a single-use piece too (M6.61's).
 
@@ -722,16 +722,16 @@ Measured at 375 by 667 (a card about 324 by 487): the fan, the count, a two-line
 - **The grid:** this session's likes as [`FilmTile`](my-films.md#new-components) in 3 columns, `px-5`, gap 8, super likes first (each with its star), then newest first. No "Picked" badge here. It scrolls; there is no paging (a session holds at most the day's cap). The list is the phone's own answers, the same one the checkpoint counts; posters come from the cards the phone held this session, else one `api.title_cards` read (a cold start reads the likes from `api.my_votes`).
 - **Tapping a tile** is tonight's pick: [the solo pick](../moments.md#the-solo-pick) beat starts (the tile lifts) and `api.solo_pick(room, title)` goes after any votes still in the queue.
 
-| Answer or state | What the player sees |
-| --- | --- |
-| `ok` `{title_id}` | The beat: the sheet slides down, the poster flies to [the solo pick](winner.md#the-solo-pick). The room is `done` with the pick |
-| `not_liked` (the like was undone in a race) | The tile leaves the grid (`layout.fadeOut`); `showToast` warn `solo:pickSheet.notLiked` |
-| `closed` `{state}` (the sweeper ended the session) | Play, with `showToast` info `solo:ended.title` and `solo:ended.body` |
-| The call failed, or `rate_limited` | The tile settles back; `showToast` warn `solo:pickSheet.error`; `haptics.error()` |
-| Offline | `Banner` warn `solo:pickSheet.offline` under the helper; tiles at `opacity-disabled` and not pressable |
-| One like | One tile, at the left |
-| Many likes | The grid scrolls; the header stays |
-| A missing poster or a long title | The tile's placeholder: the title on 3 lines, then an ellipsis, and the year |
+| Answer or state                                    | What the player sees                                                                                                            |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `ok` `{title_id}`                                  | The beat: the sheet slides down, the poster flies to [the solo pick](winner.md#the-solo-pick). The room is `done` with the pick |
+| `not_liked` (the like was undone in a race)        | The tile leaves the grid (`layout.fadeOut`); `showToast` warn `solo:pickSheet.notLiked`                                         |
+| `closed` `{state}` (the sweeper ended the session) | Play, with `showToast` info `solo:ended.title` and `solo:ended.body`                                                            |
+| The call failed, or `rate_limited`                 | The tile settles back; `showToast` warn `solo:pickSheet.error`; `haptics.error()`                                               |
+| Offline                                            | `Banner` warn `solo:pickSheet.offline` under the helper; tiles at `opacity-disabled` and not pressable                          |
+| One like                                           | One tile, at the left                                                                                                           |
+| Many likes                                         | The grid scrolls; the header stays                                                                                              |
+| A missing poster or a long title                   | The tile's placeholder: the title on 3 lines, then an ellipsis, and the year                                                    |
 
 Closing the sheet (the cross, a swipe down) goes back to the checkpoint, the out of films card or the cap card, whichever opened it.
 
@@ -745,45 +745,45 @@ Closing the sheet (the cross, a swipe down) goes back to the checkpoint, the out
 
 ### Solo states and answers
 
-| State or answer | What the player sees |
-| --- | --- |
-| `dealing` (from `start_solo`) | The loading card; after 8 seconds the phone calls `api.start_game(room_id)` once ([lobby](lobby.md#starting)) |
-| `cast_vote` `ok`, `duplicate` | Nothing (`match` never comes in solo) |
-| `cast_vote` `closed` | The queued votes are dropped; the room is re-read (it ended: Play and `solo:ended.*`) |
-| `request_cards` `done` `{liked}` | [Out of films](#out-of-films) once the stack is empty |
-| `request_cards` `daily_limit` | [The cap card](#the-cap-card) once the stack is empty |
-| `state_changed` `done` with a pick | [The solo pick](winner.md#the-solo-pick) |
-| `state_changed` `done` without a pick, not from this phone's Leave (the sweeper, 30 minutes without a vote, or a Start on another screen) | Play, with `showToast` info `solo:ended.title` and `solo:ended.body` (Q39.2) |
-| Offline, cards left | Swiping carries on; `RoomBanner`'s offline note as in a group game |
-| The largest text | The status cards scroll inside their frame; the top bar's count is capped at 1.2 |
+| State or answer                                                                                                                           | What the player sees                                                                                          |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `dealing` (from `start_solo`)                                                                                                             | The loading card; after 8 seconds the phone calls `api.start_game(room_id)` once ([lobby](lobby.md#starting)) |
+| `cast_vote` `ok`, `duplicate`                                                                                                             | Nothing (`match` never comes in solo)                                                                         |
+| `cast_vote` `closed`                                                                                                                      | The queued votes are dropped; the room is re-read (it ended: Play and `solo:ended.*`)                         |
+| `request_cards` `done` `{liked}`                                                                                                          | [Out of films](#out-of-films) once the stack is empty                                                         |
+| `request_cards` `daily_limit`                                                                                                             | [The cap card](#the-cap-card) once the stack is empty                                                         |
+| `state_changed` `done` with a pick                                                                                                        | [The solo pick](winner.md#the-solo-pick)                                                                      |
+| `state_changed` `done` without a pick, not from this phone's Leave (the sweeper, 30 minutes without a vote, or a Start on another screen) | Play, with `showToast` info `solo:ended.title` and `solo:ended.body` (Q39.2)                                  |
+| Offline, cards left                                                                                                                       | Swiping carries on; `RoomBanner`'s offline note as in a group game                                            |
+| The largest text                                                                                                                          | The status cards scroll inside their frame; the top bar's count is capped at 1.2                              |
 
 ### Solo copy (`solo` namespace)
 
-| Key | French | English |
-| --- | --- | --- |
-| `topBar.label` | Solo | Solo |
-| `a11y.leave` | Arrêter de jouer seul | Stop playing alone |
-| `a11y.likes_one` | {{count}} film aimé | {{count}} film liked |
-| `a11y.likes_other` | {{count}} films aimés | {{count}} films liked |
-| `checkpoint.liked_one` | Tu as aimé 1 film. Il est dans Mes films. | You liked 1 film. It's in My films. |
-| `checkpoint.liked_other` | Tu as aimé {{count}} films. Ils sont dans Mes films. | You liked {{count}} films. They're in My films. |
-| `checkpoint.none` | Rien pour l'instant. On continue ? | Nothing yet. Keep going? |
-| `checkpoint.pick` | Choisir | Pick one |
-| `checkpoint.continue` | Continuer | Keep going |
-| `pickSheet.title` | Lequel ce soir ? | Which one tonight? |
-| `pickSheet.helper` | Touche un film pour le choisir. | Tap a film to pick it. |
-| `pickSheet.offline` | Tu es hors ligne. Reconnecte-toi pour choisir. | You're offline. Connect to pick. |
-| `pickSheet.notLiked` | Ce film n'est plus dans tes j'aime. | That film isn't in your likes any more. |
-| `pickSheet.error` | Impossible de choisir ce film. Réessaie. | We couldn't pick that film. Try again. |
-| `pickSheet.a11yHint` | Le choisir pour ce soir | Pick it for tonight |
-| `outOfFilms.title` | Tu as vu tous les films de ces filtres. | That's every film for these filters. |
-| `outOfFilms.body` | La prochaine fois, ajoute une plateforme ou relâche un filtre. | Next time, add a service or loosen a filter. |
-| `cap.title` | C'est tout pour le solo aujourd'hui. | That's today's solo deck. |
-| `cap.body` | Nouvelles cartes demain. | New cards tomorrow. |
-| `actions.myFilms` | Mes films | My films |
-| `actions.host` | Organiser une soirée | Host a movie night |
-| `ended.title` | Ta partie solo est terminée. | Your solo session ended. |
-| `ended.body` | Tes j'aime sont dans Mes films. | Your likes are in My films. |
+| Key                      | French                                                         | English                                         |
+| ------------------------ | -------------------------------------------------------------- | ----------------------------------------------- |
+| `topBar.label`           | Solo                                                           | Solo                                            |
+| `a11y.leave`             | Arrêter de jouer seul                                          | Stop playing alone                              |
+| `a11y.likes_one`         | {{count}} film aimé                                            | {{count}} film liked                            |
+| `a11y.likes_other`       | {{count}} films aimés                                          | {{count}} films liked                           |
+| `checkpoint.liked_one`   | Tu as aimé 1 film. Il est dans Mes films.                      | You liked 1 film. It's in My films.             |
+| `checkpoint.liked_other` | Tu as aimé {{count}} films. Ils sont dans Mes films.           | You liked {{count}} films. They're in My films. |
+| `checkpoint.none`        | Rien pour l'instant. On continue ?                             | Nothing yet. Keep going?                        |
+| `checkpoint.pick`        | Choisir                                                        | Pick one                                        |
+| `checkpoint.continue`    | Continuer                                                      | Keep going                                      |
+| `pickSheet.title`        | Lequel ce soir ?                                               | Which one tonight?                              |
+| `pickSheet.helper`       | Touche un film pour le choisir.                                | Tap a film to pick it.                          |
+| `pickSheet.offline`      | Tu es hors ligne. Reconnecte-toi pour choisir.                 | You're offline. Connect to pick.                |
+| `pickSheet.notLiked`     | Ce film n'est plus dans tes j'aime.                            | That film isn't in your likes any more.         |
+| `pickSheet.error`        | Impossible de choisir ce film. Réessaie.                       | We couldn't pick that film. Try again.          |
+| `pickSheet.a11yHint`     | Le choisir pour ce soir                                        | Pick it for tonight                             |
+| `outOfFilms.title`       | Tu as vu tous les films de ces filtres.                        | That's every film for these filters.            |
+| `outOfFilms.body`        | La prochaine fois, ajoute une plateforme ou relâche un filtre. | Next time, add a service or loosen a filter.    |
+| `cap.title`              | C'est tout pour le solo aujourd'hui.                           | That's today's solo deck.                       |
+| `cap.body`               | Nouvelles cartes demain.                                       | New cards tomorrow.                             |
+| `actions.myFilms`        | Mes films                                                      | My films                                        |
+| `actions.host`           | Organiser une soirée                                           | Host a movie night                              |
+| `ended.title`            | Ta partie solo est terminée.                                   | Your solo session ended.                        |
+| `ended.body`             | Tes j'aime sont dans Mes films.                                | Your likes are in My films.                     |
 
 French counts 0 and 1 as singular; the zero case has its own line (`checkpoint.none`) and the likes count reads "0 film aimé". Every count goes through `Intl`.
 
