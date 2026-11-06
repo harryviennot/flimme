@@ -2,6 +2,7 @@ import type { MyProfile } from '@flimme/contract';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/api';
+import i18n from '@/i18n';
 import { MY_PROFILE_KEY, saveCachedProfile } from '@/features/profile';
 
 export const CATALOG_COUNTRIES_KEY = ['catalog_countries'] as const;
@@ -43,8 +44,13 @@ export function useChooseCountry() {
   return { choose: mutation.mutateAsync, busy: mutation.isPending };
 }
 
-/** A country's name in the app's language (`Intl`), the code itself when the runtime has none. */
+/**
+ * A country's name in the app's language: the `country:names` table first (Hermes has no
+ * `Intl.DisplayNames`, so the phone would show "FR"), then `Intl` where it exists, then the code.
+ */
 export function countryName(code: string, language: string): string {
+  const listed = i18n.t(`country:names.${code}`, { lng: language, defaultValue: '' });
+  if (listed) return listed;
   try {
     return new Intl.DisplayNames([language], { type: 'region' }).of(code) ?? code;
   } catch {

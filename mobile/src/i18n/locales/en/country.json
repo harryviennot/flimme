@@ -12,5 +12,16 @@
   },
   "errors": {
     "save": "Couldn't change the country. Try again."
+  },
+  "names": {
+    "FR": "France",
+    "BE": "Belgium",
+    "CH": "Switzerland",
+    "LU": "Luxembourg",
+    "MC": "Monaco",
+    "GB": "United Kingdom",
+    "IE": "Ireland",
+    "US": "United States",
+    "CA": "Canada"
   }
 }

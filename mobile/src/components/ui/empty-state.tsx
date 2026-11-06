@@ -63,12 +63,14 @@ export function EmptyState({
         </View>
       ) : null}
       {secondaryAction ? (
-        <Button
-          label={secondaryAction.label}
-          onPress={secondaryAction.onPress}
-          variant="ghost"
-          size="s"
-        />
+        <View>
+          <Button
+            label={secondaryAction.label}
+            onPress={secondaryAction.onPress}
+            variant="ghost"
+            size="s"
+          />
+        </View>
       ) : null}
     </View>
   );

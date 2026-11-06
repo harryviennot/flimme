@@ -12,5 +12,16 @@
   },
   "errors": {
     "save": "Impossible de changer de pays. Réessaie."
+  },
+  "names": {
+    "FR": "France",
+    "BE": "Belgique",
+    "CH": "Suisse",
+    "LU": "Luxembourg",
+    "MC": "Monaco",
+    "GB": "Royaume-Uni",
+    "IE": "Irlande",
+    "US": "États-Unis",
+    "CA": "Canada"
   }
 }
