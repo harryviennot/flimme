@@ -14,6 +14,8 @@ Built in parts, each with its own section here:
 | M6.26 | Undo | [Undo](#undo) |
 | M6.27 | The top bar: pills, done, Leave, the host menu | [The top bar](#the-top-bar) |
 | M6.17 | The done card's filters and liked count ("Nothing left", screen 26) | [The done card](#the-done-card-nothing-left) |
+| M6.63 | The top bar's player stack and the players sheet (design pass (b), M6.60) | [The top bar](#the-top-bar) |
+| M6.58 | The bookmark's new place, low on the card's right (design pass (b), M6.60) | [The bookmark](#the-bookmark) |
 | M6.37 | The shortlist in the top bar, the shortlisted beat over the stack, the route held on the third match, Undo after a shortlisted match | [The top bar](#the-top-bar), [The shortlisted beat](#the-shortlisted-beat), [Undo](#undo) |
 | M6.44 | The solo variant: the solo top bar, the checkpoint card, the pick sheet, out of films, the cap card | [Solo](#solo) |
 | M6.61 | The card back reworked (the poster's middle, the front's fade, the score in the meta line, one row of logos, the synopsis sheet) and the solid stack, from Harry's feel test of 6 November 2026 (specified in M6.59) | [The card back, reworked](#the-card-back-reworked), [The stack](#the-stack) |
@@ -26,42 +28,80 @@ Answer a film in under a second, from either side of the card, without ever wait
 
 `Screen` (no `scroll`), `bg-bg-canvas`. Top to bottom:
 
-1. **The top bar** (`screens/swipe/top-bar.tsx`, M6.27), 56 high, `px-5`: Leave, the pills and the shortlist (M6.37).
+1. **The top bar** (`screens/swipe/top-bar.tsx`, M6.27), 56 high, `px-5`: Leave, the player stack (M6.63) and the shortlist (M6.37).
 2. **`RoomBanner`** right under it, in the flow, as on every room screen ([Reconnecting](reconnecting.md#layout)). On this screen it also carries the offline note (below).
 3. **The stack** (`screens/swipe/card-stack.tsx`), `flex-1`, centred. The card is as wide as the screen minus `px-5` (345 on a 393-point phone), and shrinks to fit the height left, keeping the card's 345 by 518 shape, with 16 points under it for the cards behind to peek out. When the banner comes or goes, the card resizes with a `LinearTransition` (`duration.base`); a drag in progress keeps going.
 4. **The hint line** (`screens/swipe/hints.tsx`, M6.18), between the stack and the buttons, `min-h-9` (two lines of `body-s`), centred, `px-5`. Reserved only when the phone still has a hint to show at the start of the game; otherwise it takes no space.
 5. **The buttons row** (`screens/swipe/action-row.tsx`), above the home indicator with `pb-2`. It never changes for the [rewatch chip](#seen-it-the-rewatch-question), which lives in the hint line.
 
-The near-miss toast (`screens/swipe/near-miss.tsx`, M6.13) is drawn over the top bar's pills. The shortlisted beat's layer (`screens/swipe/shortlisted.tsx`, M6.37) is drawn over the whole screen while it plays ([The shortlisted beat](#the-shortlisted-beat)). M6.9 creates `top-bar.tsx`, `near-miss.tsx`, `seen-question.tsx` and `hints.tsx` rendering nothing, so later waves never share a file. Logic lives in `features/swipe/`: `answer.ts` (the answer path, M6.12 changes it), `undo.ts` (M6.26), `near-miss.ts` (a stub from M6.9, filled by M6.13) and `top-card.ts` (M6.9: the top card's shared values, so the card 1 hint can lean it without touching the gesture code).
+The near-miss toast (`screens/swipe/near-miss.tsx`, M6.13) is drawn over the top bar's player stack. The shortlisted beat's layer (`screens/swipe/shortlisted.tsx`, M6.37) is drawn over the whole screen while it plays ([The shortlisted beat](#the-shortlisted-beat)). M6.9 creates `top-bar.tsx`, `near-miss.tsx`, `seen-question.tsx` and `hints.tsx` rendering nothing, so later waves never share a file. Logic lives in `features/swipe/`: `answer.ts` (the answer path, M6.12 changes it), `undo.ts` (M6.26), `near-miss.ts` (a stub from M6.9, filled by M6.13) and `top-card.ts` (M6.9: the top card's shared values, so the card 1 hint can lean it without touching the gesture code).
 
 ## The top bar
 
-`screens/swipe/top-bar.tsx`, M6.27. A row, `items-center gap-2`: Leave, the pills, then the shortlist (M6.37).
+`screens/swipe/top-bar.tsx`, M6.27, redesigned by design pass (b) (M6.60, built by M6.63) after Harry's feel test of 6 November 2026: the pills' strip was too narrow to read anything (about one and a half pills at 375 points) and the shortlist cut them off. A row, 56 high, `px-5 items-center gap-2`: Leave, the player stack (`flex-1`), then the shortlist (M6.37, unchanged). Nothing scrolls and nothing is cut.
 
 - **Leave:** `IconButton` filled, icon `x`, label `lobby:a11y.leave`. It opens the same alert as the lobby ([leaving](lobby.md#leaving): `lobby:leave.*`, the next host named for the host). The room layout's `RoomLeaveGuard` (#127) already stops the edge swipe and Android's back on this screen and opens the same alert. A confirmed Leave runs `leaveRoom`; votes still in the queue for this room are dropped (a seat that left can't vote, `42501`). Offline: `showToast` warn `common:states.offlineRoom`, the player stays. A failed call: `showToast` warn `common:errors.generic.title`.
-- **The pills:** a horizontal `ScrollView` (`flex-1`, `gap-2`, no indicator) of `PlayerPill`, one per seat with `left_at` null, in seat order (`joined_at`, then `member_id`), the same order as every avatar row in the game.
-  - The player's own pill says `swipe:pills.you` and its exact count of answers (from the queue, at once).
-  - Everyone else's count is `swipe_count` from the live channel's presence, which moves in steps of 5 (M6.9 calls `track()` with the new count after every 5th answer, decision M4.21 Q21.2). Before the first presence, `api.room_seats.swipe_count`.
-  - **Online:** the avatar's dot, from presence. **Away** (missing from presence for 90 seconds, the [lobby's rule](lobby.md#present-and-away)): no dot, the name in tone `muted`.
-  - **Done** (presence `done`, Q27.2: the seat reached the rule's card count, or has no cards left): the count becomes `swipe:pills.done` in tone `like`. Screen readers hear `swipe:a11y.done` once, politely. No toast: a pill changing is enough.
-  - **The host's** pill has the `crown` icon (14, `marquee.default`) after the name (decision M4.15: the host's name shows in the swipe screen's player row).
-- **The host menu:** a tap on any pill but your own opens the [seat sheet](host-menu.md#the-seat-sheet) (`/room/[id]/seat/[memberId]`): Report for everyone, Remove for the host. M6.27 adds `seat` and `report` to the `swiping` row of `SHEETS` in `features/room/screens.ts`. The game keeps running under the sheet. Remove's answers, the other phones' side and the removed phone's side are exactly the host menu's; a removed phone's queued votes are dropped. The lock row stays in the lobby.
-- **The shortlist** (M6.37), described below.
+- **The player stack** (`screens/swipe/player-stack.tsx`, new, single use), below. It replaces the pills' `ScrollView`.
+- **The shortlist** (M6.37), described below. It keeps its 112 points, its place and its slots (the beat measures them).
+
+**Options weighed** (design pass (b)). Two rows (the players under Leave and the shortlist) keep names but cost 44 points of card height on every phone, and 10 pills still don't fit 335 points. Moving the players out of the bar (under the stack, or only in a sheet) loses the glance at who is still swiping. **The avatar stack** keeps the bar at 56, shows everyone's presence and Done at a glance for 2 to 10 players, and puts names and counts one tap away. Recommended and specified here.
+
+### The player stack
+
+One `Pressable` (`flex-1 min-w-0 h-11 flex-row items-center`, the whole stack is the target, so no 28-point avatar has to be tapped alone), `haptic="press"`, opening [the players sheet](#the-players-sheet). Inside, one disc per seat with `left_at` null, in seat order (`joined_at`, then `member_id`), the same order as every avatar row in the game.
+
+- **A disc:** a 32-point wrapper, `rounded-pill border-2 border-bg-canvas` (so two players who share a color stay apart), holding `Avatar` S (28) in the seat's color with `online` from presence.
+- **Done** (presence `done`, Q27.2): the online dot gives way to a 14-point badge at the disc's bottom right (`absolute -right-0.5 -bottom-0.5 size-3.5 rounded-pill border-2 border-bg-canvas bg-like-default`, `Icon` `check` 8, `text-inverse`, stroke 3). It comes in with `layout.popIn`. Screen readers hear `swipe:a11y.done` once, politely, as before. No toast.
+- **Away** (missing from presence for 90 seconds, the [lobby's rule](lobby.md#present-and-away)): the disc at `opacity-disabled`, no dot.
+- **The host:** a 14-point badge at the disc's top right (`absolute -top-0.5 -right-0.5 size-3.5 rounded-pill bg-bg-canvas`, `Icon` `crown` 10, `marquee-default`). Decision M4.15 (the host shows in the swipe screen's player row) holds through the crown here and the host's name in the sheet and in the stack's label (question 8).
+- **You:** your own disc has no mark; the sheet says which row is yours.
+- **Spacing:** `gap-1` while every disc fits; otherwise the discs overlap by 8 (`-ml-2` from the second), each disc drawn above the next (`zIndex` falling with the order) so the dots and badges on the right stay visible; when even that doesn't fit, the last place is a **"+N" disc** (32, `rounded-pill bg-bg-raised border border-border-default`, `swipe:players.more` in `mono-data` tone `secondary`, `maxFontSizeMultiplier` 1.2). The choice is a pure function, `stackLayout(width, seats)` in `features/swipe/player-stack.ts` (tested), from the stack's `onLayout` width:
+
+| Stack width | Spaced | Overlapped | "+N" |
+| --- | --- | --- | --- |
+| 167 (a 375-point phone) | 2 to 4 | 5 and 6 | 7 to 10: 5 discs and "+2" to "+5" |
+| 185 (393 points) | 2 to 5 | 6 and 7 | 8 to 10: 6 discs and "+2" to "+4" |
+| 222 (430 points) | 2 to 6 | 7 to 8 | 9 and 10: 7 discs and "+2" or "+3" |
+
+- **Which discs hide behind "+N":** the last in seat order, never your own (yours takes the last visible place if it would hide). A seat that becomes Done or away does not reorder anything: nothing in the bar jumps mid-game.
+- **Largest text:** nothing in the stack is text but "+N", capped at 1.2, so the stack keeps its size; the bar stays 56.
+- **Never shown:** anyone's answers, which films, or who liked what. Done and the count of answers are what the pills showed before (rule 6 and decision M6.27 Q27.1 hold).
+- **Live:** a seat that joins pops in (`layout.popIn`), one that leaves fades out (`layout.fadeOut`), the others slide (`LinearTransition`, `duration.base`); "+N" changes in place. Reduce Motion: fades only.
+- **Screen reader:** one button, label `swipe:a11y.players` (the count, the host's name, how many are done and how many are away), hint `swipe:a11y.playersHint`. It is announced again only through the existing "Sam is done" line.
+
+### The players sheet
+
+Route `/room/[id]/players`, a `formSheet` with the grabber, `sheetAllowedDetents: 'fitToContents'`, declared in the room layout beside the seat sheet. `players` joins the `swiping` row of `SHEETS` in `features/room/screens.ts` (only there: it closes when the finale starts, as the seat sheet does). The game keeps running under it: cards are never paused for it.
+
+Layout, `p-5 gap-3`, in Gesture Handler's `ScrollView` (the lobby genre sheet's finding: a plain one paints nothing in a form sheet):
+
+1. **Header** row: `swipe:players.title` in `display-s`, and `IconButton` plain `x` (`common:actions.close`) at the right, for screen readers.
+2. **One `SeatRow` per seat** (moved to `shared/seat-row`, [design-system changes](#design-system-changes)), in seat order: `Avatar` M with `online`, the name (`lobby:seat.you` on your own), and as detail `swipe:players.films` (the count: exact for you, in steps of 5 for the others, as the pills had). On the right at most one `Tag`: away (`neutral`, `lobby:seat.away`), else Done (`like`, icon `check`, `swipe:pills.done`), else the host (`marquee`, `crown`, `lobby:seat.host`). When the host's row shows another tag, a `crown` icon (14, `marquee-default`) follows the name.
+3. **A tap on any row but your own** replaces the sheet with the [seat sheet](host-menu.md#the-seat-sheet) (`router.replace`, so only one sheet is ever open): Report for everyone, Remove for the host, exactly as the pills did (the seat and report rows of `SHEETS` stay).
+
+| While the sheet is open | The sheet |
+| --- | --- |
+| A seat joins, leaves or is removed | Its row comes in (`layout.fadeIn`) or goes (`layout.fadeOut`) |
+| Presence, counts or Done change | The row follows in place, no animation |
+| The room leaves `swiping` (the finale, an end) | Closes by itself (`isAllowed`) |
+| Offline | The rows keep their last values; away follows presence as it comes back |
+
+Focus order: the title, close, the rows in order (each a button but your own, hint `lobby:a11y.seat`). At the largest text the names wrap to two lines and the sheet scrolls.
 
 ### The shortlist
 
 `screens/swipe/shortlist.tsx` and `features/shortlist/`, M6.37. The room's matched films so far, as small posters, and how many there are. It is the room's, not anyone's: it never says who liked a film, and Party and Blind show it the same way. It is the state; [the shortlisted beat](#the-shortlisted-beat) is the moment that fills it.
 
-- **Where:** last in the top bar's row, after the pills' `ScrollView`, `shrink-0`, so it never scrolls away. Not shown in a mode whose `matches_to_end` is 1 (none at launch): there the first match is the pick.
+- **Where:** last in the top bar's row, after the player stack, `shrink-0`. Not shown in a mode whose `matches_to_end` is 1 (none at launch): there the first match is the pick.
 - **The row:** `flex-row items-center gap-2`: the count, then the slots.
 - **The count:** `swipe:shortlist.count` ("1/3") in `mono-data`, tone `muted` while the shortlist is empty, `secondary` from the first match, `maxFontSizeMultiplier` 1.2. The digits are monospaced, so the width never changes and nothing in the bar moves when the number does. It counts what the room has, never what it still needs.
 - **The slots:** `flex-row gap-1`, one per place on the shortlist (`matches_to_end`, 3 at launch), each 24 by 36 (the poster's 2:3 shape), `rounded-xs`.
   - **Empty:** `bg-bg-raised border border-border-default`. No icon, no text.
   - **Filled:** `PosterThumb` size `xs` (new, [Design-system changes](#design-system-changes)) with the film's poster and its thumbhash, and a ring drawn over it (`absolute inset-0 rounded-xs border border-marquee-default`). No poster: the frame stays `bg-bg-raised` with the ring.
   - Filled left to right in the order the matches happened.
-- **Sizes.** The shortlist takes 112 points (24 for the count, 8, then 3 slots of 24 with 4 between). At 375 points wide, the pills keep 167 points, about one and a half pills, and scroll as before. At the largest text the count grows to its cap, the slots keep their size, and the pills get what is left (they already scroll). The bar stays 56 high: the slots are 36.
+- **Sizes.** The shortlist takes 112 points (24 for the count, 8, then 3 slots of 24 with 4 between). At 375 points wide, the player stack keeps 167 points (four discs spaced, six overlapped, [the table above](#the-player-stack)). At the largest text the count grows to its cap, the slots keep their size, and the player stack gets what is left (`stackLayout` counts with its real width). The bar stays 56 high: the slots are 36.
 - **Not pressable** (question 5). The beat shows each film full size as it joins, and the Final Cut shows them all.
-- **Screen reader:** one element, after the pills in the focus order, labelled `swipe:shortlist.a11yEmpty` while empty, otherwise `swipe:shortlist.a11y` with the titles in slot order (`Intl.ListFormat`). No live region: the beat makes its own announcement.
+- **Screen reader:** one element, after the player stack in the focus order, labelled `swipe:shortlist.a11yEmpty` while empty, otherwise `swipe:shortlist.a11y` with the titles in slot order (`Intl.ListFormat`). No live region: the beat makes its own announcement.
 
 **Where the data comes from.**
 
@@ -137,12 +177,7 @@ Placeholders, tuned at the first feel check. The gesture rules live in `features
 
 **Back** (screen 13, M6.10, reworked by M6.61 from Harry's feel test of 6 November 2026, [below](#the-card-back-reworked)): the 132-point header (the poster's vertical middle, the front's `card-front-scrim`, the title, the meta line with the TMDB score, the `refresh` flip badge); the synopsis in `body-m`, with "Read more" to [the synopsis sheet](#the-synopsis-sheet) when it doesn't fit; `common:card.director` and `common:card.cast` (the directors and the first 5 names, joined with `Intl.ListFormat`; the cast line takes two lines); one row of the room's services as small logos, with "+n" when they don't all fit, and the Trailer button (`Button` secondary S, icon `play`, `common:card.trailer`) at its end, which opens the trailer outside the app; the JustWatch credit under them (`common:card.justwatch`, `body-s` in `text-muted`, whenever logos show: TMDB's rule in [tmdb.md](../../integrations/tmdb.md#terms-licence-and-attribution)). No score box and no "Tap the card to flip back" line since M6.61. No Letterboxd rating (M20).
 
-- **The bookmark** (M6.51, [Later](../../decisions.md)): a 36-point round `bg-bg-sunken` button with `Icon` `bookmark` 18, in the poster's top left corner on the front and in the header's top left corner on the back (the flip badge keeps the right). It saves the film to My films, Later. **It is not an answer:** the card stays on top, is still swiped, and the save counts for nothing tonight: nothing is broadcast, no other phone and no count shows it, and it touches no deck.
-  - **States.** Empty (`text-primary` outline), then saved (filled in `marquee-default`). A tap flips the state at once and a second tap takes the save back. The state is this phone's own for the session: room cards never carry a saved state, so a film saved in an earlier game shows an empty bookmark, and saving it again is harmless.
-  - **Feel.** The press gives `haptics.press()`. A save pops once (scale 0.8 to 1, `spring.snappy`); an unsave and Reduce Motion have no pop. No toast and no sound (a toast would sit on the near-miss toast's spot).
-  - **Offline.** The save is kept on the device and sent in the background in order, with the vote queue's retry delays (`features/later/`); nothing on screen says it is waiting. It is its own list, not the vote queue, because the queue belongs to a room and is dropped with it.
-  - **Touch.** The target is 44 points (the `Pressable` hit slop). A touch that starts on the bookmark is the bookmark's: the card's tap does not flip. A drag that starts on it moves the card as anywhere else.
-  - **Accessibility.** The card is one element, so it also offers a custom action `save` ("Save for later") that becomes `unsave` ("Remove from Later"); the bookmark's own label follows the state and it reports `selected`. After a save or unsave `swipe:a11y.saved` or `swipe:a11y.unsaved` is announced politely.
+- **The bookmark:** low on the card's right edge, on both faces ([The bookmark](#the-bookmark), moved by design pass (b)).
 - **No trailer** when `trailer_key` is null: rooms capped under 13 always get null (M7.3), and so do films without one. The services badges take the row alone.
 - **The flip** (moments.md#the-flip): a tap turns the card in place (`timing.flip`, faces swap halfway), a second tap turns it back. The cards behind don't move. A drag mid-turn takes the card from where it is; a tap mid-turn reverses it. The back answers exactly like the front (drags, buttons, stamps over the back). No haptic, no sound. Whether the card was flipped goes with its vote (`flipped`, M6.2). Everything on the back is in the card's payload, so a flip never waits, offline included.
 - **Missing data:** no overview shows `swipe:card.noSynopsis` (never with "Read more"); no score leaves it out of the meta line; no director or cast hides its line; no services hides the row and the credit.
@@ -157,10 +192,10 @@ Top to bottom, on a 345-point card (393-point phone):
 | --- | --- | --- |
 | The header | `h-33`, `overflow-hidden`: the poster, the fade, the badges, the title block | 132 |
 | The body | `flex-1 gap-3 px-5 py-3.5` | 386 |
-| The synopsis | `min-h-0 flex-1 gap-1`: `common:card.synopsis` (`mono-eyebrow` `text-secondary`), the overview (`body-m`), "Read more" when it is cut | What's left: about 200, 9 lines (about 80, 4 lines, before) |
+| The synopsis | `min-h-0 flex-1 gap-1`: `common:card.synopsis` (`mono-eyebrow` `text-secondary`), the overview (`body-m`), "Read more" when it is cut | What's left: about 175, 8 lines (about 80, 4 lines, before) |
 | The credits | `gap-0.5`: director (one line), cast (two lines), `body-s` `text-secondary` | 54 |
-| The services row | `flex-row items-center gap-1.5`: the logos (`flex-1`), then the Trailer button | 36 (the button's height) |
-| The JustWatch credit | `body-s` `text-muted`, under the row (`gap-1`) | 18 |
+| The services row | `flex-row items-center gap-1.5`: the logos (`flex-1`), then the Trailer button. Full width: it ends above the bookmark, never beside or under it | 36 (the button's height) |
+| The last row | [The bookmark](#the-bookmark)'s row from design pass (b): `flex-row items-end gap-3`, the JustWatch credit (`body-s` `text-muted`) in a `flex-1` column, then the 44-point bookmark, which lands at `right-5 bottom-3.5`, its place on the front too. `gap-1` under the services row | 44 (the bookmark's height) |
 
 **The poster's middle.** The poster fills the header straight away (`Poster`, `absoluteFill`, `contentFit="cover"` with its default centred position), so the header shows the poster's vertical middle: the middle 132 points of a 518-point poster at the card's width. The wrapper that drew a whole card-shaped poster from `-top-5` goes. `Poster` itself doesn't change.
 
@@ -179,9 +214,10 @@ Top to bottom, on a 345-point card (393-point phone):
 - Each service is a 32-point square (`size-8`), `rounded-sm`, `border border-border-default`, `bg-bg-raised`, its `w92` logo filling it (`contentFit="cover"`, sized by a style: an expo-image sized only by class has no width on iOS). No logo, or one that fails to load: its initials (`serviceInitials`) in `mono-eyebrow` `text-secondary`. The look of the service picker's `ServiceTile` (PR #264), small, not pressable, no selected state.
 - One row, never wrapping. The row measures its width (`onLayout`); it holds `floor((width + 6) / 38)` squares. When the services don't all fit, the last square is the overflow: the same square with `common:card.moreServices` ("+3", the count through `Intl.NumberFormat`) in `mono-eyebrow` `text-secondary`. The back still gets six services at most (`BACK_SERVICES`).
 - The Trailer button keeps the row's end; the logos take the rest. No trailer: the logos have the whole row. No services: no row and no credit; the Trailer button sits alone at the right.
-- The JustWatch credit stays under the row whenever logos show (tmdb.md).
+- The JustWatch credit stays under the row whenever logos show (tmdb.md), in the last row beside the bookmark.
+- **The bookmark and the row never meet.** The services and Trailer row is a full-width row of its own, ending 8 points above the bookmark's row, so neither a logo, "+n" nor the Trailer button sits under the bookmark's 44 points, and each keeps its own touch target.
 
-**The flip-back line goes** (`common:card.flipBack`): the `refresh` badge shows the card turns, and a screen reader hears `common:card.flipHint`. Its 26 points go to the synopsis (question 2 below).
+**The flip-back line goes** (`common:card.flipBack`): the `refresh` badge shows the card turns, and a screen reader hears `common:card.flipHint`. Its 26 points go to the synopsis (question 2 below), less what the bookmark's 44-point last row takes. The last row then holds the JustWatch credit and the bookmark only.
 
 **States.**
 
@@ -193,11 +229,12 @@ Top to bottom, on a 345-point card (393-point phone):
 | No overview | `swipe:card.noSynopsis`, never with "Read more" |
 | No score, no director, no cast | Each part left out, as in Missing data above |
 | More services than fit | The logos that fit, then "+n" |
+| No services | No logos and no credit: the Trailer button alone at its row's right, above the bookmark, which keeps the last row by itself |
 | A logo that fails | The initials in its square |
 | A missing poster | The thumbhash, or `bg-bg-raised`, under the fade |
 | Offline | The same: everything is in the card's payload |
 
-**The largest text** (font scale above 1.3, the threshold `serviceColumns` uses). The title and the meta leave the header and open the body, in the flow (`title-l` up to two lines, the meta wrapping), so text never climbs over the poster's light top; the header keeps the poster, the fade and the badges. The synopsis is often cut there: "Read more" carries it. The logos keep 32 points; "+n" grows to `mono-eyebrow`'s cap (1.4) and still fits its square; the Trailer label to its cap (1.2). The credit wraps.
+**The largest text** (font scale above 1.3, the threshold `serviceColumns` uses). The title and the meta leave the header and open the body, in the flow (`title-l` up to two lines, the meta wrapping), so text never climbs over the poster's light top; the header keeps the poster, the fade and the badges. The synopsis is often cut there: "Read more" carries it. The logos keep 32 points; "+n" grows to `mono-eyebrow`'s cap (1.4) and still fits its square; the Trailer label to its cap (1.2). The credit wraps beside the bookmark, which keeps 44 points.
 
 **A 375 by 667 phone.** The card fits the height left (about 300 by 450). The meta line stays one line. With the Trailer button the row holds two squares (one logo and "+n" when there are three services or more); without it, six.
 
@@ -231,6 +268,7 @@ Removed once unused: `card.tmdbRating` (the box's label) and `card.flipBack`. "L
 - `features/swipe/card-props.ts`: `back.meta` without the score; tests.
 - `screens/swipe/swipe-card.tsx`: [the dim layer](#the-dim-layer); the card's opacity no longer follows its depth; `onReadMore` pushes the sheet's route.
 - `screens/swipe/synopsis-sheet.tsx`, its route, and its entry in the room layout.
+- The bookmark's last row on the back is M6.58's ([The bookmark](#the-bookmark)); M6.61 keeps it and only drops the flip-back line from it. Whichever task lands second rebases on the other.
 - Tokens: `opacity.stack-dim-near` and `opacity.stack-dim-far` ([Design-system changes](#design-system-changes)).
 - Tests: "Read more" shows only when the text is cut; a tap on it opens the sheet and doesn't flip; the overflow square counts the hidden services; the dim layer's opacity at each depth.
 
@@ -239,7 +277,7 @@ Removed once unused: `card.tmdbRating` (the box's label) and `card.flipBack`. "L
 - Flip a card: the header shows the poster's middle, as light as the front's fade.
 - Drag the top card slowly: the second card brightens as it grows; nothing of the third shows through it. No stutter on the Android.
 - A film with a long overview: "Read more" opens the sheet; closing it finds the card still flipped. A tap on the link never flips the card; a drag from it moves the card.
-- A film on 4 or more services: one row of logos and "+n", the JustWatch line under it.
+- A film on 4 or more services: one row of logos and "+n", the JustWatch line under it beside the bookmark; the bookmark never covers a logo or the Trailer button.
 - Largest text: the title moves into the body; nothing overlaps the badges.
 - Reduce Motion: the stack's dimming jumps with the cards, with no flash.
 
@@ -251,6 +289,41 @@ Removed once unused: `card.tmdbRating` (the box's label) and `card.flipBack`. "L
 4. **The front's meta.** Default: "★ 7.4" stays without "TMDB"; the back names the source.
 5. **The sheet's height.** Default: 0.6 of the screen, scrolling for a longer text.
 6. **The dim values.** Default: 0.3 and 0.55, today's brightness made solid; tuned at the feel check.
+
+### The bookmark
+
+M6.51 (PR #275), moved by design pass (b) (M6.60) after Harry's feel test of 6 November 2026 ("too far away from the thumb"); M6.58 builds the move with Later in the app. It saves the film to My films, Later. With Later becoming a solo like (Harry, 6 November 2026), a save records a solo like that never counts for tonight. **It is not an answer:** the card stays on top, is still swiped, and the save counts for nothing tonight: nothing is broadcast, no other phone and no count shows it, and it touches no room deck.
+
+**Options weighed** (for Harry, question 9):
+
+| | A. A sixth button in the row | B. A long press on the card | C. A button low on the card's right edge |
+| --- | --- | --- | --- |
+| Reach | Best: the row is where the thumb lives | Anywhere on the card | Good: inside a right thumb's arc, about 60 points above the row |
+| Found | Best: labelled like the answers | Hidden: needs a first-game hint | Visible on every card |
+| Accidental saves | A sixth button next to Undo or Seen it invites the fast second tap the rewatch chip taught us about | A thumb resting on the card while reading saves after the press delay. A double tap is out: it would hold every flip by about 250 ms | Low: a drag from it still moves the card; only a deliberate tap saves |
+| Screen readers | A plain button | The card's custom action only | The card's custom action, as today |
+| What moves | Five equal columns become six: at 375 points a column is 60 wide, under the 68-point Nope and Like caps. Something leaves: Undo to the top bar (far from the thumb, where mistakes get fixed) or the labels of the small buttons. "PLUS TARD" beside "DÉJÀ VU" does not fit | The card's gestures gain a third member on the UI thread (`LongPress` beside `Pan` and `Tap`) | One view on each face of `MovieCard` |
+
+**Recommended: C.** It fixes the reach with the least change, keeps the row as tuned, and stays visible. B can come later as a shortcut if the playtest asks for one.
+
+**Layout** (both faces, the same spot, so a flip never moves it):
+
+- A 44-point round button (`size-11 rounded-pill bg-bg-sunken border border-border-default`), `Icon` `bookmark` 22, its right edge 20 points from the card's right edge and its bottom edge 14 points from the card's bottom (`right-5 bottom-3.5`). The old 36-point button in the top left corner goes, on both faces. The flip badge keeps the top right.
+- **Front:** `absolute`. The title keeps the full width; the meta line and the services row stop short of the bookmark (`pr-14`, 56 points). The services row always keeps its height (`min-h-6`, empty when the film has no service for the room), so the title always sits above the bookmark, whatever the meta's length.
+- **Back:** in the flow. The JustWatch credit and the flip-back line (which M6.61 removes, [The card back, reworked](#the-card-back-reworked)) share the last row with it: `flex-row items-end gap-3`, the two lines in a `flex-1` column, now start-aligned, and the bookmark last. The services and Trailer row above it keeps the full width. The synopsis gives up the height (it is already fitted to the space left).
+- **375 points and the largest text:** the bookmark keeps 44 and its icon 22 (no text). The meta wraps or cuts within its narrower width, before the title (as today). On the back the credit wraps beside the bookmark.
+
+**States.** Empty: the outline icon in `text-primary`. Saved: the icon filled in `marquee-default` and the border `border-marquee-default`. Pressed: `bg-bg-raised`. A tap flips the state at once and a second tap takes the save back. The state is this phone's own for the session: room cards never carry a saved state, so a film saved in an earlier game shows an empty bookmark, and saving it again is harmless.
+
+**Touch.** The target is the 44 points themselves (no hit slop needed now). A touch that starts on the bookmark is the bookmark's: the card's tap does not flip. A drag that starts on it moves the card as anywhere else. **The landing guard:** a card that has just come on top ignores a tap on its bookmark for `duration.base` (250 ms), so a finger still coming down from the last throw never saves the next film (the rewatch chip's lesson, [Seen it](#seen-it-the-rewatch-question)).
+
+**Feel.** The press gives `haptics.press()`. A save pops once (scale 0.8 to 1, `spring.snappy`); an unsave and Reduce Motion have no pop. No toast and no sound (a toast would sit on the near-miss toast's spot).
+
+**Offline.** The save is kept on the device and sent in the background in order, with the vote queue's retry delays (`features/later/`); nothing on screen says it is waiting. It is its own list, not the vote queue, because the queue belongs to a room and is dropped with it.
+
+**Accessibility.** Unchanged: the card is one element, so it offers a custom action `save` (`swipe:a11y.actions.save`) that becomes `unsave`; the bookmark's own label follows the state (`common:card.bookmarkSave`, `common:card.bookmarkRemove`) and it reports `selected`. After a save or unsave `swipe:a11y.saved` or `swipe:a11y.unsaved` is announced politely. The landing guard does not apply to the custom action.
+
+**Solo** uses the same card, so the bookmark moves there too. The copy is unchanged.
 
 ## The buttons row
 
@@ -305,7 +378,7 @@ Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its 
 
 - **When** (Q2.4, Q13.1): a `near_miss` `{title_id, likes, of, needed}` arrives. The server sends it only when the film is one like short of the rule with at least 2 likes, and again with the corrected count after an undone like (Q3.4). The phone keeps the latest count per film in memory for the game, lost on a restart (Q13.2).
 - **Where:** only if this player hasn't answered the film (not in their votes or queue), and only while that card is the top card. Players who answered see nothing.
-- **What:** a `Toast` tone `like` (heart), title `swipe:nearMiss` with `count` (the likes) and `of`, no message line. It is drawn inline (not `showToast`), over the top bar's pills, from Leave's right edge to 8 points before the shortlist (M6.37), so Leave stays reachable and the shortlist stays in sight. The top card takes `glow-like`. Both arrive with `layout.toastIn` once the card has settled on top, and stay while the card does (flipped too). A new count changes the number in place, without a new slide. When the card leaves (any answer), the toast leaves with `layout.toastOut` and the glow goes.
+- **What:** a `Toast` tone `like` (heart), title `swipe:nearMiss` with `count` (the likes) and `of`, no message line. It is drawn inline (not `showToast`), over the top bar's player stack, from Leave's right edge to 8 points before the shortlist (M6.37), so Leave stays reachable and the shortlist stays in sight. The top card takes `glow-like`. Both arrive with `layout.toastIn` once the card has settled on top, and stay while the card does (flipped too). A new count changes the number in place, without a new slide. When the card leaves (any answer), the toast leaves with `layout.toastOut` and the glow goes.
 - **Hidden** when the latest count's `needed` is more than 1 (an undo dropped it below the line), or the film matched. While [the shortlisted beat](#the-shortlisted-beat) plays, the toast fades out and comes back after it if its card is still on top.
 - No haptic, no sound. A missed event shows nothing; the phone never invents one.
 
@@ -313,7 +386,7 @@ Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its 
 
 `screens/swipe/shortlisted.tsx`, `features/shortlist/` and the room layout's hold, M6.37. From [the shortlisted beat](../moments.md#the-shortlisted-beat), which wins where this differs. It plays on `match` with `decided: false`, or on this phone's own `ok` answer with `match: true` and `decided: false`, whichever comes first.
 
-**The layer.** `absolute inset-0` over the whole screen (so the poster can fly up to the top bar), `pointerEvents="box-none"`, mounted only while the beat plays. A view inside it catches every touch over the stack's frame and the buttons row; the buttons keep their look (no dimming, which would flash twice a game) and a press does nothing, with no haptic. The top bar's Leave and pills still work.
+**The layer.** `absolute inset-0` over the whole screen (so the poster can fly up to the top bar), `pointerEvents="box-none"`, mounted only while the beat plays. A view inside it catches every touch over the stack's frame and the buttons row; the buttons keep their look (no dimming, which would flash twice a game) and a press does nothing, with no haptic. The top bar's Leave and player stack still work.
 
 **The pieces**, on the layer:
 
@@ -368,7 +441,7 @@ Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its 
 
 `DoneCard` in `screens/swipe/status-cards.tsx`, from M6.29; M6.17 adds the filters and the liked count. Screen 26 Nothing left (`30:2000`, the original page only; the first release page has no copy, figma-map.md). Q17.1: the card shows what caused it, tonight's filters and how many films the room has liked, and no buttons until M18 ([how a game ends](../../product/game-modes.md#how-a-game-ends), "Running out of cards").
 
-**When.** Only after `request_cards` answers `done` `{liked}` (M6.29): the seat has no unanswered card and the SQL baseline dealt it nothing. A seat that reached the card count but still has cards keeps swiping (decision row 14), even if its pill says Done (Q27.2). The card stack keeps `liked` from the answer (`features/swipe/card-stack.ts`). The stack asks again on its retry timer; each new `done` answer updates the count in place, with no animation.
+**When.** Only after `request_cards` answers `done` `{liked}` (M6.29): the seat has no unanswered card and the SQL baseline dealt it nothing. A seat that reached the card count but still has cards keeps swiping (decision row 14), even if its disc says Done (Q27.2). The card stack keeps `liked` from the answer (`features/swipe/card-stack.ts`). The stack asks again on its retry timer; each new `done` answer updates the count in place, with no animation.
 
 **Layout.** The same card-size frame as the waiting card (`bg-bg-surface`, `rounded-xl`, `border border-border-default`, entering with `layout.fadeIn`). Inside, a `ScrollView` whose content is centred when it fits and scrolls when it doesn't (the largest text). The content is one `EmptyState`:
 
@@ -396,7 +469,7 @@ Measured at 375 by 667 (a card about 324 by 487): the icon, a two-line title, th
 
 **Accessibility.** When the done card replaces the top card, focus moves to its title (`EmptyState` `autoFocus`), since the focused card is gone. Then the body; then the eyebrow and the tags as one element, `ending:a11y.filters` with every service name in full and every tag's label, joined by `formatList`; then the count; then the buttons row as today (disabled answer buttons announce as dimmed).
 
-**Never shown.** Which films were liked, or who liked anything: a count only. No player names on the card. Nothing about the other players' decks or how many cards they have left (their pills already say Done or a count).
+**Never shown.** Which films were liked, or who liked anything: a count only. No player names on the card. Nothing about the other players' decks or how many cards they have left (the player stack already says Done, and the players sheet a count).
 
 **Copy** (`ending` namespace; the `swipe` files are not touched, [closed.md](closed.md) lists the namespace's other keys):
 
@@ -422,7 +495,7 @@ French puts 0 in the singular ("0 film aimé pour l'instant"), English in the pl
 
 | State | What the player sees |
 | --- | --- |
-| First load (no cards read yet) | The loading card in the stack; the buttons disabled (Undo too); the pills from `api.room_seats` |
+| First load (no cards read yet) | The loading card in the stack; the buttons disabled (Undo too); the player stack from `api.room_seats` |
 | Playing | The stack and the buttons |
 | Past the mounted cards, waiting for a refill | **The loading card:** a `Skeleton` the card's size, `rounded-xl`, label `swipe:loading.a11y`. No haptic, no text. Answer buttons disabled. After 10 seconds (a starting value), `swipe:loading.slow` in `body-s` muted and `Button` secondary S `common:actions.retry` (it refetches the cards) inside the card |
 | Offline, cards left | Swiping carries on, feel unchanged. `RoomBanner` shows `common:states.offlineVotes_*` with the queue's count, or `common:states.offlineRoom` while nothing waits. M6.9 gives `RoomBanner` an optional `waitingVotes` count for this |
@@ -459,7 +532,7 @@ French puts 0 in the singular ("0 film aimé pour l'instant"), English in the pl
 | `match` with `decided: false` | [The shortlisted beat](#the-shortlisted-beat); the film goes into [the shortlist](#the-shortlist) and leaves this phone's stack |
 | `match` with `decided: true` | [The match](match.md) |
 | `finale_started` | Nothing visible; the finalists' cards may start loading |
-| `member_joined`, `member_left`, `member_removed` | The pills re-read; a new pill comes in with `layout.fadeIn` (its avatar `layout.popIn`), a leaving one goes with `layout.fadeOut` |
+| `member_joined`, `member_left`, `member_removed` | The seats re-read; a new disc pops in (`layout.popIn`), a leaving one goes with `layout.fadeOut`, the others slide (`LinearTransition`, `duration.base`) |
 | `host_changed` | The crown moves; the new host gets `lobby:youreHost.title` as a toast, with no message line |
 | Presence | Dots, away, counts, done |
 | `state_changed` | The layout follows the state, after the shortlisted beat if one is playing (the hold) |
@@ -532,7 +605,25 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 
 In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes}}` is the `match:count.*` line, or empty before the event. In French, the space before each colon is a no-break space (U+00A0). "Sélection" for "the shortlist" is proposed (the `copy` skill's glossary). No exclamation mark: this is a small cheer, and the pick's overlay keeps "C'est un match !". "C'EST UN MATCH : 3 SUR 3" takes 2 lines at 375 points in `display-m`, which the title allows.
 
-`nearMiss_one` never shows (the minimum is 2 likes) but French needs the form. Pill readings combine: "Sam, host, 15 films". `a11y.thrown` is the polite announcement after an answer from a screen reader action.
+`nearMiss_one` never shows (the minimum is 2 likes) but French needs the form. The `a11y.pill*` keys stay for `PlayerPill`, which the swipe screen no longer uses (M6.63). `a11y.thrown` is the polite announcement after an answer from a screen reader action.
+
+**Added by M6.63** (the player stack and the players sheet), in the same files:
+
+| Key | French | English |
+| --- | --- | --- |
+| `players.more` | +{{count}} | +{{count}} |
+| `players.title` | Joueurs | Players |
+| `players.films_one` | {{count}} film | {{count}} film |
+| `players.films_other` | {{count}} films | {{count}} films |
+| `a11y.players_one` | {{count}} joueur dans la salle de {{host}} | {{count}} player in {{host}}'s room |
+| `a11y.players_other` | {{count}} joueurs dans la salle de {{host}} | {{count}} players in {{host}}'s room |
+| `a11y.playersDone_one` | {{count}} a fini | {{count}} is done |
+| `a11y.playersDone_other` | {{count}} ont fini | {{count}} are done |
+| `a11y.playersAway_one` | {{count}} pas là | {{count}} away |
+| `a11y.playersAway_other` | {{count}} pas là | {{count}} away |
+| `a11y.playersHint` | Affiche qui joue et où chacun en est | Shows who is playing and how far each is |
+
+The stack's label joins `a11y.players`, then `a11y.playersDone` and `a11y.playersAway` when their count isn't 0, with commas: "4 players in Harry's room, 1 is done". On your own room, `host` is your own name. Reused: `lobby:seat.you`, `lobby:seat.away`, `lobby:seat.host`, `lobby:a11y.seat`, `pills.done`, `common:actions.close`.
 
 **In `common`, added by M6.51:** `card.bookmarkSave` (Garder pour plus tard / Save for later) and `card.bookmarkRemove` (Retirer de Plus tard / Remove from Later), the bookmark's label by state.
 
@@ -543,19 +634,19 @@ In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes
 ## Motion, haptics, sound
 
 - Motion as in the sections above; tokens only. A new touch cancels anything still moving on the top card; a thrown card finishes on its own.
-- Haptics: `commit` at the line, `throw` on every throw, `press` from the buttons and the bookmark, `shortlist` once per shortlisted beat (M6.37). Nothing for the flip, the near miss, the hints, a pill, a refusal or the shortlist filling on a re-read.
+- Haptics: `commit` at the line, `throw` on every throw, `press` from the buttons, the bookmark and the player stack, `shortlist` once per shortlisted beat (M6.37). Nothing for the flip, the near miss, the hints, a disc turning Done, a refusal or the shortlist filling on a re-read.
 - No sound on this screen.
 
 ## Accessibility
 
-- **Focus order:** Leave, the pills (each a button but your own, hint `lobby:a11y.seat`), the shortlist (`swipe:shortlist.a11y` or `a11yEmpty`), the banner, the top card, the hint, Undo, Nope, Super, Like, Seen it. When the done card shows, it takes the top card's place in this order (its own order is in [the done card](#the-done-card-nothing-left)).
+- **Focus order:** Leave, the player stack (one button, `swipe:a11y.players`), the shortlist (`swipe:shortlist.a11y` or `a11yEmpty`), the banner, the top card, the hint, Undo, Nope, Super, Like, Seen it. When the done card shows, it takes the top card's place in this order (its own order is in [the done card](#the-done-card-nothing-left)).
 - **The top card is one element:** `swipe:a11y.card` on the front, `swipe:a11y.cardBack` on the back, with custom actions like, nope, super like, seen it and flip (`swipe:a11y.actions.*`). After an action, `swipe:a11y.thrown` is announced and focus stays on the new top card. While the back shows, the card also offers a `trailer` custom action (the card is one element, so a button inside it can't take focus). The back's reading adds the director, the cast and the services after the synopsis. The reason label waits for the reason codes (M17 to M20): until the app knows a code, no label shows, front or back.
 - **The buttons** use `common:answers.*` as labels; Super uses `swipe:a11y.superLeft_*` or `superNone`; a disabled Undo has `swipe:a11y.undoNone` as its hint.
 - **The rewatch chip** is announced when it shows (`swipe:rewatchChip.text`) and again for the confirmation (`rewatchChip.done`), without moving focus. Yes is labelled `swipe:a11y.seenYes`. With a screen reader on the chip never leaves on a timer; it stays until the next answer.
 - **The near-miss toast** is announced once, politely, when it shows on the focused card.
 - **The shortlisted beat** is announced once, assertively (`swipe:shortlisted.a11y`); focus stays where it was. A disabled Undo after a match has the hint `swipe:a11y.undoShortlisted`.
 - **Reduce Motion:** the drag follows the finger without the tilt; a throw becomes a short slide toward its side with a fade (`timing.base`); the stamp (label included) shows at full as soon as the drag starts toward an answer, with its coloured border, without growing; the second card is already full size, and its dim layer changes at once with the depth; Undo fades the card back in place; the flip crossfades in place (`timing.flip`); the toast fades (`layout.fadeIn`, `layout.fadeOut`) and the glow doesn't pulse; the hint lean becomes the still stamps; the shortlisted beat fades instead of popping and crossfades instead of flying ([The shortlisted beat](#the-shortlisted-beat)).
-- Largest text: the pills scroll; the shortlist's count grows to its cap (1.2) and its slots keep their size; the beat's title keeps 2 lines at `display-m`'s capped scale; the hint line wraps to two lines; the question's title wraps; the card's meta is cut before the title.
+- Largest text: the player stack keeps its size (only "+N" is text, capped at 1.2); the shortlist's count grows to its cap (1.2) and its slots keep their size; the beat's title keeps 2 lines at `display-m`'s capped scale; the hint line wraps to two lines; the question's title wraps; the card's meta is cut before the title.
 
 ## Design-system changes
 
@@ -567,6 +658,9 @@ Spec here; app-dev builds them with their gallery states in the task named.
 | `MovieCard`: the stamp's opacity and scale and the border's opacity driven by shared values from the drag (on the UI thread), as well as the `stamp` prop for the gallery and the buttons | M6.9 |
 | `MovieCard`: `glow` (the near miss's `glow-like` around the card, under the drag's border) | M6.13 |
 | `PlayerPill`: `you` (the label), `away` (muted name, no dot), `done` (the count replaced by `swipe:pills.done` in tone `like`), `host` (the crown), and `onPress` | M6.27 |
+| `SeatRow` moves from `screens/lobby/` to `shared/seat-row` for the players sheet: `services` becomes `detail` (any string), and a new `done` gives the `like` Tag with `check` and `swipe:pills.done` (at most one tag: away, then Done, then the host; the crown icon follows the name when the host's tag gives way). The lobby passes its services line as `detail` and no `done`, so it looks the same. A gallery entry with every state | M6.63 |
+| `PlayerPill` leaves the swipe screen; it stays in `shared/` for the store scenes, unchanged | M6.63 |
+| `MovieCard`: the bookmark moves to the bottom right of both faces, 44 points, with the landing guard ([The bookmark](#the-bookmark)); the gallery shows it empty, saved, on the back, and at the largest text on a 375-point card | M6.58 |
 | `RoomBanner`: an optional `waitingVotes` count for the offline note | M6.9 |
 | `EmptyState`: an optional `children` slot between the body and the action (the done card's filters and count). A gallery state with a row of tags | M6.17 |
 | Tokens: `rotation.card-tilt` 10 and `rotation.card-tilt-max` 15 (degrees, the swipe), `duration.hint-delay` 600ms (the card 1 lean's wait), each with a `$description`, then `mise run tokens` | M6.9, M6.18 |
@@ -576,16 +670,16 @@ Spec here; app-dev builds them with their gallery states in the task named.
 | Tokens: `opacity.stack-dim-near` 0.3, "The dark layer over the swipe stack's second card: dims it without letting the third show through (a starting value)", and `opacity.stack-dim-far` 0.55, the same for the third card. `opacity.stack-far` goes (nothing else uses it); `opacity.stack-near` stays for `ServiceTile`'s dimmed logo, and its description says so. Then `mise run tokens`; the `design-system` skill's opacity line follows | M6.61 |
 | `MovieCard`, the back: the poster's middle, `card-front-scrim`, the inline score, "Read more", one row of logos with "+n", no flip-back line ([The card back, reworked](#the-card-back-reworked)) | M6.61 |
 
-No new component: the new pieces are single-use screen pieces in `components/screens/swipe/` (the shortlist and the beat's layer are M6.37's).
+No new component: the new pieces are single-use screen pieces in `components/screens/swipe/` (the shortlist and the beat's layer are M6.37's, the player stack M6.63's). No new token for design pass (b): the player stack, its badges and the bookmark use existing sizes, colors and motion tokens. Design pass (a) adds two (`opacity.stack-dim-near` and `opacity.stack-dim-far`, above), and the synopsis sheet is a single-use piece too (M6.61's).
 
 ## Differences from the Figma
 
-- The Figma's top row (an avatar stack, "3 swiping", "You're on card 14" and a sliders button) becomes Leave and the player pills with each count (Q27.1). No sliders button: the host's tools are on the pills.
-- The near-miss toast drops "One more yes and it's a match": the count only, always true (moments.md#copy). It sits over the pills and keeps Leave visible.
+- The Figma's top row (an avatar stack, "3 swiping", "You're on card 14" and a sliders button) became Leave and the player pills with each count (Q27.1); design pass (b) brings the avatar stack back, with Done and away on the discs and the counts in the players sheet. No sliders button: the host's tools are in the players sheet, through the seat sheet.
+- The near-miss toast drops "One more yes and it's a match": the count only, always true (moments.md#copy). It sits over the player stack and keeps Leave visible.
 - The hints share one line between the card and the buttons, so the card never moves when one arrives. Onboarding put the card 2 hint under the buttons; this spec moves it (onboarding.md and moments.md are updated).
 - Nothing left (26, `30:2000`): no top-row avatars or sliders, and no Vote on our likes or Change filters until M18.5 and M18.6 (Q17.1). The title and body stay M6.9's ("That's all your cards"), not "You've seen the whole lineup", because the body has to say what happens next while there is no button. The filters are `Tag`s, not selected `Chip`s: a chip looks pressable, and nothing here can be pressed yet. The icon is `EmptyState`'s, without the Figma's marquee glow: a glow is for the shared moments. The count says "liked so far", not "liked by at least one player".
 - Copy on the Figma's game screens is English only; this spec is the copy.
-- The shortlist and the shortlisted beat have no Figma frame; this spec is their source (M6.33). The draft's visible "Shortlist" label isn't in the bar: at 375 points it would leave the pills under 100 points. The word is in the shortlist's screen-reader label and the beat's announcement.
+- The shortlist and the shortlisted beat have no Figma frame; this spec is their source (M6.33). The draft's visible "Shortlist" label isn't in the bar: at 375 points it would leave the players under 100 points. The word is in the shortlist's screen-reader label and the beat's announcement.
 
 ## Solo
 
@@ -725,3 +819,10 @@ New choices for the shortlist (M6.33), each with a default; none needs an answer
 5. **Can you tap the shortlist?** Default: no. The beat showed each film full size, and the Final Cut shows them all. If players ask "what was the second one?" in the playtest (M6.20), a sheet with the shortlisted films can come later.
 6. **The count while empty.** Default: "0/3" in muted from the first card, so the bar never shifts and the rule can be seen from the start. It counts what the room has, never what it still needs.
 7. **Undo after a match.** Default: disabled while the last card answered is on the shortlist; a `locked` answer takes the card away again with no message.
+
+New choices from design pass (b) (M6.60), each with a default:
+
+8. **The host's name in the bar (decision M4.15).** The stack shows the host by a crown, and names them in its label and in the players sheet, no longer as visible text in the bar. M4.15's purpose (a late joiner sees whose room it is) is met by the join sheet's host line before Join. Default: accept, and the decision row gets a follow-up line when Harry agrees.
+9. **The bookmark's place.** A (a sixth button in the row), B (a long press on the card) or C (a button low on the card's right edge). Default: C. B may come later as a shortcut if the playtest asks.
+10. **Your own disc.** Default: in seat order like everyone else's, never hidden behind "+N", with no "You" mark in the bar (the sheet says it).
+11. **Counts in the bar.** The pills showed each count; the stack shows only Done and away, and the counts move to the players sheet. Default: accept; a count on each disc would be unreadable at 28 points.

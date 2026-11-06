@@ -24,7 +24,7 @@ Sections are 24 points apart (`gap-6`); eyebrow to content 8. Each chip row is a
 
 1. Only if the selection changed: `api.set_my_providers` with the selection (saved to the profile, so they're asked once). It replaces the saved list, so saved ids the country no longer lists go then. Any answer but `ok`, or a failed call, stops here and no room is created: the host's seat copies the profile's services when the room is created, so the order matters.
 2. `api.create_room` with `quick_match`, `profile.country` and `{ runtime_max, max_age }` (one call, M4.4).
-3. `ok`: `router.replace('/room/[id]/lobby')` and nothing else: no full-screen share step (decided on 5 November 2026). The host shares from the lobby with the code, **Share link** and **Show QR** ([lobby](lobby.md), [invite sheet](invite-sheet.md)).
+3. `ok`: `askGenres(roomId)`, then `router.replace('/room/[id]/lobby')`: the room layout shows [the genre step](genre-step.md) first, then the lobby (M6.64). No full-screen share step (decided on 5 November 2026). The genre step comes after the room exists because it needs the room's offer ([where it lives](genre-step.md#where-it-lives)). The host shares from the lobby with the code, **Share link** and **Show QR** ([lobby](lobby.md), [invite sheet](invite-sheet.md)).
 
 Opening a room leaves the kept room: after `ok`, if the phone keeps another room, it calls `api.leave_room` on it once, without waiting or retrying (see [leaving the old seat](join-sheet.md#leaving-the-old-seat)).
 
