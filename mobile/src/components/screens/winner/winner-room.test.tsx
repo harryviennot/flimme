@@ -39,8 +39,6 @@ jest.mock('@/features/app-config/use-app-config', () => ({
 }));
 jest.mock('@/features/network', () => ({ useOnline: () => true }));
 const mockExit = jest.fn();
-const mockPush = jest.fn();
-jest.mock('expo-router', () => ({ router: { push: (...args: unknown[]) => mockPush(...args) } }));
 let mockMode = 'quick_match';
 let mockNext: { next_room_id: string | null; next_room_code: string | null } = {
   next_room_id: null,
@@ -121,7 +119,7 @@ describe('Share recap on the winner route', () => {
     await render(<WinnerRoom roomId="r1" />, { wrapper });
     await waitFor(() => expect(screen.getByText('Share recap')).toBeTruthy());
     fireEvent.press(screen.getByText('Share recap'));
-    expect(mockPush).toHaveBeenCalledWith('/room/r1/recap');
+    expect(mockRouter.push).toHaveBeenCalledWith('/room/r1/recap');
   });
 
   it('has no Share recap in a solo room', async () => {
