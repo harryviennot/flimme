@@ -100,7 +100,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | Done |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 54 | In progress |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 64 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 14 | In progress |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 9 | In progress |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 164 of 291 tasks done.
+Progress: 164 of 301 tasks done.
 
 ```mermaid
 flowchart LR
@@ -452,6 +452,8 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: tested: saving and unsaving, the `later` segment, the export with `saved_at`, and that nothing in a room reads a saved film.
 - [x] **M6.53** Per-player genres on the server: `api.set_seat_prefs` capped at 3 genres, each film weighted by how many players' picks it hits, the weight in `internal.deck_candidates` and `internal.deal_baseline` (3 slots in 4 from the picks, the rest open), the starvation guard (a pick pool of 100 eligible films, genres under 30 films left out), counts only. Ships in the first release only if the genre simulation passes; otherwise right after launch · backend · M · needs M6.52, M5.1 · [deck-engine](../architecture/deck-engine.md#scoring-a-film-for-a-player)
   Done when: pgTAP tests cover the cap of 3, the weight, the 100-film guard, the 30-film floor, and that no response names who picked a genre.
+- [ ] **M6.57** Later as solo likes, server: saving writes a solo like, `api.my_films` drops the `later` segment, the export follows · backend · M · needs M6.50, M6.41 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [game-modes](game-modes.md#the-answers)
+  Done when: tested: a save writes a solo like that no room reads, `api.my_films` has no `later` segment, and the export carries the save as a solo like.
 
 **App**
 
@@ -509,6 +511,24 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on the simulator against staging saves a film from the front and from the back, shows it under Later, removes it, and saves one offline that arrives once the phone is back online.
 - [x] **M6.54** Per-player genres in the lobby: the row "Your genres tonight" under "Your services", the genre sheet with the chips and their counts, optional and never blocking Start, in French and English. Ships in the first release only if the genre simulation passes; otherwise right after launch · app · M · needs M6.53, M4.11 · [onboarding](onboarding.md#the-lobby)
   Done when: a touch run on the simulator with three phones picks up to 3 genres on one phone, the counts show on the others, and the room starts with no picks.
+- [ ] **M6.55** Sounds on silent and on every button · app · S · needs M6.24 · [sounds](../design/sounds.md#rules-for-every-sound)
+  Done when: a sound plays with the phone on silent, every enabled button plays `tap.wav` on press-in, a disabled one stays silent, and the Sound switch still turns them all off, with a test per rule.
+- [ ] **M6.56** The shortlist match sound: wiring Harry's file when it lands (`shortlist.wav`, the bell he picked in the sound lab) · app · S · needs M6.37, M6.55 · [sounds](../design/sounds.md#a-match-joins-the-shortlist)
+  Done when: the sound plays once when a match joins the shortlist, and nothing plays until the file exists. Harry provides the file.
+- [ ] **M6.58** Later as solo likes, app: remove the Later segment; the bookmark within the thumb's reach, per the design pass · app · M · needs M6.57, M6.60 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles), [swipe](../design/screens/swipe.md#the-top-bar)
+  Done when: a touch run on the simulator against staging saves a film during a game, finds it under Liked with the Solo chip and not in any match, shows no Later segment, and reaches the bookmark with the thumb on the front and the back.
+- [ ] **M6.59** The design pass for the UI reworks (a): the card back, the card stack and the film sheet · design · M · [swipe](../design/screens/swipe.md), [film sheet](../design/screens/film-sheet.md), [my films](../design/screens/my-films.md)
+  Done when: the card back (the poster's fade as on the front, the poster centred on its middle, a synopsis never clipped, a compact TMDB rating, compact services), the card stack (cards underneath dimmed, not see-through) and the film sheet in My films (full page, quick actions beside the close button) each have a spec with its states, in French and English.
+- [ ] **M6.60** The design pass for the UI reworks (b): the multiplayer top bar, the full-screen genre step and the bookmark's reach · design · M · [swipe](../design/screens/swipe.md#the-top-bar), [lobby](../design/screens/lobby.md#your-genres-tonight), [host setup](../design/screens/host-setup.md#layout)
+  Done when: the top bar (player badges readable, never clipped by the contenders), the full-screen genre step for guests and in host setup (skippable with "Any genre" or Skip), and the bookmark within the thumb's reach each have a spec with its states, in French and English.
+- [ ] **M6.61** The card back and the card stack, app · app · M · needs M6.59 · [swipe](../design/screens/swipe.md)
+  Done when: a touch run on the simulator shows the card back with the new layout, the synopsis never clipped at large text, and the cards underneath dimmed.
+- [ ] **M6.62** The film sheet full page, app · app · S · needs M6.59 · [film sheet](../design/screens/film-sheet.md)
+  Done when: a touch run on the simulator opens the film sheet full page in My films, with the quick actions beside the close button, in French and English.
+- [ ] **M6.63** The top bar, app · app · M · needs M6.60 · [swipe](../design/screens/swipe.md#the-top-bar)
+  Done when: a three-player touch run shows readable player badges that no contender clips.
+- [ ] **M6.64** The genre step, app · app · M · needs M6.60, M6.54 · [host setup](../design/screens/host-setup.md#layout), [lobby](../design/screens/lobby.md#your-genres-tonight)
+  Done when: a touch run on the simulator shows a guest the full-screen genre step after joining and the host the step after the services choice, both skippable, and the lobby's sheet still changes picks.
 
 **Tests**
 
