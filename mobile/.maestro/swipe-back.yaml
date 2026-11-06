@@ -1,0 +1,54 @@
+# M6.61, the card back and the solid stack: Play alone, the stack at rest, the card turned over
+# (poster crop and fade, the score in the meta line, the logos row), "Read more" and its sheet, a
+# swipe back to the front. Run against staging (dev menu switched to Staging) with a named player
+# whose country is France: `maestro test mobile/.maestro/swipe-back.yaml -e METRO_URL=http://localhost:<port>`.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app.yaml
+- extendedWaitUntil:
+    visible: '(?i)play alone|jouer seul'
+    timeout: 30000
+- tapOn: '(?i)play alone|jouer seul'
+- extendedWaitUntil:
+    visible: '(?i)^start$|c.est parti'
+    timeout: 20000
+- runFlow:
+    when:
+      visible: '(?i)pick at least one service|choisis au moins'
+    commands:
+      - tapOn: 'Netflix'
+      - tapOn: 'Amazon Prime Video'
+      - tapOn: 'Disney Plus'
+      - tapOn: 'Canal\+'
+- tapOn: '(?i)^start$|c.est parti'
+- extendedWaitUntil:
+    visible: 'Solo'
+    timeout: 60000
+- assertVisible: 'Undo|Annuler'
+- takeScreenshot: back-1-stack
+# Turn the card over: the new back.
+- tapOn:
+    point: 50%,40%
+- takeScreenshot: back-2-back
+- assertNotVisible: '(?i)tap the card to flip back|touche la carte pour la retourner'
+- assertVisible: '.*TMDB.*'
+# A long overview shows "Read more": it opens the sheet and the card is still turned over after.
+- runFlow:
+    when:
+      visible: '(?i)read more|lire la suite'
+    commands:
+      - tapOn: '(?i)read more|lire la suite'
+      - extendedWaitUntil:
+          visible: '(?i)synopsis'
+          timeout: 10000
+      - takeScreenshot: back-3-sheet
+      - swipe:
+          direction: DOWN
+          duration: 400
+      - assertVisible: '.*TMDB.*'
+      - takeScreenshot: back-4-after-sheet
+# Back to the front, then a like: the next card is solid.
+- tapOn:
+    point: 50%,40%
+- tapOn: 'Like|J.aime'
+- takeScreenshot: back-5-next

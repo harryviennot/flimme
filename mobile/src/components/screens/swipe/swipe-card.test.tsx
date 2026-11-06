@@ -1,6 +1,7 @@
 import i18n from '@/i18n';
 
 import type { NextCard } from '@flimme/contract';
+import { useEffect } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
 import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
@@ -79,6 +80,7 @@ function Card(props: Partial<SwipeCardProps>) {
         a11y={{ label: 'Film 7', actions: [], onAction: () => undefined }}
         onRelease={() => undefined}
         onFlip={() => undefined}
+        onReadMore={() => undefined}
         onLanded={() => undefined}
         {...props}
       />
@@ -202,11 +204,75 @@ describe('a card Undo brings back', () => {
 });
 
 describe('the cards behind', () => {
-  it('sit lower, smaller and fainter, and take no touch', async () => {
+  it('sit lower and smaller, solid, and take no touch', async () => {
     await render(<Card depth={2} />);
-    expect(style().opacity).toBeLessThan(1);
+    // The card itself is never see-through: a dark layer does the dimming.
+    expect(style().opacity).toBe(1);
     expect(part('scale')).toBeLessThan(1);
     expect(screen.queryByLabelText('Film 7')).toBeNull();
+  });
+
+  it('are darkened by a layer: 0.3 for the second card, 0.55 for the third, none on top', async () => {
+    const dim = () =>
+      animatedStyle(screen.getByTestId('swipe-dim-7', { includeHiddenElements: true }));
+    await render(<Card depth={0} />);
+    expect(dim().opacity).toBe(0);
+    await screen.unmount();
+    await render(<Card depth={1} />);
+    await settle();
+    expect(dim().opacity).toBeCloseTo(0.3);
+    await screen.unmount();
+    await render(<Card depth={2} />);
+    await settle();
+    expect(dim().opacity).toBeCloseTo(0.55);
+  });
+
+  it('keeps the dark layer out of the touches and out of a screen reader', async () => {
+    await render(<Card depth={1} />);
+    const layer = screen.getByTestId('swipe-dim-7', { includeHiddenElements: true });
+    expect(layer.props.pointerEvents).toBe('none');
+    expect(layer.props.accessibilityElementsHidden).toBe(true);
+  });
+
+  it('brightens the second card as the top card is dragged', async () => {
+    const progress = { current: null as null | { set: (v: number) => void } };
+    function Dragged() {
+      const dragProgress = useSharedValue(0);
+      useEffect(() => {
+        progress.current = dragProgress;
+      }, [dragProgress]);
+      const lit = useSharedValue(0);
+      const dragging = useSharedValue(0);
+      return (
+        <GestureHandlerRootView>
+          <SwipeCard
+            card={card}
+            depth={1}
+            flipped={false}
+            size={{ width: 345, height: 518 }}
+            screen={SCREEN}
+            text={{ language: 'en', imageBase: undefined, screenWidth: 400, noSynopsis: '' }}
+            dragProgress={dragProgress}
+            lit={lit}
+            dragging={dragging}
+            locked={false}
+            a11y={{ label: 'Film 7', actions: [], onAction: () => undefined }}
+            onRelease={() => undefined}
+            onFlip={() => undefined}
+            onReadMore={() => undefined}
+            onLanded={() => undefined}
+          />
+        </GestureHandlerRootView>
+      );
+    }
+    await render(<Dragged />);
+    await settle();
+    const dim = () =>
+      animatedStyle(screen.getByTestId('swipe-dim-7', { includeHiddenElements: true }));
+    expect(dim().opacity).toBeCloseTo(0.3);
+    await act(async () => progress.current!.set(1));
+    await settle();
+    expect(dim().opacity).toBeCloseTo(0);
   });
 
   it('the top one is a single labelled element', async () => {

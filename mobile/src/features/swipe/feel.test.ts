@@ -1,5 +1,6 @@
 import {
   commitLines,
+  dimOf,
   decideRelease,
   directionOf,
   progressOf,
@@ -108,5 +109,32 @@ describe('returnStart', () => {
     expect(returnStart('right', screen).x).toBeGreaterThan(400);
     expect(returnStart('up', screen)).toEqual({ x: 0, y: expect.any(Number) });
     expect(returnStart('up', screen).y).toBeLessThan(-800);
+  });
+});
+
+describe('dimOf', () => {
+  it('leaves the top card clear', () => {
+    expect(dimOf(0, 0, false)).toBe(0);
+    expect(dimOf(0, 0.8, false)).toBe(0);
+  });
+
+  it('darkens the second card by 0.3 and the third by 0.55 at rest', () => {
+    expect(dimOf(1, 0, false)).toBeCloseTo(0.3);
+    expect(dimOf(2, 0, false)).toBeCloseTo(0.55);
+  });
+
+  it('brightens the second card as the top card is dragged, clear at the commit line', () => {
+    expect(dimOf(1, 0.5, false)).toBeCloseTo(0.15);
+    expect(dimOf(1, 1, false)).toBeCloseTo(0);
+  });
+
+  it('does not follow the drag with Reduce Motion', () => {
+    expect(dimOf(1, 0.5, true)).toBeCloseTo(0.3);
+  });
+
+  it('eases through the depths while a card springs forward', () => {
+    expect(dimOf(0.5, 0, false)).toBeCloseTo(0.15);
+    expect(dimOf(1.5, 0, false)).toBeCloseTo(0.425);
+    expect(dimOf(2.4, 0, false)).toBeCloseTo(0.55);
   });
 });
