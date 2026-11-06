@@ -215,7 +215,7 @@ grant execute on function api.remove_my_film(bigint) to authenticated;
 -- rows): a solo like, liked_at and saved_at on the solo row, at the same time. A film already liked or
 -- picked, from a group or solo, keeps that like as it is: ok, nothing changes.
 -- Unsave: only a like a save made (saved_at on the solo row). If the player also liked the film in a
--- solo game, that like stays, with that vote's time (so undoing the vote still takes it back), and only
+-- solo game after the save, that like stays, with that vote's time (so undoing the vote still takes it back), and only
 -- the mark goes; otherwise the like goes and a row left with nothing is deleted.
 -- Neither is a vote: no room table, swipe_log or Realtime message.
 create or replace function api.set_film_saved(p_title_id bigint, p_saved boolean) returns jsonb
@@ -257,13 +257,17 @@ begin
     return jsonb_build_object('status', 'ok');
   end if;
 
-  -- The first like, super like or "watch it again" the player gave this film in a solo room.
+  -- The first like, super like or "watch it again" the player gave this film in a solo room since the
+  -- save. An older one was already gone when the player saved (a save of a liked film writes nothing),
+  -- so it never comes back.
   select min(v.created_at) into v_voted_at
   from public.votes v
   join public.room_members m on m.id = v.room_member_id
   join public.rooms r on r.id = m.room_id
+  join public.user_titles ut on ut.profile_id = v_profile and ut.title_id = p_title_id and ut.source = 'solo'
   where m.profile_id = v_profile and v.title_id = p_title_id and r.mode = 'solo'
-    and v.answer in ('like', 'super_like', 'seen_rewatch');
+    and v.answer in ('like', 'super_like', 'seen_rewatch')
+    and v.created_at >= ut.saved_at;
 
   update public.user_titles ut
   set liked_at = v_voted_at,

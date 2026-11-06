@@ -9,7 +9,7 @@
 -- are gone with the rules that made them; the room, export and limit tests stay.
 
 begin;
-select plan(68);
+select plan(70);
 
 select tests.create_catalog(40);
 update public.titles set is_active = false where original_title not like 'Catalog Film %';
@@ -383,6 +383,20 @@ select is(pg_temp.save('s2', (current_setting('tests.s2_films')::bigint[])[1], f
 select ok(not pg_temp.has('s2', (current_setting('tests.s2_films')::bigint[])[1]),
           'Later as a like: with the game''s like undone, unsaving takes the like and the row');
 
+-- A solo like removed from Liked, then a save: unsaving never brings the old like back.
+select pg_temp.vote_t('s2', (current_setting('tests.s2_films')::bigint[])[4], 'like');
+update public.user_titles set liked_at = liked_at - interval '2 days'
+where profile_id = tests.uid('s2') and title_id = (current_setting('tests.s2_films')::bigint[])[4];
+update public.votes set created_at = created_at - interval '2 days'
+where title_id = (current_setting('tests.s2_films')::bigint[])[4]
+  and room_member_id in (select m.id from public.room_members m where m.profile_id = tests.uid('s2'));
+select pg_temp.act('s2', 'remove', (current_setting('tests.s2_films')::bigint[])[4]);
+select pg_temp.save('s2', (current_setting('tests.s2_films')::bigint[])[4], true);
+select is(pg_temp.save('s2', (current_setting('tests.s2_films')::bigint[])[4], false)->>'status', 'ok',
+          's2 unsaves a film whose earlier solo like they removed');
+select ok(not pg_temp.has('s2', (current_setting('tests.s2_films')::bigint[])[4]),
+          'Later as a like: unsaving never brings back a game like the player removed before the save');
+
 -- A new solo deck skips a saved film, as it skips any like.
 select pg_temp.save('s2', (current_setting('tests.s2_films')::bigint[])[2], true);
 select tests.authenticate_as('s2');
@@ -393,7 +407,7 @@ select ok(not exists (select 1 from public.room_cards c where c.room_id = tests.
                       and c.title_id = (current_setting('tests.s2_films')::bigint[])[2])
           and exists (select 1 from public.room_cards c where c.room_id = tests.room_id()
                       and c.title_id = (current_setting('tests.s2_films')::bigint[])[3]),
-          'Later as a like: a new solo deck skips a saved film, and still deals a film only skipped by swiping nothing');
+          'Later as a like: a new solo deck skips a saved film, and still deals other films');
 
 -- ---------------------------------------------------------------------------
 -- Limits, errors, retention, deletion, grants
