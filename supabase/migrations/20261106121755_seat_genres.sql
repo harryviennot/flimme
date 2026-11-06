@@ -11,7 +11,7 @@
 --   the others follow today's order over every eligible film. A pick pool under 100 films gets
 --   3 in 4 x its size / 100. With no picks the deck is exactly today's.
 --
--- Replaced whole from their latest versions: internal.deck_candidates (20261105180100, its
+-- Replaced whole from their latest versions: internal.deck_candidates (20261106121423, its
 -- eligible films move to internal.eligible_titles, unchanged; same signature and columns),
 -- internal.deal_baseline
 -- (20261103190017), api.set_seat_prefs (20261102193735), api.start_game (20261102220000).
@@ -93,10 +93,11 @@ as $$
           join public.rooms vr on vr.id = vm.room_id
           where v.title_id = t.id and vr.mode = 'solo' and vr.id <> p_room_id
             and vm.profile_id in (select mm.profile_id from members mm)))
-    -- ... and every film already in the player's My films (M6.41): liked, super liked or picked.
+    -- ... and every film already in the player's My films: liked, super liked, picked (M6.41) or
+    -- saved for Later (M6.50). Group rooms never read saved_at.
     and (r.mode <> 'solo' or not exists (
           select 1 from public.user_titles lu
-          where lu.title_id = t.id and (lu.liked_at is not null or lu.picked_at is not null)
+          where lu.title_id = t.id and (lu.liked_at is not null or lu.picked_at is not null or lu.saved_at is not null)
             and lu.profile_id in (select mm.profile_id from members mm)))
 $$;
 
