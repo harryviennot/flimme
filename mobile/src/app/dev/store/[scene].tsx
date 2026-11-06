@@ -7,7 +7,7 @@ import i18n from '@/i18n';
 /**
  * One store screenshot scene on fixture data (docs/store/screenshots.md), development builds
  * only: `flimme-dev://dev/store/swipe?lang=fr`. In any other build the route sends you home, and
- * the scene code is behind `__DEV__`, so a release bundle drops it.
+ * the scene code is behind `__DEV__`, and the scene code only loads after that check, so it is never rendered in a release build.
  */
 export default function DevStoreScene() {
   const { scene, lang } = useLocalSearchParams<{ scene: string; lang?: string }>();

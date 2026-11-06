@@ -1,6 +1,6 @@
 # Store screenshots
 
-The six screenshots for App Store Connect and Google Play Console, in French and English, and how to make them again. Read it before uploading the images (the walkthrough is [README.md](README.md) once M11.9 merges) or when a screen changes (M11.10 re-runs the rig). The listing text is in [listing.md](listing.md); the order and the rules are in [store listing](../product/store-listing.md#screenshots-and-the-preview-video).
+The six screenshots for App Store Connect and Google Play Console, in French and English, and how to make them again. Read it before uploading the images (the console walkthrough comes with M11.9) or when a screen changes (M11.10 re-runs the rig). The listing text is in [listing.md](listing.md); the order and the rules are in [store listing](../product/store-listing.md#screenshots-and-the-preview-video).
 
 ## What is required (checked 6 November 2026)
 
@@ -13,7 +13,7 @@ Source: [App Store Connect screenshot specifications](https://developer.apple.co
 
 ## The captions
 
-One line each, in the app's display font above the screen. French uses "tu" for one person and "vous" for the room. `mobile/scripts/frame-screenshots.swift` and `mobile/src/features/dev/store-captions.test.ts` read this table: keep one row per scene, in this order.
+One line each, in the app's display font above the screen. French uses "tu" for one person and "vous" for the room. `mobile/scripts/frame-screenshots.swift` and `mobile/src/features/dev/store-fixtures.test.ts` read this table: keep one row per scene, in this order.
 
 | # | Scene | Français | English |
 | --- | --- | --- | --- |
@@ -37,7 +37,7 @@ One line each, in the app's display font above the screen. French uses "tu" for 
 
 ## How to make them again
 
-The scenes are dev-only routes (`/dev/store/<scene>?lang=fr|en`, `mobile/src/app/dev/store/[scene].tsx`) that draw the real components over fixtures in `mobile/src/features/dev/store-fixtures.ts`. They need no backend and cannot be reached in a production build.
+The scenes are dev-only routes (`/dev/store/<scene>?lang=fr|en`, `mobile/src/app/dev/store/[scene].tsx`) that draw the real components over fixtures in `mobile/src/features/dev/store-fixtures.ts`. They need no backend and cannot be reached in a production build (the route sends you home).
 
 1. Install the development build on an iPhone 17 simulator (1206 × 2622), region set to France.
 2. From `mobile/`, start Metro with placeholder Supabase values (the app throws without them): `EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=placeholder EXPO_PUBLIC_SERVER_URL=http://127.0.0.1:8000 npx expo start --dev-client --port 8096`.

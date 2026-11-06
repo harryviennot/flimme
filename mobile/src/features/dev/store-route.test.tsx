@@ -16,7 +16,7 @@ jest.mock('@/components/screens/dev-store/store-scene', () => {
   throw new Error('the scene code must not load in a production build');
 });
 
-const globals = globalThis as { __DEV__: boolean };
+const globals = globalThis as unknown as { __DEV__: boolean };
 const original = globals.__DEV__;
 afterEach(() => {
   globals.__DEV__ = original;
