@@ -91,11 +91,11 @@ export function RoomTicket({ code, leftDetail, rightDetail, locked, stamp }: Roo
           <View className="absolute -left-3 size-6 rounded-pill border border-marquee-strong bg-bg-canvas" />
           <View className="absolute -right-3 size-6 rounded-pill border border-marquee-strong bg-bg-canvas" />
         </View>
-        <View className="flex-row justify-between px-5 pt-2 pb-4.5">
-          <Text variant="mono-data" tone="secondary">
+        <View className="flex-row justify-between gap-4 px-5 pt-2 pb-4.5">
+          <Text variant="mono-data" tone="secondary" className="shrink">
             {leftDetail}
           </Text>
-          <Text variant="mono-data" tone="secondary">
+          <Text variant="mono-data" tone="secondary" className="shrink text-right">
             {rightDetail}
           </Text>
         </View>

@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView as NativeScrollView, View } from 'react-native';
+import {
+  GestureHandlerRootView,
+  ScrollView as SheetScrollView,
+} from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cn } from '@/lib/cn';
@@ -12,6 +16,11 @@ export type ScreenProps = {
   footer?: ReactNode;
   /** Scrolls when the content is taller than the screen. */
   scroll?: boolean;
+  /**
+   * The screen is a form sheet. React Native's ScrollView paints nothing in an iOS form sheet, so
+   * a sheet that scrolls uses Gesture Handler's, under its own root view (a native sheet is its own tree).
+   */
+  sheet?: boolean;
   /** Reserve the home indicator space at the bottom. Off under the tab bar, which does it. */
   insetBottom?: boolean;
   /** Content padding: the standard 20-point gutter, or none for full-bleed screens. */
@@ -24,6 +33,7 @@ export function Screen({
   header,
   footer,
   scroll = false,
+  sheet = false,
   padded = true,
   insetBottom = true,
 }: ScreenProps) {
@@ -32,10 +42,16 @@ export function Screen({
   return (
     <View className="flex-1 bg-bg-canvas" style={{ paddingTop: insets.top }}>
       {header}
-      {scroll ? (
-        <ScrollView contentContainerClassName="grow" keyboardShouldPersistTaps="handled">
+      {scroll && sheet ? (
+        <GestureHandlerRootView className="flex-1">
+          <SheetScrollView contentContainerClassName="grow" keyboardShouldPersistTaps="handled">
+            {content}
+          </SheetScrollView>
+        </GestureHandlerRootView>
+      ) : scroll ? (
+        <NativeScrollView contentContainerClassName="grow" keyboardShouldPersistTaps="handled">
           {content}
-        </ScrollView>
+        </NativeScrollView>
       ) : (
         content
       )}
