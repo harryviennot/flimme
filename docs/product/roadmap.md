@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 158 of 291 tasks done.
+Progress: 159 of 291 tasks done.
 
 ```mermaid
 flowchart LR
@@ -632,7 +632,7 @@ M11.7 (the reviewers' demo room: a reserved code that `api.create_room` never dr
   Done when: entered in both consoles.
 - [ ] **M11.2** The icon, and Play's feature graphic · design · S · needs M0.1 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: exported at every size the stores ask.
-- [ ] **M11.3** Screenshots with fictional posters, captioned in French and English · design · L · needs M6.44, M6.21 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
+- [x] **M11.3** Screenshots with fictional posters, captioned in French and English · design · L · needs M6.44, M6.21 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: uploaded at the sizes required today.
 - [ ] **M11.10** Final screenshots from the alpha build: re-run M11.3's rig after M10.4 and replace what changed · design · S · needs M10.4, M11.3 · [store-listing](store-listing.md#screenshots-and-the-preview-video)
   Done when: the changed screenshots are uploaded to both stores, from the alpha build.
