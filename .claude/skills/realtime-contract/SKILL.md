@@ -35,6 +35,7 @@ The event list lives in `packages/contract/src/realtime.ts`. Adding an event mea
 ## Who sees what
 
 - **Never, in any mode:** who noped a film, another player's swipes while the game runs, anyone's taste check answers.
+- **Never broadcast:** a card's `seen` and `saved` flags (M6.65). They are the caller's own, read by `api.my_next_cards` and `api.title_cards`; no event carries them or any card payload.
 - **In the lobby:** genre picks as a count per genre (`api.room_genres`), never who picked what.
 - **During the game:** counts only ("2 of 3"), and a star on super-liked cards in Party mode, never who.
 - **The finale:** who has locked in, not what they voted; vetoed films shown knocked out, never by whom.

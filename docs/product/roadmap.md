@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 174 of 303 tasks done.
+Progress: 175 of 303 tasks done.
 
 ```mermaid
 flowchart LR
@@ -454,7 +454,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: pgTAP tests cover the cap of 3, the weight, the 100-film guard, the 30-film floor, and that no response names who picked a genre.
 - [x] **M6.57** Later as solo likes, server: saving writes a solo like, `api.my_films` drops the `later` segment, the export follows · backend · M · needs M6.50, M6.41 · [solo](solo-and-my-films.md#10-storage-privacy-retention-export-and-deletion), [game-modes](game-modes.md#the-answers)
   Done when: tested: a save writes a solo like that no room reads, `api.my_films` has no `later` segment, and the export carries the save as a solo like.
-- [ ] **M6.65** The card carries the caller's own seen and saved flags: `api.my_next_cards` and `api.title_cards` add `seen` and `saved` from the caller's own rows, never another seat's · backend · S · needs M6.57, M6.41 · [my films](solo-and-my-films.md#6-my-films-grouping-and-tiles), [bookmark](../design/screens/swipe.md#the-bookmark)
+- [x] **M6.65** The card carries the caller's own seen and saved flags: `api.my_next_cards` and `api.title_cards` add `seen` and `saved` from the caller's own rows, never another seat's · backend · S · needs M6.57, M6.41 · [my films](solo-and-my-films.md#6-my-films-grouping-and-tiles), [bookmark](../design/screens/swipe.md#the-bookmark)
   Done when: tested: a card shows the caller's own seen and saved flags, a film with no row shows both as false, and no field names another player.
 
 **App**

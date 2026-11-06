@@ -958,8 +958,8 @@ describe('my_next_cards', () => {
     reason_code: null,
     reason_params: {},
     member_ratings: [{ member_id: MEMBER, rating: 4.5 }],
-    seen: true,
-    saved: false,
+    seen: false,
+    saved: true,
   };
 
   it('a sample card parses and the arguments are mapped', async () => {
@@ -996,6 +996,21 @@ describe('my_next_cards', () => {
     await expect(
       createApi(client).titleCards({ room_id: ROOM, title_ids: [1] }),
     ).rejects.toMatchObject({ kind: 'denied' });
+  });
+
+  it("a card without the caller's own seen and saved flags is refused", async () => {
+    const { seen, saved, ...old } = card;
+    void [seen, saved];
+    const { client } = fake(() => ok([old]));
+    await expect(
+      createApi(client, { validate: true }).myNextCards({ room_id: ROOM }),
+    ).rejects.toBeTruthy();
+    const { deck_source, reason_code, reason_params, member_ratings, ...plainOld } = old;
+    void [deck_source, reason_code, reason_params, member_ratings];
+    const titles = fake(() => ok({ status: 'ok', cards: [plainOld] }));
+    await expect(
+      createApi(titles.client, { validate: true }).titleCards({ room_id: ROOM, title_ids: [1] }),
+    ).rejects.toBeTruthy();
   });
 
   it('an empty array is a removed seat, not an error', async () => {
