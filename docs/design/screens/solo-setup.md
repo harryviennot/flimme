@@ -11,7 +11,7 @@ Say what you can watch tonight, then swipe. A returning player taps **Start** at
 `Screen` with `scroll`, `TopBar` (back, `solo:setup.topBar`), and the button in the `footer`. The same sections, sizes and pieces as [host setup](host-setup.md#layout), shared through `features/host/` (M6.44 moves what both need there, nothing else):
 
 1. **Title**, `display-m`, `solo:setup.title`.
-2. **Services.** Eyebrow `solo:setup.services`, then **`ServiceGrid`** with the prefill of host setup (the saved ids the country lists). Under it, `body-s` muted `host:services.free`. No "friends add their own" helper: nobody joins.
+2. **Services.** Eyebrow `solo:setup.services`, then **`ServiceGrid`** (logo tiles, four a row, with the JustWatch credit: [host setup](host-setup.md#new-component)) with the prefill of host setup (the saved ids the country lists). Under it, `body-s` muted `host:services.free`. No "friends add their own" helper: nobody joins.
 3. **Time budget.** As host setup: eyebrow `host:time.label`, `Chip role="radio"` `host:time.any` (default), `host:time.under105`, `host:time.under120`.
 4. **Age cap.** As host setup: eyebrow `host:age.label`, Adults (default), 16, 12, 10, All ages; helper `host:age.helper`.
 5. **Footer:** `Button` primary L, icon `play`, `solo:setup.start`, `block`. Disabled while no service is picked, with `host:services.required` under it. One `body-s` line under it for `too_few_films` (below).
@@ -38,7 +38,7 @@ The phone's date is a shortcut: `api.start_solo` stays the authority. A reinstal
 
 | State or answer | What the player sees | Next |
 | --- | --- | --- |
-| No country, or no services for the country | Host setup's unsupported state (`host:errors.unsupported.*`), with its Join with a code | |
+| No country, or no services for the country | Host setup's unsupported state (`host:errors.unsupported.*`), with its country action ([the country choice](host-setup.md#the-country-choice-m1111)) and Join with a code | |
 | Services loading | Six `Skeleton` tiles, as host setup; the chips are usable | |
 | Services failed to load | Inline `EmptyState` `error`, `host:errors.services`, `common:actions.retry` | |
 | No service picked | Start disabled, `host:services.required` | Pick one |

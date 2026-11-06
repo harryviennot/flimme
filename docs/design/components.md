@@ -92,7 +92,7 @@ An invisible input that owns a value and draws nothing: it fills its `relative` 
 
 ## Service tile (`shared/service-tile`)
 
-"Selectable streaming service." Fills its grid cell (three per row with a gap of 8: 106 on a 375-wide phone, 108 on a 430-wide one; never a fixed width, so a small iPhone fits), padding 12 (the unselected tile's 1-point border is made up with 1 more point of padding, so both states are the same height; only a long name such as "Apple TV+" shrinks, down to 80%, before it is cut), `radius.md`, gap 4. Default: `bg.surface`, `border.default` hairline, "Tap to add" in `text.muted`. Selected: `accent.soft`, 2-point `accent.default` border, a 16-point check beside "Added" on the second line (not on the name line, so names keep the full width and keep one size), "Added" in `accent.text` ("You have it" did not fit a 106-point tile). Name `title-m`.
+"Selectable streaming service." Changed on 6 November 2026 from a name-and-text tile to a logo tile (the Figma still shows the old one). A square that fills its grid cell (four per row with a gap of 8, about 80 on a 375-wide phone; three at text scale above 1.3), `radius.md`, the service's logo (TMDB, w92) filling it. No visible name (it is the accessibility label). Default: `border.default` hairline, logo dimmed (`opacity-stack-near`). Selected: 2-point `accent.default` border, full-strength logo and a 20-point `accent.default` check badge top right. No logo: `bg.raised` with the first letters of the first two words in `title-m`. The grid under it carries the JustWatch credit.
 
 ## Movie card (`shared/movie-card`)
 
@@ -128,7 +128,7 @@ Specified in the screen specs (`docs/design/screens/`) from 30 October 2026 on, 
 | --- | --- | --- | --- |
 | `AvatarPicker` | ui | New: a row of `Avatar` M swatches, one per color, with the typed initial and a selection ring | [Your name](screens/name.md#new-components) |
 | `NameForm` | shared | New: the color picker and the name `Input`, used by the name screen and the join sheet | [Your name](screens/name.md#new-components) |
-| `ServiceGrid` | shared | New: `ServiceTile`s in rows of three, with a loading state, used by host setup and the lobby's services sheet | [Host setup](screens/host-setup.md#new-component) |
+| `ServiceGrid` | shared | New: `ServiceTile` logo tiles four to a row (three at large text), with a loading state and the JustWatch credit, used by host setup and the lobby's services sheet | [Host setup](screens/host-setup.md#new-component) |
 | `PinBox` | ui | Gains an `error` state: a 2-point `nope.default` border | [Join with a code](screens/join-code.md#design-system-change) |
 | `Icon` | ui | Gains `crown` (24 points, 2-point stroke) for the host's tag | [Lobby](screens/lobby.md#design-system-change) |
 | `ListRow` | ui | Gains `tone="danger"`, `loading`, `disabled`, a minimum height with a two-line label for large text, and a label hidden from screen readers when `trailing` is set | [Settings](screens/settings.md#design-system-changes) |

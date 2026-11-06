@@ -16,6 +16,13 @@ export const gallery: GalleryEntry = {
         body="12 films fit tonight's filters. Loosen one to see more."
         action={{ label: 'Change filters', onPress: () => undefined }}
       />
+      <EmptyState
+        icon="globe"
+        title="Not in your country yet"
+        body="We can't show where to watch here yet."
+        action={{ label: 'Use the catalog: France', onPress: () => undefined }}
+        secondaryAction={{ label: 'Join with a code', onPress: () => undefined }}
+      />
       <EmptyState icon="popcorn" title="That's all your cards" body="Hang tight.">
         <View className="flex-row flex-wrap justify-center gap-1.5">
           <Tag label="Netflix" icon="tv" />

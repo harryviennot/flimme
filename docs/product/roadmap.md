@@ -105,7 +105,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 14 | In progress |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 9 | In progress |
 | [M10](#m10-internal-alpha) | Internal alpha | Five real movie nights on TestFlight and Play internal testing end with a pick | 4 | Not started |
-| [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the review notes are ready on both stores, and Play alone reaches a pick on one device | 10 | Not started |
+| [M11](#m11-store-readiness) | Store readiness | Listings, ratings, privacy forms and the review notes are ready on both stores, and Play alone reaches a pick on one device | 10 | In progress |
 | [M12](#m12-closed-beta) | Closed beta | Friend groups and families play, Google's 12 testers have run 14 days, and the go decision is made | 7 | Not started |
 | [M13](#m13-public-launch) | Public launch | Live on both stores in France | 6 | Not started |
 | **After launch** | | | | |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 155 of 291 tasks done.
+Progress: 157 of 291 tasks done.
 
 ```mermaid
 flowchart LR
@@ -516,7 +516,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: bots can fill a room on staging.
 - [ ] **M6.20** End-to-end playtest on real phones: 2, 4 and 8 players, every way to a pick (a single match, a vote between matches, the Final Cut from swipes), leaving and rejoining, swiping offline, removing a player · test · L · needs M6.6, M6.10, M6.11, M6.12, M6.13, M6.16, M6.17, M6.18, M6.21, M6.23, M4.13, M4.15, M6.24, M3.12, M6.29, M6.30, M6.31, M6.37, M6.38, M6.49 · [game-modes](game-modes.md#a-game-at-a-glance)
   Done when: every run ends with a pick within the limits; the swiping after the first match is timed, and every player is asked "was there a film for you in the vote?" and "would you use it on your own?"; bugs become tasks.
-- [ ] **M6.52** The genre simulation: bots with made-up tastes, split and shared picks, cap 3, measuring the median time to a pick, matches and Final Cuts against today's deck. Owner: the game designer · test · M · needs M6.19, M6.34, M6.35 · [simulations](simulations.md), [game-modes](game-modes.md#time-to-a-pick)
+- [x] **M6.52** The genre simulation: bots with made-up tastes, split and shared picks, cap 3, measuring the median time to a pick, matches and Final Cuts against today's deck. Owner: the game designer · test · M · needs M6.19, M6.34, M6.35 · [simulations](simulations.md), [game-modes](game-modes.md#time-to-a-pick)
   Done when: simulations.md has the median time to a pick for split picks against today's deck, and says whether the under-5-minute gate for the first release passes.
 
 **Moved into the first release** (decided on 29 October 2026; these were M16.1 to M16.3)
@@ -646,7 +646,7 @@ M11.7 (the reviewers' demo room: a reserved code that `api.create_room` never dr
   Done when: entered in both consoles.
 - [ ] **M11.9** Support, privacy and deletion URLs; content rights; the encryption exemption; Android target API 36 · publishing · M · needs M8.3, M10.1 · [store-listing](store-listing.md#release-checklist)
   Done when: both consoles show no missing item.
-- [ ] **M11.11** Choose a country: when the phone's region has no catalog, "Not in your country yet" offers the French catalog, and Settings gets a Country row listing the countries with a catalog; also mends a profile whose country was saved once at first launch · app · M · needs M8.7 · [store-listing](store-listing.md#price-and-countries), [onboarding](onboarding.md#empty-and-error-states)
+- [x] **M11.11** Choose a country: when the phone's region has no catalog, "Not in your country yet" offers the French catalog, and Settings gets a Country row listing the countries with a catalog; also mends a profile whose country was saved once at first launch · app · M · needs M8.7 · [store-listing](store-listing.md#price-and-countries), [onboarding](onboarding.md#empty-and-error-states)
   Done when: a phone with a US region plays alone and hosts on the French catalog after one tap, and Settings changes the country.
 
 ## M12 Closed beta

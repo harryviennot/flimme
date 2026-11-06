@@ -38,6 +38,20 @@ export type Database = {
                         Relationships: [
                     
                   ]
+                },"catalog_countries": {
+                  Row: {
+                    "code": string,"default_language": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                           "code"?: string | null,"default_language"?: string | null
+                         }
+                        Update: {
+                           "code"?: string | null,"default_language"?: string | null
+                         }
+                        Relationships: [
+                    
+                  ]
                 },"country_providers": {
                   Row: {
                     "country": string,"display_priority": number,"logo_path": string | null,"name": string,"provider_id": number
