@@ -45,10 +45,25 @@ const COMMON = ['dashes', 'exclamation', 'kids', 'platform', 'firstRelease', 'se
  * parentheses must say; `rules` name entries of RULES. */
 export const FIELDS = {
   apple: {
-    Name: { limit: 30, label: '30', rules: [...COMMON, 'emoji', 'priceWords', 'appName'], source: SRC.appleAppInfo },
-    Subtitle: { limit: 30, label: '30', rules: [...COMMON, 'emoji', 'priceWords'], source: SRC.appleAppInfo },
+    Name: {
+      limit: 30,
+      label: '30',
+      rules: [...COMMON, 'emoji', 'priceWords', 'appName'],
+      source: SRC.appleAppInfo,
+    },
+    Subtitle: {
+      limit: 30,
+      label: '30',
+      rules: [...COMMON, 'emoji', 'priceWords'],
+      source: SRC.appleAppInfo,
+    },
     'Promotional Text': { limit: 170, label: '170', rules: COMMON, source: SRC.appleVersion },
-    Description: { limit: 4000, label: '4,000', rules: [...COMMON, 'credits'], source: SRC.appleVersion },
+    Description: {
+      limit: 4000,
+      label: '4,000',
+      rules: [...COMMON, 'credits'],
+      source: SRC.appleVersion,
+    },
     Keywords: {
       limit: 100,
       unit: 'bytes',
@@ -58,9 +73,24 @@ export const FIELDS = {
     },
   },
   google: {
-    'App name': { limit: 30, label: '30', rules: [...COMMON, 'emoji', 'priceWords', 'appName'], source: SRC.googleListing },
-    'Short description': { limit: 80, label: '80', rules: [...COMMON, 'emoji', 'priceWords'], source: SRC.googleListing },
-    'Full description': { limit: 4000, label: '4,000', rules: [...COMMON, 'credits'], source: SRC.googleListing },
+    'App name': {
+      limit: 30,
+      label: '30',
+      rules: [...COMMON, 'emoji', 'priceWords', 'appName'],
+      source: SRC.googleListing,
+    },
+    'Short description': {
+      limit: 80,
+      label: '80',
+      rules: [...COMMON, 'emoji', 'priceWords'],
+      source: SRC.googleListing,
+    },
+    'Full description': {
+      limit: 4000,
+      label: '4,000',
+      rules: [...COMMON, 'credits'],
+      source: SRC.googleListing,
+    },
     Tags: { list: true, max: 5, label: 'up to 5', rules: ['tags'], source: SRC.googleTags },
   },
 };
@@ -79,12 +109,18 @@ export const REQUIRED = {
 // says exactly what the app says (tmdb.md#terms-licence-and-attribution).
 const appStrings = (lang, file) =>
   JSON.parse(
-    readFileSync(new URL(`../mobile/src/i18n/locales/${lang}/${file}.json`, import.meta.url), 'utf8'),
+    readFileSync(
+      new URL(`../mobile/src/i18n/locales/${lang}/${file}.json`, import.meta.url),
+      'utf8',
+    ),
   );
 export const CREDITS = Object.fromEntries(
   ['en', 'fr'].map((lang) => [
     lang,
-    { tmdb: appStrings(lang, 'settings').about.tmdb, justwatch: appStrings(lang, 'common').card.justwatch },
+    {
+      tmdb: appStrings(lang, 'settings').about.tmdb,
+      justwatch: appStrings(lang, 'common').card.justwatch,
+    },
   ]),
 );
 
@@ -143,15 +179,48 @@ const SERVICES = [
 ];
 // Other companies and apps, never in Apple's keywords (2.3.7; the product page guide).
 const COMPANIES = [
-  'letterboxd', 'tmdb', 'justwatch', 'imdb', 'netflix', 'disney', 'prime', 'amazon', 'canal',
-  'apple', 'google', 'hbo', 'paramount', 'ocs', 'molotov', 'youtube', 'mubi', 'rakuten',
-  'allocine', 'senscritique', 'trakt', 'plex', 'tinder', 'rotten',
+  'letterboxd',
+  'tmdb',
+  'justwatch',
+  'imdb',
+  'netflix',
+  'disney',
+  'prime',
+  'amazon',
+  'canal',
+  'apple',
+  'google',
+  'hbo',
+  'paramount',
+  'ocs',
+  'molotov',
+  'youtube',
+  'mubi',
+  'rakuten',
+  'allocine',
+  'senscritique',
+  'trakt',
+  'plex',
+  'tinder',
+  'rotten',
 ];
 // Price, promotion and ranking words: never in a name (Apple 2.3.7, Google's metadata policy),
 // and kept out of the subtitle, keywords and short description too.
 const PRICE_WORDS = [
-  /\bfree\b/, /\bgratuit/, /\bbest\b/, /\bmeilleur/, /#\s?1\b/, /\btop\b/, /\bnew\b/, /\bnouveau\b/,
-  /\bnouvelle\b/, /\bpopular\b/, /\bpopulaire\b/, /\bapp of the year\b/, /\bpromo/, /% off\b/,
+  /\bfree\b/,
+  /\bgratuit/,
+  /\bbest\b/,
+  /\bmeilleur/,
+  /#\s?1\b/,
+  /\btop\b/,
+  /\bnew\b/,
+  /\bnouveau\b/,
+  /\bnouvelle\b/,
+  /\bpopular\b/,
+  /\bpopulaire\b/,
+  /\bapp of the year\b/,
+  /\bpromo/,
+  /% off\b/,
 ];
 const CATEGORY_WORDS = ['entertainment', 'divertissement', 'lifestyle', 'style de vie'];
 const APP_WORDS = ['app', 'apps', 'application', 'appli'];
@@ -162,24 +231,36 @@ const firstMatch = (list, text) => list.find(([, re]) => re.test(fold(text)))?.[
 export const RULES = {
   dashes: {
     source: 'CLAUDE.md#writing',
-    check: ({ value }) => (/[\u2013\u2014]/.test(value) ? ['has an em or en dash: use a comma, a colon or parentheses'] : []),
+    check: ({ value }) =>
+      /[\u2013\u2014]/.test(value)
+        ? ['has an em or en dash: use a comma, a colon or parentheses']
+        : [],
   },
   exclamation: {
     source: SRC.copy,
-    check: ({ value }) => (value.includes('!') ? ['has an exclamation mark: the copy keeps them for celebrations'] : []),
+    check: ({ value }) =>
+      value.includes('!') ? ['has an exclamation mark: the copy keeps them for celebrations'] : [],
   },
   kids: {
     source: `${SRC.appleGuidelines} (2.3.8)`,
     check: ({ value }) => {
       const hit = firstMatch(KIDS, value);
-      return hit ? [`says "${hit}": "For Kids" and "For Children" are reserved for the Kids Category (Apple 2.3.8)`] : [];
+      return hit
+        ? [
+            `says "${hit}": "For Kids" and "For Children" are reserved for the Kids Category (Apple 2.3.8)`,
+          ]
+        : [];
     },
   },
   platform: {
     source: `${SRC.appleGuidelines} (2.3.10)`,
     check: ({ store, value }) => {
       const hit = firstMatch(OTHER_PLATFORM[store], value);
-      return hit ? [`names another platform (${hit}): no other store's platform in a listing (Apple 2.3.10, and the reverse)`] : [];
+      return hit
+        ? [
+            `names another platform (${hit}): no other store's platform in a listing (Apple 2.3.10, and the reverse)`,
+          ]
+        : [];
     },
   },
   firstRelease: {
@@ -193,7 +274,9 @@ export const RULES = {
     source: `${SRC.decisions} (M11.1 Q1.4)`,
     check: ({ value }) => {
       const hit = firstMatch(SERVICES, value);
-      return hit ? [`names a streaming service (${hit}): the copy says "your services" instead (Q1.4)`] : [];
+      return hit
+        ? [`names a streaming service (${hit}): the copy says "your services" instead (Q1.4)`]
+        : [];
     },
   },
   emoji: {
@@ -204,12 +287,15 @@ export const RULES = {
     source: `${SRC.appleGuidelines} (2.3.7); ${SRC.googleMetadata}`,
     check: ({ value }) => {
       const hits = PRICE_WORDS.filter((re) => re.test(fold(value)));
-      return hits.length ? [`has a price or ranking word (${hits.map((re) => fold(value).match(re)[0]).join(', ')})`] : [];
+      return hits.length
+        ? [`has a price or ranking word (${hits.map((re) => fold(value).match(re)[0]).join(', ')})`]
+        : [];
     },
   },
   appName: {
     source: `${SRC.decisions} (M11.1 Q1.2)`,
-    check: ({ value }) => (value === 'Flimme' ? [] : [`the name is "Flimme" alone (Q1.2), not "${value}"`]),
+    check: ({ value }) =>
+      value === 'Flimme' ? [] : [`the name is "Flimme" alone (Q1.2), not "${value}"`],
   },
   credits: {
     source: SRC.tmdb,
@@ -217,8 +303,10 @@ export const RULES = {
       const credits = CREDITS[locale.slice(0, 2)];
       if (!credits) return [`no credits known for ${locale}`];
       const problems = [];
-      if (!value.includes(credits.tmdb)) problems.push(`missing the TMDB credit, "${credits.tmdb}"`);
-      if (!value.includes(credits.justwatch)) problems.push(`missing the JustWatch credit, "${credits.justwatch}"`);
+      if (!value.includes(credits.tmdb))
+        problems.push(`missing the TMDB credit, "${credits.tmdb}"`);
+      if (!value.includes(credits.justwatch))
+        problems.push(`missing the JustWatch credit, "${credits.justwatch}"`);
       return problems;
     },
   },
@@ -229,10 +317,14 @@ export const RULES = {
   tags: {
     source: SRC.googleTags,
     check: ({ value }, spec) => {
-      const tags = value.split('\n').map((t) => t.trim()).filter(Boolean);
+      const tags = value
+        .split('\n')
+        .map((t) => t.trim())
+        .filter(Boolean);
       const problems = [];
       if (!tags.length) problems.push('tags: none listed');
-      if (tags.length > spec.max) problems.push(`tags: ${tags.length} listed, Google allows up to ${spec.max}`);
+      if (tags.length > spec.max)
+        problems.push(`tags: ${tags.length} listed, Google allows up to ${spec.max}`);
       const seen = new Set();
       for (const tag of tags) {
         if (seen.has(fold(tag))) problems.push(`tags: "${tag}" appears twice`);
@@ -249,9 +341,11 @@ export const RULES = {
  * version information reference). */
 function keywordProblems(value) {
   const problems = [];
-  if (/\s,|,\s/.test(value)) problems.push('a space next to a comma wastes a byte: separate with commas only');
+  if (/\s,|,\s/.test(value))
+    problems.push('a space next to a comma wastes a byte: separate with commas only');
   const terms = value.split(',').map((t) => t.trim());
-  if (terms.some((t) => !t)) problems.push('an empty keyword (two commas in a row, or one at an end)');
+  if (terms.some((t) => !t))
+    problems.push('an empty keyword (two commas in a row, or one at an end)');
   for (const term of terms.filter(Boolean)) {
     if ([...term].length <= 2) problems.push(`"${term}" must be more than two characters`);
   }
@@ -264,12 +358,14 @@ function keywordProblems(value) {
     if (COMPANIES.includes(w)) problems.push(`"${w}" is another company's or app's name`);
     if (APP_WORDS.includes(w)) problems.push(`"${w}": Apple asks to leave out the word "app"`);
     for (const end of ['s', 'x']) {
-      if (w.endsWith(end) && counted.has(w.slice(0, -1))) problems.push(`"${w}" is the plural of "${w.slice(0, -1)}"`);
+      if (w.endsWith(end) && counted.has(w.slice(0, -1)))
+        problems.push(`"${w}" is the plural of "${w.slice(0, -1)}"`);
     }
   }
   const folded = fold(value);
   for (const c of CATEGORY_WORDS) {
-    if (new RegExp(`(?:^|,|\\s)${c}(?:$|,|\\s)`).test(folded)) problems.push(`"${c}" is a category name, already searched`);
+    if (new RegExp(`(?:^|,|\\s)${c}(?:$|,|\\s)`).test(folded))
+      problems.push(`"${c}" is a category name, already searched`);
   }
   return problems;
 }
@@ -305,7 +401,9 @@ export function parseStoreFile(markdown) {
     }
     if (line.startsWith('### ')) {
       const m = store && line.match(/^### (.+?) · (\S+) \((.+)\)\s*$/);
-      entry = m ? { store, locale: m[2], field: m[1], value: '', label: m[3], blocks: 0, items: [] } : null;
+      entry = m
+        ? { store, locale: m[2], field: m[1], value: '', label: m[3], blocks: 0, items: [] }
+        : null;
       if (entry) entries.push(entry);
       continue;
     }
@@ -341,7 +439,8 @@ export function checkListing(entries, required = REQUIRED) {
       continue;
     }
     seen.set(key, e);
-    if (e.label !== spec.label) problems.push(`${at(e)}: the heading says (${e.label}), the limit is (${spec.label})`);
+    if (e.label !== spec.label)
+      problems.push(`${at(e)}: the heading says (${e.label}), the limit is (${spec.label})`);
     if (spec.list) {
       if (e.blocks) problems.push(`${at(e)}: a list of "- " items, not a fenced block`);
     } else if (e.blocks !== 1) {
@@ -350,7 +449,8 @@ export function checkListing(entries, required = REQUIRED) {
     if (spec.limit) {
       const size = spec.unit === 'bytes' ? Buffer.byteLength(e.value, 'utf8') : [...e.value].length;
       const unit = spec.unit === 'bytes' ? 'bytes' : 'characters';
-      if (size > spec.limit) problems.push(`${at(e)}: ${size} ${unit}, over the limit of ${spec.limit} ${unit}`);
+      if (size > spec.limit)
+        problems.push(`${at(e)}: ${size} ${unit}, over the limit of ${spec.limit} ${unit}`);
     }
     for (const rule of spec.rules) {
       for (const p of RULES[rule].check(e, spec)) problems.push(`${at(e)}: ${p}`);
@@ -360,7 +460,8 @@ export function checkListing(entries, required = REQUIRED) {
   for (const [store, locales] of Object.entries(required)) {
     for (const [locale, fields] of Object.entries(locales)) {
       for (const field of fields) {
-        if (!seen.has(`${store} ${locale} ${field}`)) problems.push(`${at({ store, locale, field })}: missing`);
+        if (!seen.has(`${store} ${locale} ${field}`))
+          problems.push(`${at({ store, locale, field })}: missing`);
       }
     }
   }
@@ -370,7 +471,9 @@ export function checkListing(entries, required = REQUIRED) {
     const us = seen.get(`apple en-US ${field}`);
     const gb = seen.get(`apple en-GB ${field}`);
     if (us && gb && us.value !== gb.value) {
-      problems.push(`${at(gb)}: differs from en-US; Apple's English is one text, only the keywords differ (Q1.3)`);
+      problems.push(
+        `${at(gb)}: differs from en-US; Apple's English is one text, only the keywords differ (Q1.3)`,
+      );
     }
   }
   return problems;

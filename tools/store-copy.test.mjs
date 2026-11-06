@@ -30,11 +30,19 @@ function goodValue(store, field, locale) {
       return en ? 'Everyone swipes on their own phone.' : 'Chacun swipe sur son téléphone.';
     case 'apple Description':
     case 'google Full description':
-      return en ? `Movie night, sorted.\n\n${credits()}` : `La soirée film, réglée.\n\n${credits()}`;
+      return en
+        ? `Movie night, sorted.\n\n${credits()}`
+        : `La soirée film, réglée.\n\n${credits()}`;
     case 'apple Keywords':
-      return locale === 'en-GB' ? 'film,friends,swipe' : en ? 'movie,friends,swipe' : 'film,amis,swipe';
+      return locale === 'en-GB'
+        ? 'film,friends,swipe'
+        : en
+          ? 'movie,friends,swipe'
+          : 'film,amis,swipe';
     case 'google Short description':
-      return en ? 'Swipe with friends and find the film.' : 'Swipe avec tes amis et trouve le film.';
+      return en
+        ? 'Swipe with friends and find the film.'
+        : 'Swipe avec tes amis et trouve le film.';
     case 'google Tags':
       return 'Movie\nEntertainment';
     default:
@@ -116,16 +124,28 @@ test('3. keywords: a space by a comma, a duplicate, the app name, a company, "ap
   };
   for (const [keywords, word] of Object.entries(cases)) {
     const problems = checkListing(listing({ 'apple fr-FR Keywords': keywords }));
-    assert.equal(about(problems, 'keywords', word).length, 1, `${keywords}: ${problems.join('\n')}`);
+    assert.equal(
+      about(problems, 'keywords', word).length,
+      1,
+      `${keywords}: ${problems.join('\n')}`,
+    );
   }
 });
 
 test('4. "for kids" and "pour enfants", in any case and with any accents, are a problem anywhere', () => {
   const phrases = ['Fun for kids', 'For Children too', 'Idéal pour les enfants', 'POUR ENFANTS'];
   for (const phrase of phrases) {
-    for (const key of ['apple fr-FR Description', 'google en-US Short description', 'apple en-US Subtitle']) {
+    for (const key of [
+      'apple fr-FR Description',
+      'google en-US Short description',
+      'apple en-US Subtitle',
+    ]) {
       const problems = checkListing(listing({ [key]: phrase }));
-      assert.equal(about(problems, 'kids').length, 1, `${phrase} in ${key}: ${problems.join('\n')}`);
+      assert.equal(
+        about(problems, 'kids').length,
+        1,
+        `${phrase} in ${key}: ${problems.join('\n')}`,
+      );
     }
   }
   // "For the whole family" is fine.
@@ -135,15 +155,24 @@ test('4. "for kids" and "pour enfants", in any case and with any accents, are a 
 
 test("5. another platform's name is a problem in a store's fields", () => {
   for (const word of ['Android', 'Google Play', 'Play Store']) {
-    const problems = checkListing(listing({ 'apple fr-FR Promotional Text': `Aussi sur ${word}.` }));
+    const problems = checkListing(
+      listing({ 'apple fr-FR Promotional Text': `Aussi sur ${word}.` }),
+    );
     assert.equal(about(problems, 'platform', word).length, 1, `${word}: ${problems.join('\n')}`);
   }
   for (const word of ['iPhone', 'iOS', 'App Store', 'iPad']) {
-    const problems = checkListing(listing({ 'google en-US Short description': `Also on ${word}.` }));
+    const problems = checkListing(
+      listing({ 'google en-US Short description': `Also on ${word}.` }),
+    );
     assert.equal(about(problems, 'platform', word).length, 1, `${word}: ${problems.join('\n')}`);
   }
   // Each store's own platform is fine.
-  assert.deepEqual(checkListing(listing({ 'apple en-US Promotional Text': 'Made for iPhone.' })).filter((p) => p.includes('platform')), []);
+  assert.deepEqual(
+    checkListing(listing({ 'apple en-US Promotional Text': 'Made for iPhone.' })).filter((p) =>
+      p.includes('platform'),
+    ),
+    [],
+  );
 });
 
 test('6. a full description without the TMDB notice or the JustWatch credit in its language', () => {
@@ -161,7 +190,9 @@ test('6. a full description without the TMDB notice or the JustWatch credit in i
   }
   // The credits are the app's own strings.
   const app = (l, file) =>
-    JSON.parse(readFileSync(new URL(`../mobile/src/i18n/locales/${l}/${file}.json`, import.meta.url)));
+    JSON.parse(
+      readFileSync(new URL(`../mobile/src/i18n/locales/${l}/${file}.json`, import.meta.url)),
+    );
   for (const l of ['en', 'fr']) {
     assert.equal(CREDITS[l].tmdb, app(l, 'settings').about.tmdb);
     assert.equal(CREDITS[l].justwatch, app(l, 'common').card.justwatch);
@@ -183,7 +214,11 @@ test('7. features the first release lacks are a problem in any field', () => {
     'Date Night mode',
   ];
   for (const claim of claims) {
-    const problems = checkListing(listing({ 'google fr-FR Full description': `${claim}.\n\n${CREDITS.fr.tmdb}\n${CREDITS.fr.justwatch}` }));
+    const problems = checkListing(
+      listing({
+        'google fr-FR Full description': `${claim}.\n\n${CREDITS.fr.tmdb}\n${CREDITS.fr.justwatch}`,
+      }),
+    );
     assert.equal(about(problems, 'first release').length, 1, `${claim}: ${problems.join('\n')}`);
   }
 });
@@ -197,25 +232,46 @@ test('7b. no streaming service is named in any field (Q1.4)', () => {
 
 test('8. dashes, emoji in short fields, price and ranking words in names', () => {
   for (const dash of ['\u2014', '\u2013']) {
-    const problems = checkListing(listing({ 'apple en-US Promotional Text': `Swipe ${dash} match.` }));
+    const problems = checkListing(
+      listing({ 'apple en-US Promotional Text': `Swipe ${dash} match.` }),
+    );
     assert.equal(about(problems, 'dash').length, 1, problems.join('\n'));
   }
-  for (const key of ['apple fr-FR Subtitle', 'google en-US Short description', 'google fr-FR App name']) {
+  for (const key of [
+    'apple fr-FR Subtitle',
+    'google en-US Short description',
+    'google fr-FR App name',
+  ]) {
     const problems = checkListing(listing({ [key]: 'Movie night 🍿' }));
     assert.equal(about(problems, 'emoji').length, 1, `${key}: ${problems.join('\n')}`);
   }
   // Emoji are allowed in a full description.
   const desc = `Movie night 🍿\n\n${CREDITS.en.tmdb}\n${CREDITS.en.justwatch}`;
-  assert.deepEqual(about(checkListing(listing({ 'google en-US Full description': desc })), 'emoji'), []);
+  assert.deepEqual(
+    about(checkListing(listing({ 'google en-US Full description': desc })), 'emoji'),
+    [],
+  );
   for (const word of ['Free', 'gratuit', 'Best', '#1', 'Top', 'New', 'Meilleur']) {
-    for (const key of ['apple fr-FR Name', 'google en-US App name', 'apple en-US Subtitle', 'google fr-FR Short description']) {
+    for (const key of [
+      'apple fr-FR Name',
+      'google en-US App name',
+      'apple en-US Subtitle',
+      'google fr-FR Short description',
+    ]) {
       const problems = checkListing(listing({ [key]: `Flimme ${word}` }));
-      assert.equal(about(problems, 'price or ranking').length, 1, `${word} in ${key}: ${problems.join('\n')}`);
+      assert.equal(
+        about(problems, 'price or ranking').length,
+        1,
+        `${word} in ${key}: ${problems.join('\n')}`,
+      );
     }
   }
   // "Free" is fine in a description.
   const free = `Free.\n\n${CREDITS.en.tmdb}\n${CREDITS.en.justwatch}`;
-  assert.deepEqual(about(checkListing(listing({ 'apple en-US Description': free })), 'price or ranking'), []);
+  assert.deepEqual(
+    about(checkListing(listing({ 'apple en-US Description': free })), 'price or ranking'),
+    [],
+  );
   // No exclamation mark: the copy keeps them for celebrations, and a listing has none.
   const bang = checkListing(listing({ 'apple en-US Promotional Text': 'Swipe now!' }));
   assert.equal(about(bang, 'exclamation').length, 1, bang.join('\n'));
@@ -230,18 +286,28 @@ test('8b. the name is Flimme alone (Q1.2), and en-GB is en-US but for its keywor
 
 test('9. a missing locale or field, an unknown field, or a heading without exactly one block', () => {
   const missingField = checkListing(listing({ 'google en-US Short description': undefined }));
-  assert.equal(about(missingField, 'missing', 'Google Play Console', 'en-US', 'Short description').length, 1);
+  assert.equal(
+    about(missingField, 'missing', 'Google Play Console', 'en-US', 'Short description').length,
+    1,
+  );
 
   const noGb = listing().filter((e) => !(e.store === 'apple' && e.locale === 'en-GB'));
   const missingLocale = checkListing(noGb);
   for (const field of REQUIRED.apple['en-GB']) {
-    assert.equal(about(missingLocale, 'missing', 'App Store Connect', 'en-GB', field).length, 1, field);
+    assert.equal(
+      about(missingLocale, 'missing', 'App Store Connect', 'en-GB', field).length,
+      1,
+      field,
+    );
   }
 
   const twice = checkListing([...listing(), listing().find((e) => e.field === 'Subtitle')]);
   assert.equal(about(twice, 'twice', 'Subtitle').length, 1, twice.join('\n'));
 
-  const unknown = checkListing([...listing(), { store: 'apple', locale: 'fr-FR', field: 'Tagline', value: 'x', label: '30', blocks: 1 }]);
+  const unknown = checkListing([
+    ...listing(),
+    { store: 'apple', locale: 'fr-FR', field: 'Tagline', value: 'x', label: '30', blocks: 1 },
+  ]);
   assert.equal(about(unknown, 'unknown field', 'Tagline').length, 1, unknown.join('\n'));
 
   const wrongLabel = listing();
@@ -285,11 +351,25 @@ test('9. a missing locale or field, an unknown field, or a heading without exact
   ].join('\n');
   const parsed = parseStoreFile(md);
   assert.deepEqual(
-    parsed.map(({ store, locale, field, value, blocks, label }) => ({ store, locale, field, value, blocks, label })),
+    parsed.map(({ store, locale, field, value, blocks, label }) => ({
+      store,
+      locale,
+      field,
+      value,
+      blocks,
+      label,
+    })),
     [
       { store: 'apple', locale: 'fr-FR', field: 'Name', value: 'Flimme', blocks: 2, label: '30' },
       { store: 'apple', locale: 'fr-FR', field: 'Subtitle', value: '', blocks: 0, label: '30' },
-      { store: 'google', locale: 'all', field: 'Tags', value: 'Movie\nEntertainment', blocks: 0, label: 'up to 5' },
+      {
+        store: 'google',
+        locale: 'all',
+        field: 'Tags',
+        value: 'Movie\nEntertainment',
+        blocks: 0,
+        label: 'up to 5',
+      },
     ],
   );
   const problems = checkListing(parsed);
@@ -297,7 +377,9 @@ test('9. a missing locale or field, an unknown field, or a heading without exact
   assert.equal(about(problems, 'Subtitle', '0 fenced blocks').length, 1, problems.join('\n'));
 
   // A fenced block keeps its lines exactly, blank lines and all.
-  const [desc] = parseStoreFile('## App Store Connect\n### Description · fr-FR (4,000)\n```text\nUn.\n\nDeux.\n```\n');
+  const [desc] = parseStoreFile(
+    '## App Store Connect\n### Description · fr-FR (4,000)\n```text\nUn.\n\nDeux.\n```\n',
+  );
   assert.equal(desc.value, 'Un.\n\nDeux.');
 });
 
@@ -312,6 +394,8 @@ test('10. the real docs/store/listing.md passes', () => {
   const entries = parseStoreFile(readFileSync(LISTING_FILE, 'utf8'));
   assert.deepEqual(checkListing(entries), []);
   // Every required value is there, so a renamed heading can't hide a field from the checks.
-  const count = Object.values(REQUIRED).flatMap((l) => Object.values(l)).flat().length;
+  const count = Object.values(REQUIRED)
+    .flatMap((l) => Object.values(l))
+    .flat().length;
   assert.equal(entries.length, count);
 });
