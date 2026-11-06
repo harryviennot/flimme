@@ -165,7 +165,7 @@ The status lines are in the sheet, not toasts: the `ToastHost` sits under a nati
 | `language.current` | Français | English |
 | `haptics.label` | Vibrations | Vibration |
 | `sound.label` | Sons | Sound |
-| `preferences.helper` | Les sons ne jouent qu'au match et à la révélation du film. | Sounds only play at the match and when the film is revealed. |
+| `preferences.helper` | Quelques sons courts aux moments clés, jamais pendant tes swipes. | A few short sounds at key moments, never while you swipe. |
 | `analytics.label` | Aider à améliorer l'appli | Help improve the app |
 | `analytics.helper` | Des stats sur les écrans que tu ouvres, pour voir ce qui coince. Jamais tes swipes ni tes films. | Stats on the screens you open, so we can see what gets in the way. Never your swipes or your films. |
 | `analytics.detailed` | Stats détaillées | Detailed stats |
@@ -208,7 +208,7 @@ Reused: `common:actions.back`, `common:actions.cancel`, `common:card.justwatch`.
 - Switches: the `Toggle`'s own `timing.toggle` and `haptics.press()` (from `Pressable`), plus one `haptics.press()` when haptics come back on.
 - Row presses: `active:bg-bg-raised` and `haptics.press()`. The download spinner replaces the chevron with no transition.
 - The delete sheet: the system sheet motion. Status lines come in with `layout.fadeIn`.
-- `haptics.error()` only on the export's `rate_limited`. No haptic on a successful deletion, no `haptics.match()` anywhere, no sound (sound is for the match and the reveal only).
+- `haptics.error()` only on the export's `rate_limited`, with the error sound ([sounds.md](../sounds.md#errors-and-refusals)). No haptic on a successful deletion, no `haptics.match()` anywhere, no other sound.
 - Reduce Motion: nothing to change; the toggles' knob jump is handled by Reanimated, and the fades become instant.
 
 ## Accessibility

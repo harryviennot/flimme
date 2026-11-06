@@ -269,7 +269,7 @@ The Figma's Motion page already sets the durations and easings. During M3.4 the 
 - **Durations and easings, from the Figma:** instant 80 ms, fast 150 ms, base 250 ms, slow 400 ms, celebrate 800 ms; easings standard, exit and arcade (an overshoot for stamps and buttons). **Springs**, added in code, for anything a finger drives: the card's drag and throw, presses.
 - **Rules.** Nothing blocks input. Every animation can be interrupted. The next card is already mounted. Reduce Motion swaps flights for fades. Nothing runs on the JavaScript thread during a gesture.
 - **A haptic vocabulary**, one meaning per pattern: a selection tick when a card crosses the commit line, a light tap on a button press, a firmer one on a throw, success on a match, a hard knock on a veto, a soft tick each second through the last 5 of the countdown.
-- **Sound**, decided on 29 October 2026: only for the match and the reveal, when four phones on a couch play it at the same instant. Off everywhere else, quiet when the phone is set to silent, and never pausing the TV or music.
+- **Sound**, decided on 29 October 2026 for the match and the reveal, when four phones on a couch play it at the same instant; since 6 November 2026 also a few quiet small moments ([sounds.md](design/sounds.md)). Quiet when the phone is set to silent, and never pausing the TV or music.
 
 ### The signature moments
 
@@ -443,7 +443,7 @@ Answered on 29 October 2026, except where marked open.
 | How much time a day for reviews, decisions and device checks? | Harry checks most days; the timeline above holds |
 | Where agents run | Both: backend and logic in the cloud, UI on the Mac |
 | Who merges | Harry, everything, for the first two weeks; then small backend tasks merge themselves when CI and the review pass |
-| Sound | On for the match and the reveal only, off elsewhere, quiet on silent |
+| Sound | The match and the reveal, plus the few quiet moments in [sounds.md](design/sounds.md); quiet on silent |
 | The recap card and Play again in the first release | Yes for both; reactions wait |
 | What took ages in the other project? | Open: so it gets a rule here |
 | Tracking | roadmap.md and pull requests; a board only if it helps |

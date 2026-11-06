@@ -43,7 +43,7 @@ The game designer writes the beat; the designer turns it into the feel (curves, 
 
 **Haptics** use the vocabulary in `@/lib/haptics`, one meaning each: `commit`, `throw` and `match` here, `shortlist` for the shortlisted beat, `veto` and `countdown` in the Final Cut, `veto` and `match` again in the reveal; `press` comes with every `Pressable`. The shortlisted beat is the only moment that adds a haptic (`haptics.shortlist()`, M6.37): a shortlisted match needs a buzz that says "yes, together", and `match` must keep meaning "this is the night's film". The haptics setting turns all of them off.
 
-**Sound** is only for the match (`playSound('match')`) and the Final Cut's reveal (`playSound('reveal')`), decided on 29 October 2026. Every other moment is silent.
+**Sound:** the match (`playSound('match')`) and the Final Cut's reveal (`playSound('reveal')`) are the night's two big sounds. Since 6 November 2026 a few small moments have quiet ones too (the game start, arrivals in the lobby, the Final Cut's last 5 seconds, refusals, three buttons). Every sound, its file and its moment: [sounds.md](sounds.md). The beats below say which play; the rest are silent.
 
 **Reduce Motion.** Reanimated skips animations by default when the system setting is on, which would make things jump. Each beat says what replaces its movement: flights become short slides or fades, scales become fades, chases and pulses become still. Fades use opacity only. Haptics and sound don't change with Reduce Motion; they follow their own settings.
 
@@ -382,7 +382,7 @@ Times on this phone's clock (Q15.2). The deadline is `closes_at` (`stage_closes_
 - `haptics.countdown()` on each of the last 5 seconds, only while this phone hasn't locked in (`Countdown`'s `tick` turns off at lock-in). A player who has locked in has nothing left to hurry for.
 - No `commit` on lock-in: `commit` keeps its one meaning (a card crossing the line). The "Locked in" look carries the moment.
 - No haptic on another player's lock-in, on arrival, at zero, or at the close.
-- No sound. The reveal's sound is M6.31's.
+- Sound: the countdown's tick with each `haptics.countdown()`, and Lock in's button tick ([sounds.md](sounds.md#the-final-cuts-last-5-seconds)). Nothing else; the reveal's sound is M6.31's.
 
 ### What the other phones see
 
@@ -442,7 +442,7 @@ Times from the event. A step with nothing to show is skipped, and the next one m
 
 | Time | What every phone shows |
 | --- | --- |
-| 0 | "Counting the votes", the countdown and the lock-in row fade out (`layout.fadeOut`). The posters come back to full brightness where they were, in seed order, with every badge and this phone's own stamp gone. `playSound('reveal')` |
+| 0 | "Counting the votes", the countdown and the lock-in row fade out (`layout.fadeOut`). The posters come back to full brightness where they were, in seed order, with every badge and this phone's own stamp gone. The reveal sound starts later, timed to the winner ([sounds.md](sounds.md#the-reveal)) |
 | 300 ms | **The vetoes, together.** Every knocked-out film gets the Veto stamp at the same instant (`easing.arcade`, as in the round), with one `haptics.veto()`. The poster then falls away: it sinks a little and greys out (`timing.exit`) but keeps its place, so the row never reflows. No order, no stagger |
 | 800 ms | **The points.** Under each film still in, its points count up from 0, all together (`timing.celebrate`). Only from 3 ballots ([What never happens](#what-never-happens)) |
 | 1.8 s | **The winner.** The other films still in dim. The winner lifts slightly (`timing.celebrate`, the arcade overshoot) and `Spotlight tone="marquee"` fades in behind it. The heading becomes "Tonight's pick" and the reason's line pops in under it (`layout.popIn`). `haptics.match()`. "Where to watch" fades in (`layout.fadeIn`) |
@@ -465,7 +465,7 @@ A ranked vote has no vetoes, so it is always `points` without knock-outs. That i
 
 ### Haptics and sound
 
-- `playSound('reveal')` once at 0 (a no-op until M6.24). The match sound doesn't play: it belongs to the match.
+- `playSound('reveal')` once, starting at the winner's time minus 894 ms (or at 0 when that's earlier), so its ta-dum lands with the winner's lift and `haptics.match()` (decided on 6 November 2026, [sounds.md](sounds.md#the-reveal); a no-op until M6.24). The match sound doesn't play: it belongs to the match.
 - `haptics.veto()` once when the stamps land, however many films are knocked out; none when nothing is.
 - `haptics.match()` once when the winner lifts ("the winner is revealed").
 - Nothing on the points, and nothing on the winner screen after it.
@@ -550,7 +550,7 @@ Times from the first signal. Every phone shows the same thing.
 ### Haptics and sound
 
 - `haptics.shortlist()` once at 0: a light double tap, lighter than the match's success burst (M6.37 adds it to `lib/haptics`; the starting point is two `Light` impacts 100 ms apart, tuned in the feel check). It says "we agree on this one" without saying "this is the night's film", which stays `match`'s meaning.
-- No sound. The two sounds belong to the pick (`match`) and the reveal (decided on 29 October 2026); a sound here twice a game would wear them out.
+- No sound. The big sounds belong to the pick (`match`) and the reveal; a sound here twice a game would wear them out ([silent on purpose](sounds.md#silent-on-purpose)).
 - Nothing on the landing: the pop is enough.
 
 ### What every other phone sees, and when
@@ -622,7 +622,7 @@ Only one phone plays solo, so nothing here reaches anyone else.
 ### Haptics and sound
 
 - `haptics.checkpoint()` once, when the card is on top: one `Light` impact (new in `lib/haptics`, M6.44). It means "a checkpoint", softer than `throw`, which the 20th card fired just before.
-- No sound: the two sounds belong to a group's match and the reveal.
+- No sound: the big sounds belong to a group's match and the reveal.
 
 ### Reduce Motion
 
