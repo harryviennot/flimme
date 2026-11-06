@@ -27,7 +27,7 @@ jest.mock('react-native-reanimated', () => {
 jest.mock('@/lib/haptics', () => ({
   haptics: { commit: jest.fn(), throw: jest.fn(), press: jest.fn() },
 }));
-const mockToggleSaved = jest.fn(() => true);
+const mockToggleSaved = jest.fn((id: number) => id > 0);
 jest.mock('@/features/later', () => ({
   toggleSaved: (id: number) => mockToggleSaved(id),
   useIsSaved: () => false,

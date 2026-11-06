@@ -27,7 +27,7 @@ import { SwipeScreen } from './swipe-screen';
 // feel.test.ts (the rules) and the Maestro run (the finger).
 
 const mockSwipe: { current: ReturnType<typeof makeSwipe> | null } = { current: null };
-const mockToggleSaved = jest.fn(() => true);
+const mockToggleSaved = jest.fn((id: number) => id > 0);
 jest.mock('@/features/later', () => ({
   toggleSaved: (id: number) => mockToggleSaved(id),
   useIsSaved: () => false,

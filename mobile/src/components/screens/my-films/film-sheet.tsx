@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, useWindowDimensions, View } from 'react-native';
 // Gesture Handler's ScrollView: a plain one paints nothing inside this formSheet (the nested
@@ -63,7 +63,7 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
   const busy = useRef(false);
   const changed = useRef(false);
   // Remove from Later turns into Save for later, so a slip can be taken back in the sheet.
-  const touchedSaved = useRef(false);
+  const [touchedSaved, setTouchedSaved] = useState(false);
 
   // A seen mark that went through changes Seen (and Liked's film): the grid reads again when the
   // sheet is gone, so a tile never moves under it.
@@ -105,7 +105,7 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
   const toggleSaved = async () => {
     if (!ready || busy.current) return;
     busy.current = true;
-    touchedSaved.current = true;
+    setTouchedSaved(true);
     const next = !ready.saved;
     setSaved(next);
     AccessibilityInfo.announceForAccessibility(
@@ -221,7 +221,7 @@ export function FilmSheet({ titleId, onClose }: FilmSheetProps) {
             onPress={remove}
           />
         ) : null}
-        {ready && (ready.saved || touchedSaved.current) ? (
+        {ready && (ready.saved || touchedSaved) ? (
           <Button
             label={ready.saved ? t('sheet.removeLater') : t('sheet.saveLater')}
             variant="ghost"

@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 import { gamesStore } from '@/features/analytics/games';
+import { pendingSaves, savedSession } from '@/features/later';
 import { PROFILE_CACHE_KEY, saveCachedProfile } from '@/features/profile/cache';
 import { keptRoomStore } from '@/features/room/kept-room';
 import { matchShownStore } from '@/features/room/match-shown';
@@ -37,6 +38,8 @@ describe('wipeLocalData, on the real stores', () => {
     matchShownStore.getState().mark('r1');
     useHintsStore.getState().finish('swipe');
     gamesStore.getState().countGame('r1');
+    pendingSaves.getState().put(9, true);
+    savedSession.getState().set(9, true);
     saveCachedProfile({
       id: 'u1',
       display_name: 'Léa',
@@ -58,6 +61,8 @@ describe('wipeLocalData, on the real stores', () => {
     expect(useHintsStore.getState().done.swipe).toBe(false);
     expect(gamesStore.getState().played).toBe(0);
     expect(voteQueue.pending('r1')).toBe(0);
+    expect(pendingSaves.getState().items).toEqual([]);
+    expect(savedSession.getState().has(9)).toBe(false);
     expect(storage.getItemSync(PROFILE_CACHE_KEY)).toBeNull();
     expect(queryClient.getQueryData(['my_profile'])).toBeUndefined();
     for (const name of ['settings', 'room', 'match-shown', 'hints', 'games']) {
@@ -76,6 +81,7 @@ describe('wipeLocalData, on the real stores', () => {
       'vote-queue',
       'solo-cap',
       'solo-leaves',
+      'later-saves',
       'dev',
     ]);
     const root = join(__dirname, '..');

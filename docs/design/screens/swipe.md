@@ -116,6 +116,12 @@ Placeholders, tuned at the first feel check. The gesture rules live in `features
 
 **Back** (screen 13, M6.10): the 132-point header (poster, scrim, title, meta, the `refresh` flip badge); the TMDB score box (`star`, `display-m` in `marquee.default`, `common:card.tmdbRating`); `common:card.synopsis` and the overview in `body-m`, cut with an ellipsis to the space left (the back never scrolls, Q10.1); `common:card.director` and `common:card.cast` (the directors and the first 5 names, joined with `Intl.ListFormat`; the cast line takes two lines); the room's services for the film, each with its logo when TMDB has one (`w92`, six at most), with the JustWatch credit under them (`common:card.justwatch`, `body-s` in `text-muted`, wraps at large text sizes; the same wording as the invite page, and it shows whenever the back shows services, TMDB's rule in [tmdb.md](../../integrations/tmdb.md#terms-licence-and-attribution)); the Trailer button (`Button` secondary S, icon `play`, `common:card.trailer`), which opens the trailer outside the app; `common:card.flipBack`. No Letterboxd rating (M20).
 
+- **The bookmark** (M6.51, [Later](../../decisions.md)): a 36-point round `bg-bg-sunken` button with `Icon` `bookmark` 18, in the poster's top left corner on the front and in the header's top left corner on the back (the flip badge keeps the right). It saves the film to My films, Later. **It is not an answer:** the card stays on top, is still swiped, and the save counts for nothing tonight: nothing is broadcast, no other phone and no count shows it, and it touches no deck.
+  - **States.** Empty (`text-primary` outline), then saved (filled in `marquee-default`). A tap flips the state at once and a second tap takes the save back. The state is this phone's own for the session: room cards never carry a saved state, so a film saved in an earlier game shows an empty bookmark, and saving it again is harmless.
+  - **Feel.** The press gives `haptics.press()`. A save pops once (scale 0.8 to 1, `spring.snappy`); an unsave and Reduce Motion have no pop. No toast and no sound (a toast would sit on the near-miss toast's spot).
+  - **Offline.** The save is kept on the device and sent in the background in order, with the vote queue's retry delays (`features/later/`); nothing on screen says it is waiting. It is its own list, not the vote queue, because the queue belongs to a room and is dropped with it.
+  - **Touch.** The target is 44 points (the `Pressable` hit slop). A touch that starts on the bookmark is the bookmark's: the card's tap does not flip. A drag that starts on it moves the card as anywhere else.
+  - **Accessibility.** The card is one element, so it also offers a custom action `save` ("Save for later") that becomes `unsave` ("Remove from Later"); the bookmark's own label follows the state and it reports `selected`. After a save or unsave `swipe:a11y.saved` or `swipe:a11y.unsaved` is announced politely.
 - **No trailer** when `trailer_key` is null: rooms capped under 13 always get null (M7.3), and so do films without one. The services badges take the row alone.
 - **The flip** (moments.md#the-flip): a tap turns the card in place (`timing.flip`, faces swap halfway), a second tap turns it back. The cards behind don't move. A drag mid-turn takes the card from where it is; a tap mid-turn reverses it. The back answers exactly like the front (drags, buttons, stamps over the back). No haptic, no sound. Whether the card was flipped goes with its vote (`flipped`, M6.2). Everything on the back is in the card's payload, so a flip never waits, offline included.
 - **Missing data:** no overview shows `swipe:card.noSynopsis`; no score hides its box; no director or cast hides its line.
@@ -369,6 +375,10 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 | `a11y.cardBackServices` | Sur {{services}}. | On {{services}}. |
 | `a11y.actions.flip` | Retourner la carte | Flip the card |
 | `a11y.actions.trailer` | Voir la bande-annonce | Watch the trailer |
+| `a11y.actions.save` | Garder pour plus tard | Save for later |
+| `a11y.actions.unsave` | Retirer de Plus tard | Remove from Later |
+| `a11y.saved` | {{title}} : gardé pour plus tard | {{title}}: saved for later |
+| `a11y.unsaved` | {{title}} : retiré de Plus tard | {{title}}: removed from Later |
 | `a11y.superLeft_one` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superLeft_other` | Coup de cœur, il en reste {{count}} | Super like, {{count}} left |
 | `a11y.superNone` | Plus de coup de cœur | No super likes left |
@@ -398,6 +408,8 @@ In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes
 
 `nearMiss_one` never shows (the minimum is 2 likes) but French needs the form. Pill readings combine: "Sam, host, 15 films". `a11y.thrown` is the polite announcement after an answer from a screen reader action.
 
+**In `common`, added by M6.51:** `card.bookmarkSave` (Garder pour plus tard / Save for later) and `card.bookmarkRemove` (Retirer de Plus tard / Remove from Later), the bookmark's label by state.
+
 **In `common`, added by M6.9** (the card is shared): `card.stampSeen` (Déjà vu / Seen it) and `card.stampSuper` (Super / Super; "COUP DE CŒUR" doesn't fit a 52-point stamp).
 
 **Reused:** `match:count.unanimous` and `match:count.majority` (the beat's vote count), `common:answers.*` (the button labels), `common:card.*`, `common:states.offlineVotes_*`, `common:states.offlineRoom`, `common:states.reconnecting`, `common:states.stillTrying`, `common:actions.retry`, `common:errors.generic.title`, `lobby:a11y.leave`, `lobby:leave.*`, `lobby:a11y.seat`, `lobby:seatSheet.*`, `lobby:remove.*`, `lobby:youreHost.title`, `join:errors.removed`.
@@ -405,7 +417,7 @@ In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes
 ## Motion, haptics, sound
 
 - Motion as in the sections above; tokens only. A new touch cancels anything still moving on the top card; a thrown card finishes on its own.
-- Haptics: `commit` at the line, `throw` on every throw, `press` from the buttons, `shortlist` once per shortlisted beat (M6.37). Nothing for the flip, the near miss, the hints, a pill, a refusal or the shortlist filling on a re-read.
+- Haptics: `commit` at the line, `throw` on every throw, `press` from the buttons and the bookmark, `shortlist` once per shortlisted beat (M6.37). Nothing for the flip, the near miss, the hints, a pill, a refusal or the shortlist filling on a re-read.
 - No sound on this screen.
 
 ## Accessibility
