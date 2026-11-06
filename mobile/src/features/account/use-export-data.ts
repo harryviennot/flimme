@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '@/api';
 import { showToast } from '@/components/ui/toast';
 import { useOnline } from '@/features/network';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 import { reportError } from '@/lib/sentry';
 
 import { runExport } from './export-data';
@@ -54,7 +54,7 @@ export function useExportData(): { start: () => void; busy: boolean } {
             title: t('export.rateLimited.title'),
             message: t('export.rateLimited.message'),
           });
-          haptics.error();
+          errorFeedback();
         } else if (outcome === 'offline') {
           showToast({ tone: 'warn', title: t('errors.offline') });
         } else if (outcome === 'failed') {

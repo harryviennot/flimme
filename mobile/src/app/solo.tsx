@@ -28,7 +28,7 @@ import { useUnsupportedAction } from '@/features/country';
 import { useOnline } from '@/features/network';
 import { markCapReached, useCapToday } from '@/features/solo/cap';
 import { startSoloGame } from '@/features/solo/start';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 import { reportError } from '@/lib/sentry';
 import { layout } from '@/theme/motion';
 import Animated from 'react-native-reanimated';
@@ -91,7 +91,7 @@ export default function SoloSetupScreen() {
         return;
       case 'too_few':
         setTooFew(outcome.eligible);
-        haptics.error();
+        errorFeedback();
         return;
       case 'cap':
         markCapReached();
@@ -112,7 +112,7 @@ export default function SoloSetupScreen() {
         return;
       case 'network':
         showToast({ tone: 'warn', title: t('setup.errors.network') });
-        haptics.error();
+        errorFeedback();
         return;
     }
   };

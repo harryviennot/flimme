@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, type LayoutChangeEvent } from 'react-native';
 import Animated, {
@@ -8,6 +8,7 @@ import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
+  withSpring,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
@@ -21,7 +22,7 @@ import { Tag, type TagTone } from '@/components/ui/tag';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/cn';
 import { tokens } from '@/theme/generated/tokens';
-import { duration, timing } from '@/theme/motion';
+import { duration, spring, timing } from '@/theme/motion';
 
 import { Poster, type PosterSource } from './poster';
 
@@ -50,6 +51,16 @@ export type MovieCardProps = {
   stamp?: StampKind | null;
   /** Each stamp's progress while the card is dragged, driven on the UI thread (0 to 1). */
   stampProgress?: Partial<Record<StampKind, SharedValue<number>>>;
+  /**
+   * The Later bookmark in the poster's top left corner, front and back. Not an answer: the card
+   * stays and is still swiped. Without it there is no bookmark (the film sheet, the gallery).
+   */
+  bookmark?: {
+    saved: boolean;
+    onToggle: () => void;
+    /** A touch started on the bookmark, so a card that flips on a tap can tell it apart. */
+    onTouch?: () => void;
+  };
   flipped?: boolean;
   /** Turns the card over. Without it the card is not pressable (the swipe screen's gesture flips). */
   onFlip?: () => void;
@@ -279,6 +290,52 @@ function FlipBadge({ icon }: { icon: IconName }) {
   );
 }
 
+/** The bookmark: empty, or filled in the marquee colour once saved, with a small pop. */
+function BookmarkBadge({ bookmark }: { bookmark: NonNullable<MovieCardProps['bookmark']> }) {
+  const { t } = useTranslation();
+  const reduced = useReducedMotion();
+  const scale = useSharedValue(1);
+  const { saved } = bookmark;
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    if (saved && !reduced) {
+      scale.set(0.8);
+      scale.set(withSpring(1, spring.snappy));
+    }
+  }, [saved, reduced, scale]);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
+  return (
+    <View
+      className="absolute top-3.5 left-3.5"
+      onTouchStart={bookmark.onTouch}
+      testID="movie-card-bookmark-wrap"
+    >
+      <Pressable
+        accessibilityLabel={saved ? t('card.bookmarkRemove') : t('card.bookmarkSave')}
+        accessibilityState={{ selected: saved }}
+        onPress={bookmark.onToggle}
+        testID="movie-card-bookmark"
+      >
+        <Animated.View
+          style={style}
+          className="size-9 items-center justify-center rounded-pill bg-bg-sunken"
+        >
+          <Icon
+            name="bookmark"
+            size={18}
+            filled={saved}
+            color={saved ? 'marquee-default' : 'text-primary'}
+          />
+        </Animated.View>
+      </Pressable>
+    </View>
+  );
+}
+
 function Services({ services }: { services: string[] }) {
   return (
     <View className="flex-row flex-wrap gap-1.5">
@@ -358,6 +415,7 @@ function Front({
   services,
   stamp,
   stampProgress,
+  bookmark,
 }: MovieCardProps) {
   const stamps = useStamps({ stamp, stampProgress });
   // The stamp's 3-point colour border is drawn over the card's hairline, so the card's own
@@ -374,6 +432,7 @@ function Front({
         <GradientFill gradient="card-front-scrim" />
       </View>
       <FlipBadge icon="info" />
+      {bookmark ? <BookmarkBadge bookmark={bookmark} /> : null}
       <View className="absolute right-5 bottom-5 left-5 gap-2">
         {reason ? (
           <Tag label={reason.label} tone={reason.tone ?? 'accent'} icon={reason.icon ?? 'zap'} />
@@ -403,6 +462,7 @@ function Back({
   still = false,
   stamp,
   stampProgress,
+  bookmark,
 }: MovieCardProps) {
   const { t } = useTranslation();
   const stamps = useStamps({ stamp, stampProgress });
@@ -419,6 +479,7 @@ function Back({
         </View>
         <GradientFill gradient="card-scrim" />
         {still ? null : <FlipBadge icon="refresh" />}
+        {bookmark ? <BookmarkBadge bookmark={bookmark} /> : null}
         <View className="absolute right-16 bottom-4 left-5 gap-0.5">
           <Text variant="title-l" numberOfLines={1}>
             {title}

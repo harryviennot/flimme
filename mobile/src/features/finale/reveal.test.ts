@@ -6,6 +6,8 @@ import {
   readRevealEvent,
   revealFromViews,
   revealPlan,
+  revealSoundStart,
+  REVEAL_TADUM_MS,
   type RevealData,
 } from './reveal';
 
@@ -196,5 +198,34 @@ describe('the reveal with 2 films', () => {
     expect(revealFromViews({ winner_title_id: 1 }, [row(1, 1, 0), row(2, 2, 0)])?.reason).toBe(
       'no_ballots',
     );
+  });
+});
+
+describe('revealSoundStart', () => {
+  it('starts the sound so its ta-dum lands on the winner, in the three cases', () => {
+    expect(REVEAL_TADUM_MS).toBe(894);
+    // Knock-outs and points: the winner lifts at 1.8 s.
+    expect(
+      revealSoundStart(
+        revealPlan(data({ finalists: [f(1, 1, 30), f(2, 2, 20), f(3, 3, 10), f(4, 4, 0, true)] })),
+      ),
+    ).toBe(906);
+    // Points, no knock-outs: 1.3 s.
+    expect(
+      revealSoundStart(
+        revealPlan(data({ finalists: [f(1, 1, 40), f(2, 2, 30), f(3, 3, 20), f(4, 4, 10)] })),
+      ),
+    ).toBe(406);
+    // Knock-outs, no points: 0.8 s, so the sound starts at Clear.
+    expect(
+      revealSoundStart(
+        revealPlan(
+          data({
+            reason: 'only_unvetoed',
+            finalists: [f(1, 1, 0), f(2, 2, 0, true), f(3, 3, 0, true)],
+          }),
+        ),
+      ),
+    ).toBe(0);
   });
 });

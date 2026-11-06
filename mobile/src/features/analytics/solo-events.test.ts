@@ -59,6 +59,15 @@ describe('the solo events', () => {
     expect(track).toHaveBeenCalledWith('solo:cap_show', { placement: 'deck' });
   });
 
+  it('the grid view for Later has no filter and no film id', () => {
+    trackMyFilmsGrid({ segment: 'later', filter: 'friends', count: 3, hasMore: false });
+    expect(track).toHaveBeenCalledWith('my_films:grid_view', {
+      segment: 'later',
+      filter: 'none',
+      film_count: '1_4',
+    });
+  });
+
   it('the grid view buckets the count and has no filter on Seen', () => {
     trackMyFilmsGrid({ segment: 'liked', filter: 'friends', count: 4, hasMore: false });
     trackMyFilmsGrid({ segment: 'seen', filter: 'solo', count: 0, hasMore: false });

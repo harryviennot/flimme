@@ -16,7 +16,7 @@ import { trackJoinAttempt, trackLinkOpen, trackNameSubmit } from '@/features/ana
 import { rememberLinkJoin } from '@/features/analytics/journey';
 import { releaseRoomGuards } from '@/features/room/leave-guard';
 import { startSession, useSession, useSessionFailed } from '@/features/session';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 
 import { linkOpenedAt, takeLinkReceivedAt } from './link-received';
 import { roomEntry, type RootRoute } from './enter-room';
@@ -105,7 +105,7 @@ export function useJoinLink(params: Params) {
 
   const refuse = useCallback((state: keyof typeof JOIN_SHEET_ROWS, params?: { max: number }) => {
     const next = refusedView(state, params);
-    if (next.kind === 'refused' && next.row.haptic) haptics.error();
+    if (next.kind === 'refused' && next.row.haptic) errorFeedback();
     setState(next);
   }, []);
 
@@ -167,7 +167,7 @@ export function useJoinLink(params: Params) {
         if (row.kind === 'wait') {
           if (tries >= STARTING_RETRIES) {
             trackJoinAttempt('link', result.status);
-            haptics.error();
+            errorFeedback();
             setState({
               kind: 'refused',
               row: JOIN_SHEET_ROWS.failed as Refused,
@@ -325,7 +325,7 @@ export function useJoinLink(params: Params) {
         case 'invalid':
         case 'notAllowed':
           setNameError(outcome.kind);
-          haptics.error();
+          errorFeedback();
           break;
         default:
           break;

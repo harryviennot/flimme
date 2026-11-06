@@ -6,7 +6,7 @@ import { PixelRatio } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
 import { showToast } from '@/components/ui/toast';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 import { track } from '@/lib/analytics';
 import { reportError } from '@/lib/sentry';
 
@@ -67,7 +67,7 @@ export function useRecapShare(
             tone: 'warn',
             title: t(outcome === 'capture_failed' ? 'errors.capture' : 'errors.share'),
           });
-          haptics.error();
+          errorFeedback();
         }
       })
       .finally(() => {

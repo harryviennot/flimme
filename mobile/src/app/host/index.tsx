@@ -29,7 +29,7 @@ import { useSetupForm } from '@/features/host/use-setup-form';
 import { useUnsupportedAction } from '@/features/country';
 import { useOnline } from '@/features/network';
 import { trackRoomCreated } from '@/features/analytics/events';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 import { reportError } from '@/lib/sentry';
 
 /** Host setup (host-setup.md): the room's services, time budget and age cap, then Open the room. */
@@ -101,7 +101,7 @@ export default function HostScreen() {
         return;
       case 'network':
         showToast({ tone: 'warn', title: t('errors.network') });
-        haptics.error();
+        errorFeedback();
         return;
     }
   };

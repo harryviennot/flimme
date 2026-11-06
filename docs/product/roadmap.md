@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
 
-Progress: 161 of 291 tasks done.
+Progress: 163 of 291 tasks done.
 
 ```mermaid
 flowchart LR
@@ -505,7 +505,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: winner.md and recap.md cover each piece with every state, in French and English, and the Figma map points the recap card at its spec.
 - [x] **M6.49** The rewatch chip: one tap on Seen it (or a swipe up) is a nope and the card flies up; the centred chip offers Yes as a like, with the copy and timing of the rewatch decisions · app · S · needs M6.9, M6.12 · [swipe](../design/screens/swipe.md#seen-it-the-rewatch-question), [game-modes](game-modes.md#the-answers)
   Done when: a touch run on the simulator against staging shows that a fast double tap on Seen it never adds a like, that the chip's Yes counts as a like, and that the chip leaves at the next answer or after 5 seconds (never on a timer with a screen reader on).
-- [ ] **M6.51** Later in the app: the bookmark on the card's front corner and on the card back, sent through the queue so it works offline, the Later segment and its empty state in My films, "Remove from Later" on the film sheet, in French and English · app · M · needs M6.50, M6.45, M6.10 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles), [game-modes](game-modes.md#the-answers)
+- [x] **M6.51** Later in the app: the bookmark on the card's front corner and on the card back, sent through the queue so it works offline, the Later segment and its empty state in My films, "Remove from Later" on the film sheet, in French and English · app · M · needs M6.50, M6.45, M6.10 · [solo](solo-and-my-films.md#6-my-films-grouping-and-tiles), [game-modes](game-modes.md#the-answers)
   Done when: a touch run on the simulator against staging saves a film from the front and from the back, shows it under Later, removes it, and saves one offline that arrives once the phone is back online.
 - [ ] **M6.54** Per-player genres in the lobby: the row "Your genres tonight" under "Your services", the genre sheet with the chips and their counts, optional and never blocking Start, in French and English. Ships in the first release only if the genre simulation passes; otherwise right after launch · app · M · needs M6.53, M4.11 · [onboarding](onboarding.md#the-lobby)
   Done when: a touch run on the simulator with three phones picks up to 3 genres on one phone, the counts show on the others, and the room starts with no picks.
@@ -527,7 +527,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: tested.
 - [x] **M6.23** Play again on the winner screen, and "Join" on the other phones · app · M · needs M6.22, M6.16, M6.47 · [game-modes](game-modes.md#after-the-pick)
   Done when: a group starts a second room in two taps.
-- [ ] **M6.24** The sounds: the files in `mobile/assets/sounds/` wired into `lib/sound`, each played where sounds.md says (the match, the reveal, the game start, arrivals in the lobby, the Final Cut's last 5 seconds, refusals, and the Join, Start swiping and Lock in buttons) · app · M · needs M3.14 · [sounds](../design/sounds.md), [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
+- [x] **M6.24** The sounds: the files in `mobile/assets/sounds/` wired into `lib/sound`, each played where sounds.md says (the match, the reveal, the game start, arrivals in the lobby, the Final Cut's last 5 seconds, refusals, and the Join, Start swiping and Lock in buttons) · app · M · needs M3.14 · [sounds](../design/sounds.md), [groundwork](../architecture/groundwork.md#motion-haptics-and-sound)
   Done when: each sound plays at its moment on the right phones, mixed with other audio, quiet on silent and off with the Sound switch, with a test per rule in sounds.md; the button tick lands with the press haptic on a low-end Android.
 
 ## M7 Safety and moderation

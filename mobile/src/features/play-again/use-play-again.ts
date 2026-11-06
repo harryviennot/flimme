@@ -8,7 +8,7 @@ import { api } from '@/api';
 import { showToast } from '@/components/ui/toast';
 import { useOnline } from '@/features/network';
 import { keptRoomStore, releaseRoomGuards, SEATS_KEY } from '@/features/room';
-import { haptics } from '@/lib/haptics';
+import { errorFeedback } from '@/lib/feedback';
 
 import {
   NETWORK_MESSAGE,
@@ -34,7 +34,7 @@ export function usePlayAgain(roomId: string) {
   const warn = useCallback(
     (message: PlayAgainMessage, buzz: boolean) => {
       showToast({ tone: 'warn', title: t(message) });
-      if (buzz) haptics.error();
+      if (buzz) errorFeedback();
     },
     [t],
   );

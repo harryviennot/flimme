@@ -50,7 +50,7 @@ export function useRevealHold(
       const data = readRevealEvent(payload);
       if (!data || matchShownStore.getState().has(roomId)) return;
       // A second event, or one after a re-read started the reveal, plays nothing more.
-      revealStore.getState().play(roomId, data);
+      revealStore.getState().play(roomId, data, true);
     });
   }, [roomId, realtime]);
 

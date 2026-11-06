@@ -17,6 +17,7 @@ import { useAnalyticsSyncOnLaunch } from '@/features/settings';
 import { startSession, useSession } from '@/features/session';
 import { watchDeviceLanguage } from '@/i18n';
 import { queryClient } from '@/lib/query-client';
+import { preloadSounds } from '@/lib/sound';
 import { initSentry, wrapRoot } from '@/lib/sentry';
 import { tokens } from '@/theme/generated/tokens';
 
@@ -35,6 +36,9 @@ function DeviceProfileSync() {
   useDeviceProfileSync(session?.status === 'ok');
   // An analytics choice the server has not confirmed yet is sent once per launch (settings.md).
   useAnalyticsSyncOnLaunch(session?.status === 'ok');
+  // The button tick and the error sound start at once: made at launch, once the settings are read
+  // (importing the settings module hydrates them before this runs).
+  useEffect(() => preloadSounds('launch'), []);
   return null;
 }
 

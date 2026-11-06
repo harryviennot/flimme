@@ -15,6 +15,7 @@ import {
   pointsShow,
   reached,
   revealPlan,
+  revealSoundStart,
   type LineKey,
   type RevealStage,
 } from './reveal';
@@ -95,8 +96,14 @@ export function useRevealView(
     if (!data) return;
     const plan = revealPlan(data);
     stageRef.current = 'clear';
-    void playSound('reveal').catch(() => undefined);
     const timers: ReturnType<typeof setTimeout>[] = [];
+    // Started so its ta-dum lands on the winner's lift (sounds.md#the-reveal).
+    const soundAt = revealSoundStart(plan);
+    // Only a reveal this phone saw start live has a sound; a missed or replayed one is silent.
+    if (reveal.live) {
+      if (soundAt === 0) void playSound('reveal');
+      else timers.push(setTimeout(() => void playSound('reveal'), soundAt));
+    }
     if (plan.knockouts !== null) {
       timers.push(
         setTimeout(() => {

@@ -4,6 +4,7 @@ import { View } from 'react-native';
 
 import { cn } from '@/lib/cn';
 import { haptics } from '@/lib/haptics';
+import { countdownSoundFor, playSound } from '@/lib/sound';
 import { msUntil } from '@/lib/server-time';
 
 import { Icon } from './icon';
@@ -14,7 +15,7 @@ export type CountdownProps = {
   deadline: string;
   /** Called once when it reaches zero. */
   onEnd?: () => void;
-  /** A soft haptic tick on each of the last 5 seconds. */
+  /** A soft haptic and a wooden tick on each of the last 5 seconds. */
   tick?: boolean;
 };
 
@@ -42,6 +43,7 @@ export function Countdown({ deadline, onEnd, tick = true }: CountdownProps) {
       if (tick && seconds > 0 && seconds <= 5 && lastTick.current !== seconds) {
         lastTick.current = seconds;
         haptics.countdown();
+        void playSound(countdownSoundFor(seconds));
       }
       if (ms === 0 && !ended.current) {
         ended.current = true;

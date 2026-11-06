@@ -19,6 +19,7 @@ import {
   useRemovedListener,
   useRoom,
   useRoomChannels,
+  useRoomSounds,
   useRoomSeats,
 } from '@/features/room';
 import { useCountGame, useRoomCap } from '@/features/analytics';
@@ -70,6 +71,8 @@ export default function RoomLayout() {
   useHeartbeat(id, room.data !== null);
   useRefreshOnForeground(id);
   const realtime = useRoomChannels(id);
+  // The room's sounds: made now, freed when the room ends; the start and arrival notes.
+  useRoomSounds(id, state, seats.data, mine?.member_id, realtime);
   // `member_removed` naming this seat: the usual way a removed phone learns, while it hears.
   useRemovedListener(realtime, mine?.member_id, () => exitRemoved(false));
 

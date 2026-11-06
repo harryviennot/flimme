@@ -46,7 +46,7 @@ appId: com.harryviennot.flimme.dev
     element: 'Where to watch'
     timeout: 15000
 - takeScreenshot: my-films-sheet-where-to-watch
-- assertVisible: 'Remove'
+- assertVisible: 'Remove from Liked'
 - tapOn: 'Mark as seen'
 - extendedWaitUntil:
     visible: 'Not seen'
@@ -57,7 +57,7 @@ appId: com.harryviennot.flimme.dev
     visible: 'Mark as seen'
     timeout: 10000
 # Remove, then Undo: the tile comes back and nothing was sent.
-- tapOn: 'Remove'
+- tapOn: 'Remove from Liked'
 - extendedWaitUntil:
     visible: 'Removed from My films'
     timeout: 10000
@@ -71,9 +71,9 @@ appId: com.harryviennot.flimme.dev
 - tapOn:
     text: '.*picked on a movie night.*'
 - extendedWaitUntil:
-    visible: 'Remove'
+    visible: 'Remove from Liked'
     timeout: 20000
-- tapOn: 'Remove'
+- tapOn: 'Remove from Liked'
 - extendedWaitUntil:
     visible: 'Removed from My films'
     timeout: 10000

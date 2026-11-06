@@ -7,6 +7,7 @@ import { useStore } from 'zustand';
 
 import { RoomBanner } from '@/components/screens/room/room-banner';
 import { Screen } from '@/components/ui/screen';
+import { useSettleSaves } from '@/features/later';
 import { useFirstCardView } from '@/features/analytics/use-first-card';
 import { useRoom } from '@/features/room';
 import { FRAME_METER_ON } from '@/features/dev/frame-meter';
@@ -58,6 +59,7 @@ export function SwipeScreen({
   const { t: tc, i18n } = useTranslation();
   const screen = useWindowDimensions();
   const swipe = useSwipe(roomId, seat, screen.width);
+  useSettleSaves();
   const dragProgress = useSharedValue(0);
   const lit = useSharedValue<number>(LIT.none);
   const dragging = useSharedValue(0);

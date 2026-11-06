@@ -58,7 +58,7 @@ export function trackMyFilmsGrid(input: {
   const filmCount: CountBucket = input.hasMore ? '20_plus' : countBucket(input.count);
   track('my_films:grid_view', {
     segment: input.segment,
-    filter: input.segment === 'seen' ? 'none' : input.filter,
+    filter: input.segment === 'liked' ? input.filter : 'none',
     film_count: filmCount,
   });
 }

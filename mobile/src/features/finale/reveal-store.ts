@@ -17,14 +17,16 @@ export type RevealState = {
   data: RevealData | null;
   /** Bumps when the reveal restarts (a phone back from the background before the winner step). */
   run: number;
+  /** Seen happen on this phone (the `match` event), not read afterwards or replayed: only then it has a sound. */
+  live: boolean;
   wait: (roomId: string) => void;
-  play: (roomId: string, data: RevealData) => void;
+  play: (roomId: string, data: RevealData, live?: boolean) => void;
   restart: (roomId: string) => void;
   finish: (roomId: string) => void;
   reset: () => void;
 };
 
-const IDLE = { roomId: null, phase: 'idle', data: null, run: 0 } as const;
+const IDLE = { roomId: null, phase: 'idle', data: null, run: 0, live: false } as const;
 
 export const revealStore = create<RevealState>()((set, get) => ({
   ...IDLE,
@@ -34,14 +36,14 @@ export const revealStore = create<RevealState>()((set, get) => ({
     if (s.roomId === roomId && s.phase !== 'idle') return;
     set({ roomId, phase: 'waiting', data: null });
   },
-  play: (roomId, data) => {
+  play: (roomId, data, live = false) => {
     const s = get();
     if (s.roomId === roomId && (s.phase === 'playing' || s.phase === 'over')) return;
-    set({ roomId, phase: 'playing', data, run: s.roomId === roomId ? s.run : 0 });
+    set({ roomId, phase: 'playing', data, live, run: s.roomId === roomId ? s.run : 0 });
   },
   restart: (roomId) => {
     const s = get();
-    if (s.roomId === roomId && s.phase === 'playing') set({ run: s.run + 1 });
+    if (s.roomId === roomId && s.phase === 'playing') set({ run: s.run + 1, live: false });
   },
   finish: (roomId) => {
     const s = get();

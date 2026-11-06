@@ -31,3 +31,4 @@ export {
   useRoomSeats,
 } from './queries';
 export { isAllowed, isSheet, roomScreenFor, type RoomScreen, type RoomSheet } from './screens';
+export { useRoomSounds } from './use-room-sounds';
