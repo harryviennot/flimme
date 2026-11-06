@@ -29,7 +29,7 @@ Answer a film in under a second, from either side of the card, without ever wait
 2. **`RoomBanner`** right under it, in the flow, as on every room screen ([Reconnecting](reconnecting.md#layout)). On this screen it also carries the offline note (below).
 3. **The stack** (`screens/swipe/card-stack.tsx`), `flex-1`, centred. The card is as wide as the screen minus `px-5` (345 on a 393-point phone), and shrinks to fit the height left, keeping the card's 345 by 518 shape, with 16 points under it for the cards behind to peek out. When the banner comes or goes, the card resizes with a `LinearTransition` (`duration.base`); a drag in progress keeps going.
 4. **The hint line** (`screens/swipe/hints.tsx`, M6.18), between the stack and the buttons, `min-h-9` (two lines of `body-s`), centred, `px-5`. Reserved only when the phone still has a hint to show at the start of the game; otherwise it takes no space.
-5. **The buttons row** (`screens/swipe/action-row.tsx`), above the home indicator with `pb-2`. While the [rewatch question](#seen-it-the-rewatch-question) is open, the question takes its place (`screens/swipe/seen-question.tsx`, M6.12).
+5. **The buttons row** (`screens/swipe/action-row.tsx`), above the home indicator with `pb-2`. It never changes for the [rewatch chip](#seen-it-the-rewatch-question), which lives in the hint line.
 
 The near-miss toast (`screens/swipe/near-miss.tsx`, M6.13) is drawn over the top bar's pills. The shortlisted beat's layer (`screens/swipe/shortlisted.tsx`, M6.37) is drawn over the whole screen while it plays ([The shortlisted beat](#the-shortlisted-beat)). M6.9 creates `top-bar.tsx`, `near-miss.tsx`, `seen-question.tsx` and `hints.tsx` rendering nothing, so later waves never share a file. Logic lives in `features/swipe/`: `answer.ts` (the answer path, M6.12 changes it), `undo.ts` (M6.26), `near-miss.ts` (a stub from M6.9, filled by M6.13) and `top-card.ts` (M6.9: the top card's shared values, so the card 1 hint can lean it without touching the gesture code).
 
@@ -130,7 +130,7 @@ Placeholders, tuned at the first feel check. The gesture rules live in `features
 | Nope (68) | Throws left | No top card |
 | Super (56), badge with the super likes left | Throws right with the SUPER stamp and the `marquee.default` border; the badge counts down with `layout.popIn` | No top card, or 0 left (no error haptic: running out isn't a mistake) |
 | Like (68) | Throws right | No top card |
-| Seen it (48) | Lifts the card and opens the rewatch question, or throws up under `hide_seen` | No top card |
+| Seen it (48) | Throws the card up and sends `seen`; in a room that allows rewatches the [rewatch chip](#seen-it-the-rewatch-question) then shows | No top card |
 
 A press gives `haptics.press()` (from `Pressable`), then the card plays the same throw as a drag with the stamp at full from the start (`duration.instant`) and `haptics.throw()` as it leaves. Buttons work while the last card is still flying, and from either side of the card. While a card is dragged, the matching button is `lit`.
 
@@ -138,14 +138,15 @@ A press gives `haptics.press()` (from `Pressable`), then the card plays the same
 
 ## Seen it: the rewatch question
 
-`screens/swipe/seen-question.tsx` and `features/swipe/answer.ts`, M6.12. Rooms whose seen rule is `allow_rewatch` or `show_all` (Q12.1; `api.rooms.seen_rule`). Under `hide_seen` (Date Night, later) the card flies straight up and the vote is `seen`.
+`screens/swipe/rewatch-chip.tsx`, `features/swipe/rewatch-chip.ts` and `features/swipe/answer.ts`, M6.12 and M6.49 (decided on 6 November 2026 after a playtest: a fast second tap on Seen it used to land on Yes and add a seen film as a like). Rooms whose seen rule is `allow_rewatch` or `show_all` (Q12.1; `api.rooms.seen_rule`) show the chip. Under `hide_seen` there is no chip.
 
-1. A swipe up past the line, or the Seen it button, lifts the card a little (`-translate-y-6`, `spring.snappy`) and holds it there with the SEEN IT stamp at full. No throw haptic yet.
-2. The buttons row fades out and the question fades in at the same place and height (`layout.fadeIn`, `layout.fadeOut`): `swipe:seenQuestion.title` in `title-m`, centred, and a row of two `Button` L, `flex-1` each, `gap-3`: `secondary` icon `x` `swipe:seenQuestion.no`, then `primary` icon `heart` `swipe:seenQuestion.yes`.
-3. **Yes** throws the card right as a like and sends `seen_rewatch`; **No** throws it left as a nope and sends `seen`. Each with `haptics.press()` then `haptics.throw()`. The buttons row comes back.
-4. **Anything else closes the question with no vote:** a tap on the card or outside the two buttons springs the card back to rest (`spring.card`); a drag on the card closes it and the card is the finger's again, from where it is. A match closes it too (the overlay takes over).
+1. **One tap on Seen it, or a swipe up past the line, is "seen, not again".** The card flies up at once with the SEEN IT stamp, `haptics.throw()`, and the vote is `seen` (a nope for the match, a seen for taste). Nothing waits and nothing is asked first.
+2. **The chip then takes the hint line**, centred and far from Seen it: `swipe:rewatchChip.text` in `body-s` `text-secondary`, then a `Button` S `primary` `swipe:rewatchChip.yes` (label `swipe:a11y.seenYes`). It fades in (`layout.fadeIn`) over the hint, which fades out. A room that allows rewatches keeps the line `min-h-12` all game, so the stack never changes size.
+3. **Yes** turns the answer into a like: `seen_rewatch` replaces `seen` through the vote queue (the `seen` is taken out if it still waits, or an undo is queued behind it, then the new vote), so the order holds and the server ends with one vote for the film, the like. No card moves. The chip becomes `swipe:rewatchChip.done` in `body-s` `text-like` for 1.5 s, with the button's `haptics.press()`. A second Yes finds nothing.
+4. **The chip stays until the next answer (including Undo), the room moving on, or 5 seconds**, whichever comes first. With a screen reader on there is no timer: it stays until the next answer. The confirmation still lasts 1.5 s.
+5. **A fast double tap on Seen it** sends two `seen` votes for two films and never a like: the chip is nowhere near the button and always belongs to the latest film.
 
-Undoing either answer brings the card back to its front, without the question.
+Undo after Yes takes the `seen_rewatch` back (once), and brings the card to its front, without the chip.
 
 ## Undo
 
@@ -348,9 +349,9 @@ M6.9 adds the whole `swipe` namespace (`i18n/locales/fr/swipe.json` and `en/swip
 | `card.noSynopsis` | Pas encore de résumé pour ce film. | No synopsis for this one yet. |
 | `nearMiss_one` | {{count}} sur {{of}} a aimé | {{count}} of {{of}} of you liked this |
 | `nearMiss_other` | {{count}} sur {{of}} ont aimé | {{count}} of {{of}} of you liked this |
-| `seenQuestion.title` | On le revoit ce soir ? | Watch it again tonight? |
-| `seenQuestion.yes` | Oui | Yes |
-| `seenQuestion.no` | Non | No |
+| `rewatchChip.text` | Déjà vu. On le revoit ce soir ? | Seen it. Watch it again tonight? |
+| `rewatchChip.yes` | Oui | Yes |
+| `rewatchChip.done` | Partant pour le revoir | Up for a rewatch |
 | `hints.swipe` | À droite : j'aime. À gauche : bof. | Swipe right to like, left to nope. |
 | `hints.seen` | Déjà vu ? Glisse vers le haut. On te demandera si tu le reverrais. | Seen it? Swipe up. We'll ask if you'd watch it again. |
 | `hints.seenHide` | Déjà vu ? Glisse vers le haut, il quitte la partie. | Seen it? Swipe up and it leaves the game. |
@@ -412,7 +413,7 @@ In `shortlisted.*`, `count` is the shortlist's count and `of` its size; `{{votes
 - **Focus order:** Leave, the pills (each a button but your own, hint `lobby:a11y.seat`), the shortlist (`swipe:shortlist.a11y` or `a11yEmpty`), the banner, the top card, the hint, Undo, Nope, Super, Like, Seen it. When the done card shows, it takes the top card's place in this order (its own order is in [the done card](#the-done-card-nothing-left)).
 - **The top card is one element:** `swipe:a11y.card` on the front, `swipe:a11y.cardBack` on the back, with custom actions like, nope, super like, seen it and flip (`swipe:a11y.actions.*`). After an action, `swipe:a11y.thrown` is announced and focus stays on the new top card. While the back shows, the card also offers a `trailer` custom action (the card is one element, so a button inside it can't take focus). The back's reading adds the director, the cast and the services after the synopsis. The reason label waits for the reason codes (M17 to M20): until the app knows a code, no label shows, front or back.
 - **The buttons** use `common:answers.*` as labels; Super uses `swipe:a11y.superLeft_*` or `superNone`; a disabled Undo has `swipe:a11y.undoNone` as its hint.
-- **The rewatch question** takes focus on its title; Yes and No are labelled `swipe:a11y.seenYes` and `seenNo`; the escape gesture closes it with no vote.
+- **The rewatch chip** is announced when it shows (`swipe:rewatchChip.text`) and again for the confirmation (`rewatchChip.done`), without moving focus. Yes is labelled `swipe:a11y.seenYes`. With a screen reader on the chip never leaves on a timer; it stays until the next answer.
 - **The near-miss toast** is announced once, politely, when it shows on the focused card.
 - **The shortlisted beat** is announced once, assertively (`swipe:shortlisted.a11y`); focus stays where it was. A disabled Undo after a match has the hint `swipe:a11y.undoShortlisted`.
 - **Reduce Motion:** the drag follows the finger without the tilt; a throw becomes a short slide toward its side with a fade (`timing.base`); the stamp (label included) shows at full as soon as the drag starts toward an answer, with its coloured border, without growing; the second card is already full size; Undo fades the card back in place; the flip crossfades in place (`timing.flip`); the toast fades (`layout.fadeIn`, `layout.fadeOut`) and the glow doesn't pulse; the hint lean becomes the still stamps; the shortlisted beat fades instead of popping and crossfades instead of flying ([The shortlisted beat](#the-shortlisted-beat)).
@@ -452,7 +453,7 @@ M6.44. The same screen in a solo room (mode `solo`, one seat): S3 Solo swipe, S4
 
 ### What solo leaves out
 
-No player pills, no shortlist, no near miss, no shortlisted beat, no match overlay, no host menu, no rewatch question (solo rooms use `hide_seen`, so Seen it throws the card up), and no presence track (nobody else reads it). The super like's badge isn't shown (`SwipeAction` without `left`) and never runs out (Q40.4). First-game hints show as in a group game, on a phone that hasn't seen them. The age cap's rules hold as in any room: in a solo room capped under 13 there is no Trailer button and no PostHog event (the `privacy-and-kids` skill).
+No player pills, no shortlist, no near miss, no shortlisted beat, no match overlay, no host menu, no rewatch chip (solo rooms use `hide_seen`, so Seen it throws the card up), and no presence track (nobody else reads it). The super like's badge isn't shown (`SwipeAction` without `left`) and never runs out (Q40.4). First-game hints show as in a group game, on a phone that hasn't seen them. The age cap's rules hold as in any room: in a solo room capped under 13 there is no Trailer button and no PostHog event (the `privacy-and-kids` skill).
 
 ### The solo top bar
 

@@ -26,6 +26,7 @@ import {
   type TimeChoice,
 } from '@/features/host/settings';
 import { useSetupForm } from '@/features/host/use-setup-form';
+import { useUnsupportedAction } from '@/features/country';
 import { useOnline } from '@/features/network';
 import { trackRoomCreated } from '@/features/analytics/events';
 import { haptics } from '@/lib/haptics';
@@ -37,12 +38,15 @@ export default function HostScreen() {
   const { t: tc } = useTranslation();
   const client = useQueryClient();
   const online = useOnline();
+  const countryAction = useUnsupportedAction();
   const form = useSetupForm();
   const { profile, country, providers, listed, gridItems, start, selection, ready, failed } = form;
   const { toggle, time, setTime, age, setAge, retry } = form;
 
   const [opening, setOpening] = useState(false);
-  const [refused, setRefused] = useState(false);
+  // The country the server refused: choosing another one lifts it.
+  const [refusedFor, setRefusedFor] = useState<string | null>(null);
+  const refused = refusedFor !== null && refusedFor === country;
   const busy = useRef(false);
 
   const unsupported =
@@ -88,7 +92,7 @@ export default function HostScreen() {
         router.push('/name?edit=1');
         return;
       case 'unsupported':
-        setRefused(true);
+        setRefusedFor(country);
         return;
       case 'bug':
         // The picker can't cause these: a toast for the host, and a report for us (no ids).
@@ -111,7 +115,17 @@ export default function HostScreen() {
           icon="globe"
           title={t('errors.unsupported.title')}
           body={t('errors.unsupported.body')}
-          action={{ label: t('errors.unsupported.action'), onPress: () => router.push('/join') }}
+          action={
+            countryAction ?? {
+              label: t('errors.unsupported.action'),
+              onPress: () => router.push('/join'),
+            }
+          }
+          secondaryAction={
+            countryAction
+              ? { label: t('errors.unsupported.action'), onPress: () => router.push('/join') }
+              : undefined
+          }
         />
       </Screen>
     );

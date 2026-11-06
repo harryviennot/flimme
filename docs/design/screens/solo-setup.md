@@ -38,7 +38,7 @@ The phone's date is a shortcut: `api.start_solo` stays the authority. A reinstal
 
 | State or answer | What the player sees | Next |
 | --- | --- | --- |
-| No country, or no services for the country | Host setup's unsupported state (`host:errors.unsupported.*`), with its Join with a code | |
+| No country, or no services for the country | Host setup's unsupported state (`host:errors.unsupported.*`), with its country action ([the country choice](host-setup.md#the-country-choice-m1111)) and Join with a code | |
 | Services loading | Six `Skeleton` tiles, as host setup; the chips are usable | |
 | Services failed to load | Inline `EmptyState` `error`, `host:errors.services`, `common:actions.retry` | |
 | No service picked | Start disabled, `host:services.required` | Pick one |

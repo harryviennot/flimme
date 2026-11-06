@@ -7,6 +7,7 @@
 //   node tools/sim/shortlist.mjs --games 300     fewer games, noisier
 //   node tools/sim/shortlist.mjs --seed 7        another seed (default 1)
 //   node tools/sim/shortlist.mjs --only matches  one section: matches, finalists
+import { pathToFileURL } from 'node:url';
 import { hash, likesNeeded, probit, stream } from './game.mjs';
 
 const args = process.argv.slice(2);
@@ -58,8 +59,6 @@ export function play(rule, players, worldName, key) {
   const w = WORLDS[worldName];
   const taste = stream(hash(key, 1));
   const deck = stream(hash(key, 2));
-  const pace = stream(hash(key, 3));
-  const vote = stream(hash(key, 4));
 
   const shared = new Float64Array(POOL);
   const score = new Float64Array(POOL);
@@ -79,7 +78,6 @@ export function play(rule, players, worldName, key) {
     util.push(u);
     bar.push(baseBar + w.barSpread * taste.normal());
   }
-  const wouldLike = (s, f) => util[s][f] > bar[s];
 
   const draw = (exclude) => {
     const keys = new Float64Array(POOL);
@@ -92,19 +90,34 @@ export function play(rule, players, worldName, key) {
   };
   const opening = draw(new Set()).slice(0, WARMUP);
   const openingSet = new Set(opening);
-  const seats = [];
-  for (let s = 0; s < players; s++) {
+  const orders = Array.from({ length: players }, () => draw(openingSet));
+  return playDeal(
+    rule,
+    { films: POOL, score, util, bar, opening, orders, superLikes: w.superLikes },
+    key,
+  );
+}
+
+// The game itself, once the films, tastes and decks are set: pace, matches, the shortlist, the
+// finalists and the vote. tools/sim/genres.mjs plays its own decks through it.
+// setup: {
+//   films: how many films the arrays index (0 to films - 1),
+//   score: the deck's group score per film (ties in the finalists and the vote),
+//   util: per seat, its taste for each film; bar: per seat, the taste a like needs,
+//   opening: the shared first cards; orders: per seat, the films that follow, in deal order,
+//   superLikes: per player,
+// }
+export function playDeal(rule, setup, key) {
+  const { films: POOL, score, util, bar, opening, orders, superLikes } = setup;
+  const players = orders.length;
+  const pace = stream(hash(key, 3));
+  const vote = stream(hash(key, 4));
+  const wouldLike = (s, f) => util[s][f] > bar[s];
+  const seats = orders.map((order) => {
     const status = new Uint8Array(POOL); // 0 not dealt, 1 upcoming, 2 answered or gone
     for (const f of opening) status[f] = 1;
-    seats.push({
-      order: draw(openingSet),
-      ptr: 0,
-      front: [...opening],
-      status,
-      answered: 0,
-      supers: w.superLikes,
-    });
-  }
+    return { order, ptr: 0, front: [...opening], status, answered: 0, supers: superLikes };
+  });
 
   const chat = Math.exp(0.15 * pace.normal());
   const median = ((swipeMean(players) - 0.04 * 12.5) / Math.exp(0.45 ** 2 / 2)) * chat;
@@ -245,7 +258,8 @@ export function play(rule, players, worldName, key) {
   }
 
   const m = matched.length;
-  const base = { players, matches: m, how: end.how, firstMatchAt, endAt: end.at };
+  // answers: per seat, what it said to each film (1 like, 2 super like, -1 nope, 0 not reached).
+  const base = { players, matches: m, how: end.how, firstMatchAt, endAt: end.at, answers };
   const pickLikedBy = (f) => seats.filter((_, s) => wouldLike(s, f)).length / players;
 
   // A single match at the trigger is the pick.
@@ -373,7 +387,14 @@ export function play(rule, players, worldName, key) {
         seed.get(a) - seed.get(b),
     )[0];
   }
-  return { ...base, ending: 'finale', at: clock, pickLikedBy: pickLikedBy(winner), fairness };
+  return {
+    ...base,
+    ending: 'finale',
+    voted: true,
+    at: clock,
+    pickLikedBy: pickLikedBy(winner),
+    fairness,
+  };
 }
 
 // One seat per player when it can: after the matches, take the liked film that gives a seat to
@@ -501,8 +522,11 @@ function finalistsSection() {
   }
 }
 
-console.log(
-  `Seed ${SEED}, ${GAMES} games per cell. Bot tastes, paces and voting times are made up.`,
-);
-if (!ONLY || ONLY === 'matches') matchesSection();
-if (!ONLY || ONLY === 'finalists') finalistsSection();
+// Only when run, not when tools/sim/genres.mjs imports the game.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  console.log(
+    `Seed ${SEED}, ${GAMES} games per cell. Bot tastes, paces and voting times are made up.`,
+  );
+  if (!ONLY || ONLY === 'matches') matchesSection();
+  if (!ONLY || ONLY === 'finalists') finalistsSection();
+}

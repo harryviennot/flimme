@@ -1,6 +1,6 @@
 import type { NextCard } from '@flimme/contract';
 
-import { asksRewatch, createAnswerer, PRESENCE_EVERY, rewatchAnswer } from './answer';
+import { asksRewatch, createAnswerer, offersRewatch, PRESENCE_EVERY } from './answer';
 import { createCardStack, type CardStack } from './card-stack';
 import type { QueuedVote } from './vote-queue';
 
@@ -264,19 +264,63 @@ describe('the rewatch question', () => {
     expect(asksRewatch(rule)).toBe(asks);
   });
 
-  it('sends seen_rewatch for Yes and seen for No', () => {
-    expect(rewatchAnswer(true)).toBe('seen_rewatch');
-    expect(rewatchAnswer(false)).toBe('seen');
+  it.each([
+    ['seen', 'allow_rewatch', true],
+    ['seen', 'show_all', true],
+    ['seen', 'hide_seen', false],
+    ['seen', undefined, false],
+    ['nope', 'allow_rewatch', false],
+    ['like', 'show_all', false],
+    ['seen_rewatch', 'allow_rewatch', false],
+  ] as const)('%s under %s offers the chip: %s', (kind, rule, offered) => {
+    expect(offersRewatch(kind, rule)).toBe(offered);
   });
 
-  it('keeps the card and its dwell time running until an answer is queued', async () => {
+  it('a Seen it is a plain seen at once: the card goes, nothing waits for a second tap', async () => {
     const { answerer, votes, stack, tick } = await setup();
-    tick(4_000); // the question is open: nothing is answered yet
-    expect(votes).toEqual([]);
-    expect(stack.getState().mounted[0]?.title_id).toBe(1);
-    tick(1_000);
-    answerer.answer(rewatchAnswer(true));
-    expect(votes.map((v) => [v.answer, v.dwell_ms])).toEqual([['seen_rewatch', 5_000]]);
+    tick(4_000);
+    answerer.answer('seen');
+    expect(votes.map((v) => [v.answer, v.dwell_ms])).toEqual([['seen', 4_000]]);
+    expect(stack.getState().mounted[0]?.title_id).toBe(2);
+  });
+
+  it('two fast Seen its send two seen votes and never a rewatch', async () => {
+    const { answerer, votes } = await setup();
+    answerer.answer('seen');
+    answerer.answer('seen');
+    expect(votes.map((v) => [v.title_id, v.answer])).toEqual([
+      [1, 'seen'],
+      [2, 'seen'],
+    ]);
+  });
+
+  it('changes the last answer to a rewatch with the same card, dwell and flip, and counts nothing', async () => {
+    const { answerer, votes, tick, counts } = await setup();
+    tick(3_000);
+    answerer.answer('seen');
+    tick(500);
+    expect(answerer.change(1, 'seen_rewatch')).toBe(true);
+    expect(votes).toHaveLength(2);
+    expect(votes[1]).toMatchObject({
+      title_id: 1,
+      answer: 'seen_rewatch',
+      dwell_ms: 3_000,
+      flipped: false,
+    });
+    expect(votes[1]!.client_at).not.toBe(votes[0]!.client_at);
+    expect(answerer.count()).toBe(1);
+    expect(counts).toEqual([]);
+  });
+
+  it('refuses to change an answer that is not the last, or once the room moved on', async () => {
+    const t = await setup();
+    expect(t.answerer.change(1, 'seen_rewatch')).toBe(false);
+    t.answerer.answer('seen');
+    t.answerer.answer('nope');
+    expect(t.answerer.change(1, 'seen_rewatch')).toBe(false);
+    t.state.locked = true;
+    expect(t.answerer.change(2, 'seen_rewatch')).toBe(false);
+    expect(t.votes.map((v) => v.answer)).toEqual(['seen', 'nope']);
   });
 
   it('does not spend a super like on either answer', async () => {

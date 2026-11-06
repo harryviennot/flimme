@@ -591,6 +591,20 @@ describe('provider readers', () => {
     expect(calls).toContainEqual({ fn: 'country_providers.order', args: 'display_priority' });
   });
 
+  it('catalogCountries reads the view ordered by code', async () => {
+    const rows = [{ code: 'FR', default_language: 'fr' }];
+    const { client, calls } = fake(() => ok(rows));
+    expect(await createApi(client, { validate: true }).catalogCountries()).toEqual(rows);
+    expect(calls).toContainEqual({ fn: 'catalog_countries.order', args: 'code' });
+  });
+
+  it('catalogCountries rejects a wrong shape as unexpected when checks are on', async () => {
+    const { client } = fake(() => ok([{ code: 1 }]));
+    await expect(createApi(client, { validate: true }).catalogCountries()).rejects.toMatchObject({
+      kind: 'unexpected',
+    });
+  });
+
   it('countryProviders rejects a wrong shape as unexpected when checks are on', async () => {
     const { client } = fake(() => ok([{ provider_id: '8' }]));
     await expect(

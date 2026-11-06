@@ -75,7 +75,7 @@ as $$
                      'public.genres', 'public.moods', 'public.game_modes', 'public.calibration_titles',
                      'public.app_config', 'public.rooms', 'public.room_members', 'public.matches',
                      'public.rounds', 'public.round_candidates', 'public.votes', 'public.linked_accounts',
-                     'public.imports', 'public.import_rows'
+                     'public.imports', 'public.import_rows', 'public.countries'
                    ]))))
     union all
     select 'f', sig from fns

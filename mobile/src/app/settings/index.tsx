@@ -13,7 +13,9 @@ import { TopBar } from '@/components/ui/top-bar';
 import { useAnalyticsStrict } from '@/features/analytics';
 import { useExportData } from '@/features/account/use-export-data';
 import { useSettingsLinks } from '@/features/account/use-settings-links';
+import { countryName } from '@/features/country';
 import { useOnline } from '@/features/network';
+import { useMyProfile } from '@/features/profile';
 import {
   chooseAnalytics,
   useAnalyticsChoice,
@@ -33,7 +35,9 @@ function LoadingRow() {
 
 /** Settings (docs/design/screens/settings.md): everything a player may want once, in one list. */
 export default function SettingsScreen() {
-  const { t } = useTranslation('settings');
+  const { t, i18n } = useTranslation('settings');
+  const { t: tc } = useTranslation('country');
+  const country = useMyProfile().data?.country ?? null;
   const online = useOnline();
   const hapticsOn = useHapticsEnabled();
   const soundOn = useSoundEnabled();
@@ -62,6 +66,12 @@ export default function SettingsScreen() {
             value={t('language.current')}
             accessibilityHint={t('a11y.languageHint')}
             onPress={links.openLanguage}
+          />
+          <ListRow
+            icon="film"
+            label={tc('row')}
+            value={country ? countryName(country, i18n.language) : undefined}
+            onPress={() => router.push('/settings/country')}
           />
           <ListRow
             icon="zap"

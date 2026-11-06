@@ -41,6 +41,19 @@ export type UndoState = {
 export function createUndoer(deps: UndoDeps) {
   const state: StoreApi<UndoState> = createStore<UndoState>(() => ({ last: null }));
 
+  /** A vote still waiting is removed; one that left gets an undo behind it. */
+  function takeBack(last: LastAnswer) {
+    const titleId = last.card.title_id;
+    if (!last.dropped && !deps.queue.removeLast(deps.roomId, titleId)) {
+      deps.queue.enqueueUndo({
+        room_id: deps.roomId,
+        member_id: deps.memberId,
+        title_id: titleId,
+        ...(deps.solo?.() && { solo: true }),
+      });
+    }
+  }
+
   return {
     state,
 
@@ -60,16 +73,21 @@ export function createUndoer(deps: UndoDeps) {
       const { last } = state.getState();
       if (!last || deps.locked()) return null;
       state.setState({ last: null });
-      const titleId = last.card.title_id;
-      if (!last.dropped && !deps.queue.removeLast(deps.roomId, titleId)) {
-        deps.queue.enqueueUndo({
-          room_id: deps.roomId,
-          member_id: deps.memberId,
-          title_id: titleId,
-          ...(deps.solo?.() && { solo: true }),
-        });
-      }
+      takeBack(last);
       deps.stack.getState().putBack(last.card);
+      return last;
+    },
+
+    /**
+     * Takes the last vote back in the queue without moving any card, and records `kind` as the
+     * answer now (the rewatch chip's Yes: the caller queues the new vote right after). Undo
+     * stays awake for the new answer. Null when there is nothing to change or the room moved on.
+     */
+    change(kind: VoteAnswer): LastAnswer | null {
+      const { last } = state.getState();
+      if (!last || deps.locked()) return null;
+      takeBack(last);
+      state.setState({ last: { card: last.card, kind } });
       return last;
     },
   };

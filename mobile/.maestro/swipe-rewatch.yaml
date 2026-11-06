@@ -1,7 +1,7 @@
-# M6.12, "Watch it again tonight?": run on the host's phone in an `allow_rewatch` room (a Quick
-# Match room is one) with a second player in it, after "Start swiping". Swipe up asks the
-# question; a drag back down, a tap on the card and a tap outside the answers all close it with
-# no vote; going to the background and back keeps it open; a double tap on Yes answers once.
+# M6.49, the rewatch chip: run on the host's phone in an `allow_rewatch` room (a Quick Match room
+# is one) with a second player in it, after "Start swiping". One tap on Seen it (or a swipe up)
+# sends `seen` and the card flies up; a chip then offers Yes. A fast double tap never adds a like,
+# Yes shows "Up for a rewatch", and the chip leaves after 5 seconds or at the next answer.
 # Run: `maestro --device <sim> test mobile/.maestro/swipe-rewatch.yaml`
 appId: com.harryviennot.flimme.dev
 ---
@@ -11,52 +11,37 @@ appId: com.harryviennot.flimme.dev
 - takeScreenshot: rewatch-1-first-card
 - waitForAnimationToEnd
 
-# A swipe up asks.
+# A swipe up behaves like the tap: the card flies, the chip shows.
 - swipe:
     start: 50%,50%
     end: 50%,20%
     duration: 300
-- assertVisible: 'Watch it again tonight?'
-- takeScreenshot: rewatch-2-question
+- assertVisible: 'Seen it. Watch it again tonight?'
+- takeScreenshot: rewatch-2-chip-after-swipe
 
-# A drag back down closes it with no vote (the same card is still on top).
-- swipe:
-    start: 50%,50%
-    end: 50%,75%
-    duration: 300
-- assertNotVisible: 'Watch it again tonight?'
-- assertVisible: 'Seen it'
-- takeScreenshot: rewatch-3-dragged-back
+# The chip leaves after 5 seconds.
+- extendedWaitUntil:
+    notVisible: 'Seen it. Watch it again tonight?'
+    timeout: 8000
 
-# The eye button asks too; a tap outside the answers closes it.
-- tapOn: 'Seen it'
-- assertVisible: 'Watch it again tonight?'
+# A fast double tap on Seen it answers two cards as seen. No like, the chip belongs to the latest.
 - tapOn:
-    point: 50%,8%
-- assertNotVisible: 'Watch it again tonight?'
-
-# A tap on the card closes it.
-- tapOn: 'Seen it'
-- assertVisible: 'Watch it again tonight?'
-- tapOn:
-    point: 50%,30%
-- assertNotVisible: 'Watch it again tonight?'
-- assertVisible: 'Seen it'
-
-# Background and foreground: the question stays open.
-- tapOn: 'Seen it'
-- assertVisible: 'Watch it again tonight?'
-- pressKey: home
-- launchApp:
-    stopApp: false
-- assertVisible: 'Watch it again tonight?'
-- takeScreenshot: rewatch-4-after-background
-
-# A double tap on Yes answers once.
-- tapOn:
-    text: 'Yes, watch it again tonight'
+    text: 'Seen it'
     repeat: 2
     delay: 50
-- assertNotVisible: 'Watch it again tonight?'
-- assertVisible: 'Seen it'
-- takeScreenshot: rewatch-5-after-double-yes
+- assertVisible: 'Seen it. Watch it again tonight?'
+- takeScreenshot: rewatch-3-after-double-tap
+
+# The next answer takes the chip away.
+- tapOn: 'Nope'
+- assertNotVisible: 'Seen it. Watch it again tonight?'
+
+# Yes turns the answer into a like and confirms.
+- tapOn: 'Seen it'
+- assertVisible: 'Seen it. Watch it again tonight?'
+- tapOn: 'Yes, watch it again tonight'
+- assertVisible: 'Up for a rewatch'
+- takeScreenshot: rewatch-4-confirmation
+- extendedWaitUntil:
+    notVisible: 'Up for a rewatch'
+    timeout: 3000

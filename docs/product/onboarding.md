@@ -81,7 +81,7 @@ From opening the app to Home in three taps, with no account and no permission pr
 **Done silently, from the device:**
 
 - **Signing in as a guest.** The app signs in anonymously with Supabase as soon as it starts, before the name screen, so the name saves straight to the profile (`api.update_profile`).
-- **Country**, from the device's region (`regionCode` in expo-localization), saved to the profile. It decides where to watch when this player hosts. Editable in Profile.
+- **Country**, from the device's region (`regionCode` in expo-localization), saved to the profile at first launch, and again on a later launch when the saved country has no catalog and the region has one (a player's own choice of a country with a catalog is never overwritten). It decides where to watch when this player hosts or plays alone. Editable in Settings (Country row).
 - **Language**, from the device's language. English and French at launch; anything else falls back to English. Editable in Settings.
 
 **Not asked at first launch:**
@@ -299,7 +299,7 @@ Every state says what happened and offers a next step, never a raw error.
 | Final vote under way (`in_finale`) | Join sheet | "They're voting on the final pick right now." | Host your own, or wait for the next one |
 | Old link, room ended | Join sheet | "This movie night has ended." (the Figma's screen 25) | Host a movie night, or Enter another code |
 | No name yet (`name_required`) | Join | The name and color step | |
-| The host's country has no availability data | Open a room | "We can't show where to watch in your country yet. You can still join friends' rooms." | Join with a code. There is no country picker in the first release |
+| The host's country has no availability data | Open a room | "We can't show where to watch in your country yet. You can still join friends' rooms." | Use the French catalog (one tap when one country has a catalog, a short list when several do), or Join with a code. Settings also has a Country row (Q0.4, decisions.md, 5 Nov 2026) |
 | No services picked | Open a room | **Open the room** stays disabled, with "Pick at least one service" | |
 | Not a Letterboxd export | Letterboxd import | "This doesn't look like a Letterboxd export. Pick the ZIP Letterboxd sent you." | Pick again |
 | The export doesn't match the public profile (the RSS check) | Letterboxd import | "This export doesn't match the public diary of @harryv. Make sure it's your own export, made recently." | Open Letterboxd again |
