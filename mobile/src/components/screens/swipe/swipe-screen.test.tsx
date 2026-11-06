@@ -27,6 +27,12 @@ import { SwipeScreen } from './swipe-screen';
 // feel.test.ts (the rules) and the Maestro run (the finger).
 
 const mockSwipe: { current: ReturnType<typeof makeSwipe> | null } = { current: null };
+const mockToggleSaved = jest.fn(() => true);
+jest.mock('@/features/later', () => ({
+  toggleSaved: (id: number) => mockToggleSaved(id),
+  useIsSaved: () => false,
+  useSettleSaves: () => undefined,
+}));
 jest.mock('@/features/swipe/use-swipe', () => ({ useSwipe: () => mockSwipe.current }));
 jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
@@ -400,7 +406,12 @@ describe('the card for screen readers', () => {
       'superLike',
       'seen',
       'flip',
+      'save',
     ]);
+    // Saving for Later is not an answer: it sends no vote and the card stays.
+    await fireEvent(card, 'accessibilityAction', { nativeEvent: { actionName: 'save' } });
+    expect(mockToggleSaved).toHaveBeenCalledWith(1);
+    expect(votes).toHaveLength(0);
     await fireEvent(card, 'accessibilityAction', { nativeEvent: { actionName: 'like' } });
     await fireEvent(screen.getByLabelText('Film 2, 2020 · 1 h 40 · ★ 7.0'), 'accessibilityAction', {
       nativeEvent: { actionName: 'superLike' },

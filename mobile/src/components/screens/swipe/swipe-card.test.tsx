@@ -1,7 +1,7 @@
 import i18n from '@/i18n';
 
 import type { NextCard } from '@flimme/contract';
-import { act, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView, State } from 'react-native-gesture-handler';
 import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 import { getAnimatedStyle, useSharedValue } from 'react-native-reanimated';
@@ -24,7 +24,14 @@ jest.mock('react-native-reanimated', () => {
     useReducedMotion: () => mockReduced,
   };
 });
-jest.mock('@/lib/haptics', () => ({ haptics: { commit: jest.fn(), throw: jest.fn() } }));
+jest.mock('@/lib/haptics', () => ({
+  haptics: { commit: jest.fn(), throw: jest.fn(), press: jest.fn() },
+}));
+const mockToggleSaved = jest.fn(() => true);
+jest.mock('@/features/later', () => ({
+  toggleSaved: (id: number) => mockToggleSaved(id),
+  useIsSaved: () => false,
+}));
 
 const card: NextCard = {
   title_id: 7,
@@ -314,6 +321,27 @@ describe('the finger', () => {
     );
     await settle();
     expect(onFlip).toHaveBeenCalledTimes(1);
+  });
+
+  it('saves for Later from the bookmark without flipping or answering', async () => {
+    const onFlip = jest.fn();
+    const onRelease = jest.fn();
+    await render(<Card onFlip={onFlip} onRelease={onRelease} />);
+    const wrap = screen.getAllByTestId('movie-card-bookmark-wrap')[0]!;
+    await fireEvent(wrap, 'touchStart');
+    await fireEvent.press(screen.getAllByTestId('movie-card-bookmark')[0]!);
+    expect(mockToggleSaved).toHaveBeenCalledWith(7);
+    // The tap that follows the touch is the bookmark's, not a flip.
+    await act(async () =>
+      fireGestureHandler(getByGestureTestId('swipe-tap-7'), [
+        { state: State.BEGAN },
+        { state: State.ACTIVE },
+        { state: State.END },
+      ]),
+    );
+    await settle();
+    expect(onFlip).not.toHaveBeenCalled();
+    expect(onRelease).not.toHaveBeenCalled();
   });
 
   it('does not flip on a tap that started on the Trailer button', async () => {

@@ -27,9 +27,16 @@ const film: Omit<MovieCardProps, 'flipped' | 'onFlip'> = {
 function Demo() {
   const [flipped, setFlipped] = useState(false);
   const [stamp, setStamp] = useState<StampKind | null>(null);
+  const [saved, setSaved] = useState(false);
   return (
     <View className="gap-3">
-      <MovieCard {...film} stamp={stamp} flipped={flipped} onFlip={() => setFlipped((f) => !f)} />
+      <MovieCard
+        {...film}
+        stamp={stamp}
+        flipped={flipped}
+        onFlip={() => setFlipped((f) => !f)}
+        bookmark={{ saved, onToggle: () => setSaved((s) => !s) }}
+      />
       <View className="flex-row flex-wrap gap-2">
         {(['like', 'nope', 'seen', 'super'] as const).map((kind) => (
           <Button
@@ -50,6 +57,6 @@ export const gallery: GalleryEntry = {
   name: 'Movie card',
   tier: 'shared',
   description:
-    'The swipe card. Tap to flip; the like, nope, seen it and super stamps show while it is dragged.',
+    'The swipe card. Tap to flip; the like, nope, seen it and super stamps show while it is dragged. The bookmark (top left, front and back) saves the film for Later: empty, then filled.',
   render: () => <Demo />,
 };
