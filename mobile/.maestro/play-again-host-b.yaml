@@ -1,0 +1,33 @@
+# M6.23, part B: the phone is the host with bots seated. It starts the game, likes everything
+# until the pick, taps Play again and lands in the new lobby, where the bots (following
+# next_room) join with the new code.
+# Run: maestro --device <sim> test mobile/.maestro/play-again-host-b.yaml
+appId: com.harryviennot.flimme.dev
+---
+- extendedWaitUntil:
+    visible: 'Bot 3.*'
+    timeout: 240000
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- repeat:
+    while:
+      visible: 'Like'
+    times: 120
+    commands:
+      - tapOn:
+          text: 'Like'
+          optional: true
+- extendedWaitUntil:
+    visible: 'Play again'
+    timeout: 240000
+- takeScreenshot: play-again-2-winner-host
+- tapOn: 'Play again'
+- extendedWaitUntil:
+    visible: '(?i)in the room'
+    timeout: 30000
+- extendedWaitUntil:
+    visible: 'Bot 3.*'
+    timeout: 60000
+- takeScreenshot: play-again-3-new-lobby

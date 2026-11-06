@@ -1,0 +1,19 @@
+# M6.23, part A: the phone hosts a room on staging and waits in its lobby. Read the room code
+# on the screenshot, start the bots with `mise run bots -- play-again --code <code> --count 3
+# --target staging`, then run part B.
+# Run: maestro --device <sim> test mobile/.maestro/play-again-host-a.yaml -e METRO_URL=http://localhost:<port>
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- openLink: flimme-dev:///dev
+- extendedWaitUntil:
+    visible: 'Continue|Staging'
+    timeout: 30000
+- runFlow:
+    when:
+      visible: 'Continue'
+    commands:
+      - tapOn: 'Continue'
+- runFlow: subflows/use-staging.yaml
+- runFlow: subflows/host-room.yaml
+- takeScreenshot: play-again-1-lobby
