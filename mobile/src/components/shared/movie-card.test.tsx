@@ -330,3 +330,36 @@ describe('the Later bookmark', () => {
     await i18n.changeLanguage('en');
   });
 });
+
+describe('a still back', () => {
+  const longText = 'A bear in prison. '.repeat(60).trim();
+
+  it('shows the synopsis whole: no cut, no Read more, no flip badge', async () => {
+    await render(
+      <MovieCard
+        {...film}
+        still
+        flipped
+        back={{ ...film.back, synopsis: longText, onReadMore: jest.fn() }}
+      />,
+    );
+    const text = screen.getByTestId('synopsis-whole');
+    expect(text.props.numberOfLines).toBeUndefined();
+    expect(screen.queryByTestId('movie-card-read-more')).toBeNull();
+    expect(screen.queryByText('Tap the card to flip back')).toBeNull();
+    expect(screen.queryByTestId('movie-card-front')).toBeNull();
+  });
+
+  it('is at least the card shape, and grows past it with its content', async () => {
+    await render(<MovieCard {...film} still flipped />);
+    await act(async () => {
+      screen
+        .getByTestId('movie-card-back')
+        .props.onLayout({ nativeEvent: { layout: { width: 300, height: 0, x: 0, y: 0 } } });
+    });
+    const style = StyleSheet.flatten(screen.getByTestId('movie-card-back').props.style);
+    expect(style.minHeight).toBeCloseTo((300 * 518) / 345);
+    expect(style.height).toBeUndefined();
+    expect(style.aspectRatio).toBeUndefined();
+  });
+});

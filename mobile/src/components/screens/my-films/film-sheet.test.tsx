@@ -1,5 +1,6 @@
 import type { Card } from '@flimme/contract';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import { api } from '@/api';
@@ -61,6 +62,8 @@ const removeMyFilm = api.removeMyFilm as jest.Mock;
 const setFilmSaved = api.setFilmSaved as jest.Mock;
 
 const onClose = jest.fn();
+const chipChecked = () =>
+  screen.getByRole('checkbox', { name: 'Seen' }).props.accessibilityState.checked === true;
 async function showLoaded() {
   const view = await show();
   await screen.findByText('A crew and a cop.');
@@ -110,39 +113,55 @@ describe('the film sheet', () => {
     expect(await screen.findByText('None of your services has it.')).toBeTruthy();
   });
 
+  it('shows the Seen chip checked only when the film is seen', async () => {
+    myFilmCard.mockResolvedValue(ok({ seen: true }));
+    await show();
+    await waitFor(() => expect(chipChecked()).toBe(true));
+  });
+
   it('marks as seen, then not seen, with the matching calls', async () => {
     myFilmCard.mockResolvedValue(ok());
     await showLoaded();
-    await fireEvent.press(screen.getByRole('button', { name: 'Mark as seen' }));
-    await screen.findByRole('button', { name: 'Not seen' });
-    expect(screen.getByText('It stays out of your games.')).toBeTruthy();
+    expect(chipChecked()).toBe(false);
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Seen' }));
+    await waitFor(() => expect(chipChecked()).toBe(true));
+    expect(screen.queryByText('It stays out of your games.')).toBeNull();
     expect(setFilmSeen).toHaveBeenLastCalledWith({ title_id: 7, seen: true });
-    await fireEvent.press(screen.getByRole('button', { name: 'Not seen' }));
-    await screen.findByRole('button', { name: 'Mark as seen' });
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Seen' }));
+    await waitFor(() => expect(chipChecked()).toBe(false));
     expect(setFilmSeen).toHaveBeenLastCalledWith({ title_id: 7, seen: false });
   });
 
-  it('turns the button back and warns when saving fails', async () => {
+  it('announces the helper line instead of showing it', async () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    myFilmCard.mockResolvedValue(ok());
+    await showLoaded();
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Seen' }));
+    await waitFor(() => expect(setFilmSeen).toHaveBeenCalled());
+    expect(announce).toHaveBeenCalledWith('Marked as seen. It stays out of your games.');
+  });
+
+  it('turns the chip back and warns when saving fails', async () => {
     myFilmCard.mockResolvedValue(ok());
     setFilmSeen.mockResolvedValue({ status: 'rate_limited' });
     await showLoaded();
-    await fireEvent.press(screen.getByRole('button', { name: 'Mark as seen' }));
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Seen' }));
     await waitFor(() => expect(setFilmSeen).toHaveBeenCalled());
-    await screen.findByRole('button', { name: 'Mark as seen' });
+    await waitFor(() => expect(chipChecked()).toBe(false));
   });
 
   it('closes the sheet when marking says the film is gone', async () => {
     myFilmCard.mockResolvedValue(ok());
     setFilmSeen.mockResolvedValue({ status: 'not_found' });
     await showLoaded();
-    await fireEvent.press(screen.getByRole('button', { name: 'Mark as seen' }));
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Seen' }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
   it('offers Remove only on a liked film', async () => {
     myFilmCard.mockResolvedValue(ok({ liked: false, seen: true }));
     await show();
-    await screen.findByRole('button', { name: 'Not seen' });
+    await screen.findByRole('checkbox', { name: 'Seen' });
     expect(screen.queryByRole('button', { name: 'Remove from Liked' })).toBeNull();
   });
 
@@ -159,12 +178,10 @@ describe('the film sheet', () => {
     expect(removeMyFilm).toHaveBeenCalledWith({ title_id: 7 });
   });
 
-  it('has no Later button: a saved film is a like, and Remove takes it out', async () => {
+  it('has no Later button, saved or not', async () => {
     myFilmCard.mockResolvedValue(ok({ liked: true }));
     await showLoaded();
-    expect(screen.queryByRole('button', { name: 'Remove from Later' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Save for later' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Remove from Liked' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Later/ })).toBeNull();
     expect(setFilmSaved).not.toHaveBeenCalled();
   });
 
@@ -186,6 +203,12 @@ describe('the film sheet', () => {
       </QueryClientProvider>,
     );
     expect(await screen.findByText("You're offline. Connect to change your films.")).toBeTruthy();
+    expect(screen.getByRole('checkbox', { name: 'Seen' }).props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+    expect(
+      screen.getByRole('button', { name: 'Remove from Liked' }).props.accessibilityState,
+    ).toMatchObject({ disabled: true });
   });
 
   it('speaks French', async () => {
@@ -193,7 +216,7 @@ describe('the film sheet', () => {
     myFilmCard.mockResolvedValue(ok());
     await show();
     expect(await screen.findByText('A crew and a cop.')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Marquer comme vu' })).toBeTruthy();
+    expect(screen.getByRole('checkbox', { name: 'Vu' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Retirer des aimés' })).toBeTruthy();
   });
 });

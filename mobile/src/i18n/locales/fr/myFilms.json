@@ -40,11 +40,9 @@
     "loadingFilm": "Chargement du film"
   },
   "sheet": {
-    "markSeen": "Marquer comme vu",
-    "notSeen": "Pas encore vu",
-    "seenHelper": "Il reste hors de tes parties.",
+    "seen": "Vu",
     "remove": "Retirer des aimés",
-    "a11ySeen": "Marqué comme vu",
+    "a11ySeen": "Marqué comme vu. Il reste hors de tes parties.",
     "a11yNotSeen": "Plus marqué comme vu. Il peut revenir dans tes parties.",
     "failed": "Impossible d'enregistrer. Réessaie dans un instant.",
     "notFound": "Ce film n'est plus dans Mes films.",

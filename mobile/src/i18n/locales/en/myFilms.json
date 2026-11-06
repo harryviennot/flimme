@@ -40,11 +40,9 @@
     "loadingFilm": "Loading the film"
   },
   "sheet": {
-    "markSeen": "Mark as seen",
-    "notSeen": "Not seen",
-    "seenHelper": "It stays out of your games.",
+    "seen": "Seen",
     "remove": "Remove from Liked",
-    "a11ySeen": "Marked as seen",
+    "a11ySeen": "Marked as seen. It stays out of your games.",
     "a11yNotSeen": "No longer marked as seen. It can come back in your games.",
     "failed": "We couldn't save that. Try again in a moment.",
     "notFound": "This film isn't in My films any more.",
