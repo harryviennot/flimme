@@ -23,4 +23,10 @@ describe('Chip', () => {
     await fireEvent.press(screen.getByRole('radio', { name: 'Under 2 h' }));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  it('shows a count and reads it in the label the screen gives', async () => {
+    await render(<Chip label="Comedy" count={3} accessibilityLabel="Comedy, 3 players" />);
+    expect(screen.getByText('3')).toBeTruthy();
+    expect(screen.getByRole('checkbox', { name: 'Comedy, 3 players' })).toBeTruthy();
+  });
 });

@@ -99,7 +99,9 @@ import {
   type TitleCardsResult,
   type CountryProvider,
   type GameMode,
+  type Genre,
   setMyProvidersResult,
+  genresSchema,
   setSeatPrefsResult,
   startGameResult,
   startSoloResult,
@@ -811,6 +813,22 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         return parsed.data;
       }
       return (rows ?? []) as CatalogCountry[];
+    },
+
+    /** The TMDB genres with their French and English names. */
+    async genres(): Promise<Genre[]> {
+      const rows = await readView(
+        () => client.from('genres').select('id, slug, names').order('id'),
+        'genres',
+      );
+      if (options.validate) {
+        const parsed = genresSchema.safeParse(rows ?? []);
+        if (!parsed.success) {
+          throw new ApiError('unexpected', 'genres', `wrong shape: ${parsed.error.message}`);
+        }
+        return parsed.data;
+      }
+      return (rows ?? []) as unknown as Genre[];
     },
 
     /** The game modes and their player limits, in display order. */

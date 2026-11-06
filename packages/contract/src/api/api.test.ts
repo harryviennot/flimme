@@ -647,6 +647,32 @@ describe('provider readers', () => {
     await expect(createApi(client).countryProviders({ country: 'FR' })).resolves.toEqual([]);
   });
 
+  it('genres reads the view with both languages', async () => {
+    const rows = [{ id: 35, slug: 'comedy', names: { fr: 'Comédie', en: 'Comedy' } }];
+    const { client, calls } = fake(() => ok(rows));
+    expect(await createApi(client, { validate: true }).genres()).toEqual(rows);
+    expect(calls).toContainEqual({ fn: 'genres.order', args: 'id' });
+  });
+
+  it('genres rejects a wrong shape as unexpected when checks are on', async () => {
+    const { client } = fake(() => ok([{ id: 35, slug: 'comedy', names: 'Comedy' }]));
+    await expect(createApi(client, { validate: true }).genres()).rejects.toMatchObject({
+      kind: 'unexpected',
+    });
+  });
+
+  it('roomGenres sends the room and a non-member is denied', async () => {
+    const { client, calls } = fake((fn) =>
+      fn === 'room_genres'
+        ? { data: null, error: { message: 'denied', code: '42501' }, status: 403 }
+        : ok(null),
+    );
+    await expect(createApi(client).roomGenres({ room_id: ROOM })).rejects.toMatchObject({
+      kind: 'denied',
+    });
+    expect(calls[0]).toEqual({ fn: 'room_genres', args: { p_room_id: ROOM } });
+  });
+
   it('gameModes reads the view in display order', async () => {
     const mode = {
       slug: 'quick_match',

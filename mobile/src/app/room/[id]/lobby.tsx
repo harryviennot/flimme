@@ -29,7 +29,8 @@ import { useSeatAnnouncements } from '@/features/lobby/announce';
 import { useCopyRoomCode } from '@/features/lobby/copy-code';
 import { useAskToLeave } from '@/features/lobby/leave-context';
 import { formatList, serviceNames } from '@/features/lobby/names';
-import { useGameModes } from '@/features/lobby/queries';
+import { genreSummary } from '@/features/lobby/genres';
+import { useGameModes, useGenres } from '@/features/lobby/queries';
 import { hostSeat, presentSeats, seatedSeats, startGate } from '@/features/lobby/seats';
 import { useRoomLock } from '@/features/lobby/use-room-lock';
 import {
@@ -46,6 +47,7 @@ import {
   useRoom,
   useRoomConnection,
   useRoomEvent,
+  useRoomGenres,
   useRoomPresence,
   useRoomSeats,
 } from '@/features/room';
@@ -66,6 +68,8 @@ export default function RoomLobbyScreen() {
   const { banner, fresh } = useRoomConnection(id);
   const providers = useCountryProviders(room?.country).data;
   const modes = useGameModes().data;
+  const genreOffer = useRoomGenres(id).data;
+  const genreNames = useGenres().data;
   const invite = useInvite(id);
   const lock = useRoomLock(id);
   const copyCode = useCopyRoomCode(room?.code);
@@ -230,6 +234,30 @@ export default function RoomLobbyScreen() {
   const hostName = host?.display_name ?? '';
   const roomNames = serviceNames(room.provider_ids, providers);
   const mineNames = serviceNames(me?.provider_ids ?? [], providers);
+  // Your genres row: the names of your picks, "Optional" with none, nothing to pick when none is
+  // offered tonight, and dimmed once the game is dealing (picks lock at Start).
+  const genresLoaded = genreOffer !== undefined && genreNames !== undefined;
+  const genreNone = genresLoaded && genreOffer.options.length === 0;
+  const mineGenres = genresLoaded
+    ? genreSummary(genreOffer.options, genreNames, language, genreOffer.mine)
+    : [];
+  const genresRow = (
+    <ListRow
+      icon="film"
+      label={t('yourGenres.label')}
+      value={
+        !genresLoaded
+          ? undefined
+          : genreNone
+            ? t('yourGenres.none')
+            : mineGenres.length > 0
+              ? list(mineGenres)
+              : t('yourGenres.optional')
+      }
+      disabled={genreNone || dealing}
+      onPress={() => router.push(`/room/${id}/genres`)}
+    />
+  );
 
   return (
     <View className="flex-1">
@@ -352,6 +380,7 @@ export default function RoomLobbyScreen() {
           {isHost ? (
             <View className="gap-2">
               <View className="overflow-hidden rounded-lg border border-border-default bg-bg-surface">
+                {genresRow}
                 <ListRow
                   icon="lock"
                   label={t('lock.label')}
@@ -377,6 +406,7 @@ export default function RoomLobbyScreen() {
                 value={mineNames.length > 0 ? list(mineNames) : t('yourServices.optional')}
                 onPress={() => router.push(`/room/${id}/services`)}
               />
+              {genresRow}
             </View>
           )}
         </View>

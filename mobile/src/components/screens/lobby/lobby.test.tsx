@@ -15,6 +15,7 @@ import RoomReportSheet from '@/app/room/[id]/report/[memberId]';
 import RoomSeatSheet from '@/app/room/[id]/seat/[memberId]';
 import RoomInviteScreen from '@/app/room/[id]/invite';
 import RoomServicesScreen from '@/app/room/[id]/services';
+import RoomGenresScreen from '@/app/room/[id]/genres';
 import { showToast } from '@/components/ui/toast';
 import { leaveRoom } from '@/features/room/leave';
 import { reportError } from '@/lib/sentry';
@@ -29,6 +30,8 @@ jest.mock('@/api', () => ({
     startGame: jest.fn(),
     setMyProviders: jest.fn(),
     setSeatPrefs: jest.fn(),
+    roomGenres: jest.fn(),
+    genres: jest.fn(),
     reportMember: jest.fn(),
     removeMember: jest.fn(),
     setRoomLocked: jest.fn(),
@@ -57,6 +60,7 @@ jest.mock('@/features/invite/invite-link', () => ({
 
 const mockShare = jest.fn();
 let mockMemberId = 'b';
+let mockSegments = ['room', '[id]', 'genres'];
 let mockOnline = true;
 jest.mock('@/features/network', () => ({ useOnline: () => mockOnline }));
 
@@ -95,6 +99,7 @@ jest.mock('expo-router', () => ({
   },
   router: { push: jest.fn(), back: jest.fn(), replace: jest.fn(), dismissAll: jest.fn() },
   useLocalSearchParams: () => ({ id: 'r1', memberId: mockMemberId }),
+  useSegments: () => mockSegments,
   useFocusEffect: (effect: () => void | (() => void)) => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { useEffect } = require('react');
@@ -111,6 +116,8 @@ type ApiName =
   | 'startGame'
   | 'setMyProviders'
   | 'setSeatPrefs'
+  | 'roomGenres'
+  | 'genres'
   | 'reportMember'
   | 'removeMember'
   | 'setRoomLocked';
@@ -145,6 +152,13 @@ const providers = [
   { provider_id: 119, name: 'Prime Video', logo_path: null, display_priority: 3 },
 ];
 
+const genreRows = [
+  { id: 35, slug: 'comedy', names: { fr: 'Comédie', en: 'Comedy' } },
+  { id: 27, slug: 'horror', names: { fr: 'Horreur', en: 'Horror' } },
+  { id: 18, slug: 'drama', names: { fr: 'Drame', en: 'Drama' } },
+  { id: 12, slug: 'adventure', names: { fr: 'Aventure', en: 'Adventure' } },
+];
+
 let client: QueryClient;
 function Providers({ children }: { children: ReactNode }) {
   return (
@@ -172,6 +186,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   mockOnline = true;
+  mockSegments = ['room', '[id]', 'genres'];
   mockLive.away = new Set();
   mockLive.online = new Set(['b']);
   mockLive.banner = null;
@@ -197,6 +212,17 @@ beforeEach(() => {
   mockApi.setRoomLocked.mockResolvedValue({ status: 'ok', locked: true });
   mockApi.setMyProviders.mockResolvedValue({ status: 'ok' });
   mockApi.setSeatPrefs.mockResolvedValue({ status: 'ok' });
+  mockApi.genres.mockResolvedValue(genreRows);
+  mockApi.roomGenres.mockResolvedValue({
+    status: 'ok',
+    options: [
+      { genre_id: 35, count: 3 },
+      { genre_id: 27, count: 0 },
+      { genre_id: 18, count: 1 },
+      { genre_id: 12, count: 2 },
+    ],
+    mine: [],
+  });
   (leaveRoom as unknown as M).mockResolvedValue({ status: 'ok' });
 });
 
@@ -713,6 +739,275 @@ describe('the services sheet', () => {
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Netflix' }));
     await fireEvent.press(done());
     await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+  });
+});
+
+describe('your genres, in the lobby', () => {
+  const rowName = /^Your genres tonight/;
+
+  it('shows the row to a guest under Your services, optional with no picks', async () => {
+    mockSeats = [
+      { ...lea, is_me: false },
+      { ...sam, is_me: true },
+    ];
+    await show();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Your genres tonight, Optional' })).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByRole('button', { name: rowName }));
+    expect(mockRouter.push).toHaveBeenCalledWith('/room/r1/genres');
+  });
+
+  it('shows the row to the host too, above the lock', async () => {
+    await show();
+    await waitFor(() => expect(screen.getByRole('button', { name: rowName })).toBeTruthy());
+    expect(screen.getByLabelText('Lock the room')).toBeTruthy();
+  });
+
+  it('names your own picks, and nobody elses', async () => {
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [
+        { genre_id: 35, count: 3 },
+        { genre_id: 18, count: 1 },
+      ],
+      mine: [18, 35],
+    });
+    await show();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Your genres tonight, Comedy and Drama' }),
+      ).toBeTruthy(),
+    );
+  });
+
+  it('says nothing is offered when no genre has enough films, and the row does not open', async () => {
+    mockApi.roomGenres.mockResolvedValue({ status: 'ok', options: [], mine: [] });
+    await show();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Your genres tonight, Nothing to pick tonight' }),
+      ).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByRole('button', { name: rowName }));
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
+  it('is dimmed and shut once the game is dealing: picks lock at Start', async () => {
+    mockState = 'dealing';
+    await show();
+    // The shuffling overlay hides the lobby from a screen reader; the row is still there.
+    const row = () => screen.getByRole('button', { name: rowName, hidden: true });
+    await waitFor(() => expect(row()).toBeTruthy());
+    await fireEvent.press(row());
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
+  it('never blocks Start: the host starts with no picks', async () => {
+    await show();
+    await waitFor(() => expect(screen.getByText('Sam')).toBeTruthy());
+    await waitFor(() => expect(start()).toBeEnabled());
+    await fireEvent.press(start());
+    await waitFor(() => expect(mockApi.startGame).toHaveBeenCalledWith({ room_id: 'r1' }));
+    expect(mockApi.setSeatPrefs).not.toHaveBeenCalled();
+  });
+});
+
+describe('the genres sheet', () => {
+  const open = async () => {
+    await render(<RoomGenresScreen />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: /^Comedy/ })).toBeTruthy());
+  };
+  const done = () => screen.getByRole('button', { name: 'Done' });
+
+  it('shows the chips sorted by name with counts, never names', async () => {
+    await open();
+    expect(screen.getAllByRole('checkbox').map((chip) => chip.props.accessibilityLabel)).toEqual([
+      'Adventure, 2 players',
+      'Comedy, 3 players',
+      'Drama, 1 player',
+      'Horror, 0 players',
+    ]);
+  });
+
+  it('counts your own tap at once and sends only the genre ids on Done', async () => {
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Horror, 0 players' }));
+    expect(screen.getByRole('checkbox', { name: 'Horror, 1 player' })).toBeChecked();
+    await fireEvent.press(done());
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+    expect(mockApi.setSeatPrefs).toHaveBeenCalledWith({ room_id: 'r1', genre_ids: [27] });
+  });
+
+  it('stops a 4th pick with a gentle note, no toast, no call', async () => {
+    await open();
+    for (const name of [/^Comedy/, /^Horror/, /^Drama/]) {
+      await fireEvent.press(screen.getByRole('checkbox', { name }));
+    }
+    expect(screen.queryByText('3 genres at most. Drop one to swap.')).toBeNull();
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Adventure/ }));
+    expect(screen.getByText('3 genres at most. Drop one to swap.')).toBeTruthy();
+    expect(screen.getByRole('checkbox', { name: /^Adventure/ })).not.toBeChecked();
+    expect(showToast).not.toHaveBeenCalled();
+    expect(mockApi.setSeatPrefs).not.toHaveBeenCalled();
+    // Dropping one makes room again.
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Drama/ }));
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Adventure/ }));
+    expect(screen.getByRole('checkbox', { name: /^Adventure/ })).toBeChecked();
+  });
+
+  it('starts on your saved picks and closes with no call when nothing changed', async () => {
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [{ genre_id: 35, count: 3 }],
+      mine: [35],
+    });
+    await open();
+    expect(screen.getByRole('checkbox', { name: 'Comedy, 3 players' })).toBeChecked();
+    await fireEvent.press(done());
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+    expect(mockApi.setSeatPrefs).not.toHaveBeenCalled();
+  });
+
+  it('closes with a note when the picks locked at Start meanwhile', async () => {
+    mockApi.setSeatPrefs.mockResolvedValue({ status: 'locked' });
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Comedy/ }));
+    await fireEvent.press(done());
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+    expect(showToast).toHaveBeenCalledWith({
+      tone: 'info',
+      title: 'Genres locked',
+      message: 'The game has started.',
+    });
+  });
+
+  it('does not go back a second time when Start already closed the sheet', async () => {
+    let answer: (value: { status: 'locked' }) => void = () => {};
+    mockApi.setSeatPrefs.mockImplementation(
+      () => new Promise((resolve) => (answer = resolve as typeof answer)),
+    );
+    const view = await render(<RoomGenresScreen />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: /^Comedy/ })).toBeTruthy());
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Comedy/ }));
+    await fireEvent.press(done());
+    await waitFor(() => expect(mockApi.setSeatPrefs).toHaveBeenCalled());
+    // The room layout dismissed the sheet and moved on while the save was in flight.
+    mockSegments = ['room', '[id]', 'swipe'];
+    await act(async () => view.rerender(<RoomGenresScreen />));
+    await act(async () => answer({ status: 'locked' }));
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith(expect.objectContaining({ title: 'Genres locked' })),
+    );
+    expect(mockRouter.back).not.toHaveBeenCalled();
+  });
+
+  it('leaves out a saved pick that is no longer offered: no place in the cap, none sent', async () => {
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [
+        { genre_id: 35, count: 3 },
+        { genre_id: 27, count: 0 },
+        { genre_id: 18, count: 1 },
+        { genre_id: 12, count: 2 },
+      ],
+      mine: [99],
+    });
+    await open();
+    for (const name of [/^Comedy/, /^Horror/, /^Drama/]) {
+      await fireEvent.press(screen.getByRole('checkbox', { name }));
+    }
+    expect(screen.queryByText('3 genres at most. Drop one to swap.')).toBeNull();
+    expect(screen.getByRole('checkbox', { name: /^Drama/ })).toBeChecked();
+    await fireEvent.press(done());
+    await waitFor(() => expect(mockRouter.back).toHaveBeenCalled());
+    expect(mockApi.setSeatPrefs).toHaveBeenCalledWith({ room_id: 'r1', genre_ids: [35, 27, 18] });
+  });
+
+  it('stays open and reads the offer again when a genre left it', async () => {
+    mockApi.setSeatPrefs.mockResolvedValue({ status: 'unknown_genre' });
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Comedy/ }));
+    await fireEvent.press(done());
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        tone: 'warn',
+        title: 'The genres changed. Pick again.',
+      }),
+    );
+    expect(mockRouter.back).not.toHaveBeenCalled();
+    expect(mockApi.roomGenres.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('stays open with the genres toast when the call throws', async () => {
+    mockApi.setSeatPrefs.mockRejectedValue(new Error('down'));
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Comedy/ }));
+    await fireEvent.press(done());
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        tone: 'warn',
+        title: "We couldn't save your genres. Try again.",
+      }),
+    );
+    expect(mockRouter.back).not.toHaveBeenCalled();
+  });
+
+  it('reports too_many as a bug and stays open', async () => {
+    mockApi.setSeatPrefs.mockResolvedValue({ status: 'too_many', field: 'genre_ids', max: 3 });
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Comedy/ }));
+    await fireEvent.press(done());
+    await waitFor(() => expect(reportError).toHaveBeenCalled());
+    expect(mockRouter.back).not.toHaveBeenCalled();
+  });
+
+  it('says so when no genre is offered tonight', async () => {
+    mockApi.roomGenres.mockResolvedValue({ status: 'ok', options: [], mine: [] });
+    await render(<RoomGenresScreen />, { wrapper: Providers });
+    await waitFor(() =>
+      expect(screen.getByText('Not enough films to offer genres tonight.')).toBeTruthy(),
+    );
+  });
+
+  it('offers a retry when the genres cannot be loaded', async () => {
+    mockApi.roomGenres.mockRejectedValue(new Error('down'));
+    await render(<RoomGenresScreen />, { wrapper: Providers });
+    // The read retries once (a second later) before it counts as failed.
+    await waitFor(() => expect(screen.getByText("We couldn't load the genres.")).toBeTruthy(), {
+      timeout: 4000,
+    });
+    expect(done()).toBeDisabled();
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [{ genre_id: 35, count: 3 }],
+      mine: [],
+    });
+    await fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: /^Comedy/ })).toBeTruthy());
+  });
+
+  it('says it is offline when nothing was loaded and there is no network', async () => {
+    mockOnline = false;
+    mockApi.roomGenres.mockImplementation(() => new Promise(() => {}));
+    await render(<RoomGenresScreen />, { wrapper: Providers });
+    await waitFor(() =>
+      expect(
+        screen.getByText('No network. The genres come back with your connection.'),
+      ).toBeTruthy(),
+    );
+  });
+
+  it('shows French names in French', async () => {
+    await i18n.changeLanguage('fr');
+    try {
+      await render(<RoomGenresScreen />, { wrapper: Providers });
+      await waitFor(() =>
+        expect(screen.getByRole('checkbox', { name: 'Comédie, 3 joueurs' })).toBeTruthy(),
+      );
+    } finally {
+      await i18n.changeLanguage('en');
+    }
   });
 });
 

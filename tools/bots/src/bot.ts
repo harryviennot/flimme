@@ -38,6 +38,10 @@ export type BotOptions = {
   likeRate: number | null;
   seed: number;
   personality: PersonalityMode;
+  /** Genres picked in the lobby right after joining (M6.54). */
+  genres?: number[];
+  /** Leave the room on stop. */
+  leaveOnStop?: boolean;
   log?: (line: string) => void;
   random?: () => number;
 };
@@ -72,6 +76,12 @@ export async function startBot(options: BotOptions): Promise<Bot> {
   if (joined.status !== 'ok') throw new Error(`${label}: could not join (${joined.status})`);
   log(`${label} joined`);
 
+  if (options.genres && options.genres.length > 0) {
+    // Genres alone, as the app sends them: a mixed call would also send `seat_updated`.
+    const picked = await api.setSeatPrefs({ room_id: joined.room_id, genre_ids: options.genres });
+    log(`${label} picked genres (${picked.status})`);
+  }
+
   const seat = attachSeat({
     client,
     api,
@@ -89,6 +99,7 @@ export async function startBot(options: BotOptions): Promise<Bot> {
   return {
     async stop() {
       await seat.stop();
+      if (options.leaveOnStop) await api.leaveRoom({ room_id: joined.room_id }).catch(() => {});
       await client.auth.signOut().catch(() => {});
     },
   };

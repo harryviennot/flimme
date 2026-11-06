@@ -26,6 +26,10 @@ export type BotConfig = {
   /** Makes a game reproducible: personalities, tastes and choices follow from it. */
   seed: number;
   personality: PersonalityMode;
+  /** TMDB genre ids each bot picks in the lobby (M6.54); empty picks none. */
+  genres: number[];
+  /** Leave the room when stopped, so the seat does not stay in the counts. */
+  leaveOnStop: boolean;
 };
 
 export const HEARTBEAT_MS = 30_000;
@@ -45,7 +49,18 @@ export function parseArgs(input: string[]): BotConfig {
     flags.set(arg.slice(2), value);
     i += 1;
   }
-  const known = ['code', 'count', 'target', 'swipe-ms', 'like-rate', 'seed', 'personality', 'as'];
+  const known = [
+    'code',
+    'count',
+    'target',
+    'swipe-ms',
+    'like-rate',
+    'seed',
+    'personality',
+    'as',
+    'genres',
+    'leave-on-stop',
+  ];
   for (const key of flags.keys())
     if (!known.includes(key)) throw new UsageError(`Unknown option --${key}`);
 
@@ -90,6 +105,13 @@ export function parseArgs(input: string[]): BotConfig {
   if (!PERSONALITY_MODES.includes(personality as PersonalityMode)) {
     throw new UsageError('--personality must be mixed, agreeable or picky');
   }
+  const genreText = flags.get('genres');
+  const genres = genreText === undefined ? [] : genreText.split(',').map(Number);
+  if (genres.length > 3 || genres.some((id) => !Number.isInteger(id) || id <= 0)) {
+    throw new UsageError('--genres is up to 3 TMDB genre ids, like 35,27');
+  }
+  const leave = flags.get('leave-on-stop') ?? 'no';
+  if (leave !== 'yes' && leave !== 'no') throw new UsageError('--leave-on-stop must be yes or no');
   return {
     action,
     as,
@@ -100,6 +122,8 @@ export function parseArgs(input: string[]): BotConfig {
     likeRate,
     seed,
     personality: personality as PersonalityMode,
+    genres,
+    leaveOnStop: leave === 'yes',
   };
 }
 

@@ -56,7 +56,9 @@
     "start": "We couldn't start the game. Try again.",
     "services": "We couldn't save your services. Try again.",
     "remove": "We couldn't remove this player. Try again.",
-    "lock": "We couldn't change the lock. Try again."
+    "lock": "We couldn't change the lock. Try again.",
+    "genres": "We couldn't save your genres. Try again.",
+    "genresStale": "The genres changed. Pick again."
   },
   "seatSheet": {
     "remove": "Remove from room",
@@ -98,5 +100,26 @@
   "lock": {
     "label": "Lock the room",
     "helper": "Nobody new can join. Anyone who's been in can come back."
+  },
+  "yourGenres": {
+    "label": "Your genres tonight",
+    "optional": "Optional",
+    "none": "Nothing to pick tonight"
+  },
+  "genresSheet": {
+    "title": "Your genres tonight",
+    "helper": "Pick up to 3 genres. Others see how many players picked each genre, not who.",
+    "cap": "3 genres at most. Drop one to swap.",
+    "none": "Not enough films to offer genres tonight.",
+    "failed": "We couldn't load the genres.",
+    "offline": "No network. The genres come back with your connection.",
+    "retry": "Try again",
+    "done": "Done",
+    "chip_one": "{{name}}, {{count}} player",
+    "chip_other": "{{name}}, {{count}} players"
+  },
+  "genresLocked": {
+    "title": "Genres locked",
+    "message": "The game has started."
   }
 }
