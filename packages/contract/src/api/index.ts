@@ -34,6 +34,7 @@ import {
   MY_FILM_CARD_ANSWERS,
   SET_FILM_SEEN_ANSWERS,
   REMOVE_MY_FILM_ANSWERS,
+  SET_FILM_SAVED_ANSWERS,
   type MyFilmsFilter,
   type MyFilmsSegment,
   UPDATE_PROFILE_ANSWERS,
@@ -524,6 +525,21 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         'remove_my_film',
         { p_title_id: args.title_id },
         REMOVE_MY_FILM_ANSWERS,
+        myFilmEditResult,
+      );
+    },
+
+    /**
+     * Save a film for Later (only one dealt to the caller, or already in their rows) or remove it from
+     * Later. Not an answer: it counts for nothing in the room. A repeat save is `ok`; `not_found` is an answer.
+     */
+    setFilmSaved(args: { title_id: number; saved: boolean }): Promise<MyFilmEditResult> {
+      return callAnswer(
+        client,
+        options,
+        'set_film_saved',
+        { p_title_id: args.title_id, p_saved: args.saved },
+        SET_FILM_SAVED_ANSWERS,
         myFilmEditResult,
       );
     },

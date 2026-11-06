@@ -80,28 +80,28 @@
 @utility type-display-xl {
   font-family: Staatliches-Regular;
   font-size: 72px;
-  line-height: 72px;
+  line-height: 90px;
   letter-spacing: 0.72px;
   text-transform: uppercase;
 }
 @utility type-display-l {
   font-family: Staatliches-Regular;
   font-size: 48px;
-  line-height: 48px;
+  line-height: 60px;
   letter-spacing: 0.48px;
   text-transform: uppercase;
 }
 @utility type-display-m {
   font-family: Staatliches-Regular;
   font-size: 34px;
-  line-height: 34px;
+  line-height: 43px;
   letter-spacing: 0.34px;
   text-transform: uppercase;
 }
 @utility type-display-s {
   font-family: Staatliches-Regular;
   font-size: 24px;
-  line-height: 26px;
+  line-height: 30px;
   letter-spacing: 0.48px;
   text-transform: uppercase;
 }
@@ -168,14 +168,14 @@
 @utility type-label-button-l {
   font-family: Staatliches-Regular;
   font-size: 22px;
-  line-height: 22px;
+  line-height: 28px;
   letter-spacing: 0.88px;
   text-transform: uppercase;
 }
 @utility type-label-button-s {
   font-family: Staatliches-Regular;
   font-size: 17px;
-  line-height: 18px;
+  line-height: 22px;
   letter-spacing: 0.68px;
   text-transform: uppercase;
 }
@@ -202,14 +202,14 @@
 @utility type-avatar-m {
   font-family: Staatliches-Regular;
   font-size: 20px;
-  line-height: 24px;
+  line-height: 25px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
 }
 @utility type-avatar-l {
   font-family: Staatliches-Regular;
   font-size: 30px;
-  line-height: 34px;
+  line-height: 38px;
   letter-spacing: 0.6px;
   text-transform: uppercase;
 }

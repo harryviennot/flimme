@@ -325,6 +325,9 @@ export type Database = {
 "set_analytics_choice":
 { Args: { "p_choice": "on"|"off"|"detailed","p_version": string }; Returns: Json
                            },
+"set_film_saved":
+{ Args: { "p_saved": boolean,"p_title_id": number }; Returns: Json
+                           },
 "set_film_seen":
 { Args: { "p_seen": boolean,"p_title_id": number }; Returns: Json
                            },

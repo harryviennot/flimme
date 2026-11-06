@@ -59,6 +59,8 @@ export function MyFilmsScreen({ onOpenFilm, onPlayAlone }: MyFilmsScreenProps) {
   const firstPage = query.data?.pages[0];
   useEffect(() => {
     if (!firstPage) return;
+    // The app can't open Later yet; M6.51 adds it to my_films:grid_view (analytics.md) and drops this.
+    if (segment === 'later') return;
     const key = `${segment}:${segment === 'liked' ? filter : 'none'}`;
     if (tracked.current === key) return;
     tracked.current = key;

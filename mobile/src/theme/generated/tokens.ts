@@ -106,28 +106,28 @@ export const tokens = {
     "display-xl": {
       "fontFamily": "Staatliches-Regular",
       "fontSize": 72,
-      "lineHeight": 72,
+      "lineHeight": 90,
       "letterSpacing": 0.72,
       "textTransform": "uppercase"
     },
     "display-l": {
       "fontFamily": "Staatliches-Regular",
       "fontSize": 48,
-      "lineHeight": 48,
+      "lineHeight": 60,
       "letterSpacing": 0.48,
       "textTransform": "uppercase"
     },
     "display-m": {
       "fontFamily": "Staatliches-Regular",
       "fontSize": 34,
-      "lineHeight": 34,
+      "lineHeight": 43,
       "letterSpacing": 0.34,
       "textTransform": "uppercase"
     },
     "display-s": {
       "fontFamily": "Staatliches-Regular",
       "fontSize": 24,
-      "lineHeight": 26,
+      "lineHeight": 30,
       "letterSpacing": 0.48,
       "textTransform": "uppercase"
     },
@@ -194,14 +194,14 @@ export const tokens = {
     "label-button-l": {
       "fontFamily": "Staatliches-Regular",
       "fontSize": 22,
-      "lineHeight": 22,
+      "lineHeight": 28,
       "letterSpacing": 0.88,
       "textTransform": "uppercase"
     },
     "label-button-s": {
       "fontFamily": "Staatliches-Regular",
       "fontSize": 17,
-      "lineHeight": 18,
+      "lineHeight": 22,
       "letterSpacing": 0.68,
       "textTransform": "uppercase"
     },
@@ -228,14 +228,14 @@ export const tokens = {
     "avatar-m": {
       "fontFamily": "Staatliches-Regular",
       "fontSize": 20,
-      "lineHeight": 24,
+      "lineHeight": 25,
       "letterSpacing": 0.4,
       "textTransform": "uppercase"
     },
     "avatar-l": {
       "fontFamily": "Staatliches-Regular",
       "fontSize": 30,
-      "lineHeight": 34,
+      "lineHeight": 38,
       "letterSpacing": 0.6,
       "textTransform": "uppercase"
     }
