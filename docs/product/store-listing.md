@@ -2,7 +2,7 @@
 
 How Flimme gets into the App Store and Google Play: choosing the name, the developer accounts, the store records, the listing in English and French, screenshots and the preview video, age ratings, passing review, the invite links the stores care about, price and countries, the closed beta, and a release checklist. Written on 29 October 2026; every store rule below was checked on Apple's and Google's live pages that day (see [Sources checked](#sources-checked)).
 
-It builds on the [onboarding](onboarding.md) (the invite page, accounts), the [app structure](../architecture/app-structure.md) (builds, links, sign-in), [monetization](monetization.md) (free at launch, kids' safety, not the Kids category), [tmdb.md](../integrations/tmdb.md) (credits, countries at launch) and the [Letterboxd integration](../integrations/letterboxd.md). It replaces the Store part of the revival plan's [publishing checklist](revival-plan.md#publishing-checklist). The App Privacy labels and the Data safety form are in [privacy.md](privacy.md); store and install metrics are in [analytics.md](analytics.md). Decisions are in [decisions.md](../decisions.md).
+It builds on the [onboarding](onboarding.md) (the invite page, accounts), the [app structure](../architecture/app-structure.md) (builds, links, sign-in), [monetization](monetization.md) (free at launch, kids' safety, not the Kids category), [tmdb.md](../integrations/tmdb.md) (credits, countries at launch) and the [Letterboxd integration](../integrations/letterboxd.md). It replaces the Store part of the revival plan's [publishing checklist](revival-plan.md#publishing-checklist). The App Privacy labels and the Data safety form are answered in [docs/store/privacy-forms.md](../store/privacy-forms.md), from [privacy.md](privacy.md); store and install metrics are in [analytics.md](analytics.md). Decisions are in [decisions.md](../decisions.md).
 
 The app's name is Flimme (decided 4 November 2026). This doc still writes **[Name]** where it goes; read it as Flimme. Every number marked as a starting value is a placeholder.
 
@@ -77,7 +77,7 @@ Both stores need an account before any build reaches a tester. The choice of **i
 | Encryption (Apple export compliance) | Standard HTTPS only | Set the exemption in the app config so each build doesn't ask |
 | Privacy policy URL | Required by both stores and inside the app (App Store guideline 5.1.1(i)) | From [privacy.md](privacy.md) |
 | Support URL | A page with a contact email: support@flimme.com (M0.2) | Apple requires real contact details on it |
-| Account deletion web page | Required by Google Play for apps with accounts | A page where players can ask for deletion without the app; also linked in the Data safety form ([privacy.md](privacy.md)) |
+| Account deletion web page | Required by Google Play for apps with accounts | A page where players can ask for deletion without the app; also linked in the Data safety form ([privacy-forms.md](../store/privacy-forms.md)) |
 | Android target | API level 36 (Android 16) | Required for new apps and updates on Google Play since 31 August 2026; check what Expo SDK 58 sets |
 
 ## The listing, in English and French
@@ -174,7 +174,7 @@ Google's content rating comes from the IARC questionnaire in Play Console; each 
 | Minimum functionality | 4.2: beyond a repackaged website | Native card stack, gestures, haptics, live rooms. Fine |
 | Store assets | 2.3.3, 2.3.4, 2.3.8 | App in use, captures only, 4+ images |
 | Kids Category | 1.3 | Not chosen: it bans third-party analytics and ads and links out without a parental gate ([monetization](monetization.md#kids-safety-and-privacy)) |
-| Privacy | 5.1.1(i); Google's Data safety | [privacy.md](privacy.md) |
+| Privacy | 5.1.1(i); Google's Data safety | [privacy.md](privacy.md), and the form answers in [privacy-forms.md](../store/privacy-forms.md) |
 
 **Review notes** (both stores; a start):
 
@@ -271,7 +271,7 @@ Replaces the Store section of the revival plan's [publishing checklist](revival-
 
 - [ ] Apple age rating questionnaire
 - [ ] IARC questionnaire and target audience (13 and over) in Play Console
-- [ ] App Privacy labels and Data safety form ([privacy.md](privacy.md))
+- [ ] App Privacy labels and Data safety form ([privacy-forms.md](../store/privacy-forms.md))
 - [ ] Content rights declared (Apple)
 
 **Review and beta**

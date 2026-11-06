@@ -56,7 +56,7 @@ Guests and accounts store the same things; a guest simply has no email. Retentio
 
 | Data | What it holds | Why | Basis | Who else sees it | Kept |
 | --- | --- | --- | --- | --- | --- |
-| Sign-in (Supabase Auth) | User id; for saved accounts, the email and name Apple or Google pass on (Apple can give a relay email); sign-in times; for each session, the IP address and user agent Supabase Auth records in `auth.sessions` (deleted with the session or the user); Supabase Auth's audit log (`auth.audit_log_entries`), with the action, the user id, the time and the IP address of each sign-in and token refresh (nothing deletes it yet, not even with the user: an open point in the [record of processing](../legal/record-of-processing.md#points-ouverts)) | Keep the same player across devices | Contract | Nobody | While the account exists. Guests inactive for 90 days are deleted |
+| Sign-in (Supabase Auth) | User id; for saved accounts, the email and name Apple or Google pass on (Apple can give a relay email); sign-in times; for each session, the IP address and user agent Supabase Auth records in `auth.sessions` (deleted with the session or the user); Supabase Auth's audit log (`auth.audit_log_entries`, "the sign-in log" in the policy): each sign-up, sign-in, token refresh and revocation, sign-out and account deletion, with the action, the user id, the email or phone when there is one, the provider and the time. Its `ip_address` column is filled only for some events (MFA, passkeys, identity linking, recovery codes), none of which a guest uses: Supabase Auth v2.197 passes no address for sign-ups, sign-ins, refreshes or sign-outs ([Supabase's audit logs](https://supabase.com/docs/guides/auth/audit-logs)), but the policy says it may hold one | Keep the same player across devices; the audit log is for security | Contract; legitimate interest (security) for the audit log | Nobody | While the account exists. Guests inactive for 90 days are deleted. The audit log: 90 days at most, even after the user is deleted (the policy, 6 Nov 2026). Nothing deletes it yet: M8.14 adds a daily cleanup or turns off its database copy (Authentication, Audit Logs, "Write audit logs to the database"), and must ship before any production row is 90 days old |
 | Profile | Display name, preset avatar, country, language | Show you in rooms, pick the catalog country and card language | Contract | Name and avatar: people in your rooms | While the account exists |
 | Services | Streaming services you have | Only deal films you can watch | Contract | People in your rooms (the lobby shows each player's services) | While the account exists |
 | Consents | Kind, wording version, dates; for analytics, the choice (`on`, `off`, `detailed`) | Prove consent was given | Legal obligation (GDPR art. 7(1)) | Nobody | While the account exists. **New**: a minimal proof after deletion, see [Starting values](#starting-values). Not in the first release: deletion keeps no proof (decisions.md, M8.5 Q5.4) |
@@ -67,12 +67,12 @@ Guests and accounts store the same things; a guest simply has no email. Retentio
 | Card memory (`card_history`) | Per film: times shown, liked and noped, last shown, how the game ended | Fresh decks between games ([deck engine](../architecture/deck-engine.md#card-memory)) | Contract | Nobody | 12 months after the last showing |
 | Rooms and seats | Room settings, your seat's name snapshot, services, times, your after-game answer. Solo sessions are rooms with one seat | Run the game, your history | Contract | People in that room (nobody, for a solo room) | While the account exists. Seats become anonymous on deletion; lobbies that never start go after 7 days |
 | Votes, matches, finale ballots | Each answer and its time | Run the game | Contract | Counts during the game; after the pick, in Party mode, who liked the runners-up ([game modes](game-modes.md#what-players-see-party-and-blind)) | While the account exists, anonymous after deletion |
-| Swipe log | Every vote and undo, time on screen, whether the card was flipped | Improve the deck, and the solo daily cap | Legitimate interest | Nobody | 13 months |
+| Swipe log | Every vote and undo: the film, the answer, the card's deck source and score, time on screen, whether the card was flipped, the time | Improve the deck, and the solo daily cap | Legitimate interest | Nobody | 13 months |
 | Deal logs (`rec`) | Each card dealt with its score, features, model and experiment | Train and compare models | Legitimate interest | Nobody | Ranked cards 90 days, requests 13 months. Until the trainer's export (M22.1), ranked cards stay with their request, so 13 months (decisions.md, M8.9 Q9.1) |
 | Training exports | Deal logs joined to votes, with seat ids only | Train models | Legitimate interest, with an opt-out | Nobody | **New**: 24 months (the data model sets none) |
 | Room taste | The room's live taste and dropped genres | The deck during the game | Contract | Nobody | With the room |
 | Player reports | Who reported which seat in a room, a preset reason (offensive name, spam, other) and the time; no free text and no copy of the name | Let players flag an offensive name, as the app stores require | Legitimate interest (safety of other players, app store rules) | Harry only; the reported player is never told who reported | 12 months, then deleted. Kept when an account is deleted, since the seats are anonymous |
-| Rate limits | Counters keyed by an action and the player id, and for joining and room previews by a client address stored as a sha256 hash (IPv6 keyed by its /64) | Stop room codes being guessed, and limit repeated calls (exports, reports, solo games, My films edits and others) | Legitimate interest (security) | Nobody | 1 day |
+| Rate limits | Counters keyed by an action and the player id, and for joining and room previews by a client address stored as a sha256 hash (IPv6 keyed by its /64) | Stop room codes being guessed, and limit repeated calls. Per player: joining, room previews, failed joins, solo starts, `api.title_cards` and `api.my_film_card` (a film's card outside the deck), My films edits, the analytics choice, reports, the data export, and the taste check (not in the first release). Per address: joining and room previews only | Legitimate interest (security) | Nobody | 1 day |
 | Analytics (PostHog) | Events: screens, taps, timings; language, country, a games-played band, device model, OS, app version, time zone. In the EU, the UK and Switzerland a random install id and no player id; with "Detailed stats", or elsewhere, the player id. Never an IP | Measure and fix the app | Exempt audience measurement with an opt-out in the EU, the UK and Switzerland; consent for "Detailed stats"; legitimate interest with an opt-out elsewhere (M8.1) | Nobody | 25 months at most |
 | Crash reports (Sentry) | Stack traces, device model, OS, app version. No names, codes, emails or IP | Fix crashes | Legitimate interest (**Lawyer**) | Nobody | 90 days at most: Sentry keeps 30 days on its free plan, up to 90 on Team (checked 5 Nov 2026) |
 | Server and database logs | Requests, errors; Supabase's logs hold IP addresses, the server's hold ids only ([security.md](../architecture/security.md#logging-without-personal-data)) | Security and operations | Legitimate interest | Nobody | 7 days at most: Supabase keeps 1 day on Free and 7 on Pro ([operations.md](../architecture/operations.md#monitoring-and-alerts)); Fly.io's log search keeps 7 days (checked 5 Nov 2026) |
@@ -167,7 +167,7 @@ Sentry in its EU data region (Frankfurt), with personal data off: no IP, no name
 
 - **Deadline**: one month from the request (GDPR art. 12(3)).
 - **Email requests** go to support@flimme.com, until a separate privacy address exists (decided 4 November 2026). A guest can't be identified by email, so guests are pointed to the in-app buttons.
-- **Analytics and crash data** aren't in the export: they're not linked to the player.
+- **Analytics and crash data** aren't in the export, which reads the database: they live in PostHog and Sentry. Crash reports aren't linked to the player. Usage stats are, with "Detailed stats" or outside Europe (the profile id goes with them), and deleting the data erases that person in PostHog.
 
 ## Children
 
@@ -216,7 +216,7 @@ Obligations from [tmdb.md](../integrations/tmdb.md#terms-licence-and-attribution
 | Sentry | Processor | Crash reports | EU data region, Frankfurt. Sentry says some data types may still be stored in the US | Its DPA |
 | PostHog | Processor | Events: anonymous in the EU, the UK and Switzerland unless the player turns on "Detailed stats", tied to the player id elsewhere | EU Cloud, Frankfurt (AWS `eu-central-1`) | Its DPA |
 | Expo (EAS Update) | Processor | The OS and random tokens when the app checks for an update; no push tokens since we don't use Expo's push service | US | EU-US Data Privacy Framework and standard contractual clauses (Expo's policy of 21 October 2025) |
-| OVH | Processor | The mail servers of support@flimme.com (the domain's MX records), and the VPS that serves flimme.com, which keeps no access log | France (the VPS is in Gravelines). Where the support mailbox is stored, or whether it forwards elsewhere, is for Harry to confirm | None (a French company) |
+| OVH | Processor | The support@flimme.com mailbox: the MX records point to OVH's mail service (`mx1`, `mx2`, `mx3.mail.ovh.net`) and the SPF record lets only OVH send for the domain (checked 6 Nov 2026). The VPS that serves flimme.com, which keeps no access log | France: the VPS is in Gravelines; OVH's mail servers are on its French addresses. That the mailbox keeps mail at OVH rather than forwarding it elsewhere is for Harry to confirm | None (a French company) |
 | Apple, Google | Independent controllers | The identity when a player saves an account; store data | | Their terms |
 | Letterboxd | Independent controller | Sees our server fetch the member's public feed | | |
 | TMDB | Not a processor | No personal data is sent; its image servers see the phone's IP address when it loads a poster or a logo | | |
@@ -225,34 +225,41 @@ Later: RevenueCat with Pro, a push provider if push notifications arrive.
 
 ## Store privacy forms
 
+The first release's answers, field by field, are in [docs/store/privacy-forms.md](../store/privacy-forms.md) (M11.6, checked against the code on 6 November 2026). This section is their summary. It corrects the first tables written here: usage stats are **linked** to the player (with "Detailed stats", and everywhere outside Europe the profile id goes with them), and the email, Letterboxd and saved account rows wait for those features.
+
 **Apple App Privacy**, with no tracking:
 
 | Data type | Linked to the player | Purposes |
 | --- | --- | --- |
-| Contact Info: Name (display name), Email Address (saved accounts) | Yes | App Functionality |
-| User Content: Gameplay Content (votes, rooms), Other User Content (Letterboxd diary, film answers) | Yes | App Functionality, Product Personalization |
-| Identifiers: User ID | Yes | App Functionality |
-| Identifiers: Device ID (the anonymous analytics install id) | No | Analytics |
-| Usage Data: Product Interaction | No | Analytics |
-| Diagnostics: Crash Data, Performance Data | No | App Functionality |
+| Contact Info: Name (display name) | Yes | App Functionality |
+| User Content: Gameplay Content (rooms, seats, votes, the card log, My films, services, reports) | Yes | App Functionality, Analytics, Product Personalization |
+| Identifiers: User ID (the profile id) | Yes | App Functionality, Analytics |
+| Identifiers: Device ID (the anonymous analytics install id, Expo's update token, Sentry's installation id) | No | Analytics, App Functionality |
+| Usage Data: Product Interaction | Yes | Analytics |
+| Usage Data: Other Usage Data (when the profile was created and last used, the sign-in log) | Yes | App Functionality |
+| Diagnostics: Crash Data | No | App Functionality |
+| Diagnostics: Performance Data (the time to the first card, app hangs) | Yes | Analytics, App Functionality |
+| Other Data (country, language, IP addresses, the stats choice) | Yes | App Functionality, Analytics, Other Purposes |
+| Later, with accounts: Contact Info: Email Address | Yes | App Functionality |
+| Later, with Letterboxd: User Content: Other User Content (the diary, film answers) | Yes | App Functionality, Product Personalization |
 
 **Google Play Data safety**:
 
 | Category | Data type | Required or optional | Purposes |
 | --- | --- | --- | --- |
 | Personal info | Name (Google counts a nickname) | Required | App functionality |
-| Personal info | Email address | Optional (saved accounts only) | Account management |
-| App activity | Other actions (likes, gameplay) | Required | App functionality, Personalization |
-| App activity | Other user-generated content (Letterboxd import) | Optional | Personalization |
+| Personal info | User IDs (the profile id) | Required | App functionality, Analytics, Account management |
+| Personal info | Other info (country, language) | Required | App functionality, Analytics |
+| App activity | Other actions (gameplay, likes, My films, reports, the stats choice) | Required | App functionality, Analytics, Personalization, Fraud prevention, security, and compliance |
 | App activity | App interactions | Optional (opt-out switch) | Analytics |
-| App info and performance | Crash logs, Diagnostics | Required | App functionality |
-| Device or other IDs | The analytics install id | Optional | Analytics |
+| App info and performance | Crash logs, Diagnostics | Required | App functionality, Analytics |
+| Device or other IDs | The install id, Expo's and Sentry's ids, IP addresses | Required | App functionality, Analytics, Fraud prevention, security, and compliance |
+| Later, with accounts: Personal info | Email address | Optional (saved accounts only) | Account management |
+| Later, with Letterboxd: App activity | Other user-generated content (the import) | Optional | Personalization |
 
 - **Shared with third parties**: none. Google doesn't count service providers as sharing.
 - **Encrypted in transit**: yes, everything over TLS.
-- **Deletion**: in the app and through the web page.
-
-The final answers are filled in with [store-listing.md](store-listing.md).
+- **Account creation**: yes, the automatic guest profile. **Deletion**: in the app and through the web page, `https://flimme.com/en/delete-account`.
 
 ## Privacy policy outline
 
@@ -290,7 +297,7 @@ The first release's text (M8.2) is in `mobile/src/content/legal/terms.fr.ts` (th
 
 - **The web pages** (the invite page and the legal pages) start no session and create no guest account (`mobile/src/app/_layout.web.tsx`), and carry no analytics, so no banner is needed. If anything non-exempt is ever added there, it needs a consent banner first.
 - **Record of processing** and **DPIA**: see [Who is responsible](#who-is-responsible).
-- **Breach notification**: 72 hours to tell the CNIL (GDPR art. 33), and every breach goes in a breach register (art. 33(5)). Neither the process nor the register exists yet: security.md has none, and operations.md's incident steps point back here. An open point in the [record of processing](../legal/record-of-processing.md#points-ouverts).
+- **Breach notification**: 72 hours to tell the CNIL (GDPR art. 33), and every breach goes in a breach register (art. 33(5)). Neither the process nor the register exists yet: security.md has none, and operations.md's incident steps point back here. M8.13 writes both; an open point in the [record of processing](../legal/record-of-processing.md#points-ouverts).
 
 ## Questions for a lawyer
 
