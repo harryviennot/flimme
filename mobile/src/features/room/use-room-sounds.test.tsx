@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 
 import { playSound, preloadSounds, releaseSounds } from '@/lib/sound';
 
-import { clearLive } from './live-moments';
+import { clearLive, resetStartClaims } from './live-moments';
 import { useRoomSounds } from './use-room-sounds';
 
 jest.mock('@/lib/sound', () => ({
@@ -21,7 +21,7 @@ function fakeRealtime() {
       handlers.set(event, handler);
       return () => handlers.delete(event);
     },
-    emit: (event: string) => handlers.get(event)?.({}),
+    emit: (event: string, payload: unknown = {}) => handlers.get(event)?.(payload),
   };
 }
 
@@ -30,6 +30,7 @@ const seat = (id: string) => ({ member_id: id, left_at: null });
 beforeEach(() => {
   jest.clearAllMocks();
   clearLive('r');
+  resetStartClaims();
 });
 
 type Props = { state: 'lobby' | 'dealing' | 'swiping'; seats: ReturnType<typeof seat>[] };
@@ -72,15 +73,24 @@ describe('useRoomSounds', () => {
     expect(playSound).not.toHaveBeenCalled();
   });
 
-  it('plays the start sound when state_changed takes the lobby to dealing', async () => {
+  it('plays the start sound when a state_changed says dealing in the lobby, even if the re-read skips it', async () => {
     const { realtime, rerender } = await setup({ state: 'lobby', seats: [seat('me'), seat('a')] });
-    await act(async () => realtime.emit('state_changed'));
-    await rerender({ state: 'dealing', seats: [seat('me'), seat('a')] });
+    await act(async () => realtime.emit('state_changed', { state: 'dealing' }));
     expect(playSound).toHaveBeenCalledWith('start');
+    await rerender({ state: 'swiping', seats: [seat('me'), seat('a')] });
+    expect(playSound).toHaveBeenCalledTimes(1);
   });
 
-  it('plays no start sound for a cold start or a re-read into dealing', async () => {
+  it('plays the start sound once when the event comes twice', async () => {
+    const { realtime } = await setup({ state: 'lobby', seats: [seat('me'), seat('a')] });
+    await act(async () => realtime.emit('state_changed', { state: 'dealing' }));
+    await act(async () => realtime.emit('state_changed', { state: 'dealing' }));
+    expect(playSound).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays no start sound for a cold start, a re-read, or a phone not in the lobby', async () => {
     const cold = await setup({ state: 'dealing', seats: [seat('me')] });
+    await act(async () => cold.realtime.emit('state_changed', { state: 'dealing' }));
     await cold.unmount();
     const reread = await setup({ state: 'lobby', seats: [seat('me')] });
     await reread.rerender({ state: 'dealing', seats: [seat('me')] });

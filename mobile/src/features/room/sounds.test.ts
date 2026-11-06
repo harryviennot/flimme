@@ -1,23 +1,34 @@
-import { clearLive, LIVE_WINDOW_MS, noteLive, takeLive } from './live-moments';
+import {
+  claimStartSound,
+  clearLive,
+  LIVE_WINDOW_MS,
+  noteLive,
+  resetStartClaims,
+  START_CLAIM_MS,
+  takeLive,
+} from './live-moments';
 import { arrivalSeats, startSoundDue } from './sounds';
 
 const ids = (...x: string[]) => new Set(x);
 
 describe('startSoundDue', () => {
-  it('plays when the lobby goes to dealing live', () => {
-    expect(startSoundDue('lobby', 'dealing', true)).toBe(true);
+  it('plays when a state_changed says dealing to a phone in the lobby', () => {
+    expect(startSoundDue('lobby', { state: 'dealing' })).toBe(true);
   });
 
-  it('plays nothing for a re-read, a cold start or a room first seen as swiping', () => {
-    expect(startSoundDue('lobby', 'dealing', false)).toBe(false);
-    expect(startSoundDue(undefined, 'dealing', true)).toBe(false);
-    expect(startSoundDue('lobby', 'swiping', true)).toBe(false);
-    expect(startSoundDue(undefined, 'swiping', true)).toBe(false);
+  it('plays nothing for a phone not in the lobby, or another state, or no payload', () => {
+    expect(startSoundDue(undefined, { state: 'dealing' })).toBe(false);
+    expect(startSoundDue('swiping', { state: 'dealing' })).toBe(false);
+    expect(startSoundDue('lobby', { state: 'swiping' })).toBe(false);
+    expect(startSoundDue('lobby', null)).toBe(false);
   });
 
-  it('plays again when the deal went back to the lobby and the host starts again', () => {
-    expect(startSoundDue('dealing', 'lobby', true)).toBe(false);
-    expect(startSoundDue('lobby', 'dealing', true)).toBe(true);
+  it('claims the start once, so the host answer and the event play one sound', () => {
+    resetStartClaims();
+    expect(claimStartSound('r', 0)).toBe(true);
+    expect(claimStartSound('r', 1000)).toBe(false);
+    // The deal went back to the lobby and the host starts again later.
+    expect(claimStartSound('r', START_CLAIM_MS + 1)).toBe(true);
   });
 });
 
@@ -66,11 +77,11 @@ describe('live moments', () => {
   });
 
   it('forgets a note whose re-read never came', () => {
-    noteLive('r', 'state', 0);
-    expect(takeLive('r', 'state', LIVE_WINDOW_MS + 1)).toBe(false);
+    noteLive('r', 'joined', 0);
+    expect(takeLive('r', 'joined', LIVE_WINDOW_MS + 1)).toBe(false);
   });
 
   it('has no note without an event, as after a reconnect', () => {
-    expect(takeLive('r', 'state')).toBe(false);
+    expect(takeLive('r', 'joined')).toBe(false);
   });
 });

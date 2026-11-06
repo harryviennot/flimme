@@ -2,13 +2,14 @@ import type { RoomState } from '@flimme/contract';
 
 // When the room's own sounds play (docs/design/sounds.md), as plain functions.
 
-/** The start sound: this phone saw the room go from the lobby to dealing, live. */
-export function startSoundDue(
-  before: RoomState | undefined,
-  after: RoomState | undefined,
-  live: boolean,
-): boolean {
-  return live && before === 'lobby' && after === 'dealing';
+/**
+ * The start sound: a `state_changed` event that says `dealing` reaches a phone that was in the
+ * lobby. The event is the live signal. The room re-read can already say `swiping` (the deal is
+ * quick), so the sound never waits for the re-read.
+ */
+export function startSoundDue(before: RoomState | undefined, payload: unknown): boolean {
+  const state = (payload as { state?: unknown } | null)?.state;
+  return before === 'lobby' && state === 'dealing';
 }
 
 /**
