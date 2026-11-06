@@ -94,9 +94,9 @@ Later modes are in [Later modes](#later-modes).
 | Seen rule | What "Seen it" does |
 | --- | --- |
 | `hide_seen` (Date Night) | The film leaves the game for everyone: it's dropped from every deck that hasn't reached it. It can't match |
-| `allow_rewatch` (the default) and `show_all` | **Default to confirm:** the card asks one more question, "Watch it again tonight?". Yes counts as a like, No as a nope. Either way the film is recorded as seen |
+| `allow_rewatch` (the default) and `show_all` | **Decided on 6 November 2026:** one tap on Seen it sends `seen` (a nope) and the card flies up; a chip then offers "Watch it again tonight? Yes", which turns the answer into a like (`seen_rewatch`) for 5 seconds or until the next answer. Either way the film is recorded as seen |
 
-Today the data model makes "Seen it" an abstention under these rules: the film can match without that player. Now that `allow_rewatch` is the default, that would let a film match while someone who has seen it and doesn't want to rewatch it said nothing against it. The follow-up question removes abstentions; it costs one tap, only in rooms that allow rewatches. For taste, both answers count as "seen" (0), as the deck engine's [signals](../architecture/deck-engine.md#signals) already say.
+Today the data model makes "Seen it" an abstention under these rules: the film can match without that player. Now that `allow_rewatch` is the default, that would let a film match while someone who has seen it and doesn't want to rewatch it said nothing against it. The seen nope removes abstentions; the chip's Yes costs one tap, only in rooms that allow rewatches. For taste, both answers count as "seen" (0), as the deck engine's [signals](../architecture/deck-engine.md#signals) already say.
 
 **Undo**
 
