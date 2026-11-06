@@ -532,8 +532,9 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
     },
 
     /**
-     * Save a film for Later (only one dealt to the caller, or already in their rows) or remove it from
-     * Later. Not an answer: it counts for nothing in the room. A repeat save is `ok`; `not_found` is an answer.
+     * The bookmark: save a film as a solo like (only one dealt to the caller, or already in their rows),
+     * or unsave it. Not an answer: it counts for nothing in the room. Saving a film already liked or saved
+     * is `ok` and changes nothing; unsaving takes back only a like a save made. `not_found` is an answer.
      */
     setFilmSaved(args: { title_id: number; saved: boolean }): Promise<MyFilmEditResult> {
       return callAnswer(

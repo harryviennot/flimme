@@ -576,7 +576,7 @@ export type NextCard = z.infer<typeof nextCardRow>;
 /** `api.my_next_cards` answers an array of cards, with no status. */
 export const myNextCardsResult = z.array(nextCardRow);
 
-/** One tile of My films: `at` is the film's latest time under the segment (for `later`, when it was saved). */
+/** One tile of My films: `at` is the film's latest time under the segment (for a saved film, when it was saved). */
 export const myFilmTile = z.object({
   title_id: z.number(),
   title: z.string(),
@@ -596,14 +596,13 @@ export const myFilmsResult = z.object({
 });
 export type MyFilmsResult = z.infer<typeof myFilmsResult>;
 
-/** `api.my_film_card`: the film sheet's card, and whether the caller marked it seen, liked it and saved it. */
+/** `api.my_film_card`: the film sheet's card, and whether the caller marked it seen and liked it (a saved film is liked). */
 export const myFilmCardResult = z.discriminatedUnion('status', [
   z.object({
     status: z.literal('ok'),
     card: cardRow,
     seen: z.boolean(),
     liked: z.boolean(),
-    saved: z.boolean(),
   }),
   z.object({ status: z.literal('not_found') }),
   z.object({ status: z.literal('rate_limited') }),

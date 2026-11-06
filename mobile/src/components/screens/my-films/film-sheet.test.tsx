@@ -47,12 +47,11 @@ const card: Card = {
   providers: [{ provider_id: 8, kind: 'subscription', name: 'Netflix', logo_path: null }],
   watch_link: null,
 };
-const ok = (extra: { seen?: boolean; liked?: boolean; saved?: boolean } = {}) => ({
+const ok = (extra: { seen?: boolean; liked?: boolean } = {}) => ({
   status: 'ok',
   card,
   seen: false,
   liked: true,
-  saved: false,
   ...extra,
 });
 
@@ -160,37 +159,13 @@ describe('the film sheet', () => {
     expect(removeMyFilm).toHaveBeenCalledWith({ title_id: 7 });
   });
 
-  it('offers Remove from Later only on a saved film', async () => {
-    myFilmCard.mockResolvedValue(ok({ saved: false }));
+  it('has no Later button: a saved film is a like, and Remove takes it out', async () => {
+    myFilmCard.mockResolvedValue(ok({ liked: true }));
     await showLoaded();
     expect(screen.queryByRole('button', { name: 'Remove from Later' })).toBeNull();
-  });
-
-  it('removes from Later with the call, and can save it again in the sheet', async () => {
-    myFilmCard.mockResolvedValue(ok({ saved: true }));
-    await showLoaded();
-    await fireEvent.press(screen.getByRole('button', { name: 'Remove from Later' }));
-    await screen.findByRole('button', { name: 'Save for later' });
-    expect(setFilmSaved).toHaveBeenLastCalledWith({ title_id: 7, saved: false });
-    await fireEvent.press(screen.getByRole('button', { name: 'Save for later' }));
-    await screen.findByRole('button', { name: 'Remove from Later' });
-    expect(setFilmSaved).toHaveBeenLastCalledWith({ title_id: 7, saved: true });
-  });
-
-  it('turns the Later button back and warns when the call fails', async () => {
-    myFilmCard.mockResolvedValue(ok({ saved: true }));
-    setFilmSaved.mockResolvedValue({ status: 'rate_limited' });
-    await showLoaded();
-    await fireEvent.press(screen.getByRole('button', { name: 'Remove from Later' }));
-    await waitFor(() => expect(setFilmSaved).toHaveBeenCalled());
-    await screen.findByRole('button', { name: 'Remove from Later' });
-  });
-
-  it('speaks French on the Later button', async () => {
-    await i18n.changeLanguage('fr');
-    myFilmCard.mockResolvedValue(ok({ saved: true }));
-    await show();
-    expect(await screen.findByRole('button', { name: 'Retirer de Plus tard' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Save for later' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Remove from Liked' })).toBeTruthy();
+    expect(setFilmSaved).not.toHaveBeenCalled();
   });
 
   it('shows the not found state with a Close action', async () => {
