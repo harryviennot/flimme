@@ -107,3 +107,19 @@ export function returnStart(
   if (direction === 'up') return { x: 0, y: -screen.height * THROW_DISTANCE };
   return { x: (direction === 'left' ? -1 : 1) * screen.width * THROW_DISTANCE, y: 0 };
 }
+
+/**
+ * The opacity of the dark layer over a card in the stack (swipe.md#the-dim-layer), from its depth
+ * (0 on top, 1, 2; fractional while it springs forward) and how far the top card is dragged
+ * (0 to 1). The second card is clear at the commit line, so it brightens as it grows. With Reduce
+ * Motion the drag changes nothing: the dimming jumps with the cards.
+ */
+export function dimOf(depth: number, dragProgress: number, reduced: boolean): number {
+  'worklet';
+  const near = tokens.opacity['stack-dim-near'] * (reduced ? 1 : 1 - dragProgress);
+  const far = tokens.opacity['stack-dim-far'];
+  if (depth <= 0) return 0;
+  if (depth <= 1) return near * depth;
+  if (depth <= 2) return near + (far - near) * (depth - 1);
+  return far;
+}

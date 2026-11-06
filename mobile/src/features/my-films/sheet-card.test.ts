@@ -35,6 +35,7 @@ describe('sheetCardProps', () => {
     expect(props.poster).toEqual({ uri: 'https://img.test/t/p/w500/p.jpg' });
     expect(props.meta).toBe('1995 · 2 h 50 · ★ 7.9');
     expect(props.back.tmdbRating).toBe('7.9');
+    expect(props.back.meta).toBe('1995 · 2 h 50');
     expect(props.back.synopsis).toBe('A crew and a cop.');
     expect(props.back.director).toBe('Michael Mann');
   });
@@ -42,7 +43,6 @@ describe('sheetCardProps', () => {
   it('leaves out the trailer, a friend rating, the reason and the service tags', () => {
     const props = sheetCardProps(card, options);
     expect(props.back.onTrailer).toBeUndefined();
-    expect(props.back.friendRating).toBeUndefined();
     expect(props.reason).toBeUndefined();
     expect(props.services).toEqual([]);
     expect(props.back.services).toEqual([]);

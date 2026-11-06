@@ -1,3 +1,4 @@
+import type { NextCard } from '@flimme/contract';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +10,7 @@ import type { AnswerKind } from '@/features/swipe/answer';
 import { announceSaved } from '@/features/later/announce';
 import { toggleSaved, useIsSaved } from '@/features/later';
 import { openTrailer } from '@/features/swipe/trailer';
+import { setSynopsisCard } from '@/features/swipe/synopsis';
 import { backServices, cardMeta, cardServices, trailerAllowed } from '@/features/swipe/card-props';
 import { STACK_STEP, type Direction } from '@/features/swipe/feel';
 import type { Flying } from '@/features/swipe/use-flights';
@@ -88,6 +90,10 @@ export function CardStack({
     if (checkpointShown !== null) trackCheckpointView(roomId, checkpointShown, likes.length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkpointShown]);
+  const openSynopsis = (card: NextCard) => {
+    setSynopsisCard(card);
+    router.push(`/room/${roomId}/synopsis/${card.title_id}`);
+  };
   const openPick = () => router.push(`/room/${roomId}/pick`);
 
   const onLayout = (event: LayoutChangeEvent) => {
@@ -234,6 +240,7 @@ export function CardStack({
               a11y={{ label: labelOf(card), actions, onAction }}
               onRelease={onRelease}
               onFlip={flip}
+              onReadMore={openSynopsis}
               onLanded={landed}
             />
           ))}
