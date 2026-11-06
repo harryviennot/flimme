@@ -3,16 +3,21 @@
 // and, when it has one, to a heading that exists.
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, normalize, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { ROOT } from './lib/roadmap.mjs';
 
 const SKIP = new Set(['node_modules', '.git', '.expo', 'dist', '.venv', 'archive']);
+// Other agents' worktrees hold their own copy of the repo, often mid-edit: never this one's docs.
+const SKIP_PATHS = new Set([join('.claude', 'worktrees')]);
 
-function markdownFiles(dir) {
+/** Every Markdown file under `dir`, leaving out the folders above. */
+export function markdownFiles(dir, root = ROOT) {
   return readdirSync(dir).flatMap((name) => {
     if (SKIP.has(name)) return [];
     const path = join(dir, name);
-    if (statSync(path).isDirectory()) return markdownFiles(path);
+    if (SKIP_PATHS.has(relative(root, path))) return [];
+    if (statSync(path).isDirectory()) return markdownFiles(path, root);
     return name.endsWith('.md') ? [path] : [];
   });
 }
@@ -44,26 +49,30 @@ function anchors(path) {
   return anchorCache.get(path);
 }
 
-const problems = [];
-for (const file of markdownFiles(ROOT)) {
-  const text = readFileSync(file, 'utf8').replace(/```[\s\S]*?```/g, '');
-  for (const [, link] of text.matchAll(/\]\(([^)\s]+)\)/g)) {
-    if (/^(https?:|mailto:)/.test(link)) continue;
-    const [path, anchor] = link.split('#');
-    const target = path ? normalize(join(dirname(file), decodeURI(path))) : file;
-    const where = relative(ROOT, file);
-    if (!existsSync(target)) {
-      problems.push(`${where}: ${link} (no such file)`);
-      continue;
-    }
-    if (anchor && target.endsWith('.md') && !anchors(target).has(anchor)) {
-      problems.push(`${where}: ${link} (no such heading)`);
+function main() {
+  const problems = [];
+  for (const file of markdownFiles(ROOT)) {
+    const text = readFileSync(file, 'utf8').replace(/```[\s\S]*?```/g, '');
+    for (const [, link] of text.matchAll(/\]\(([^)\s]+)\)/g)) {
+      if (/^(https?:|mailto:)/.test(link)) continue;
+      const [path, anchor] = link.split('#');
+      const target = path ? normalize(join(dirname(file), decodeURI(path))) : file;
+      const where = relative(ROOT, file);
+      if (!existsSync(target)) {
+        problems.push(`${where}: ${link} (no such file)`);
+        continue;
+      }
+      if (anchor && target.endsWith('.md') && !anchors(target).has(anchor)) {
+        problems.push(`${where}: ${link} (no such heading)`);
+      }
     }
   }
+
+  if (problems.length) {
+    console.error(`Broken links:\n  ${problems.join('\n  ')}`);
+    process.exit(1);
+  }
+  console.log('Links: all good.');
 }
 
-if (problems.length) {
-  console.error(`Broken links:\n  ${problems.join('\n  ')}`);
-  process.exit(1);
-}
-console.log('Links: all good.');
+if (import.meta.url === pathToFileURL(process.argv[1]).href) main();
