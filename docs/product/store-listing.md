@@ -204,6 +204,7 @@ What the stores need from the links in [onboarding](onboarding.md#the-link) and 
 
 - **Free, no in-app purchases at launch**, as [monetization](monetization.md#recommended-sequence) recommends. Host Pro later adds purchases, a paywall review and RevenueCat.
 - **Countries follow the catalog** ([tmdb.md](../integrations/tmdb.md#countries-at-launch)): France for the closed beta; France, Belgium and Switzerland at the public launch; the UK, Ireland, the US and Canada once the English copy is done. **Default: the stores list only countries where hosting works,** so nobody installs an app they can't host with. A guest abroad joins through the invite link (and the web, if web guests launch).
+- **The UK's catalog is on before its store listing** (decided on 9 Nov 2026, M24.6): friends and family in the UK test through TestFlight and Play testing. Play's closed testing tracks have their own list of countries, which must include the United Kingdom. The stores list the UK with M24.3.
 
 ## The closed beta
 

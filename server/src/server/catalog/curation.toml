@@ -5,12 +5,29 @@
 enabled = true
 language = "fr"
 
+# The United Kingdom, early, for friends and family testers (M24.6, Harry, 9 Nov 2026). The
+# stores still list France only.
+[countries.GB]
+enabled = true
+language = "en"
+
 # France: U is 0, the numbers are themselves.
 [certification_ages.FR]
 U = 0
 "10" = 10
 "12" = 12
 "16" = 16
+"18" = 18
+
+# United Kingdom (BBFC): PG at 8, the BBFC's own guidance ("should not unsettle a child aged
+# around eight or older"). 12A and 12 are 12. R18 is left out: it has no age, so a room with an
+# age cap leaves the film out, and adult titles never reach a deck anyway.
+[certification_ages.GB]
+U = 0
+PG = 8
+12A = 12
+"12" = 12
+"15" = 15
 "18" = 18
 
 # United States: PG at 7 is the doc's placeholder (tmdb.md#certifications-and-age). Used for
@@ -65,4 +82,54 @@ free = [
 1736 = 513   # Shadowz Amazon Channel
 2303 = 531   # Paramount Plus Premium
 582 = 531    # Paramount+ Amazon Channel
+1825 = 1899  # HBO Max Amazon Channel
+
+# The United Kingdom's services (M24.6; Harry chose them on 9 Nov 2026). Checked on TMDB's GB
+# provider list that day, with each service's offer kinds read from the GB watch providers of
+# its most popular films. Prime Video is 9 here, not France's 119. Listed in TMDB's GB display
+# order (no override), so NOW and HBO Max come last. BBC iPlayer is listed, not free, although
+# TMDB lists it only as free: watching it needs a TV licence. ITVX Premium and Channel 4 Plus
+# are left out, since their free versions count for every room; Curzon Home Cinema is rentals
+# only. The free services are ad-supported only on TMDB (one stray subscription offer in 100
+# films for Channel 4 and for 5); W4free and JustWatch TV Free are left out.
+[services.GB]
+listed = [
+  8,    # Netflix
+  9,    # Amazon Prime Video
+  350,  # Apple TV
+  337,  # Disney Plus
+  283,  # Crunchyroll
+  531,  # Paramount Plus
+  29,   # Sky Go
+  38,   # BBC iPlayer
+  11,   # MUBI
+  224,  # BFI Player
+  99,   # Shudder
+  591,  # Now TV Cinema (NOW's films)
+  1899, # HBO Max
+]
+free = [
+  41,   # ITVX
+  103,  # Channel 4
+  333,  # 5
+  73,   # Tubi TV
+  300,  # Pluto TV
+  538,  # Plex
+  613,  # Amazon Prime Video Free with Ads
+]
+
+[services.GB.variants]
+1796 = 8     # Netflix Standard with Ads
+175 = 8      # Netflix Kids
+2100 = 9     # Amazon Prime Video with Ads
+2243 = 350   # Apple TV Amazon Channel
+1968 = 283   # Crunchyroll Amazon Channel
+2303 = 531   # Paramount Plus Premium
+2304 = 531   # Paramount Plus Basic with Ads
+582 = 531    # Paramount+ Amazon Channel
+201 = 11     # MUBI Amazon Channel
+287 = 224    # BFI Player Amazon Channel
+2041 = 224   # BFI Player Apple TV Channel
+204 = 99     # Shudder Amazon Channel
+39 = 591     # Now TV
 1825 = 1899  # HBO Max Amazon Channel

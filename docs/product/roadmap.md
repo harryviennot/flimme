@@ -65,7 +65,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | The game | Quick Match for 2 to 10 players: like, nope, super like, seen it, undo. Instant matches, the Final Cut round when no match comes, a winner screen that says where to watch, the recap card to share, Play again, sound for the match, the reveal and a few small moments ([sounds](../design/sounds.md)) |
 | Solo and My films | Play alone, with a film for tonight when you want one, up to 100 solo cards a day. My films: the films you liked and the films you've seen, in a grid |
 | The deck | Built in SQL: films on the room's services in France, ranked by quality and popularity, shuffled differently every game, one film per franchise, films a player marked as seen left out, likes moved into the others' next cards |
-| Catalog | France only, from TMDB, refreshed every night |
+| Catalog | France, from TMDB, refreshed every night. The UK's catalog is on too, for friends and family testers (M24.6), but the stores list France only |
 | Settings | Language, the analytics opt-out, download and delete my data, credits |
 | Behind the scenes | Crash reports, analytics by region, game metrics from the database, monitoring, backups |
 
@@ -119,9 +119,9 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M21](#m21-monetization) | Monetization | Host Pro, the Night Pass and packs are on sale | 10 | Not started |
 | [M22](#m22-learning-engine) | Learning engine | A trained model ranks decks for part of the traffic | 5 | Not started |
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
-| [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 5 | Not started |
+| [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 6 | Not started |
 
-Progress: 176 of 303 tasks done.
+Progress: 176 of 304 tasks done.
 
 ```mermaid
 flowchart LR
@@ -965,12 +965,14 @@ Done when: Belgium, Switzerland and the English-speaking countries are open, wit
   Done when: rooms in both countries get decks.
 - [ ] **M24.2** The English copy complete, in the app and the listing · content · needs M13.6
   Done when: reviewed by a native speaker.
-- [ ] **M24.3** The UK, Ireland, the US and Canada, with analytics by region · content · needs M24.2 · [tmdb](../integrations/tmdb.md#countries-at-launch), [analytics](analytics.md#consent-and-kids)
-  Done when: rooms in each country get decks.
+- [ ] **M24.3** Ireland, the US and Canada, with analytics by region; the UK in the stores (its catalog came early, in M24.6) · content · needs M24.2, M24.6 · [tmdb](../integrations/tmdb.md#countries-at-launch), [analytics](analytics.md#consent-and-kids)
+  Done when: rooms in each country get decks, and both stores list the UK.
 - [ ] **M24.4** Crews and history: saved groups, what they watched · app · needs M15.2 · [data-model](../architecture/data-model.md#later-how-each-future-feature-lands)
   Done when: a group sees its history.
 - [ ] **M24.5** Series mode · server · needs M2.7 · [data-model](../architecture/data-model.md#later-how-each-future-feature-lands)
   Done when: a room can play with series.
+- [ ] **M24.6** The UK early, for friends and family testers: services curated, BBFC ages, catalog enabled; the stores still list France only · content · S · needs M2.13 · [tmdb](../integrations/tmdb.md#countries-at-launch)
+  Done when: a room in the UK gets a deck from the UK's services, on staging.
 
 ## Assumptions and open decisions
 
