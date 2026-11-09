@@ -251,6 +251,21 @@ This answers the "Countries at launch" question in [decisions.md](../decisions.m
 - its default language,
 - checking a sample of decks by hand.
 
+**Turning a country on.** Its three sections go in `server/src/server/catalog/curation.toml` (`countries`, `certification_ages`, `services`), with a test of the choices, as France's and the UK's have. The pipeline worker applies the file when it starts, but two things lag behind on their own schedules:
+
+1. The country's provider rows only exist after the weekly reference job (Sundays, 01:00 UTC). Until then the country has no services, so its nightly sweep finds nothing to sweep.
+2. Films already in the catalog only get the country's certifications and watch links at their next full fetch (Mondays, 03:00 UTC, for watchable films). Until then, a room in that country with an age cap only gets films fetched since, and the winner screen has no watch link.
+
+To have the country working the same day, enqueue the three jobs by hand in this order, in the SQL editor. Wait for the reference run's and then the sweep's `ingest_runs` row to have `finished_at` before the next one (the sweep's run ends when its last service is swept). The details run ends as soon as it has queued its fetches, which then take a while:
+
+```sql
+select internal.enqueue('catalog_refresh', '{"kind":"job","job":"reference_weekly"}');
+select internal.enqueue('catalog_refresh', '{"kind":"job","job":"availability_sweep"}');
+select internal.enqueue('catalog_refresh', '{"kind":"job","job":"details_weekly"}');
+```
+
+**The UK came early** (Harry, 9 Nov 2026, M24.6): its catalog is on so friends and family there can test, while the stores still list France only. Its services and ages are in [decisions.md](../decisions.md).
+
 **Recommendation:** France for the closed beta. Belgium and Switzerland next: French-speaking, so no new copy. Then the UK, Ireland, the US and Canada once the English copy is done. A player in a country that isn't enabled can join rooms, and can choose the catalog of a country that is enabled to host and play alone (decisions.md, 5 Nov 2026, Q0.4); until they do, they see "Not in your country yet".
 
 ## Requests and cost

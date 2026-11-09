@@ -354,10 +354,15 @@ async def test_the_run_row_ends_with_finished_at_and_counts(
     finished, errors, stats = row
     assert finished is True
     assert errors == 0
+    # One provider list per enabled country (France, and the UK since M24.6): the script serves
+    # the same two invented providers for each region.
+    enabled = sum(1 for c in load_curation().countries.values() if c.enabled)
     assert stats["genres"] == 2
     assert stats["countries_added"] == 1
-    assert stats["providers"] == 2
-    assert stats["provider_regions"] == 2
+    assert stats["providers"] == 2 * enabled
+    assert stats["provider_regions"] == 2 * enabled
     assert stats["certifications_without_age"] == 2  # FR "TP", US "NR"
-    assert stats["requests"] == 6
+    # The configuration, genres in two languages, the countries, the certifications, then one
+    # provider list per enabled country.
+    assert stats["requests"] == 5 + enabled
     assert stats["rate_limited"] == 0

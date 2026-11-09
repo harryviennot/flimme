@@ -34,11 +34,19 @@ async def database(pipeline_url: SecretStr) -> AsyncIterator[Database]:
 
 @pytest.fixture
 async def restore(admin: AsyncConnection) -> AsyncIterator[AsyncConnection]:
-    """Four invented services in France with every flag off; the seed's flags put back."""
+    """Four invented services in France with every flag off; the seed's flags put back, and the
+    countries and ages the committed file adds (the UK since M24.6) taken out again, so later
+    tests find only the seed's France."""
     cur = await admin.execute("select coalesce(max(id), 0) from public.ingest_runs")
     row = await cur.fetchone()
     assert row is not None
     last_run = row[0]
+    cur = await admin.execute(
+        "select code, default_language, catalog_enabled from public.countries"
+    )
+    countries = await cur.fetchall()
+    cur = await admin.execute("select country, certification from public.certification_ages")
+    ages = await cur.fetchall()
     cur = await admin.execute(
         "select provider_id, country, display_priority, is_listed, free_for_all"
         " from public.provider_regions where provider_id < 60000000"
@@ -71,6 +79,21 @@ async def restore(admin: AsyncConnection) -> AsyncIterator[AsyncConnection]:
         for provider, parent in parents:
             await admin.execute(
                 "update public.providers set parent_id = %s where id = %s", (parent, provider)
+            )
+        await admin.execute(
+            "delete from public.certification_ages where (country::text, certification)"
+            " not in (select * from unnest(%s::text[], %s::text[]))",
+            ([a[0] for a in ages], [a[1] for a in ages]),
+        )
+        await admin.execute(
+            "delete from public.countries where code::text <> all(%s::text[])",
+            ([c[0] for c in countries],),
+        )
+        for code, language, enabled in countries:
+            await admin.execute(
+                "update public.countries set default_language = %s, catalog_enabled = %s"
+                " where code = %s",
+                (language, enabled, code),
             )
 
 

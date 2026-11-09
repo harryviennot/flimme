@@ -12,10 +12,32 @@ def test_the_committed_file_enables_france_in_french():
     assert curation.countries["FR"].language == "fr"
 
 
+def test_the_committed_file_enables_the_uk_in_english():
+    # M24.6: the UK early, for friends and family testers (Harry, 9 Nov 2026).
+    curation = load_curation()
+    assert curation.countries["GB"].enabled is True
+    assert curation.countries["GB"].language == "en"
+
+
+def test_france_and_the_uk_are_the_only_enabled_countries():
+    enabled = {code for code, c in load_curation().countries.items() if c.enabled}
+    assert enabled == {"FR", "GB"}
+
+
 def test_the_committed_age_policy_is_the_decided_one():
     ages = load_curation().certification_ages
     assert ages["FR"] == {"U": 0, "10": 10, "12": 12, "16": 16, "18": 18}
     assert ages["US"] == {"G": 0, "PG": 7, "PG-13": 13, "R": 17, "NC-17": 18}
+    # BBFC, PG at 8 (Harry, 9 Nov 2026). R18 has no age, so a capped room leaves the film out.
+    assert ages["GB"] == {"U": 0, "PG": 8, "12A": 12, "12": 12, "15": 15, "18": 18}
+
+
+def test_every_enabled_country_has_its_ages_and_services():
+    curation = load_curation()
+    for code, country in curation.countries.items():
+        if country.enabled:
+            assert curation.certification_ages.get(code), f"{code} has no certification ages"
+            assert curation.services.get(code), f"{code} has no services section"
 
 
 def test_a_services_section_holds_ids_and_flags_only():
