@@ -42,7 +42,7 @@ const FILMS: FinalistView[] = [
   { titleId: 2, title: 'The Paper Comet', year: 2019, poster: fixturePosters.paperComet },
   { titleId: 3, title: 'Midnight Matinee', year: 2023, poster: fixturePosters.midnightMatinee },
   { titleId: 4, title: 'Southbound Summer', year: 2018, poster: fixturePosters.southboundSummer },
-].map((film) => ({ ...film, placeholder: null, noPoster: false, hasSynopsis: false }));
+].map((film) => ({ ...film, placeholder: null, noPoster: false, hasSynopsis: true }));
 
 type Fixture = {
   label: string;
