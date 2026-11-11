@@ -1,0 +1,29 @@
+# M6.67, reaching a ranked vote of 4 finalists, part 2 of 2 (the phone): after final-cut-host.yaml and
+# one curl guest in the room (`mobile/.maestro/scripts/guest-answers.sh join <code>`), start the game,
+# like 4 cards and nope the rest while the guest nopes its own 40:
+#   mobile/.maestro/scripts/guest-answers.sh answers <room id> 40 nope
+# No film can match, so the card count opens the vote with 4 finalists. It ends on that screen with
+# the clock running (final-cut-synopsis.yaml continues from here).
+# Run: `maestro --device <sim> test mobile/.maestro/final-cut-synopsis-play.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- tapOn: '(?i)start swiping'
+- extendedWaitUntil:
+    visible: 'Like'
+    timeout: 60000
+- tapOn: 'Like'
+- tapOn: 'Like'
+- tapOn: 'Like'
+- tapOn: 'Like'
+- repeat:
+    while:
+      visible: 'Nope'
+    times: 60
+    commands:
+      - tapOn:
+          text: 'Nope'
+          optional: true
+- extendedWaitUntil:
+    visible: '.*Rank them..*|.*Pick one. Veto one..*'
+    timeout: 60000
+- takeScreenshot: final-cut-synopsis-arrived
