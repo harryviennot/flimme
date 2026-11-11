@@ -506,6 +506,8 @@ The people search for Not tonight (M6.69). Signed-in callers only; it needs no r
 | --- | --- |
 | Input | A query of 2 to 60 characters once trimmed; otherwise `invalid` |
 | Answers | `ok` with up to 8 people who have a director or cast credit on an active film: `id`, `name` and one film they're known for, with no photo. Ranked by how close the name is, then by popularity. Accents and letter case don't matter (`unaccent`, and a trigram index on an immutable `unaccent(lower(name))` wrapper; `pg_trgm` is already on) |
+| Known film | The person's most popular active film (`title`, `year`): the title in the asked language, else the profile's, else English, else the original title; `year` is null when the date is unknown |
+| Limit | 60 a minute per profile, answering `rate_limited`. The key holds the profile, never the query |
 | Privacy | Search terms and results never reach logs or analytics. Phones still never read `public.people` directly |
 
 ### Changes to functions already written

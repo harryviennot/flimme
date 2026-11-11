@@ -36,6 +36,7 @@ import {
   SET_FILM_SEEN_ANSWERS,
   REMOVE_MY_FILM_ANSWERS,
   SET_FILM_SAVED_ANSWERS,
+  SEARCH_PEOPLE_ANSWERS,
   type MyFilmsFilter,
   type MyFilmsSegment,
   UPDATE_PROFILE_ANSWERS,
@@ -93,9 +94,11 @@ import {
   myFilmsResult,
   myFilmCardResult,
   myFilmEditResult,
+  searchPeopleResult,
   type MyFilmsResult,
   type MyFilmCardResult,
   type MyFilmEditResult,
+  type SearchPeopleResult,
   type NextCard,
   type TitleCardsResult,
   type CountryProvider,
@@ -573,6 +576,24 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         { p_title_id: args.title_id, p_saved: args.saved },
         SET_FILM_SAVED_ANSWERS,
         myFilmEditResult,
+      );
+    },
+
+    // --- People search ---------------------------------------------------------------------
+    /**
+     * Find a director or an actor by part of their name (Not tonight, M6.69): up to 8 people, closest
+     * name first, each with one film they're known for and no photo. `invalid` is a query outside 2 to
+     * 60 characters once trimmed; `rate_limited` is 60 calls a minute. A POST on purpose: the query
+     * must never sit in a URL, where a proxy log could keep it.
+     */
+    searchPeople(args: { query: string; language?: string }): Promise<SearchPeopleResult> {
+      return callAnswer(
+        client,
+        options,
+        'search_people',
+        { p_query: args.query, p_language: args.language },
+        SEARCH_PEOPLE_ANSWERS,
+        searchPeopleResult,
       );
     },
 
