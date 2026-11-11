@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 6 | In progress |
 
-Progress: 177 of 309 tasks done.
+Progress: 178 of 309 tasks done.
 
 ```mermaid
 flowchart LR
@@ -458,7 +458,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: tested: a card shows the caller's own seen and saved flags, a film with no row shows both as false, and no field names another player.
 - [ ] **M6.68** Not tonight on the server: each player skips up to 3 genres and up to 3 people in the lobby (`api.set_seat_skips`), at most 4 genres out tonight per room (`room_limit`); a genre out tonight can't be picked (`out_tonight`) and leaves every seat's picks; `api.room_genres` lists the genres out tonight, never who; Start copies the skips of every seat still in the room into `dropped_genre_ids` and `dropped_person_ids`, so a film in a skipped genre, or with a skipped person as director or top 8 cast, leaves every deck · backend · M · needs M6.53 · [game-modes](game-modes.md#not-tonight), [set_seat_skips](game-modes.md#apiset_seat_skipsroom-genre_ids-person_ids), [deck-engine](../architecture/deck-engine.md#per-player-genres)
   Done when: pgTAP tests cover the caps, the room limit of 4, lobby only, a skip taking the genre off every seat's picks, a skipped genre and a skipped person leaving the deck, the copy at Start, a start with too few films going back to the lobby with the room's copy cleared, and that no answer or event says who skipped what.
-- [ ] **M6.69** `api.search_people`: up to 8 directors and cast members of the catalog for a query of 2 to 60 characters, accents and case ignored, ranked by closeness then popularity, each with its name and one film they're known for, no photo; search terms never logged · backend · S · needs M2.7 · [search_people](game-modes.md#apisearch_peoplequery), [skip people](../design/screens/skip-people.md)
+- [x] **M6.69** `api.search_people`: up to 8 directors and cast members of the catalog for a query of 2 to 60 characters, accents and case ignored, ranked by closeness then popularity, each with its name and one film they're known for, no photo; search terms never logged · backend · S · needs M2.7 · [search_people](game-modes.md#apisearch_peoplequery), [skip people](../design/screens/skip-people.md)
   Done when: pgTAP tests cover accents and case, the ranking, the cap of 8, the query limits, the rate limit, that only directors and cast of active films are found, and that no photo is returned.
 
 **App**
