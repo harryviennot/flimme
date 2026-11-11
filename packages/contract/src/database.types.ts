@@ -322,6 +322,9 @@ export type Database = {
 "round_progress":
 { Args: { "p_round_id": string }; Returns: Json
                            },
+"search_people":
+{ Args: { "p_language"?: string,"p_query": string }; Returns: Json
+                           },
 "set_analytics_choice":
 { Args: { "p_choice": "on"|"off"|"detailed","p_version": string }; Returns: Json
                            },
