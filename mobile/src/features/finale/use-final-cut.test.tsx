@@ -6,6 +6,8 @@ import { haptics } from '@/lib/haptics';
 import { reportError } from '@/lib/sentry';
 import { playSound } from '@/lib/sound';
 
+import { setSynopsisCard, synopsisCardOf } from '@/features/swipe/synopsis';
+
 import { useFinalCut } from './use-final-cut';
 
 const NOW = Date.parse('2026-11-04T10:00:00Z');
@@ -45,6 +47,15 @@ jest.mock('@/features/app-config/use-app-config', () => ({
 jest.mock('@/lib/haptics', () => ({
   haptics: { press: jest.fn(), veto: jest.fn(), countdown: jest.fn() },
 }));
+const mockPath = { value: '/room/r1/final-cut' };
+const mockRouter = { push: jest.fn(), dismiss: jest.fn() };
+jest.mock('expo-router', () => ({
+  router: {
+    push: (...args: unknown[]) => mockRouter.push(...args),
+    dismiss: () => mockRouter.dismiss(),
+  },
+  usePathname: () => mockPath.value,
+}));
 jest.mock('@/lib/sentry', () => ({ reportError: jest.fn() }));
 jest.mock('@/lib/sound', () => ({ playSound: jest.fn(async () => undefined) }));
 jest.mock('@/features/match/use-match-card', () => ({ heldCardOf: () => undefined }));
@@ -63,6 +74,7 @@ const card = (id: number) => ({
   title_id: id,
   title: `Film ${id}`,
   year: 2020,
+  overview: id === 20 ? null : `About ${id}`,
   poster_path: `/p${id}.jpg`,
   poster_placeholder: null,
 });
@@ -135,6 +147,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockEvents.clear();
   mockOnline.value = true;
+  mockPath.value = '/room/r1/final-cut';
+  setSynopsisCard(null);
 });
 afterEach(() => jest.useRealTimers());
 
@@ -321,6 +335,74 @@ describe('the Final Cut model', () => {
     await act(async () => void jest.advanceTimersByTime(1_000));
     await settle();
     expect(result.current.phase).toBe('locked');
+  });
+});
+
+describe('the synopsis from a finalist', () => {
+  it('keeps the card for the sheet and pushes its route', async () => {
+    const { result } = await setup();
+    await settle();
+    expect(result.current.finalists.map((f) => f.hasSynopsis)).toEqual([true, false, true]);
+    await act(async () => result.current.onInfo(30));
+    expect(synopsisCardOf(30)?.title).toBe('Film 30');
+    expect(mockRouter.push).toHaveBeenCalledWith('/room/r1/synopsis/30');
+  });
+
+  it('opens nothing for a card with no overview', async () => {
+    const { result } = await setup();
+    await settle();
+    await act(async () => result.current.onInfo(20));
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
+  it('leaves the ranking and the veto as they were, and sends them', async () => {
+    mockApi.castBallot.mockResolvedValue({ status: 'ok', locked: ['a'], of: 3 });
+    const { result } = await setup();
+    await settle();
+    await act(async () => result.current.onTap(30));
+    await act(async () => result.current.onLongPress(10));
+    await act(async () => result.current.onInfo(30));
+    expect(result.current.places.get(30)).toEqual({ kind: 'ranked', rank: 1 });
+    expect(result.current.places.get(10)).toEqual({ kind: 'vetoed' });
+    expect(result.current.phase).toBe('voting');
+    await act(async () => result.current.onLockIn());
+    await settle();
+    expect(mockApi.castBallot).toHaveBeenCalledWith({
+      round_id: 'round-1',
+      ranking: [30, 20],
+      veto: 10,
+    });
+  });
+
+  it('still opens after locking in', async () => {
+    mockApi.castBallot.mockResolvedValue({ status: 'ok', locked: ['a'], of: 3 });
+    const { result } = await setup();
+    await settle();
+    await act(async () => result.current.onLockIn());
+    await settle();
+    expect(result.current.phase).toBe('locked');
+    await act(async () => result.current.onInfo(10));
+    expect(mockRouter.push).toHaveBeenCalledWith('/room/r1/synopsis/10');
+  });
+
+  it('closes the open sheet when the votes are counted, and not before', async () => {
+    const { result, rerender } = await setup();
+    await settle();
+    mockPath.value = '/room/r1/synopsis/10';
+    await rerender({});
+    expect(mockRouter.dismiss).not.toHaveBeenCalled();
+    await act(async () => result.current.onEnd());
+    await settle();
+    expect(result.current.phase).toBe('counting');
+    expect(mockRouter.dismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not dismiss at counting when no sheet is open', async () => {
+    const { result } = await setup();
+    await settle();
+    await act(async () => result.current.onEnd());
+    await settle();
+    expect(mockRouter.dismiss).not.toHaveBeenCalled();
   });
 });
 

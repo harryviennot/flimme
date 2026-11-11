@@ -296,6 +296,7 @@ export function FinalCutScreen({
                       counting={counting}
                       hideNumber={model.numbersHidden}
                       popDelay={index * duration.instant}
+                      onInfo={view.hasSynopsis ? () => model.onInfo(view.titleId) : undefined}
                       onTap={() => model.onTap(view.titleId)}
                       onLongPress={() => model.onLongPress(view.titleId)}
                     />

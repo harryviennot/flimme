@@ -1,0 +1,15 @@
+# M6.67, the synopsis closes by itself at Counting the votes: right after final-cut-synopsis-play.yaml,
+# open a finalist's synopsis and leave it open until the clock reaches zero. The sheet goes away
+# on its own and the screen shows the count and then the pick.
+# Run: `maestro --device <sim> test mobile/.maestro/final-cut-synopsis-auto.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- tapOn: 'Synopsis of .*'
+- assertVisible: 'Close'
+- extendedWaitUntil:
+    notVisible: 'Close'
+    timeout: 70000
+- extendedWaitUntil:
+    visible: '(?i).*tonight.s pick.*|Counting the votes'
+    timeout: 30000
+- takeScreenshot: final-cut-synopsis-auto-closed

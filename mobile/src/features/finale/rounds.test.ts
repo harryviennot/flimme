@@ -32,6 +32,13 @@ describe('the finalists', () => {
     expect(views[2]).toMatchObject({ noPoster: true, poster: null });
   });
 
+  it('lets the info button show only for a card with a title and an overview', () => {
+    const withText = { ...card(1, null), overview: 'About' };
+    const noText = { ...card(2, null), overview: null };
+    const views = finalistViews([1, 2, 3], [withText, noText], undefined, 400);
+    expect(views.map((v) => v.hasSynopsis)).toEqual([true, false, false]);
+  });
+
   it('keys the cards read by the set of films', () => {
     expect(cardsKey([3, 1, 2])).toBe('1,2,3');
   });

@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { router, usePathname } from 'expo-router';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useWindowDimensions } from 'react-native';
 
@@ -13,6 +14,7 @@ import {
   useRoomEvent,
   useRoomSeats,
 } from '@/features/room';
+import { setSynopsisCard } from '@/features/swipe/synopsis';
 import { haptics } from '@/lib/haptics';
 import { playSound } from '@/lib/sound';
 import { reportError } from '@/lib/sentry';
@@ -77,6 +79,8 @@ export type FinalCutModel = {
   online: boolean;
   onTap: (titleId: number) => void;
   onLongPress: (titleId: number) => void;
+  /** The info button: opens the finalist's synopsis over the vote, the clock still running. */
+  onInfo: (titleId: number) => void;
   /** After a screen reader action, the new state to announce. */
   onLockIn: () => void;
   onEnd: () => void;
@@ -209,6 +213,11 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
 
   // Counting the votes admits it after a while.
   const counting = phase === 'counting';
+  // The synopsis closes by itself as the votes are counted (final-cut.md#reading-a-finalists-synopsis).
+  const synopsisOpen = usePathname().includes('/synopsis/');
+  useEffect(() => {
+    if (counting && synopsisOpen) router.dismiss();
+  }, [counting, synopsisOpen]);
   const [countingSlow, setCountingSlow] = useState(false);
   useEffect(() => {
     if (!counting) return;
@@ -255,6 +264,13 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
     setBallot(next);
   }
 
+  function onInfo(titleId: number) {
+    const card = cards.data?.find((c) => c.title_id === titleId);
+    if (!card?.title || !card.overview) return;
+    setSynopsisCard(card);
+    router.push(`/room/${roomId}/synopsis/${titleId}`);
+  }
+
   function onLockIn() {
     if (phase !== 'voting' || !lockIn) return;
     lockIn.submit(ballotToSend(seedOrder, shown));
@@ -289,6 +305,7 @@ export function useFinalCut(roomId: string, language: string): FinalCutModel {
     online,
     onTap,
     onLongPress,
+    onInfo,
     onLockIn,
     onEnd,
     retryLoad: () => {

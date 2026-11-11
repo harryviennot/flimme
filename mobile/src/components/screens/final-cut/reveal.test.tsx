@@ -76,6 +76,7 @@ const model = (): FinalCutModel =>
     online: true,
     onTap: jest.fn(),
     onLongPress: jest.fn(),
+    onInfo: jest.fn(),
     onLockIn: jest.fn(),
     onEnd: jest.fn(),
     retryLoad: jest.fn(),

@@ -42,6 +42,8 @@
       "ranked": "The final vote. Rank them.",
       "pickOne": "The final vote. Pick one."
     },
+    "synopsis": "Synopsis of {{title}}",
+    "synopsisHint": "Opens over the vote. The clock keeps running.",
     "film": "{{title}}, {{year}}",
     "filmNoYear": "{{title}}",
     "state": {
