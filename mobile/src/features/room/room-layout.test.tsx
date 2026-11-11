@@ -476,4 +476,40 @@ describe('the room layout', () => {
       expect(keptRoomStore.getState().room).toBeNull();
     });
   });
+
+  describe('Start while Not tonight has changes nobody saved', () => {
+    const offer = {
+      status: 'ok',
+      options: [{ genre_id: 16, count: 0 }],
+      mine: [],
+      out: [],
+      skips: { genre_ids: [], people: [] },
+    };
+    const open = async (skip: boolean) => {
+      api.roomGenres.mockResolvedValue(offer);
+      api.genres.mockResolvedValue([
+        { id: 16, slug: 'animation', names: { fr: 'Animation', en: 'Animation' } },
+      ]);
+      await renderRouter(routes, { initialUrl: '/room/r1/genres', wrapper: Providers });
+      const chip = await screen.findByRole('checkbox', { name: 'Skip Animation' });
+      if (skip) await fireEvent.press(chip);
+      api.room.mockResolvedValue(roomOf('swiping'));
+      await act(async () => {
+        await client.invalidateQueries({ queryKey: ['room', 'r1'] });
+      });
+      await waitFor(() => expect(screen).toHavePathname('/room/r1/swipe'));
+    };
+
+    it('says the changes did not make it', async () => {
+      await open(true);
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({ tone: 'info', title: 'Genres locked' }),
+      );
+    });
+
+    it('says nothing without changes', async () => {
+      await open(false);
+      expect(showToast).not.toHaveBeenCalled();
+    });
+  });
 });
