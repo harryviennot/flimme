@@ -169,6 +169,7 @@ begin
   select m.id, m.skip_genre_ids, m.skip_person_ids into v_seat, v_old_genres, v_old_people
   from public.room_members m
   where m.room_id = p_room_id
+    and m.left_at is null and m.removed_at is null   -- this call writes to other seats: a seat out of the room can't
     and m.controlled_by in (select internal.my_profile_ids())
     and (m.id = p_member_id or (p_member_id is null and m.profile_id = internal.my_profile_id()));
   if v_seat is null then

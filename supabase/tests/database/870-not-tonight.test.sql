@@ -5,7 +5,7 @@
 -- deal, the offer and the 20-film check all count films after the skips. Nobody learns who skipped what.
 
 begin;
-select plan(108);
+select plan(112);
 
 select tests.use_deck_engine('sql');
 select tests.create_catalog(200);
@@ -212,6 +212,21 @@ select is((select skip_genre_ids from public.room_members where id = '00000000-0
   'the controlled seat holds the skip');
 select is(pg_temp.sg('w1', current_setting('t.w')::uuid), '{}'::integer[], 'the caller''s own seat is untouched');
 
+-- A seat out of the room can't skip, or take picks off the others.
+select set_config('t.x', pg_temp.room(4, 'x')::text, true);
+select pg_temp.picks('x1', current_setting('t.x')::uuid, '{9101,9102}');
+select tests.authenticate_as('x2');
+select api.leave_room(current_setting('t.x')::uuid);
+select tests.clear_authentication();
+select tests.authenticate_as('x1');
+select api.remove_member(current_setting('t.x')::uuid, tests.member_id('x3', current_setting('t.x')::uuid));
+select tests.clear_authentication();
+select throws_ok($$ select pg_temp.skip('x2', current_setting('t.x')::uuid, '{9101}') $$, '42501', null,
+  'a seat that left gets 42501');
+select throws_ok($$ select pg_temp.skip('x3', current_setting('t.x')::uuid, '{9101}') $$, '42501', null,
+  'a removed seat gets 42501');
+select is(pg_temp.pk('x1', current_setting('t.x')::uuid), '{9101,9102}'::integer[], 'and nobody''s picks were touched');
+
 -- ---------------------------------------------------------------------------------------
 -- 4. Which genres and people
 -- ---------------------------------------------------------------------------------------
@@ -241,6 +256,8 @@ select is(pg_temp.skip('m2', current_setting('t.m')::uuid, '{9105}')->>'status',
   'replacing one''s own skip with a new genre works when the total stays 4');
 select is(pg_temp.skip('m2', current_setting('t.m')::uuid, '{9104}')->>'status', 'ok', 'and so does swapping back');
 select is(pg_temp.skip('m3', current_setting('t.m')::uuid, '{9101,9104}')->>'status', 'ok', 'a second genre already out works too');
+select is(pg_temp.skip('m2', current_setting('t.m')::uuid, '{9104,9105}')->>'status', 'room_limit',
+  'a seat that already skips a genre can''t add a new one past 4');
 select is(pg_temp.skip('m3', current_setting('t.m')::uuid, '{9101,9104}', '{9201,9202,9210}')->>'status', 'ok',
   'people have no room limit');
 
