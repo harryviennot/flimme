@@ -64,3 +64,7 @@ The words players see, used the same way everywhere. French terms marked "propos
 | The share image | recap card | récap (proposed) |
 | Streaming services | services | plateformes |
 | Time budget | time budget, "Under 2 h" | durée, « Moins de 2 h » (proposed) |
+| The section of genres and people skipped for tonight | Not tonight | Pas ce soir (proposed) |
+| The section of genres picked for tonight | In the mood for | Tes envies (proposed) |
+| A genre skipped for the room | out tonight | hors jeu (proposed) |
+| To skip a genre or a person | skip | écarter (proposed) |
