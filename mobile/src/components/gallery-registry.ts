@@ -39,6 +39,7 @@ import { gallery as sharedSeatRow } from './shared/seat-row.gallery';
 import { gallery as sharedServiceGrid } from './shared/service-grid.gallery';
 import { gallery as sharedServiceTile } from './shared/service-tile.gallery';
 import { gallery as sharedSwipeAction } from './shared/swipe-action.gallery';
+import { gallery as sharedTonightPrefs } from './shared/tonight-prefs.gallery';
 import { gallery as sharedWhereToWatch } from './shared/where-to-watch.gallery';
 
 import type { GalleryEntry } from './gallery';
@@ -83,5 +84,6 @@ export const galleryEntries: GalleryEntry[] = [
   sharedServiceGrid,
   sharedServiceTile,
   sharedSwipeAction,
+  sharedTonightPrefs,
   sharedWhereToWatch,
 ];

@@ -21,6 +21,9 @@ function Demo() {
       <Chip label="Disabled" disabled />
       <Chip label="Comedy" count={3} />
       <Chip label="Horror" count={0} selected />
+      <Chip label="Animation" tone="nope" selected />
+      <Chip label="Western" tone="nope" />
+      <Chip label="Science-Fiction" unavailable="out tonight" />
     </View>
   );
 }
@@ -50,7 +53,7 @@ export const gallery: GalleryEntry = {
   name: 'Chip',
   tier: 'ui',
   description:
-    'Selectable filter chip. Checkboxes combine (moods); radios, in a radiogroup View, pick one (time budget, age cap).',
+    'Selectable filter chip. Checkboxes combine (moods); radios, in a radiogroup View, pick one (time budget, age cap). Tone nope is a skip; unavailable is the dashed, not pressable look (out tonight).',
   render: () => (
     <View className="gap-4">
       <Demo />

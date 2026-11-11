@@ -18,12 +18,27 @@ export type GenreChipsProps = {
   showCounts: boolean;
   /** Draw the skeleton row instead of the chips. */
   loading?: boolean;
+  /**
+   * `pick` (the default): a tap picks, with counts. `skip`: a tap skips (Not tonight), the chips
+   * are red, never carry a count, and read "Skip Animation".
+   */
+  mode?: 'pick' | 'skip';
+  /** Pick mode only: genres out tonight, drawn dashed and not pressable. Never says whose skip. */
+  outTonight?: readonly number[];
 };
 
 const SKELETON_WIDTHS = ['w-20', 'w-24', 'w-20', 'w-24', 'w-20', 'w-24', 'w-20', 'w-24'] as const;
 
 /** Tonight's genres as chips: the genre step and the lobby's genre sheet draw the same thing. */
-export function GenreChips({ options, selected, onToggle, showCounts, loading }: GenreChipsProps) {
+export function GenreChips({
+  options,
+  selected,
+  onToggle,
+  showCounts,
+  loading,
+  mode = 'pick',
+  outTonight = [],
+}: GenreChipsProps) {
   const { t } = useTranslation('lobby');
   if (loading) {
     return (
@@ -41,6 +56,29 @@ export function GenreChips({ options, selected, onToggle, showCounts, loading }:
       className="flex-row flex-wrap gap-2"
     >
       {options.map((option) => {
+        if (mode === 'skip') {
+          return (
+            <Chip
+              key={option.id}
+              label={option.name}
+              tone="nope"
+              accessibilityLabel={t('prefs.a11y.skipGenre', { name: option.name })}
+              pressDelay={SCROLL_PRESS_DELAY_MS}
+              selected={selected.includes(option.id)}
+              onPress={() => onToggle(option.id)}
+            />
+          );
+        }
+        if (outTonight.includes(option.id)) {
+          return (
+            <Chip
+              key={option.id}
+              label={option.name}
+              unavailable={t('prefs.outTonight')}
+              accessibilityLabel={t('prefs.a11y.outTonight', { name: option.name })}
+            />
+          );
+        }
         return (
           <Chip
             key={option.id}

@@ -104,9 +104,13 @@ beforeEach(() => {
   api.room.mockReset().mockResolvedValue({ id: 'r1', code: '482913', state: 'lobby' });
   api.roomSeats.mockReset().mockResolvedValue([seat]);
   api.touchRoom.mockClear();
-  api.roomGenres
-    .mockReset()
-    .mockResolvedValue({ status: 'ok', options: [{ genre_id: 35, count: 1 }], mine: [] });
+  api.roomGenres.mockReset().mockResolvedValue({
+    status: 'ok',
+    options: [{ genre_id: 35, count: 1 }],
+    mine: [],
+    out: [],
+    skips: { genre_ids: [], people: [] },
+  });
 });
 
 async function opened(children: ReactNode = <Room />) {
@@ -179,6 +183,8 @@ describe('events', () => {
       status: 'ok',
       options: [{ genre_id: 35, count: 2 }],
       mine: [],
+      out: [],
+      skips: { genre_ids: [], people: [] },
     });
     await act(async () => events().broadcast?.({ event: 'genres_changed', payload: {} }));
     await waitFor(() => expect(screen.getByTestId('genres')).toHaveTextContent('2'));

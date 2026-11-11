@@ -46,11 +46,16 @@ describe('groupedCode', () => {
 });
 
 describe('stepFooter', () => {
-  const base = { picks: 0, ready: true, failed: false, saveFailed: false, online: true };
+  const base = { picks: 0, skips: 0, ready: true, failed: false, saveFailed: false, online: true };
 
   it('says Any genre with no pick, Continue with picks', () => {
     expect(stepFooter(base)).toEqual({ primary: 'any', skip: false });
     expect(stepFooter({ ...base, picks: 2 })).toEqual({ primary: 'continue', skip: false });
+  });
+
+  it('says Continue with only a skip: Any genre would contradict it', () => {
+    expect(stepFooter({ ...base, skips: 1 }).primary).toBe('continue');
+    expect(stepFooter({ ...base, picks: 0, skips: 0 }).primary).toBe('any');
   });
 
   it('keeps Any genre while loading', () => {

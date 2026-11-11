@@ -31,6 +31,7 @@ jest.mock('@/api', () => ({
     startGame: jest.fn(),
     setMyProviders: jest.fn(),
     setSeatPrefs: jest.fn(),
+    setSeatSkips: jest.fn(),
     roomGenres: jest.fn(),
     genres: jest.fn(),
     reportMember: jest.fn(),
@@ -117,6 +118,7 @@ type ApiName =
   | 'startGame'
   | 'setMyProviders'
   | 'setSeatPrefs'
+  | 'setSeatSkips'
   | 'roomGenres'
   | 'genres'
   | 'reportMember'
@@ -158,6 +160,7 @@ const genreRows = [
   { id: 27, slug: 'horror', names: { fr: 'Horreur', en: 'Horror' } },
   { id: 18, slug: 'drama', names: { fr: 'Drame', en: 'Drama' } },
   { id: 12, slug: 'adventure', names: { fr: 'Aventure', en: 'Adventure' } },
+  { id: 16, slug: 'animation', names: { fr: 'Animation', en: 'Animation' } },
 ];
 
 let client: QueryClient;
@@ -213,6 +216,7 @@ beforeEach(() => {
   mockApi.setRoomLocked.mockResolvedValue({ status: 'ok', locked: true });
   mockApi.setMyProviders.mockResolvedValue({ status: 'ok' });
   mockApi.setSeatPrefs.mockResolvedValue({ status: 'ok' });
+  mockApi.setSeatSkips.mockResolvedValue({ status: 'ok' });
   mockApi.genres.mockResolvedValue(genreRows);
   mockApi.roomGenres.mockResolvedValue({
     status: 'ok',
@@ -223,6 +227,8 @@ beforeEach(() => {
       { genre_id: 12, count: 2 },
     ],
     mine: [],
+    out: [],
+    skips: { genre_ids: [], people: [] },
   });
   (leaveRoom as unknown as M).mockResolvedValue({ status: 'ok' });
 });
@@ -347,7 +353,9 @@ describe('too few films', () => {
     await fireEvent.press(start());
     await waitFor(() =>
       expect(
-        screen.getByText('Only 12 films fit tonight. Ask everyone to add their services.'),
+        screen.getByText(
+          'Only 12 films fit tonight. Ask everyone to add their services or skip less.',
+        ),
       ).toBeTruthy(),
     );
     expect(haptics.error).toHaveBeenCalledTimes(1);
@@ -361,14 +369,16 @@ describe('too few films', () => {
     await fireEvent.press(start());
     await waitFor(() =>
       expect(
-        screen.getByText('Only 1 film fits tonight. Ask everyone to add their services.'),
+        screen.getByText(
+          'Only 1 film fits tonight. Ask everyone to add their services or skip less.',
+        ),
       ).toBeTruthy(),
     );
     tooFew(0);
     await fireEvent.press(start());
     await waitFor(() =>
       expect(
-        screen.getByText('No film fits tonight. Ask everyone to add their services.'),
+        screen.getByText('No film fits tonight. Ask everyone to add their services or skip less.'),
       ).toBeTruthy(),
     );
   });
@@ -394,7 +404,9 @@ describe('too few films', () => {
       emitStateChanged({ state: 'lobby', reason: 'too_few_films', eligible: 7 });
     });
     expect(
-      screen.getByText('Only 7 films fit tonight. Ask everyone to add their services.'),
+      screen.getByText(
+        'Only 7 films fit tonight. Ask everyone to add their services or skip less.',
+      ),
     ).toBeTruthy();
     expect(haptics.error).toHaveBeenCalledTimes(1);
     await act(async () => {
@@ -773,6 +785,8 @@ describe('your genres, in the lobby', () => {
         { genre_id: 18, count: 1 },
       ],
       mine: [18, 35],
+      out: [],
+      skips: { genre_ids: [], people: [] },
     });
     await show();
     await waitFor(() =>
@@ -783,7 +797,13 @@ describe('your genres, in the lobby', () => {
   });
 
   it('says nothing is offered when no genre has enough films, and the row does not open', async () => {
-    mockApi.roomGenres.mockResolvedValue({ status: 'ok', options: [], mine: [] });
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [],
+      mine: [],
+      out: [],
+      skips: { genre_ids: [], people: [] },
+    });
     await show();
     await waitFor(() =>
       expect(
@@ -823,7 +843,10 @@ describe('the genres sheet', () => {
 
   it('shows the chips sorted by name with counts, never names', async () => {
     await open();
-    expect(screen.getAllByRole('checkbox').map((chip) => chip.props.accessibilityLabel)).toEqual([
+    const labels = screen
+      .getAllByRole('checkbox')
+      .map((chip) => chip.props.accessibilityLabel as string);
+    expect(labels.filter((label) => !label.startsWith('Skip '))).toEqual([
       'Adventure, 2 players',
       'Comedy, 3 players',
       'Drama, 1 player',
@@ -862,6 +885,8 @@ describe('the genres sheet', () => {
       status: 'ok',
       options: [{ genre_id: 35, count: 3 }],
       mine: [35],
+      out: [],
+      skips: { genre_ids: [], people: [] },
     });
     await open();
     expect(screen.getByRole('checkbox', { name: 'Comedy, 3 players' })).toBeChecked();
@@ -913,6 +938,8 @@ describe('the genres sheet', () => {
         { genre_id: 12, count: 2 },
       ],
       mine: [99],
+      out: [],
+      skips: { genre_ids: [], people: [] },
     });
     await open();
     for (const name of [/^Comedy/, /^Horror/, /^Drama/]) {
@@ -964,7 +991,13 @@ describe('the genres sheet', () => {
   });
 
   it('says so when no genre is offered tonight', async () => {
-    mockApi.roomGenres.mockResolvedValue({ status: 'ok', options: [], mine: [] });
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [],
+      mine: [],
+      out: [],
+      skips: { genre_ids: [], people: [] },
+    });
     await render(<RoomGenresScreen />, { wrapper: Providers });
     await waitFor(() =>
       expect(screen.getByText('Not enough films to offer genres tonight.')).toBeTruthy(),
@@ -983,6 +1016,8 @@ describe('the genres sheet', () => {
       status: 'ok',
       options: [{ genre_id: 35, count: 3 }],
       mine: [],
+      out: [],
+      skips: { genre_ids: [], people: [] },
     });
     await fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
     await waitFor(() => expect(screen.getByRole('checkbox', { name: /^Comedy/ })).toBeTruthy());
@@ -1357,7 +1392,7 @@ describe('the genre step', () => {
 
   it('turns Any genre into Continue, sends only the genre ids, then the lobby', async () => {
     await open();
-    expect(screen.getByText('0/3')).toBeTruthy();
+    expect(screen.getAllByText('0/3')).toHaveLength(2);
     await fireEvent.press(screen.getByRole('checkbox', { name: /^Comedy/ }));
     expect(screen.getByText('1/3')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
@@ -1376,7 +1411,13 @@ describe('the genre step', () => {
   });
 
   it('goes straight to the lobby when no genre is offered', async () => {
-    mockApi.roomGenres.mockResolvedValue({ status: 'ok', options: [], mine: [] });
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [],
+      mine: [],
+      out: [],
+      skips: { genre_ids: [], people: [] },
+    });
     await render(<GenreStepScreen />, { wrapper: Providers });
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/room/r1/lobby'));
   });
@@ -1433,5 +1474,162 @@ describe('the genre step', () => {
     });
     expect(screen.getByRole('button', { name: 'Any genre' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Skip for now' })).toBeNull();
+  });
+});
+
+describe('Not tonight, on the genre step', () => {
+  beforeEach(() => {
+    mockSegments = ['room', '[id]', 'genre-step'];
+  });
+  const offer = (over: Record<string, unknown> = {}) => ({
+    status: 'ok',
+    options: [
+      { genre_id: 35, count: 3 },
+      { genre_id: 16, count: 1 },
+    ],
+    mine: [],
+    out: [],
+    skips: { genre_ids: [], people: [] },
+    ...over,
+  });
+  const open = async () => {
+    await render(<GenreStepScreen />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: /^Comedy/ })).toBeTruthy());
+  };
+
+  it('skipping Animation turns its pick chip out tonight at once, then Continue saves the skip', async () => {
+    mockApi.roomGenres.mockResolvedValue(offer());
+    await open();
+    expect(screen.getByRole('button', { name: 'Any genre' })).toBeTruthy();
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Skip Animation' }));
+    expect(screen.getByRole('checkbox', { name: 'Animation, out tonight' })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: 'Skip Animation' })).toBeChecked();
+    // A skip alone turns Any genre into Continue.
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/room/r1/lobby'));
+    expect(mockApi.setSeatSkips).toHaveBeenCalledWith({ room_id: 'r1', genre_ids: [16] });
+    expect(mockApi.setSeatPrefs).not.toHaveBeenCalled();
+  });
+
+  it('skipping a picked genre takes it off the picks and sends the skips before the picks', async () => {
+    mockApi.roomGenres.mockResolvedValue(offer());
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Comedy/ }));
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Animation/ }));
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Skip Animation' }));
+    expect(screen.getByLabelText('1 of 3 picked')).toBeTruthy();
+    expect(screen.getByLabelText('1 of 3 skipped')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    await waitFor(() => expect(mockApi.setSeatPrefs).toHaveBeenCalled());
+    expect(mockApi.setSeatSkips).toHaveBeenCalledWith({ room_id: 'r1', genre_ids: [16] });
+    expect(mockApi.setSeatPrefs).toHaveBeenCalledWith({ room_id: 'r1', genre_ids: [35] });
+    expect(mockApi.setSeatSkips.mock.invocationCallOrder[0]).toBeLessThan(
+      mockApi.setSeatPrefs.mock.invocationCallOrder[0] as number,
+    );
+  });
+
+  it("another seat's skip shows out tonight with no count and no name, and unskipping never brings it back", async () => {
+    mockApi.roomGenres.mockResolvedValue(
+      offer({
+        options: [
+          { genre_id: 35, count: 3 },
+          { genre_id: 16, count: 0, out: true },
+        ],
+        out: [16],
+      }),
+    );
+    await open();
+    expect(screen.getByRole('checkbox', { name: 'Animation, out tonight' })).toBeDisabled();
+    // A genre already out can always be skipped, and lifting it leaves it out (the room holds it).
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Skip Animation' }));
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Skip Animation' }));
+    expect(screen.getByRole('checkbox', { name: 'Animation, out tonight' })).toBeDisabled();
+  });
+
+  it('refuses a new skip with the room limit note, no toast', async () => {
+    mockApi.roomGenres.mockResolvedValue(offer({ out: [1, 2, 3, 4] }));
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Skip Animation' }));
+    expect(screen.getByText('4 genres are already out tonight.')).toBeTruthy();
+    expect(screen.getByRole('checkbox', { name: 'Skip Animation' })).not.toBeChecked();
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('a re-read that puts a picked genre out removes the pick and says so', async () => {
+    mockApi.roomGenres.mockResolvedValue(offer());
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Animation/ }));
+    mockApi.roomGenres.mockResolvedValue(
+      offer({
+        options: [
+          { genre_id: 35, count: 3 },
+          { genre_id: 16, count: 0, out: true },
+        ],
+        out: [16],
+      }),
+    );
+    await act(async () => {
+      await client.invalidateQueries();
+    });
+    await waitFor(() =>
+      expect(screen.getByRole('checkbox', { name: 'Animation, out tonight' })).toBeDisabled(),
+    );
+    expect(
+      screen.getByText('Animation is out tonight, so we took it off your picks.'),
+    ).toBeTruthy();
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('room_limit on save: the warn toast, a re-read, the step stays', async () => {
+    mockApi.roomGenres.mockResolvedValue(offer());
+    mockApi.setSeatSkips.mockResolvedValue({ status: 'room_limit', max: 4 });
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Skip Animation' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        tone: 'warn',
+        title: '4 genres are already out tonight. Pick again.',
+      }),
+    );
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+
+  it('out_tonight on a pick: no toast, the step stays', async () => {
+    mockApi.roomGenres.mockResolvedValue(offer());
+    mockApi.setSeatPrefs.mockResolvedValue({ status: 'out_tonight' });
+    await open();
+    await fireEvent.press(screen.getByRole('checkbox', { name: /^Animation/ }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    await waitFor(() => expect(mockApi.setSeatPrefs).toHaveBeenCalled());
+    expect(showToast).not.toHaveBeenCalled();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+  });
+});
+
+describe('the lobby row with skips', () => {
+  const row = (name: string) => screen.getByRole('button', { name });
+  it('reads the picks then the own skip count, and the skip count alone with no picks', async () => {
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [{ genre_id: 35, count: 3 }],
+      mine: [35],
+      out: [],
+      skips: { genre_ids: [16], people: [{ id: 287, name: 'Brad' }] },
+    });
+    await show();
+    await waitFor(() => expect(row('Your genres tonight, Comedy, 2 skipped')).toBeTruthy());
+  });
+
+  it('says only the skip count with no picks', async () => {
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [{ genre_id: 35, count: 3 }],
+      mine: [],
+      out: [],
+      skips: { genre_ids: [16], people: [] },
+    });
+    await show();
+    await waitFor(() => expect(row('Your genres tonight, 1 skipped')).toBeTruthy());
   });
 });
