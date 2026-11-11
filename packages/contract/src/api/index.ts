@@ -26,6 +26,7 @@ import {
   ROOM_RUNNERS_UP_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
+  SET_SEAT_SKIPS_ANSWERS,
   START_GAME_ANSWERS,
   START_SOLO_ANSWERS,
   SOLO_PICK_ANSWERS,
@@ -106,6 +107,7 @@ import {
   setMyProvidersResult,
   genresSchema,
   setSeatPrefsResult,
+  setSeatSkipsResult,
   startGameResult,
   startSoloResult,
   soloPickResult,
@@ -125,6 +127,7 @@ import {
   type RoomSettings,
   type SetMyProvidersResult,
   type SetSeatPrefsResult,
+  type SetSeatSkipsResult,
   type StartGameResult,
   type StartSoloResult,
   type SoloPickResult,
@@ -382,6 +385,32 @@ export function createApi(client: ApiClient, options: ApiOptions = {}) {
         },
         SET_SEAT_PREFS_ANSWERS,
         setSeatPrefsResult,
+      );
+    },
+
+    /**
+     * Not tonight for one seat (M6.68): up to 3 genres and 3 people to leave out of every deck. A list
+     * left out stays as it is; an empty one clears. Lobby only. A call that changes genres sends
+     * `genres_changed`; people never reach another phone.
+     */
+    setSeatSkips(args: {
+      room_id: string;
+      genre_ids?: number[];
+      person_ids?: number[];
+      member_id?: string;
+    }): Promise<SetSeatSkipsResult> {
+      return callAnswer(
+        client,
+        options,
+        'set_seat_skips',
+        {
+          p_room_id: args.room_id,
+          p_genre_ids: args.genre_ids,
+          p_person_ids: args.person_ids,
+          p_member_id: args.member_id,
+        },
+        SET_SEAT_SKIPS_ANSWERS,
+        setSeatSkipsResult,
       );
     },
 
