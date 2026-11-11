@@ -9,7 +9,7 @@
   "shareLink": "Partager le lien",
   "showQr": "Voir le QR code",
   "rules": {
-    "quickMatch": "Partie rapide : on swipe jusqu'à tomber d'accord sur un film. Pas de match ? Un vote rapide tranche."
+    "quickMatch": "Partie rapide, 5 minutes environ : on swipe jusqu'à tomber d'accord sur un film. Pas de match, ou plusieurs ? Un vote rapide tranche."
   },
   "inTheRoom": "Dans la salle",
   "seat": {
@@ -125,7 +125,7 @@
   "genreStep": {
     "eyebrow": "Salle {{code}}",
     "title": "Tes genres ce soir",
-    "helper": "Choisis-en jusqu'à 3 pour orienter les films de ce soir. Les autres voient combien les ont choisis, jamais qui.",
+    "helper": "Choisis jusqu'à 3 genres qui te tentent, on s'en sert pour choisir les films. Les autres voient combien de joueurs ont pris chaque genre, pas qui.",
     "count": "{{count}}/3",
     "any": "Tous les genres",
     "continue": "Continuer",

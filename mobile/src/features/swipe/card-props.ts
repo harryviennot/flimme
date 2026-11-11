@@ -1,6 +1,7 @@
-import type { NextCard } from '@flimme/contract';
+import type { Genre, NextCard } from '@flimme/contract';
 
 import type { MovieCardProps } from '@/components/shared/movie-card';
+import { genreName } from '@/features/lobby/genres';
 import { formatList } from '@/features/lobby/names';
 
 import { posterUrl } from './poster-url';
@@ -31,16 +32,23 @@ export function formatScore(score: number, language: string): string {
   }).format(score);
 }
 
-/** "2017 · 1 h 43 · ★ 7.4": what the film has, in that order. */
+/**
+ * "2017 · 1 h 43 · Thriller · ★ 7.4": what the film has, in that order. The genre is the card's
+ * first one; without the genres list (not cached yet) it is left out, never waited for.
+ */
 export function cardMeta(
-  card: Pick<NextCard, 'year' | 'runtime_min' | 'tmdb_score'>,
+  card: Pick<NextCard, 'year' | 'runtime_min' | 'tmdb_score' | 'genre_ids'>,
   language: string,
+  genres?: readonly Genre[],
 ): string {
   const parts: string[] = [];
   if (card.year !== null) parts.push(String(card.year));
   if (card.runtime_min !== null && card.runtime_min > 0) {
     parts.push(formatRuntime(card.runtime_min, language));
   }
+  const first = card.genre_ids[0];
+  const genre = first === undefined ? undefined : genres?.find((g) => g.id === first);
+  if (genre) parts.push(genreName(genre, language));
   if (card.tmdb_score !== null) parts.push(`★ ${formatScore(card.tmdb_score, language)}`);
   return parts.join(' · ');
 }
@@ -105,6 +113,8 @@ export type CardTextOptions = {
   screenWidth: number;
   /** `swipe:card.noSynopsis`. */
   noSynopsis: string;
+  /** The TMDB genres, for the front's genre. Not cached yet: the front leaves the genre out. */
+  genres?: readonly Genre[];
   /** `rooms.max_age`; `undefined` while the room is loading. See `trailerAllowed`. */
   maxAge?: number | null;
   /** Opens a trailer. Without it (or without a `trailer_key`) the back has no Trailer button. */
@@ -127,7 +137,7 @@ export function toMovieCard(
     card.cast.length > 0 ? formatList(card.cast.slice(0, CAST_SHOWN), language) : undefined;
   return {
     title: card.title,
-    meta: cardMeta(card, language),
+    meta: cardMeta(card, language, options.genres),
     poster: url ? { uri: url } : null,
     thumbhash: card.poster_placeholder ?? undefined,
     services: cardServices(card),

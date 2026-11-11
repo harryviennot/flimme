@@ -149,6 +149,7 @@ In a 4-player night that ends with the Final Cut, a phone plays about 15 sounds:
 `tap.wav`: a tiny, barely there click.
 
 - **Every press ticks** (Harry, 6 November 2026): `Button`, icon buttons, chips, toggles, plain list rows, and the swipe screen's answer buttons (Like, Nope, Undo, Super, Seen). One tick for every press, the same for every answer, tells the couch nothing about what was answered. Swiping the card itself stays silent. **Lock in** plays [its latch](#locking-in) instead.
+- **Buttons inside scrolling lists wait 130 ms before they press in** (family playtest, 11 November 2026): the service tiles and the genre chips, so a scroll or a sheet drag that starts on one never ticks. A quick tap presses in on release, right with the selection. Every other button ticks the moment the finger lands.
 - **No tick** when the button is disabled or loading, and on touch surfaces that aren't buttons and have no haptic (`haptic={false}`): the card's flip, an overlay's "tap anywhere", a finalist tile, the player pill, the long press on the code, a store badge. A screen can also pass `sound={false}`.
 - It is the default of `Pressable` (and so `Button`); no screen asks for it.
 - Plays on press-in with `haptics.press()`, as `Pressable` does, never on release.

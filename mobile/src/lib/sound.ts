@@ -162,8 +162,10 @@ export async function playSound(name: SoundName) {
     await setMode();
     const player = playerFor(name);
     if (!player) return;
-    // A sound that was just made or has finished sits at 0: play without waiting for a seek.
-    if (player.currentTime > 0) await player.seekTo(0);
+    // A sound that was just made or has finished sits at 0. One mid-play is rewound without
+    // waiting for the seek: the player runs the seek and then the play in order on its own
+    // queue, so awaiting it only delayed the tick of a fast second tap.
+    if (player.currentTime > 0) void player.seekTo(0).catch(() => undefined);
     player.play();
   } catch {
     // Never let a sound break the moment it goes with.

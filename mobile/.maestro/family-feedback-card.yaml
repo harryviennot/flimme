@@ -1,0 +1,42 @@
+# Family playtest fixes (11 Nov 2026): the card front shows a genre, the back shows the synopsis one
+# size smaller (more before "Read more"), and the synopsis sheet text is smaller. Played alone, on
+# staging. Needs Metro started with the staging environment (see the expo-app skill).
+#   maestro test mobile/.maestro/family-feedback-card.yaml -e METRO_URL=http://localhost:<port>
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started|c.est parti'
+    timeout: 30000
+- tapOn: '(?i)get started|c.est parti'
+- inputText: 'Alice'
+- tapOn: '(?i)continue|continuer'
+- extendedWaitUntil:
+    visible: '(?i)play alone|jouer seul'
+    timeout: 15000
+- tapOn: '(?i)play alone|jouer seul'
+- extendedWaitUntil:
+    visible: '(?i)^start$|c.est parti'
+    timeout: 20000
+- tapOn: 'Netflix'
+- tapOn: 'Amazon Prime Video'
+- tapOn: 'Disney Plus'
+- tapOn: 'Canal\+'
+- tapOn: '(?i)^start$|c.est parti'
+- extendedWaitUntil:
+    visible: 'Solo'
+    timeout: 60000
+# The front: year, runtime, genre and score on one line.
+- extendedWaitUntil:
+    visible: '.*[0-9]{4} · .* · .* · ★ .*'
+    timeout: 20000
+- takeScreenshot: ff-card-front
+# The back.
+- tapOn:
+    point: 50%,45%
+- takeScreenshot: ff-card-back
+- tapOn:
+    text: '(?i)read more|lire la suite'
+    optional: true
+- takeScreenshot: ff-card-sheet

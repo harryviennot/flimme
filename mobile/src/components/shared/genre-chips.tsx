@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Chip } from '@/components/ui/chip';
+import { SCROLL_PRESS_DELAY_MS } from '@/components/ui/pressable';
 import { Skeleton } from '@/components/ui/skeleton';
 import { layout } from '@/theme/motion';
 
@@ -50,6 +51,7 @@ export function GenreChips({ options, selected, onToggle, showCounts, loading }:
                 ? t('genresSheet.chip', { name: option.name, count: option.count })
                 : option.name
             }
+            pressDelay={SCROLL_PRESS_DELAY_MS}
             selected={selected.includes(option.id)}
             onPress={() => onToggle(option.id)}
           />

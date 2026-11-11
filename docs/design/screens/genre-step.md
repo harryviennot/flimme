@@ -74,7 +74,7 @@ The genre sheet's chips, moved out so the step and the sheet draw the same thing
 | --- | --- | --- |
 | `genreStep.eyebrow` | Salle {{code}} | Room {{code}} |
 | `genreStep.title` | Tes genres ce soir | Your genres tonight |
-| `genreStep.helper` | Choisis-en jusqu'à 3 pour orienter les films de ce soir. Les autres voient combien les ont choisis, jamais qui. | Pick up to 3 to steer tonight's films. Others see how many picked each, never who. |
+| `genreStep.helper` | Choisis jusqu'à 3 genres qui te tentent, on s'en sert pour choisir les films. Les autres voient combien de joueurs ont pris chaque genre, pas qui. | Pick up to 3 genres you're in the mood for, and we'll lean the films that way. Others see how many players picked each genre, not who. |
 | `genreStep.count` | {{count}}/3 | {{count}}/3 |
 | `genreStep.any` | Tous les genres | Any genre |
 | `genreStep.continue` | Continuer | Continue |

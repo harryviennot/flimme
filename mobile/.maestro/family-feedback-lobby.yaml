@@ -1,0 +1,45 @@
+# Family playtest fixes (11 Nov 2026): the genre step's helper copy, the lobby's rules line with
+# the game's length, and the services sheet: a drag that starts on a tile scrolls and selects
+# nothing, a quick tap selects. Needs Metro started with the staging environment (see the
+# expo-app skill).
+#   maestro test mobile/.maestro/family-feedback-lobby.yaml -e METRO_URL=http://localhost:<port>
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started|c.est parti'
+    timeout: 30000
+- tapOn: '(?i)get started|c.est parti'
+- inputText: 'Alice'
+- tapOn: '(?i)continue|continuer'
+- extendedWaitUntil:
+    visible: '(?i)open a room|ouvrir une salle'
+    timeout: 15000
+- tapOn: '(?i)open a room|ouvrir une salle'
+- extendedWaitUntil:
+    visible: 'Netflix'
+    timeout: 15000
+# A quick tap selects.
+- tapOn: 'Netflix'
+- takeScreenshot: ff-services-tapped
+# A drag that starts on a tile scrolls and selects nothing more.
+- swipe:
+    start: 50%,70%
+    end: 50%,30%
+    duration: 400
+- takeScreenshot: ff-services-dragged
+- scrollUntilVisible:
+    element: '(?i)open the room|ouvrir la salle'
+- tapOn: '(?i)open the room|ouvrir la salle'
+# The genre step's helper in plain words.
+- extendedWaitUntil:
+    visible: '.*(in the mood for|qui te tentent).*'
+    timeout: 15000
+- takeScreenshot: ff-genre-step
+- tapOn: '(?i)any genre|peu importe|tous les genres'
+# The lobby's rules line names the game's length.
+- extendedWaitUntil:
+    visible: '.*(about 5 minutes|5 minutes environ).*'
+    timeout: 15000
+- takeScreenshot: ff-lobby-rules
