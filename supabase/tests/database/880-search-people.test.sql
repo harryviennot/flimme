@@ -180,12 +180,25 @@ select ok(has_function_privilege('authenticated', 'api.search_people(text, text)
 select ok(not has_function_privilege('authenticated', 'internal.search_key(text)', 'execute'), '11 the key function is not open to phones');
 select ok(not has_table_privilege('authenticated', 'public.people', 'select'), '11 phones still cannot read people');
 
--- 12: the ingest keeps writing people (the index calls search_key as the writing role)
+-- 12: the ingest keeps writing people (the index calls search_key as the writing role). As in CI and
+-- production, that role has no right on the extensions schema or on unaccent; lives_ok itself runs as
+-- the superuser and the statements switch to the server role inside a block.
+revoke usage on schema extensions from app_server;
+revoke execute on function extensions.unaccent(regdictionary, text) from public, app_server;
+revoke execute on function extensions.unaccent(text) from public, app_server;
 select tests.act_as_server();
-select lives_ok($q$insert into public.people (id, name, popularity) values (7500, 'Ingest Person', 1)
-  on conflict (id) do update set name = excluded.name$q$, '12 the server role can insert a person');
-select lives_ok($q$update public.people set name = 'Ingest Renamed' where id = 7500$q$, '12 and update one');
 select tests.clear_authentication();
+select lives_ok($q$do $b$ begin
+  set local role app_server;
+  insert into public.people (id, name, popularity) values (7500, 'Ingest Person', 1)
+    on conflict (id) do update set name = excluded.name;
+  reset role;
+end $b$$q$, '12 the server role can insert a person');
+select lives_ok($q$do $b$ begin
+  set local role app_server;
+  update public.people set name = 'Ingest Renamed' where id = 7500;
+  reset role;
+end $b$$q$, '12 and update one');
 select is(pg_temp.search('s2', 'kfperson one', '')->'people'->0->'known_for'->>'title', 'Le Meilleur',
   '6 an empty language falls back to the profile language');
 

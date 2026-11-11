@@ -10,14 +10,16 @@ create extension if not exists unaccent with schema extensions;
 
 -- The one place that decides what "the same name" means. Immutable so a trigram index can use it:
 -- the two-argument unaccent names its dictionary, which is what makes that safe.
+-- Security definer on purpose: Postgres runs an index expression as the role writing the row, and the
+-- pipeline login (app_server) has no right on the extensions schema in every environment. Running as
+-- the owner needs no new grant. Phones can't execute it directly.
 create function internal.search_key(p_text text) returns text
-language sql immutable parallel safe set search_path = ''
+language sql immutable parallel safe security definer set search_path = ''
 as $$
   select lower(extensions.unaccent('extensions.unaccent'::regdictionary, p_text))
 $$;
 revoke execute on function internal.search_key(text) from public, anon, authenticated;
--- Postgres checks execute on an index expression as the role that writes the row, so the roles that
--- write people (the pipeline login and the service role) need it. Phones never do.
+-- The writers of people need execute (Postgres checks it on an index expression), not phones.
 grant execute on function internal.search_key(text) to app_server, service_role;
 
 -- Migrations run in a transaction, which a concurrent build can't; only the ingest writes people.
