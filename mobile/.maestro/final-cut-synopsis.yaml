@@ -1,0 +1,28 @@
+# M6.67, the synopsis during the final vote (part of the Final Cut slice): after
+# final-cut-synopsis-play.yaml, with the clock running. Each finalist has an info button that opens
+# the synopsis sheet over the vote. A tap on a poster still ranks, a long press still vetoes, the
+# ranking and the veto are as they were when the sheet closes. The round lasts 60 seconds, so run
+# this right after the play flow; final-cut-synopsis-auto.yaml covers the close at Counting the
+# votes. Language: English.
+# Run: `maestro --device <sim> test mobile/.maestro/final-cut-synopsis.yaml`
+appId: com.harryviennot.flimme.dev
+---
+- assertVisible: 'Synopsis of .*'
+# A tap ranks, a long press vetoes, with the info buttons there.
+- tapOn: '.*, 20[0-9][0-9]. Not ranked, counts as 3'
+- assertVisible: '.*, 20[0-9][0-9]. Ranked 1'
+- longPressOn: '.*, 20[0-9][0-9]. Not ranked, counts as 2'
+- assertVisible: '.*, 20[0-9][0-9]. Vetoed'
+- takeScreenshot: final-cut-synopsis-1-ballot
+# Open a synopsis: the clock stays above it, the ballot is untouched under it.
+- tapOn: 'Synopsis of .*'
+- extendedWaitUntil:
+    visible: 'Synopsis'
+    timeout: 5000
+- assertVisible: 'Close'
+- takeScreenshot: final-cut-synopsis-2-open
+- tapOn: 'Close'
+- assertVisible: '.*, 20[0-9][0-9]. Ranked 1'
+- assertVisible: '.*, 20[0-9][0-9]. Vetoed'
+- assertVisible: 'Synopsis of .*'
+- takeScreenshot: final-cut-synopsis-3-closed

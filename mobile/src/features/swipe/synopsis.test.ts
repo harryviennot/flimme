@@ -1,4 +1,4 @@
-import type { NextCard } from '@flimme/contract';
+import type { Card, NextCard } from '@flimme/contract';
 import { act, renderHook } from '@testing-library/react-native';
 
 import { setSynopsisCard, synopsisCardOf, useSynopsisCard } from './synopsis';
@@ -24,5 +24,13 @@ describe('the synopsis sheet card', () => {
     expect(result.current).toBe(card);
     await act(async () => setSynopsisCard(null));
     expect(result.current).toBeNull();
+  });
+});
+
+describe('a finalist card', () => {
+  it('is a plain Card, with none of the swipe card extras', () => {
+    const plain = { title_id: 9, title: 'Finalist' } as Card;
+    setSynopsisCard(plain);
+    expect(synopsisCardOf(9)).toBe(plain);
   });
 });

@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 6 | In progress |
 
-Progress: 180 of 309 tasks done.
+Progress: 181 of 309 tasks done.
 
 ```mermaid
 flowchart LR
@@ -537,7 +537,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on the simulator shows a guest the full-screen genre step after joining and the host the step after the services choice, both skippable, and the lobby's sheet still changes picks.
 - [x] **M6.66** Seen it disabled with a tick, and the bookmark ticked, for films already seen or saved · app · S · needs M6.65, M6.58 · [seen it](../design/screens/swipe.md#seen-it-the-rewatch-question), [bookmark](../design/screens/swipe.md#the-bookmark)
   Done when: a touch run on the simulator shows Seen it disabled with a tick on a film already seen, and the bookmark ticked and disabled on a film already in My films likes, while the card still takes a like or a nope, in French and English.
-- [ ] **M6.67** The synopsis during the final vote: an info button on each finalist opens the synopsis sheet, while a tap still picks, a long press still vetoes and the clock keeps running; the sheet closes when the votes are counted · app · M · needs M6.15, M6.61 · [final cut](../design/screens/final-cut.md#reading-a-finalists-synopsis), [moments](../design/moments.md#the-final-cut)
+- [x] **M6.67** The synopsis during the final vote: an info button on each finalist opens the synopsis sheet, while a tap still picks, a long press still vetoes and the clock keeps running; the sheet closes when the votes are counted · app · M · needs M6.15, M6.61 · [final cut](../design/screens/final-cut.md#reading-a-finalists-synopsis), [moments](../design/moments.md#the-final-cut)
   Done when: a touch run on the simulator against staging opens a finalist's synopsis during the vote while the clock runs, closes it with the ranking and the veto unchanged, sees it close by itself at Counting the votes, and ranks and vetoes as before, in French and English.
 - [x] **M6.70** Not tonight for genres: the In the mood for and Not tonight sections in the genre step and the lobby's genres sheet, out tonight on every phone with no count and no name, the room limit of 4, and the lobby row's skip count · app · M · needs M6.68, M6.64 · [genre step](../design/screens/genre-step.md#not-tonight-m670-and-m671), [game-modes](game-modes.md#not-tonight)
   Done when: a touch run with two phones against staging skips Animation on one, sees it out tonight on the other with no count or name and the other's Animation pick removed, meets the room limit on a fifth genre, starts, and deals no animated film, in French and English.

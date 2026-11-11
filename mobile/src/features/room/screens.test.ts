@@ -84,10 +84,10 @@ describe('isAllowed', () => {
     expect(isAllowed('swiping', 'film')).toBe(false);
     expect(isSheet('film')).toBe(true);
   });
-  it('lets the synopsis sheet over the swipe screen only', () => {
+  it('lets the synopsis sheet over the swipe screen and the Final Cut only', () => {
     expect(isAllowed('swiping', 'synopsis')).toBe(true);
     expect(isAllowed('swiping', 'synopsis', 'solo')).toBe(true);
-    expect(isAllowed('finale', 'synopsis')).toBe(false);
+    expect(isAllowed('finale', 'synopsis')).toBe(true);
     expect(isAllowed('done', 'synopsis')).toBe(false);
     expect(isAllowed('lobby', 'synopsis')).toBe(false);
     expect(isSheet('synopsis')).toBe(true);

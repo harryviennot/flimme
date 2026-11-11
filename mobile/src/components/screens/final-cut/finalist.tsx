@@ -1,6 +1,12 @@
+import { usePathname } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, View, type AccessibilityActionEvent } from 'react-native';
+import {
+  AccessibilityInfo,
+  findNodeHandle,
+  View,
+  type AccessibilityActionEvent,
+} from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -15,7 +21,7 @@ import Animated, {
 import { Poster } from '@/components/shared/poster';
 import { GradientFill } from '@/components/ui/gradients';
 import { Icon } from '@/components/ui/icon';
-import { Pressable } from '@/components/ui/pressable';
+import { Pressable, type PressableNode } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import type { Place } from '@/features/finale/ballot';
 import { COUNT_MS, COUNT_STEP_MS, countUpValue, reached } from '@/features/finale/reveal';
@@ -57,6 +63,8 @@ export type FinalistProps = {
   reveal?: FinalistReveal;
   /** Where the poster frame sits in its row, for the winner's spotlight. */
   onFrame?: (frame: { x: number; y: number; width: number }) => void;
+  /** Opens the film's synopsis (final-cut.md#reading-a-finalists-synopsis). No button without it. */
+  onInfo?: () => void;
   onTap: () => void;
   onLongPress: () => void;
 };
@@ -72,6 +80,7 @@ export function Finalist({
   popDelay = 0,
   reveal,
   onFrame,
+  onInfo,
   onTap,
   onLongPress,
 }: FinalistProps) {
@@ -204,6 +213,20 @@ export function Finalist({
     if (name === 'rankNext' || name === 'removeRank') onTap();
     else if (name === 'veto' || name === 'liftVeto') onLongPress();
   }
+
+  // The info button sits over the poster frame, as a sibling of the Pressable so a press on it never
+  // reaches the tile. It shows while the round runs and after lock-in; the counting and the reveal hide it.
+  const showInfo = !!onInfo && !counting && !revealing && !!view.title;
+  const infoRef = useRef<PressableNode>(null);
+  const opened = useRef(false);
+  const sheetOpen = usePathname().includes('/synopsis/');
+  // Closing the sheet hands the screen reader's focus back to the button that opened it.
+  useEffect(() => {
+    if (sheetOpen || !opened.current) return;
+    opened.current = false;
+    const node = infoRef.current ? findNodeHandle(infoRef.current) : null;
+    if (node) AccessibilityInfo.setAccessibilityFocus(node);
+  }, [sheetOpen]);
 
   const entering = reduce ? fadeIn : layout.popIn.delay(popDelay);
 
@@ -340,6 +363,27 @@ export function Finalist({
           </View>
         ) : null}
       </Pressable>
+      {showInfo ? (
+        <Animated.View
+          style={sinkStyle}
+          exiting={layout.fadeOut}
+          className="absolute top-1.5 right-1.5"
+        >
+          <Pressable
+            ref={infoRef}
+            accessibilityLabel={t('a11y.synopsis', { title: view.title })}
+            accessibilityHint={t('a11y.synopsisHint')}
+            hitSlop={{ top: 8, bottom: 8, left: 4, right: 12 }}
+            onPress={() => {
+              opened.current = true;
+              onInfo?.();
+            }}
+            className="size-7 items-center justify-center rounded-pill bg-bg-sunken"
+          >
+            <Icon name="info" size={16} color="text-primary" />
+          </Pressable>
+        </Animated.View>
+      ) : null}
     </Animated.View>
   );
 }
