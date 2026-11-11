@@ -634,3 +634,19 @@ export const titleCardsResult = z.discriminatedUnion('status', [
   z.object({ status: z.literal('rate_limited') }),
 ]);
 export type TitleCardsResult = z.infer<typeof titleCardsResult>;
+
+/** A person in the people search: a name and one film they're known for (no photo). `year` is null when unknown. */
+export const personResult = z.object({
+  id: z.number(),
+  name: z.string(),
+  known_for: z.object({ title: z.string(), year: z.nullable(z.number()) }),
+});
+export type PersonResult = z.infer<typeof personResult>;
+
+/** `api.search_people`: up to 8 directors and cast of active films, closest name first. */
+export const searchPeopleResult = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), people: z.array(personResult) }),
+  z.object({ status: z.literal('invalid') }),
+  z.object({ status: z.literal('rate_limited') }),
+]);
+export type SearchPeopleResult = z.infer<typeof searchPeopleResult>;

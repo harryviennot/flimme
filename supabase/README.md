@@ -29,7 +29,7 @@ The allowlist of what phones may reach (every `api` function, four `internal` he
 
 What the baseline does about the items found while building the lite database:
 
-- **Extensions.** `vector` and `pg_trgm` are created with schema `extensions`. `pgmq` and `pg_cron` are created only where `pg_available_extensions` lists them (Supabase and CI; the lite database has neither and stands in for the `pgmq` schema). `pg_graphql` is dropped, since GraphQL is off. `180-extensions.stack.test.sql` pins all five.
+- **Extensions.** `vector` and `pg_trgm` are created with schema `extensions`, and `unaccent` too (the people search, M6.69). `pgmq` and `pg_cron` are created only where `pg_available_extensions` lists them (Supabase and CI; the lite database has neither and stands in for the `pgmq` schema). `pg_graphql` is dropped, since GraphQL is off. `180-extensions.stack.test.sql` pins all six.
 - **The `app_server` role.** The baseline creates it only if it is missing, so loading twice into one cluster works. The lite loader still drops it when no other lite database uses it.
 - **`set role app_server`.** Since Postgres 16 the creating role gets ADMIN but not SET. `tests.act_as_server()` grants `postgres` SET when it lacks it and says so if that fails. If CI shows the grant failing, the baseline gets `grant app_server to postgres with inherit false, set true;` right after the role guard.
 - **Test setup grants.** The test setup grants `app_server` usage on the `tests` and `extensions` schemas, so a test can call its helpers and pgTAP while acting as the server. That is test setup, not what the real server needs (M1.12).
