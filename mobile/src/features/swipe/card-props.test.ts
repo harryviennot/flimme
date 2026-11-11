@@ -63,6 +63,29 @@ describe('cardMeta', () => {
     expect(cardMeta(base, 'fr')).toBe('2017 · 1 h 43 · ★ 7,4');
   });
 
+  describe('with the genres', () => {
+    const genres = [
+      { id: 53, slug: 'thriller', names: { fr: 'Thriller', en: 'Thriller' } },
+      { id: 27, slug: 'horror', names: { fr: 'Horreur', en: 'Horror' } },
+    ];
+    const film = { ...base, genre_ids: [27, 53] };
+
+    it('puts the first genre before the score, in the language', () => {
+      expect(cardMeta(film, 'en', genres)).toBe('2017 · 1 h 43 · Horror · ★ 7.4');
+      expect(cardMeta(film, 'fr', genres)).toBe('2017 · 1 h 43 · Horreur · ★ 7,4');
+    });
+
+    it('leaves the genre out while the genres are not cached', () => {
+      expect(cardMeta(film, 'en')).toBe('2017 · 1 h 43 · ★ 7.4');
+      expect(cardMeta(film, 'en', [])).toBe('2017 · 1 h 43 · ★ 7.4');
+    });
+
+    it('leaves it out for a film with no genre or an unknown one', () => {
+      expect(cardMeta(base, 'en', genres)).toBe('2017 · 1 h 43 · ★ 7.4');
+      expect(cardMeta({ ...base, genre_ids: [999] }, 'en', genres)).toBe('2017 · 1 h 43 · ★ 7.4');
+    });
+  });
+
   it('leaves out what the film does not have', () => {
     expect(cardMeta({ ...base, year: null, runtime_min: null, tmdb_score: null }, 'en')).toBe('');
     expect(cardMeta({ ...base, tmdb_score: null }, 'en')).toBe('2017 · 1 h 43');

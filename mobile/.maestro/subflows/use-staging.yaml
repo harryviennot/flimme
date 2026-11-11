@@ -22,5 +22,5 @@ appId: com.harryviennot.flimme.dev
 # Back to Home (the app reloaded on the dev menu).
 - openLink: flimme-dev:///
 - extendedWaitUntil:
-    visible: '(?i)get started|open a room|got a room code.*'
+    visible: '(?i)get started|c.est parti|open a room|ouvrir une salle|got a room code.*|jouer seul|play alone'
     timeout: 60000

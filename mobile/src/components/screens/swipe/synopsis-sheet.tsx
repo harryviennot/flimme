@@ -57,7 +57,7 @@ export function SynopsisSheet({ titleId, onClose }: SynopsisSheetProps) {
         <Text variant="mono-eyebrow" tone="secondary">
           {t('card.synopsis')}
         </Text>
-        <Text variant="body-l">{card.overview ?? ts('card.noSynopsis')}</Text>
+        <Text variant="body-m">{card.overview ?? ts('card.noSynopsis')}</Text>
       </ScrollView>
     </GestureHandlerRootView>
   );

@@ -9,7 +9,7 @@
   "shareLink": "Share link",
   "showQr": "Show QR",
   "rules": {
-    "quickMatch": "Quick Match: swipe until you agree on a film. No match? A quick final vote decides."
+    "quickMatch": "Quick Match, about 5 minutes: swipe until you agree on a film. No match, or several? A quick vote decides."
   },
   "inTheRoom": "In the room",
   "seat": {
@@ -125,7 +125,7 @@
   "genreStep": {
     "eyebrow": "Room {{code}}",
     "title": "Your genres tonight",
-    "helper": "Pick up to 3 to steer tonight's films. Others see how many picked each, never who.",
+    "helper": "Pick up to 3 genres you're in the mood for, and we'll lean the films that way. Others see how many players picked each genre, not who.",
     "count": "{{count}}/3",
     "any": "Any genre",
     "continue": "Continue",

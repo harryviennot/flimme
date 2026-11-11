@@ -101,6 +101,20 @@ describe('playing', () => {
     expect(player.play).toHaveBeenCalledTimes(2);
   });
 
+  it('rewinds a sound mid-play and plays without waiting for the seek', async () => {
+    await playSound('error');
+    const player = created[0];
+    if (!player) throw new Error('no player');
+    player.currentTime = 0.2;
+    // A seek that never answers must not hold the tick back.
+    player.seekTo.mockImplementation(() => new Promise(() => undefined));
+    await playSound('error');
+    const seek = player.seekTo.mock.invocationCallOrder[0] ?? 0;
+    const play = player.play.mock.invocationCallOrder[1] ?? 0;
+    expect(seek).toBeGreaterThan(0);
+    expect(seek).toBeLessThan(play);
+  });
+
   it('plays nothing with the Sound switch off', async () => {
     setSoundEnabled(false);
     await playSound('match');

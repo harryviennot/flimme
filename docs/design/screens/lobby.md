@@ -192,7 +192,7 @@ The alert is the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`,
 | `a11y.copyCode` | Copier le code | Copy the code |
 | `shareLink` | Partager le lien | Share link |
 | `showQr` | Voir le QR code | Show QR |
-| `rules.quickMatch` | Partie rapide : on swipe jusqu'à tomber d'accord sur un film. Pas de match ? Un vote rapide tranche. | Quick Match: swipe until you agree on a film. No match? A quick final vote decides. |
+| `rules.quickMatch` | Partie rapide, 5 minutes environ : on swipe jusqu'à tomber d'accord sur un film. Pas de match, ou plusieurs ? Un vote rapide tranche. | Quick Match, about 5 minutes: swipe until you agree on a film. No match, or several? A quick vote decides. |
 | `inTheRoom` | Dans la salle | In the room |
 | `seat.you` | {{name}} (toi) | {{name}} (you) |
 | `seat.noServices` | Pas encore de plateformes | No services yet |
