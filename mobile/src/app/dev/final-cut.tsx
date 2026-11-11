@@ -42,7 +42,7 @@ const FILMS: FinalistView[] = [
   { titleId: 2, title: 'The Paper Comet', year: 2019, poster: fixturePosters.paperComet },
   { titleId: 3, title: 'Midnight Matinee', year: 2023, poster: fixturePosters.midnightMatinee },
   { titleId: 4, title: 'Southbound Summer', year: 2018, poster: fixturePosters.southboundSummer },
-].map((film) => ({ ...film, placeholder: null, noPoster: false }));
+].map((film) => ({ ...film, placeholder: null, noPoster: false, hasSynopsis: false }));
 
 type Fixture = {
   label: string;
@@ -191,6 +191,7 @@ function RevealFixtured({ data, onExit }: { data: RevealData; onExit: () => void
     online: true,
     onTap: () => undefined,
     onLongPress: () => undefined,
+    onInfo: () => undefined,
     onLockIn: () => undefined,
     onEnd: () => undefined,
     retryLoad: () => undefined,
@@ -286,6 +287,7 @@ function Fixtured({ fixture, onExit }: { fixture: Fixture; onExit: () => void })
       setLiftVetoHint(false);
       setBallot(next);
     },
+    onInfo: () => undefined,
     onLongPress: (id) => {
       if (!takesTaps(phase) || !canVeto) return;
       const next = pressFinalist(ballot, id, canVeto);

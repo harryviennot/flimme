@@ -21,6 +21,8 @@ export type FinalistView = {
   placeholder: string | null;
   /** The card is here but has no poster (the film icon shows). */
   noPoster: boolean;
+  /** The card has a title and an overview: the info button can open its synopsis. */
+  hasSynopsis: boolean;
 };
 
 function posterSourceOf(
@@ -48,6 +50,7 @@ export function finalistViews(
       poster: posterSourceOf(card, imageBase, screenWidth),
       placeholder: card?.poster_placeholder ?? null,
       noPoster: !!card && !card.poster_path,
+      hasSynopsis: !!card && !!card.title && !!card.overview,
     };
   });
 }

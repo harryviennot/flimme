@@ -42,6 +42,8 @@
       "ranked": "Le vote final. Classe-les.",
       "pickOne": "Le vote final. Choisis-en un."
     },
+    "synopsis": "Résumé de {{title}}",
+    "synopsisHint": "S'ouvre par-dessus le vote. Le chrono continue.",
     "film": "{{title}}, {{year}}",
     "filmNoYear": "{{title}}",
     "state": {

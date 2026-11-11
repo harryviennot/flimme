@@ -216,6 +216,7 @@ function FinalCut() {
     poster: fixturePosters[film.poster],
     placeholder: null,
     noPoster: false,
+    hasSynopsis: false,
   }));
   const ballot = pressFinalist(tapFinalist(EMPTY_BALLOT, 1), 3, true);
   const model: FinalCutModel = {
@@ -248,6 +249,7 @@ function FinalCut() {
     online: true,
     onTap: noop,
     onLongPress: noop,
+    onInfo: noop,
     onLockIn: noop,
     onEnd: noop,
     retryLoad: noop,

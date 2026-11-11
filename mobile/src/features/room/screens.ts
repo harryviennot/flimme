@@ -43,7 +43,7 @@ const SHEETS: Record<RoomState, readonly RoomSheet[]> = {
   lobby: ['invite', 'services', 'genres', 'seat', 'report'],
   dealing: ['invite', 'services', 'seat', 'report'],
   swiping: ['players', 'seat', 'report', 'synopsis'],
-  finale: [],
+  finale: ['synopsis'],
   done: ['recap', 'film'],
   abandoned: [],
 };

@@ -16,6 +16,7 @@ jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
 }));
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
+jest.mock('expo-router', () => ({ usePathname: () => '/room/r1/final-cut' }));
 jest.mock('@/lib/haptics', () => ({
   haptics: { press: jest.fn(), veto: jest.fn(), countdown: jest.fn() },
 }));
@@ -27,6 +28,7 @@ const finalist = (titleId: number, title: string) => ({
   poster: null,
   placeholder: null,
   noPoster: true,
+  hasSynopsis: true,
 });
 
 function model(
@@ -64,6 +66,7 @@ function model(
     online: true,
     onTap: jest.fn(),
     onLongPress: jest.fn(),
+    onInfo: jest.fn(),
     onLockIn: jest.fn(),
     onEnd: jest.fn(),
     retryLoad: jest.fn(),
@@ -87,6 +90,70 @@ async function show(m: FinalCutModel) {
     </SafeAreaProvider>,
   );
 }
+
+describe('the info button on a finalist', () => {
+  it('opens the synopsis and reaches neither the tap nor the long press', async () => {
+    const m = model();
+    await show(m);
+    const info = screen.getByLabelText('Synopsis of Alpha');
+    await fireEvent.press(info);
+    expect(m.onInfo).toHaveBeenCalledWith(10);
+    expect(m.onTap).not.toHaveBeenCalled();
+    // A long press on it does nothing: it has no long press of its own, and none reaches the tile.
+    expect(info.parent?.props.onLongPress).toBeUndefined();
+    expect(m.onLongPress).not.toHaveBeenCalled();
+    expect(m.onInfo).toHaveBeenCalledTimes(1);
+  });
+
+  it('is its own element, with a label, a hint and a 44 point target', async () => {
+    await show(model());
+    const info = screen.getByLabelText('Synopsis of Alpha');
+    expect(info.props.accessibilityHint).toBe('Opens over the vote. The clock keeps running.');
+    expect(info.props.accessibilityRole).toBe('button');
+    expect(info.props.hitSlop).toEqual({ top: 8, bottom: 8, left: 4, right: 12 });
+    // The finalist keeps its own label and actions.
+    const finalist = screen.getByLabelText('Alpha, 2020. Not ranked, counts as 1');
+    expect(finalist.props.accessibilityActions.map((a: { name: string }) => a.name)).toEqual([
+      'rankNext',
+      'veto',
+    ]);
+  });
+
+  it('still lets a tap rank and a long press veto', async () => {
+    const m = model();
+    await show(m);
+    await fireEvent.press(screen.getByLabelText(/Beta, 2020/));
+    expect(m.onTap).toHaveBeenCalledWith(20);
+    await fireEvent(screen.getByLabelText(/Beta, 2020/), 'longPress');
+    expect(m.onLongPress).toHaveBeenCalledWith(20);
+  });
+
+  it('shows after lock-in', async () => {
+    await show(model({ phase: 'locked', tick: false }));
+    expect(screen.getByLabelText('Synopsis of Beta')).toBeTruthy();
+  });
+
+  it('is left out for a card with no title or overview', async () => {
+    const m = model();
+    m.finalists[1] = { ...finalist(20, 'Beta'), hasSynopsis: false };
+    await show(m);
+    expect(screen.getByLabelText('Synopsis of Alpha')).toBeTruthy();
+    expect(screen.queryByLabelText('Synopsis of Beta')).toBeNull();
+  });
+
+  it('is gone from Counting the votes on', async () => {
+    await show(model({ phase: 'counting', countdownOn: false }));
+    expect(screen.queryByLabelText(/^Synopsis of/)).toBeNull();
+  });
+
+  it('speaks French', async () => {
+    await show(model());
+    await act(async () => void (await i18n.changeLanguage('fr')));
+    expect(screen.getByLabelText('Résumé de Alpha').props.accessibilityHint).toBe(
+      "S'ouvre par-dessus le vote. Le chrono continue.",
+    );
+  });
+});
 
 describe('the Final Cut screen', () => {
   it('taps a poster to rank it and long-presses it to veto', async () => {
@@ -127,12 +194,12 @@ describe('the Final Cut screen', () => {
     await show(m);
     const names = (label: RegExp) =>
       screen.getByLabelText(label).props.accessibilityActions.map((a: { name: string }) => a.name);
-    expect(names(/Alpha/)).toEqual(['removeRank', 'veto']);
-    expect(names(/Beta/)).toEqual(['liftVeto']);
-    expect(names(/Gamma/)).toEqual(['rankNext', 'veto']);
+    expect(names(/^Alpha,/)).toEqual(['removeRank', 'veto']);
+    expect(names(/^Beta,/)).toEqual(['liftVeto']);
+    expect(names(/^Gamma,/)).toEqual(['rankNext', 'veto']);
     await act(async () =>
       screen
-        .getByLabelText(/Gamma/)
+        .getByLabelText(/^Gamma,/)
         .props.onAccessibilityAction({ nativeEvent: { actionName: 'rankNext' } }),
     );
     expect(m.onTap).toHaveBeenCalledWith(30);
@@ -140,7 +207,7 @@ describe('the Final Cut screen', () => {
 
   it('has no veto action in a ranked vote or with no veto left', async () => {
     await show(model({ kind: 'ranked_vote', vetoAllowed: false }));
-    const actions = screen.getByLabelText(/Alpha/).props.accessibilityActions;
+    const actions = screen.getByLabelText(/^Alpha,/).props.accessibilityActions;
     expect(actions.map((a: { name: string }) => a.name)).toEqual(['rankNext']);
     expect(screen.getByText('Rank them.')).toBeTruthy();
     expect(screen.getByText(/The rest follow in the order shown/)).toBeTruthy();
@@ -163,13 +230,13 @@ describe('the Final Cut screen', () => {
     expect(screen.getByLabelText('Beta, 2020. Not picked, counts as 2')).toBeTruthy();
     const names = (label: RegExp) =>
       screen.getByLabelText(label).props.accessibilityActions.map((a: { name: string }) => a.name);
-    expect(names(/Alpha/)).toEqual(['removeRank']);
-    expect(names(/Beta/)).toEqual(['rankNext']);
+    expect(names(/^Alpha,/)).toEqual(['removeRank']);
+    expect(names(/^Beta,/)).toEqual(['rankNext']);
     expect(screen.queryByLabelText(/Vetoed/)).toBeNull();
     expect(screen.queryByText(/Long-press/)).toBeNull();
     expect(screen.getByLabelText('The final vote. Pick one.')).toBeTruthy();
     // a long press changes nothing on the screen: the labels stay, and the model is not told of a veto stamp
-    await fireEvent(screen.getByLabelText(/Beta/), 'longPress');
+    await fireEvent(screen.getByLabelText(/^Beta,/), 'longPress');
     expect(screen.getByLabelText('Beta, 2020. Not picked, counts as 2')).toBeTruthy();
     expect(screen.getByLabelText('Alpha, 2020. Your pick')).toBeTruthy();
     // the two posters share the row, each capped at 144 points and centred
@@ -196,7 +263,8 @@ describe('the Final Cut screen', () => {
   it("marks no finalist as anyone's", async () => {
     await show(model());
     for (const name of ['Alpha', 'Beta', 'Gamma']) {
-      const label = screen.getByLabelText(new RegExp(name)).props.accessibilityLabel as string;
+      const label = screen.getByLabelText(new RegExp(`^${name},`)).props
+        .accessibilityLabel as string;
       expect(label).not.toMatch(/Léa|Sam|chosen by|from/i);
     }
   });
@@ -220,7 +288,7 @@ describe('the Final Cut screen', () => {
     await show(m);
     expect(screen.getByLabelText('Sending')).toBeTruthy();
     expect(screen.getByText(/You're offline/)).toBeTruthy();
-    await fireEvent.press(screen.getByLabelText(/Alpha/));
+    await fireEvent.press(screen.getByLabelText(/^Alpha,/));
     expect(m.onTap).not.toHaveBeenCalled();
   });
 
