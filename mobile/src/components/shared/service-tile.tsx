@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
-import { Pressable } from '@/components/ui/pressable';
+import { Pressable, SCROLL_PRESS_DELAY_MS } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { serviceInitials } from '@/lib/service-initials';
 import { cn } from '@/lib/cn';
@@ -33,6 +33,8 @@ export function ServiceTile({ name, logo, selected = false, onPress }: ServiceTi
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       onPress={onPress}
+      // The grid sits in a scroll or a sheet: a drag that starts here must not tick.
+      unstable_pressDelay={SCROLL_PRESS_DELAY_MS}
       className={cn(
         'aspect-square min-w-0 flex-1 overflow-hidden rounded-md',
         selected ? 'border-2 border-accent-default' : 'border border-border-default',

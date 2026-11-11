@@ -94,6 +94,10 @@ jest.mock('@/features/room', () => ({
 
 const ROOM = 'room-1';
 
+// The genres list is a query that may not be cached yet: the card shows its genre only when it is.
+const mockGenres: { data: unknown } = { data: undefined };
+jest.mock('@/features/lobby/queries', () => ({ useGenres: () => mockGenres }));
+
 function film(id: number): NextCard {
   return {
     title_id: id,
@@ -102,7 +106,7 @@ function film(id: number): NextCard {
     overview: 'A story.',
     year: 2020,
     runtime_min: 100,
-    genre_ids: [],
+    genre_ids: id === 1 ? [53] : [],
     tmdb_score: 7,
     tmdb_votes: 10,
     poster_path: null,
@@ -304,6 +308,25 @@ afterEach(() => {
   // Near miss counts live in memory for the game: none may reach the next test.
   clearNearMisses();
   mockRoom.data = { reveal: 'party', max_age: null };
+});
+
+describe('the genre on the card', () => {
+  afterEach(() => {
+    mockGenres.data = undefined;
+  });
+
+  it('is left out until the genres are cached', async () => {
+    await setup();
+    await layoutStack();
+    expect(screen.getByLabelText('Film 1, 2020 · 1 h 40 · ★ 7.0')).toBeTruthy();
+  });
+
+  it('is the first one, once they are', async () => {
+    mockGenres.data = [{ id: 53, slug: 'thriller', names: { fr: 'Thriller', en: 'Thriller' } }];
+    await setup();
+    await layoutStack();
+    expect(screen.getByLabelText('Film 1, 2020 · 1 h 40 · Thriller · ★ 7.0')).toBeTruthy();
+  });
 });
 
 describe('the buttons', () => {

@@ -18,6 +18,8 @@ export type ChipProps = {
    * for one choice among several. Put radios in a `View` with `accessibilityRole="radiogroup"`.
    */
   role?: 'checkbox' | 'radio';
+  /** Wait this long (ms) before the press starts, for a chip in a list that scrolls. */
+  pressDelay?: number;
 };
 
 /** Figma "Chip": a selectable filter (moods, time budget). A check appears when selected. */
@@ -29,6 +31,7 @@ export function Chip({
   onPress,
   disabled,
   role = 'checkbox',
+  pressDelay,
 }: ChipProps) {
   return (
     <Pressable
@@ -37,6 +40,7 @@ export function Chip({
       accessibilityState={role === 'radio' ? { selected } : { checked: selected }}
       onPress={onPress}
       disabled={disabled}
+      unstable_pressDelay={pressDelay}
       className={cn(
         'h-9 flex-row items-center gap-1.5 self-start rounded-pill',
         selected

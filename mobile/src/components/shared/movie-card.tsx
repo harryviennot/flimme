@@ -525,7 +525,7 @@ function Synopsis({
         onLayout={(e: LayoutChangeEvent) => setRoom(e.nativeEvent.layout.height)}
       >
         <Text
-          variant="body-m"
+          variant="body-s"
           numberOfLines={lines}
           onTextLayout={(e) => {
             const height = e.nativeEvent.lines[0]?.height;
@@ -535,7 +535,7 @@ function Synopsis({
           {children}
         </Text>
         <Text
-          variant="body-m"
+          variant="body-s"
           className="absolute inset-x-0 top-0 opacity-0"
           pointerEvents="none"
           accessible={false}
@@ -668,7 +668,7 @@ function Back({
             {t('card.synopsis')}
           </Text>
           {whole ? (
-            <Text variant="body-m" testID="synopsis-whole">
+            <Text variant="body-s" testID="synopsis-whole">
               {back.synopsis}
             </Text>
           ) : (

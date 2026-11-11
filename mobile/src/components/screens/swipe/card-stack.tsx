@@ -16,6 +16,7 @@ import { STACK_STEP, type Direction } from '@/features/swipe/feel';
 import type { Flying } from '@/features/swipe/use-flights';
 import type { Swipe } from '@/features/swipe/use-swipe';
 import { formatList } from '@/features/lobby/names';
+import { useGenres } from '@/features/lobby/queries';
 
 import { CheckpointCard } from '@/components/screens/solo/checkpoint-card';
 import { CapCard, OutOfFilmsCard } from '@/components/screens/solo/end-cards';
@@ -110,6 +111,8 @@ export function CardStack({
     : null;
 
   const language = i18n.language;
+  // Warm before the first swipe; a card never waits for it (the genre is left out until it lands).
+  const genres = useGenres().data;
   const top = mounted[0];
   const topSaved = useIsSaved(top?.title_id ?? -1);
 
@@ -134,7 +137,7 @@ export function CardStack({
       }
       return parts.join(' ');
     }
-    const meta = cardMeta(card, language);
+    const meta = cardMeta(card, language, genres);
     const services = cardServices(card);
     return services.length > 0
       ? t('a11y.card', { title: card.title, meta, services: formatList(services, language) })
@@ -237,6 +240,7 @@ export function CardStack({
                 imageBase: swipe.imageBase,
                 screenWidth: screen.width,
                 noSynopsis: t('card.noSynopsis'),
+                genres,
                 maxAge,
               }}
               dragProgress={dragProgress}

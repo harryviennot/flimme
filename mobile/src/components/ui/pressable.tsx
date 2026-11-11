@@ -4,6 +4,13 @@ import { Pressable as RNPressable, type PressableProps as RNPressableProps } fro
 import { haptics, type HapticName } from '@/lib/haptics';
 import { playSound, type ButtonSound } from '@/lib/sound';
 
+/**
+ * For a tile or chip in a list that scrolls (and in a sheet that can be dragged down): the press
+ * starts this long after the finger lands, so a scroll that starts on it cancels it before the
+ * tick. A tap shorter than this still presses in on release, right with the selection.
+ */
+export const SCROLL_PRESS_DELAY_MS = 130;
+
 /** What a ref to a Pressable points at. */
 export type PressableNode = ComponentRef<typeof RNPressable>;
 
