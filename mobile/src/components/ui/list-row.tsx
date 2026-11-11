@@ -11,8 +11,12 @@ import { Text } from './text';
 export type ListRowProps = {
   label: string;
   icon?: IconName;
+  /** A second line under the label (`body-s`, muted, one line), read with it. */
+  description?: string;
   /** The current value, on the right ("English"). */
   value?: string;
+  /** A check after the value, for a row that is already chosen. The row reads as selected. */
+  checked?: boolean;
   /** Something on the right instead of the value and chevron (a Toggle). */
   trailing?: ReactNode;
   /** Makes the row tappable and shows a chevron. */
@@ -25,19 +29,24 @@ export type ListRowProps = {
   disabled?: boolean;
   /** What a screen reader adds, e.g. that the row opens the browser. */
   accessibilityHint?: string;
+  /** What a screen reader says instead of the label, description and value. */
+  accessibilityLabel?: string;
 };
 
 /** Figma "List row": a settings or profile row inside a grouped surface. */
 export function ListRow({
   label,
   icon,
+  description,
   value,
+  checked = false,
   trailing,
   onPress,
   tone = 'default',
   loading = false,
   disabled = false,
   accessibilityHint,
+  accessibilityLabel,
 }: ListRowProps) {
   const danger = tone === 'danger';
   // A row with a control on the right (a Toggle) reads once, through the control: the label
@@ -46,16 +55,22 @@ export function ListRow({
   const content = (
     <>
       {icon ? <Icon name={icon} size={20} color={danger ? 'nope-text' : 'text-secondary'} /> : null}
-      <Text
-        variant="body-l"
-        tone={danger ? 'nope' : 'primary'}
-        className={value ? 'max-w-1/2 shrink-0' : 'flex-1'}
-        numberOfLines={2}
-        accessibilityElementsHidden={hideLabel}
-        importantForAccessibility={hideLabel ? 'no-hide-descendants' : 'auto'}
-      >
-        {label}
-      </Text>
+      <View className={value ? 'max-w-1/2 shrink-0' : 'min-w-0 flex-1'}>
+        <Text
+          variant="body-l"
+          tone={danger ? 'nope' : 'primary'}
+          numberOfLines={2}
+          accessibilityElementsHidden={hideLabel}
+          importantForAccessibility={hideLabel ? 'no-hide-descendants' : 'auto'}
+        >
+          {label}
+        </Text>
+        {description ? (
+          <Text variant="body-s" tone="muted" numberOfLines={1}>
+            {description}
+          </Text>
+        ) : null}
+      </View>
       {trailing ??
         (loading ? (
           <ActivityIndicator color={tokens.color['text-muted']} />
@@ -71,7 +86,10 @@ export function ListRow({
                 {value}
               </Text>
             ) : null}
-            {onPress && !danger ? <Icon name="chevron-right" size={18} color="text-muted" /> : null}
+            {checked ? <Icon name="check" size={18} color="accent-text" /> : null}
+            {onPress && !danger && !checked ? (
+              <Icon name="chevron-right" size={18} color="text-muted" />
+            ) : null}
           </>
         ))}
     </>
@@ -82,9 +100,12 @@ export function ListRow({
   );
   return onPress ? (
     <Pressable
-      accessibilityLabel={value ? `${label}, ${value}` : label}
+      accessibilityLabel={
+        accessibilityLabel ??
+        [label, description, value].filter((part) => part !== undefined && part !== '').join(', ')
+      }
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ busy: loading, disabled }}
+      accessibilityState={{ busy: loading, disabled, selected: checked }}
       disabled={disabled || loading}
       onPress={onPress}
       haptic={loading ? false : 'press'}

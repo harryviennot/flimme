@@ -17,11 +17,15 @@ const props: TonightPrefsProps = {
   outTonight: [],
   picks: [35],
   skipGenres: [],
+  skipPeople: [],
   showCounts: true,
   maxPicks: 3,
   maxSkipGenres: 3,
+  maxSkipPeople: 3,
   onTogglePick: jest.fn(),
   onToggleSkip: jest.fn(),
+  onRemovePerson: jest.fn(),
+  onAddPerson: jest.fn(),
 };
 
 describe('TonightPrefs', () => {
@@ -78,5 +82,47 @@ describe('TonightPrefs', () => {
   it('draws no chip while loading', async () => {
     await render(<TonightPrefs {...props} loading />);
     expect(screen.queryByText('Comedy')).toBeNull();
+  });
+
+  describe('the People row', () => {
+    const people = [
+      { id: 287, name: 'Brad Pitt' },
+      { id: 955, name: 'Pénélope Cruz' },
+    ];
+
+    it('lists the skipped people in the order added, with their count', async () => {
+      await render(<TonightPrefs {...props} skipPeople={people} />);
+      expect(screen.getByLabelText('2 of 3 skipped')).toBeTruthy();
+      const chips = screen.getAllByRole('button', { name: /^Remove / });
+      expect(chips.map((chip) => chip.props.accessibilityLabel)).toEqual([
+        'Remove Brad Pitt',
+        'Remove Pénélope Cruz',
+      ]);
+      expect(chips[0]?.props.accessibilityHint).toBe('Their films come back tonight.');
+    });
+
+    it('a press on a chip removes that person', async () => {
+      const onRemovePerson = jest.fn();
+      await render(<TonightPrefs {...props} skipPeople={people} onRemovePerson={onRemovePerson} />);
+      await fireEvent.press(screen.getByRole('button', { name: 'Remove Pénélope Cruz' }));
+      expect(onRemovePerson).toHaveBeenCalledWith(955);
+    });
+
+    it('Add a person opens the search, and is disabled at the cap with its note', async () => {
+      const onAddPerson = jest.fn();
+      const { rerender } = await render(<TonightPrefs {...props} onAddPerson={onAddPerson} />);
+      await fireEvent.press(screen.getByRole('button', { name: 'Add a person' }));
+      expect(onAddPerson).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText(/3 people at most/)).toBeNull();
+      const three = [...people, { id: 1, name: 'Third' }];
+      await rerender(<TonightPrefs {...props} skipPeople={three} onAddPerson={onAddPerson} />);
+      expect(screen.getByRole('button', { name: 'Add a person' })).toBeDisabled();
+      expect(screen.getByText('3 people at most. Remove one to swap.')).toBeTruthy();
+    });
+
+    it('can be used before the genres load', async () => {
+      await render(<TonightPrefs {...props} loading />);
+      expect(screen.getByRole('button', { name: 'Add a person' })).toBeEnabled();
+    });
   });
 });

@@ -10,20 +10,32 @@ describe('ListRow', () => {
     );
     const label = screen.getByText('Tes genres ce soir');
     const value = screen.getByText('Action, Comédie, Science-fiction, Thriller');
-    expect(label.props.className).toContain('shrink-0');
+    expect(label.parent?.props.className).toContain('shrink-0');
     expect(label.props.numberOfLines).toBe(2);
     expect(value.props.numberOfLines).toBe(1);
   });
 
-  it('never shrinks its label for a long value: the value truncates instead', async () => {
+  it('draws a description under the label on one line, and reads it with the label', async () => {
+    const onPress = jest.fn();
+    await render(<ListRow label="Brad Pitt" description="Fight Club (1999)" onPress={onPress} />);
+    expect(screen.getByText('Fight Club (1999)').props.numberOfLines).toBe(1);
+    await fireEvent.press(screen.getByLabelText('Brad Pitt, Fight Club (1999)'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('a checked row shows its value and reads as selected; a label can be replaced', async () => {
     await render(
-      <ListRow label="Tes genres ce soir" value="Action, Comédie, Science-fiction, Thriller" />,
+      <ListRow
+        label="Brad Pitt"
+        description="Fight Club (1999)"
+        value="Already on your list"
+        checked
+        accessibilityLabel="Brad Pitt, Fight Club (1999)"
+        onPress={() => undefined}
+      />,
     );
-    const label = screen.getByText('Tes genres ce soir');
-    const value = screen.getByText('Action, Comédie, Science-fiction, Thriller');
-    expect(label.props.className).toContain('shrink-0');
-    expect(label.props.numberOfLines).toBe(2);
-    expect(value.props.numberOfLines).toBe(1);
+    expect(screen.getByText('Already on your list')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Brad Pitt, Fight Club (1999)' })).toBeSelected();
   });
 
   it('presses, and reads its label with its value', async () => {

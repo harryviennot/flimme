@@ -166,5 +166,26 @@
       "removePersonHint": "Their films come back tonight.",
       "pickMoved": "{{name}} taken off your picks"
     }
+  },
+  "skipPeople": {
+    "title": "Skip someone",
+    "helper": "An actor or a director: their films leave tonight's deck. Nobody else sees who you skip.",
+    "field": "Search for a name",
+    "placeholder": "An actor, a director…",
+    "knownFor": "{{title}} ({{year}})",
+    "knownForNoYear": "{{title}}",
+    "already": "Already on your list",
+    "empty": "Nobody by that name in our films.",
+    "emptyHint": "Check the spelling or try another name.",
+    "failed": "The search didn't work.",
+    "offline": "No network. Search comes back with your connection.",
+    "a11y": {
+      "row": "{{name}}, {{film}}",
+      "rowHint": "Their films leave tonight's deck.",
+      "results_one": "{{count}} result",
+      "results_other": "{{count}} results",
+      "searching": "Searching",
+      "added": "On your list: {{name}}"
+    }
   }
 }

@@ -23,6 +23,19 @@ function Demo() {
       <ListRow icon="upload" label="Loading" loading onPress={() => undefined} />
       <ListRow icon="mail" label="Disabled" disabled onPress={() => undefined} />
       <ListRow icon="trash" label="Delete my data" tone="danger" onPress={() => undefined} />
+      <ListRow label="Brad Pitt" description="Fight Club (1999)" onPress={() => undefined} />
+      <ListRow
+        label="Pénélope Cruz"
+        description="Volver (2006)"
+        value="Already on your list"
+        checked
+        onPress={() => undefined}
+      />
+      <ListRow
+        label="A very long name that wraps onto a second line at the largest text size, Junior"
+        description="A very long film title that stays on one line (1999)"
+        onPress={() => undefined}
+      />
     </View>
   );
 }

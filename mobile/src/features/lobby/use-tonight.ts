@@ -24,6 +24,7 @@ import {
   toggleSkip,
   tonightChanged,
 } from './genres';
+import type { SkippedPerson } from './people';
 import { useGenres } from './queries';
 import { useTonightDraft } from './tonight-draft';
 
@@ -31,7 +32,16 @@ type WantsNote = { kind: 'cap' } | { kind: 'pickOut'; name: string } | null;
 type GenresNote = 'cap' | 'roomLimit' | null;
 
 export type TonightSave =
-  'close' | 'locked' | 'pickOut' | 'roomLimit' | 'stale' | 'bug' | 'failed' | 'offline' | 'busy';
+  | 'close'
+  | 'locked'
+  | 'pickOut'
+  | 'roomLimit'
+  | 'stale'
+  | 'personGone'
+  | 'bug'
+  | 'failed'
+  | 'offline'
+  | 'busy';
 
 const announce = (text: string) => {
   if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibility(text);
@@ -70,6 +80,8 @@ export function useTonight(roomId: string | undefined, language: string) {
   const startPicks = (data?.mine ?? []).filter((id) => offeredIds.has(id) && !roomOut.includes(id));
   const startSkips = data?.skips.genre_ids ?? [];
   const skips = draft.skips ?? startSkips;
+  const startPeople: SkippedPerson[] = data?.skips.people ?? [];
+  const people = draft.people ?? startPeople;
   // A pick in a genre that is out leaves the draft, saved picks and cap alike.
   const picks = (draft.picks ?? startPicks).filter((id) => !roomOut.includes(id));
   const outTonight = outTonightSet(roomOut, skips);
@@ -93,7 +105,16 @@ export function useTonight(roomId: string | undefined, language: string) {
   const { reset } = draft;
   useEffect(() => reset, [reset]);
 
-  const changed = ready && tonightChanged({ picks, startPicks, skips, startSkips });
+  const changed =
+    ready &&
+    tonightChanged({
+      picks,
+      startPicks,
+      skips,
+      startSkips,
+      people: people.map((p) => p.id),
+      startPeople: startPeople.map((p) => p.id),
+    });
   const unsavedNow = useRef(false);
   useEffect(() => {
     if (unsavedNow.current !== changed) {
@@ -139,6 +160,10 @@ export function useTonight(roomId: string | undefined, language: string) {
     if (next.pickMoved) announce(t('prefs.a11y.pickMoved', { name: nameOf(id) }));
   };
 
+  const removePerson = (id: number) => {
+    draft.set({ people: people.filter((p) => p.id !== id) });
+  };
+
   const retry = () => {
     void read.refetch();
     void names.refetch();
@@ -160,7 +185,15 @@ export function useTonight(roomId: string | undefined, language: string) {
     busy.current = true;
     setSaving(true);
     const outcome = await saveTonight(
-      { roomId: roomId ?? '', picks, startPicks, skips, startSkips },
+      {
+        roomId: roomId ?? '',
+        picks,
+        startPicks,
+        skips,
+        startSkips,
+        people: people.map((p) => p.id),
+        startPeople: startPeople.map((p) => p.id),
+      },
       {
         setSeatSkips: (args) => api.setSeatSkips(args),
         setSeatPrefs: (args) => api.setSeatPrefs(args),
@@ -195,6 +228,15 @@ export function useTonight(roomId: string | undefined, language: string) {
         const next = reconcileTonight({ picks, skips }, out, true);
         draft.set({ picks: next.picks, skips: next.skips });
         return 'roomLimit';
+      }
+      case 'personGone': {
+        // The answer doesn't say who: the people added since the last save go (all of them when
+        // none is new), and the step stays so Continue sends the rest again.
+        const fresh = people.filter((p) => !startPeople.some((s) => s.id === p.id));
+        const gone = fresh.length > 0 ? fresh : people;
+        draft.set({ people: people.filter((p) => !gone.includes(p)) });
+        showToast({ tone: 'warn', title: t('prefs.errors.personGone') });
+        return 'personGone';
       }
       case 'stale':
         draft.reset();
@@ -235,6 +277,7 @@ export function useTonight(roomId: string | undefined, language: string) {
     outTonight,
     picks,
     skips,
+    people,
     startPicks,
     startSkips,
     changed,
@@ -242,6 +285,7 @@ export function useTonight(roomId: string | undefined, language: string) {
     genresText,
     togglePick,
     toggleSkip: toggleSkipGenre,
+    removePerson,
     retry,
     save,
     saving,

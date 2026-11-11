@@ -9,6 +9,25 @@ describe('the Not tonight draft', () => {
     expect(store.getState()).toMatchObject({ roomId: 'r1', picks: [1], skips: [2] });
   });
 
+  it('keeps the skipped people, in the order added, and clears them with the rest', () => {
+    const store = createTonightDraftStore();
+    expect(store.getState().people).toBeNull();
+    store.getState().set('r1', { people: [{ id: 2, name: 'B' }] });
+    store.getState().set('r1', {
+      picks: [1],
+      people: [
+        { id: 2, name: 'B' },
+        { id: 1, name: 'A' },
+      ],
+    });
+    expect(store.getState().people?.map((p) => p.id)).toEqual([2, 1]);
+    store.getState().set('r2', { skips: [1] });
+    expect(store.getState().people).toBeNull();
+    store.getState().set('r2', { people: [{ id: 3, name: 'C' }] });
+    store.getState().reset();
+    expect(store.getState().people).toBeNull();
+  });
+
   it('forgets another rooms draft', () => {
     const store = createTonightDraftStore();
     store.getState().set('r1', { picks: [1], skips: [2] });

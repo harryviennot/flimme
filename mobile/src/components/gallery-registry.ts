@@ -18,6 +18,7 @@ import { gallery as uiMarqueeBulbs } from './ui/marquee-bulbs.gallery';
 import { gallery as uiMotion } from './ui/motion.gallery';
 import { gallery as uiOptionCard } from './ui/option-card.gallery';
 import { gallery as uiPinBox } from './ui/pin-box.gallery';
+import { gallery as uiSearchField } from './ui/search-field.gallery';
 import { gallery as uiSegmentedControl } from './ui/segmented-control.gallery';
 import { gallery as uiSkeleton } from './ui/skeleton.gallery';
 import { gallery as uiTabBar } from './ui/tab-bar.gallery';
@@ -63,6 +64,7 @@ export const galleryEntries: GalleryEntry[] = [
   uiMotion,
   uiOptionCard,
   uiPinBox,
+  uiSearchField,
   uiSegmentedControl,
   uiSkeleton,
   uiTabBar,

@@ -166,5 +166,26 @@
       "removePersonHint": "Ses films reviennent ce soir.",
       "pickMoved": "{{name}} retiré de tes envies"
     }
+  },
+  "skipPeople": {
+    "title": "Écarter quelqu'un",
+    "helper": "Un acteur, une actrice, un réalisateur : ses films sortent du jeu ce soir. Les autres ne voient pas qui tu écartes.",
+    "field": "Chercher un nom",
+    "placeholder": "Un acteur, une réalisatrice…",
+    "knownFor": "{{title}} ({{year}})",
+    "knownForNoYear": "{{title}}",
+    "already": "Déjà dans ta liste",
+    "empty": "Personne à ce nom dans nos films.",
+    "emptyHint": "Vérifie l'orthographe ou essaie un autre nom.",
+    "failed": "La recherche n'a pas marché.",
+    "offline": "Pas de réseau. La recherche revient avec la connexion.",
+    "a11y": {
+      "row": "{{name}}, {{film}}",
+      "rowHint": "Ses films sortent du jeu ce soir.",
+      "results_one": "{{count}} résultat",
+      "results_other": "{{count}} résultats",
+      "searching": "Recherche en cours",
+      "added": "Dans ta liste : {{name}}"
+    }
   }
 }
