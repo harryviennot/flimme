@@ -90,7 +90,7 @@ Set on both staging and production, by hand once, then checked against this list
 | Apple and Google sign-in | On, with their keys | Authentication, Providers | [Sign-in](app-structure.md#sign-in) |
 | JWT signing keys | Asymmetric (ES256) | Authentication, JWT signing keys | The server verifies phones' tokens against the public JWKS endpoint, with no shared secret |
 | API keys | The publishable key in the app; one secret key per server component | Project settings, API keys | The legacy `anon` and `service_role` keys are being deprecated by the end of 2026 |
-| Extensions | `vector`, `pg_trgm`, `pgmq` (Queues), `pg_cron` (Cron) | Baseline migration | Needed by the schema |
+| Extensions | `vector`, `pg_trgm`, `unaccent` (the people search, M6.69), `pgmq` (Queues), `pg_cron` (Cron) | Baseline migration, then `search_people` | Needed by the schema |
 | Compute | Micro from M2.15 (Free has shared compute); Small if the [load test](#load-test) misses its targets | Compute and disk | Small also unlocks point-in-time recovery |
 | Spend cap | On from M2.15 (it comes with Pro) through the closed beta; off at public launch | Organization billing | With the cap on, going over a quota restricts the project instead of billing it. A busy night must never cut games off; overages are cheap (see [Monthly costs](#monthly-costs)) |
 
@@ -337,7 +337,7 @@ A short checklist for when something is wrong:
 | `internal.ops_health()` | New (M9.5): returns each signal as `{name, value, threshold, crossed}` (queue ages, `sweep_rooms` runs, retention, catalog runs, the sweep guard, 429 rate and agreement, new reports with their ids, deal latency and fallback share, database size and connections), and `internal.mark_reports_alerted(ids)` sets `alerted_at`. Callable by `app_server` only |
 | `internal.run_retention()` | New: the daily retention job, writing its counts to `ingest_runs` |
 | `ingest_runs.kind` | Add `retention` and `guest_cleanup` |
-| Baseline migration | Drops `pg_graphql`; enables `vector`, `pg_trgm`, `pgmq`, `pg_cron` |
+| Baseline migration | Drops `pg_graphql`; enables `vector`, `pg_trgm`, `pgmq`, `pg_cron` (`unaccent` comes with M6.69's migration) |
 | `docs/architecture/schema.sql` | Retired once the baseline migration exists; the 120 checks become pgTAP tests |
 
 **Other docs:** the data model's What was tested section should say where the tests now live; the revival plan's "Load test with 50 rooms at once" points here.

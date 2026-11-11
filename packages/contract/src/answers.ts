@@ -282,3 +282,10 @@ export type VoteAnswer = (typeof VOTE_ANSWERS)[number];
  */
 export const DELETE_ACCOUNT_ANSWERS = ['ok', 'unauthorized', 'try_again'] as const;
 export type DeleteAccountAnswer = (typeof DELETE_ACCOUNT_ANSWERS)[number];
+
+/**
+ * `api.search_people` answers (M6.69): `ok` comes with up to 8 people, `invalid` is a query outside 2 to
+ * 60 characters once trimmed, `rate_limited` is 60 calls a minute per profile.
+ */
+export const SEARCH_PEOPLE_ANSWERS = ['ok', 'invalid', 'rate_limited'] as const;
+export type SearchPeopleAnswer = (typeof SEARCH_PEOPLE_ANSWERS)[number];

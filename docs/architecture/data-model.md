@@ -148,7 +148,7 @@ erDiagram
 | names | jsonb | `{"en": "Comedy", "fr": "Comédie"}` |
 | media_types | media_type[] | `{movie}`, `{tv}` or both |
 
-**keywords** (id, name) and **people** (id, name, profile_path, popularity, updated_at) use TMDB ids as keys.
+**keywords** (id, name) and **people** (id, name, profile_path, popularity, updated_at) use TMDB ids as keys. A trigram index on `internal.search_key(name)` (lowercase, accents removed, an immutable wrapper over `unaccent`) serves the people search (`api.search_people`, M6.69). Phones never read `people` directly.
 
 **providers**: streaming services.
 
@@ -743,6 +743,7 @@ Everything the app does goes through the `api` schema with `supabase-js`: `.from
 | --- | --- |
 | `update_profile(name, avatar, country, language)` | Edits your profile |
 | `set_my_providers(ids)` | Replaces your services |
+| `search_people(query, language)` | Not tonight (M6.69): up to 8 directors and cast of active films whose name matches (accents and case ignored), each with `id`, `name` and one `known_for` film (`title`, `year`), no photo. A query of 2 to 60 characters once trimmed, else `invalid`; 60 a minute per profile, else `rate_limited`. The query is never logged or kept in a rate limit key |
 | `create_room(mode, country, settings)` | New room with its settings, host seat, code. A refused setting answers `invalid_settings` with the field and creates nothing |
 | `join_room(code, ref, via, link_opened_at)` | Join or rejoin, rate limited; `ref` makes a stale invite link answer `closed` |
 | `room_preview(code, ref)` | What an invite link shows before joining: the host's name and avatar and the player count, never other players; needs the `ref`; read only, rate limited |

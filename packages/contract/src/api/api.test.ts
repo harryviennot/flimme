@@ -31,6 +31,7 @@ import {
   MY_FILMS_SEGMENTS,
   REMOVE_MY_FILM_ANSWERS,
   SET_FILM_SAVED_ANSWERS,
+  SEARCH_PEOPLE_ANSWERS,
   UPDATE_PROFILE_ANSWERS,
   UPDATE_ROOM_SETTINGS_ANSWERS,
 } from '../answers';
@@ -337,6 +338,16 @@ const cases = [
     answers: SET_FILM_SAVED_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.setFilmSaved({ title_id: 7, saved: true }),
     full: {},
+  },
+  {
+    name: 'search_people',
+    answers: SEARCH_PEOPLE_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) => a.searchPeople({ query: 'brad' }),
+    full: {
+      ok: {
+        people: [{ id: 1, name: 'Brad Pitt', known_for: { title: 'Fight Club', year: 1999 } }],
+      },
+    },
   },
   {
     name: 'title_cards',
@@ -919,6 +930,29 @@ describe('my films', () => {
       createApi(client, { validate: true }).myFilmCard({ title_id: 7, language: 'en' }),
     ).resolves.toEqual({ status: 'ok', card: CARD, seen: true, liked: true });
     expect(calls[0]).toEqual({ fn: 'my_film_card', args: { p_title_id: 7, p_language: 'en' } });
+  });
+
+  it('search_people sends the query as a POST body, never as a GET', async () => {
+    const seen: unknown[][] = [];
+    const client = {
+      rpc: async (...all: unknown[]) => {
+        seen.push(all);
+        return ok({ status: 'ok', people: [] });
+      },
+    } as unknown as ApiClient;
+    await expect(
+      createApi(client, { validate: true }).searchPeople({ query: 'brad', language: 'fr' }),
+    ).resolves.toEqual({ status: 'ok', people: [] });
+    // Two arguments only: no { get: true } third argument, so supabase-js sends a POST.
+    expect(seen).toEqual([['search_people', { p_query: 'brad', p_language: 'fr' }]]);
+    const withPhoto = {
+      status: 'ok',
+      people: [{ id: 1, name: 'A B', known_for: { title: 'T', year: null } }],
+    };
+    const { client: c2 } = fake(() => ok(withPhoto));
+    await expect(createApi(c2, { validate: true }).searchPeople({ query: 'ab' })).resolves.toEqual(
+      withPhoto,
+    );
   });
 
   it('set_film_seen and remove_my_film send the film and resolve not_found as a value', async () => {
