@@ -1,3 +1,4 @@
+-- squawk-ignore-file prefer-bigint-over-int
 -- M6.68: Not tonight on the server (game-modes.md#not-tonight, #apiset_seat_skipsroom-genre_ids-person_ids;
 -- Harry's answers of 11 Nov 2026).
 --

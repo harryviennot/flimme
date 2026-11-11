@@ -221,7 +221,7 @@ export const updateRoomSettingsResult = z.discriminatedUnion('status', [
 export type UpdateRoomSettingsResult = z.infer<typeof updateRoomSettingsResult>;
 
 export const setSeatPrefsResult = z.discriminatedUnion('status', [
-  z.object({ status: z.enum(['ok', 'closed', 'unknown_genre', 'locked']) }),
+  z.object({ status: z.enum(['ok', 'closed', 'unknown_genre', 'locked', 'out_tonight']) }),
   z.object({
     status: z.literal('too_many'),
     field: z.enum(['provider_ids', 'mood_slugs', 'genre_ids']),
@@ -230,16 +230,43 @@ export const setSeatPrefsResult = z.discriminatedUnion('status', [
 ]);
 export type SetSeatPrefsResult = z.infer<typeof setSeatPrefsResult>;
 
+/** `api.set_seat_skips` (M6.68). */
+export const setSeatSkipsResult = z.discriminatedUnion('status', [
+  z.object({
+    status: z.enum(['ok', 'locked', 'closed', 'unknown_genre', 'unknown_person']),
+  }),
+  z.object({
+    status: z.literal('too_many'),
+    field: z.enum(['genre_ids', 'person_ids']),
+    max: z.number(),
+  }),
+  z.object({ status: z.literal('room_limit'), max: z.number() }),
+]);
+export type SetSeatSkipsResult = z.infer<typeof setSeatSkipsResult>;
+
 /**
  * `api.room_genres` (M6.53): `options` are the genres offered tonight (30 eligible films or more,
  * never TV Movie) in genre id order, each with how many present seats picked it; `mine` is the
  * caller's own picks. Counts only: never a seat or a name.
+ *
+ * Not tonight (M6.68): an option that is out tonight keeps `count: 0` and adds `out: true`, so older
+ * builds still parse it. `out` lists the genres out tonight: in the lobby, the ones skipped by the
+ * other seats still in the room (never the caller's own); after Start, every dropped genre. `skips`
+ * is the caller's own: its genre ids, and its people with an id and a name, in the order added.
+ * Never another seat's skips, never a photo.
  */
 export const roomGenresResult = z.discriminatedUnion('status', [
   z.object({
     status: z.literal('ok'),
-    options: z.array(z.object({ genre_id: z.number(), count: z.number() })),
+    options: z.array(
+      z.object({ genre_id: z.number(), count: z.number(), out: z.optional(z.boolean()) }),
+    ),
     mine: z.array(z.number()),
+    out: z.array(z.number()),
+    skips: z.object({
+      genre_ids: z.array(z.number()),
+      people: z.array(z.object({ id: z.number(), name: z.string() })),
+    }),
   }),
 ]);
 export type RoomGenresResult = z.infer<typeof roomGenresResult>;

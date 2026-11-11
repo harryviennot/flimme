@@ -103,6 +103,7 @@ export async function saveGenres(
       case 'locked':
         return { kind: 'locked' };
       case 'unknown_genre':
+      case 'out_tonight':
         return { kind: 'stale' };
       case 'too_many':
         return { kind: 'bug', reason: 'set_seat_prefs:too_many' };

@@ -21,6 +21,7 @@ import {
   ROOM_RUNNERS_UP_ANSWERS,
   SET_MY_PROVIDERS_ANSWERS,
   SET_SEAT_PREFS_ANSWERS,
+  SET_SEAT_SKIPS_ANSWERS,
   START_GAME_ANSWERS,
   START_SOLO_ANSWERS,
   SOLO_PICK_ANSWERS,
@@ -264,7 +265,17 @@ const cases = [
     name: 'room_genres',
     answers: ROOM_GENRES_ANSWERS,
     call: (a: ReturnType<typeof createApi>) => a.roomGenres({ room_id: ROOM }),
-    full: { ok: { options: [{ genre_id: 35, count: 2 }], mine: [35] } },
+    full: {
+      ok: {
+        options: [
+          { genre_id: 35, count: 2 },
+          { genre_id: 16, count: 0, out: true },
+        ],
+        mine: [35],
+        out: [16],
+        skips: { genre_ids: [16], people: [{ id: 287, name: 'Made Up' }] },
+      },
+    },
   },
   {
     name: 'update_room_settings',
@@ -279,6 +290,13 @@ const cases = [
     call: (a: ReturnType<typeof createApi>) =>
       a.setSeatPrefs({ room_id: ROOM, mood_slugs: ['cosy'] }),
     full: { too_many: { field: 'mood_slugs', max: 3 } },
+  },
+  {
+    name: 'set_seat_skips',
+    answers: SET_SEAT_SKIPS_ANSWERS,
+    call: (a: ReturnType<typeof createApi>) =>
+      a.setSeatSkips({ room_id: ROOM, genre_ids: [16], person_ids: [287] }),
+    full: { too_many: { field: 'person_ids', max: 3 }, room_limit: { max: 4 } },
   },
   {
     name: 'start_game',
@@ -420,6 +438,20 @@ describe('arguments', () => {
         p_genre_ids: [18],
         p_provider_ids: undefined,
         p_mood_slugs: undefined,
+        p_member_id: undefined,
+      },
+    });
+  });
+
+  it('set_seat_skips sends the SQL parameter names with p_ and leaves unset ones out', async () => {
+    const { client, calls } = fake(() => ok({ status: 'ok' }));
+    await createApi(client).setSeatSkips({ room_id: ROOM, genre_ids: [16] });
+    expect(calls[0]).toEqual({
+      fn: 'set_seat_skips',
+      args: {
+        p_room_id: ROOM,
+        p_genre_ids: [16],
+        p_person_ids: undefined,
         p_member_id: undefined,
       },
     });
