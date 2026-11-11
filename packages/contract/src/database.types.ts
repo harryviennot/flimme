@@ -343,6 +343,9 @@ export type Database = {
 "set_seat_prefs":
 { Args: { "p_genre_ids"?: (number)[],"p_member_id"?: string,"p_mood_slugs"?: (string)[],"p_provider_ids"?: (number)[],"p_room_id": string }; Returns: Json
                            },
+"set_seat_skips":
+{ Args: { "p_genre_ids"?: (number)[],"p_member_id"?: string,"p_person_ids"?: (number)[],"p_room_id": string }; Returns: Json
+                           },
 "solo_pick":
 { Args: { "p_room_id": string,"p_title_id": number }; Returns: Json
                            },

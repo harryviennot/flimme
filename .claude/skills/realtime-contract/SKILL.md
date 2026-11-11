@@ -21,7 +21,7 @@ The event list lives in `packages/contract/src/realtime.ts`. Adding an event mea
 | Event | Sent when | The phone |
 | --- | --- | --- |
 | `member_joined`, `member_left`, `seat_updated` | Seats change | Refetches seats |
-| `genres_changed` | A seat's genre picks changed (empty payload; a genres-only change sends no `seat_updated`, which would name the seat) | Re-reads `api.room_genres` |
+| `genres_changed` | A seat's genre picks changed, or the room's genres out tonight did (`api.set_seat_skips`, M6.68). Empty payload; never `seat_updated`, which would name the seat; a change of people only sends nothing | Re-reads `api.room_genres` |
 | `settings_changed` | The host changes settings | Refetches the room |
 | `room_locked` | The host locks or unlocks the room (only when the value changes) | Refetches the room |
 | `state_changed` | lobby, dealing, swiping, finale, done, abandoned | Refetches the room; the room layout moves to that state's screen |

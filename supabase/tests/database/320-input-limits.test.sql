@@ -4,7 +4,7 @@
 -- 3 moods and 3 genres (20 until M6.53), and a refusal (too_many) over a cap.
 
 begin;
-select plan(24);
+select plan(26);
 
 select tests.create_catalog(40);
 select tests.deal_game(2, 'q');
@@ -137,6 +137,17 @@ select is(
   api.set_seat_prefs(tests.room_id(), null, null, (select array_agg(n) from generate_series(1, 4) n)),
   jsonb_build_object('status', 'too_many', 'field', 'genre_ids', 'max', 3),
   'T7 4 genres answer too_many'
+);
+-- M6.68: Not tonight is capped at 3 genres and 3 people a seat, refused whole.
+select is(
+  api.set_seat_skips(tests.room_id(), (select array_agg(n) from generate_series(1, 4) n)),
+  jsonb_build_object('status', 'too_many', 'field', 'genre_ids', 'max', 3),
+  'T7 4 skipped genres answer too_many'
+);
+select is(
+  api.set_seat_skips(tests.room_id(), null, (select array_agg(n) from generate_series(1, 4) n)),
+  jsonb_build_object('status', 'too_many', 'field', 'person_ids', 'max', 3),
+  'T7 4 skipped people answer too_many'
 );
 select tests.clear_authentication();
 

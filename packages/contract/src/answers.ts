@@ -83,8 +83,8 @@ export const ROOM_RUNNERS_UP_ANSWERS = ['ok', 'not_finished'] as const;
 export type RoomRunnersUpAnswer = (typeof ROOM_RUNNERS_UP_ANSWERS)[number];
 
 /**
- * `api.room_genres` answers (M6.53): the genres offered tonight with counts, and the caller's own
- * picks. A caller who is not a member raises 42501.
+ * `api.room_genres` answers (M6.53, M6.68): the genres offered tonight with counts, the caller's own
+ * picks, the genres out tonight and the caller's own skips. A caller who is not a member raises 42501.
  */
 export const ROOM_GENRES_ANSWERS = ['ok'] as const;
 export type RoomGenresAnswer = (typeof ROOM_GENRES_ANSWERS)[number];
@@ -95,7 +95,8 @@ export type UpdateRoomSettingsAnswer = (typeof UPDATE_ROOM_SETTINGS_ANSWERS)[num
 
 /**
  * `api.set_seat_prefs` answers. `too_many` is over a cap (3 genres since M6.53), `unknown_genre`
- * a genre not offered tonight, `locked` a genre change once the room has started (M6.53).
+ * a genre not offered tonight, `locked` a genre change once the room has started (M6.53),
+ * `out_tonight` a genre skipped by a seat in the room, the caller's own skip included (M6.68).
  */
 export const SET_SEAT_PREFS_ANSWERS = [
   'ok',
@@ -103,8 +104,27 @@ export const SET_SEAT_PREFS_ANSWERS = [
   'too_many',
   'unknown_genre',
   'locked',
+  'out_tonight',
 ] as const;
 export type SetSeatPrefsAnswer = (typeof SET_SEAT_PREFS_ANSWERS)[number];
+
+/**
+ * `api.set_seat_skips` answers (M6.68, Not tonight). `too_many` is over 3 genres or 3 people
+ * (`field`, `max`), `room_limit` a new genre past the room's 4 out tonight (`max`), `locked` a room
+ * that isn't in the lobby, `closed` a room that is gone or ended, `unknown_genre` a genre that is not
+ * a TMDB movie genre, `unknown_person` a person with no director or cast credit on an active film.
+ * A seat the caller doesn't control raises 42501.
+ */
+export const SET_SEAT_SKIPS_ANSWERS = [
+  'ok',
+  'too_many',
+  'room_limit',
+  'locked',
+  'closed',
+  'unknown_genre',
+  'unknown_person',
+] as const;
+export type SetSeatSkipsAnswer = (typeof SET_SEAT_SKIPS_ANSWERS)[number];
 
 /**
  * `api.start_game` answers. `ok` means the SQL baseline dealt and the game started:

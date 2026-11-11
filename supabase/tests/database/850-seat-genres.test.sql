@@ -163,10 +163,11 @@ select is(pg_temp.read('a3', current_setting('t.a')::uuid)->'mine', '[]'::jsonb,
 
 -- Counts never name anyone: only status, options and mine; options hold a genre id and a count.
 select is((select array_agg(k order by k) from jsonb_object_keys(pg_temp.read('a3', current_setting('t.a')::uuid)) k),
-  '{mine,options,status}'::text[], 'room_genres answers only status, options and mine');
+  '{mine,options,out,skips,status}'::text[], 'room_genres answers only status, options, mine, out and skips');
 select is((select count(*) from jsonb_array_elements(pg_temp.read('a3', current_setting('t.a')::uuid)->'options') o
-           where (select array_agg(k order by k) from jsonb_object_keys(o) k) <> '{count,genre_id}'),
-  0::bigint, 'each option holds only a genre id and a count');
+           where (select array_agg(k order by k) from jsonb_object_keys(o) k) <> '{count,genre_id}'
+             and (select array_agg(k order by k) from jsonb_object_keys(o) k) <> '{count,genre_id,out}'),
+  0::bigint, 'each option holds only a genre id and a count, and out when it is out tonight');
 select is((select count(*) from public.room_members m
            where m.room_id = current_setting('t.a')::uuid
              and (pg_temp.read('a3', current_setting('t.a')::uuid)::text like '%' || m.id || '%'
