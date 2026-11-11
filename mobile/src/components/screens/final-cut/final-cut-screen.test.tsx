@@ -1,6 +1,7 @@
 import i18n from '@/i18n';
 
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { AccessibilityInfo } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import type { Place } from '@/features/finale/ballot';
@@ -9,6 +10,7 @@ import type { FinalCutModel } from '@/features/finale/use-final-cut';
 import { LeaveContext } from '@/features/lobby/leave-context';
 
 import { FinalCutScreen } from './final-cut-screen';
+import { Finalist } from './finalist';
 
 jest.mock('@/components/screens/room/room-banner', () => ({ RoomBanner: () => null }));
 jest.mock('@/components/shared/poster', () => ({ Poster: () => null }));
@@ -16,7 +18,8 @@ jest.mock('@/lib/storage', () => ({
   storage: { getItemSync: () => null, setItemSync: jest.fn(), removeItemSync: jest.fn() },
 }));
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
-jest.mock('expo-router', () => ({ usePathname: () => '/room/r1/final-cut' }));
+const mockPath = { value: '/room/r1/final-cut' };
+jest.mock('expo-router', () => ({ usePathname: () => mockPath.value }));
 jest.mock('@/lib/haptics', () => ({
   haptics: { press: jest.fn(), veto: jest.fn(), countdown: jest.fn() },
 }));
@@ -152,6 +155,83 @@ describe('the info button on a finalist', () => {
     expect(screen.getByLabelText('Résumé de Alpha').props.accessibilityHint).toBe(
       "S'ouvre par-dessus le vote. Le chrono continue.",
     );
+  });
+});
+
+describe('the info button, focus and the reveal', () => {
+  const focus = () => {
+    // The test renderer has no native node to find: give the button one.
+    jest.spyOn(jest.requireActual('react-native'), 'findNodeHandle').mockReturnValue(7);
+    return jest.spyOn(AccessibilityInfo, 'setAccessibilityFocus').mockImplementation();
+  };
+  const rerenderScreen = async (view: Awaited<ReturnType<typeof show>>, m: FinalCutModel) =>
+    view.rerender(
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: { x: 0, y: 0, width: 375, height: 667 },
+          insets: { top: 0, left: 0, right: 0, bottom: 0 },
+        }}
+      >
+        <LeaveContext.Provider value={jest.fn()}>
+          <FinalCutScreen roomId="r1" model={m} />
+        </LeaveContext.Provider>
+      </SafeAreaProvider>,
+    );
+
+  afterEach(() => {
+    mockPath.value = '/room/r1/final-cut';
+    jest.restoreAllMocks();
+  });
+
+  it('hands the screen reader focus back to the button when its sheet closes', async () => {
+    const spy = focus();
+    const m = model();
+    const view = await show(m);
+    spy.mockClear();
+    await fireEvent.press(screen.getByLabelText('Synopsis of Alpha'));
+    mockPath.value = '/room/r1/synopsis/10';
+    await rerenderScreen(view, m);
+    mockPath.value = '/room/r1/final-cut';
+    await rerenderScreen(view, m);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('moves no focus when the sheet was never opened from a button', async () => {
+    const spy = focus();
+    const m = model();
+    const view = await show(m);
+    spy.mockClear();
+    mockPath.value = '/room/r1/synopsis/10';
+    await rerenderScreen(view, m);
+    mockPath.value = '/room/r1/final-cut';
+    await rerenderScreen(view, m);
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('is gone during the reveal', async () => {
+    await i18n.changeLanguage('en');
+    const props = {
+      view: { ...finalist(10, 'Alpha') },
+      place: { kind: 'faint', rank: 1 } as Place,
+      interactive: false,
+      vetoEnabled: true,
+      counting: true,
+      onTap: jest.fn(),
+      onLongPress: jest.fn(),
+      onInfo: jest.fn(),
+    };
+    const view = await render(<Finalist {...props} />);
+    expect(screen.queryByLabelText('Synopsis of Alpha')).toBeNull();
+    await view.rerender(
+      <Finalist
+        {...props}
+        counting={false}
+        reveal={{ stage: 'knockouts', out: false, winner: false, points: null }}
+      />,
+    );
+    expect(screen.queryByLabelText('Synopsis of Alpha')).toBeNull();
+    await view.rerender(<Finalist {...props} counting={false} />);
+    expect(screen.getByLabelText('Synopsis of Alpha')).toBeTruthy();
   });
 });
 

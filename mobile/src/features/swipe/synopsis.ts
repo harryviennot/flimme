@@ -1,7 +1,8 @@
 import type { Card } from '@flimme/contract';
 import { useSyncExternalStore } from 'react';
 
-// The card (a swipe card or a finalist's) whose synopsis sheet is open (swipe.md#the-synopsis-sheet). The sheet is its own route,
+// The card (a swipe card or a finalist's) whose synopsis sheet is open (swipe.md#the-synopsis-sheet).
+// The sheet is its own route,
 // so the card on top hands itself over when "Read more" is tapped; the sheet reads it from here
 // by title id. Everything is in the card's payload: it opens offline. A sheet that finds no card
 // (a re-read cleared it) closes.
