@@ -1392,7 +1392,7 @@ describe('the genre step', () => {
 
   it('turns Any genre into Continue, sends only the genre ids, then the lobby', async () => {
     await open();
-    expect(screen.getAllByText('0/3')).toHaveLength(2);
+    expect(screen.getAllByText('0/3')).toHaveLength(3);
     await fireEvent.press(screen.getByRole('checkbox', { name: /^Comedy/ }));
     expect(screen.getByText('1/3')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
