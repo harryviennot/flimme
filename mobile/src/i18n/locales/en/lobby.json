@@ -32,9 +32,9 @@
   "start": {
     "cta": "Start swiping",
     "needPlayers": "You need {{count}} players here to start.",
-    "tooFew_one": "Only {{count}} film fits tonight. Ask everyone to add their services.",
-    "tooFew_other": "Only {{count}} films fit tonight. Ask everyone to add their services.",
-    "tooFewNone": "No film fits tonight. Ask everyone to add their services.",
+    "tooFew_one": "Only {{count}} film fits tonight. Ask everyone to add their services or skip less.",
+    "tooFew_other": "Only {{count}} films fit tonight. Ask everyone to add their services or skip less.",
+    "tooFewNone": "No film fits tonight. Ask everyone to add their services or skip less.",
     "away_one": "{{names}} is away. You can start without them.",
     "away_other": "{{names}} are away. You can start without them."
   },
@@ -104,11 +104,14 @@
   "yourGenres": {
     "label": "Your genres tonight",
     "optional": "Optional",
-    "none": "Nothing to pick tonight"
+    "none": "Nothing to pick tonight",
+    "andSkipped_one": "{{picks}}, {{count}} skipped",
+    "andSkipped_other": "{{picks}}, {{count}} skipped",
+    "skippedOnly_one": "{{count}} skipped",
+    "skippedOnly_other": "{{count}} skipped"
   },
   "genresSheet": {
     "title": "Your genres tonight",
-    "helper": "Pick up to 3 genres. Others see how many players picked each genre, not who.",
     "cap": "3 genres at most. Drop one to swap.",
     "none": "Not enough films to offer genres tonight.",
     "failed": "We couldn't load the genres.",
@@ -125,12 +128,43 @@
   "genreStep": {
     "eyebrow": "Room {{code}}",
     "title": "Your genres tonight",
-    "helper": "Pick up to 3 genres you're in the mood for, and we'll lean the films that way. Others see how many players picked each genre, not who.",
-    "count": "{{count}}/3",
+    "helper": "Tell us what you're in the mood for, and what you'd rather not see tonight. All optional.",
     "any": "Any genre",
     "continue": "Continue",
     "skip": "Skip for now",
-    "a11yCount": "{{count}} of 3 picked",
     "a11yLoading": "Loading tonight's genres"
+  },
+  "prefs": {
+    "wants": {
+      "title": "In the mood for",
+      "helper": "Up to {{max}} genres. Others see how many picked each, never who."
+    },
+    "notTonight": {
+      "title": "Not tonight",
+      "helper": "What you skip leaves everyone's deck. Nobody knows it came from you.",
+      "genres": "Genres",
+      "people": "People",
+      "addPerson": "Add a person",
+      "genreCap": "{{max}} genres at most. Drop one to swap.",
+      "roomLimit": "{{max}} genres are already out tonight.",
+      "peopleCap": "{{max}} people at most. Remove one to swap."
+    },
+    "count": "{{count}}/{{max}}",
+    "outTonight": "out tonight",
+    "pickOut": "{{name}} is out tonight, so we took it off your picks.",
+    "errors": {
+      "roomLimit": "{{max}} genres are already out tonight. Pick again.",
+      "personGone": "One person you skipped is no longer in our films, so we took them off."
+    },
+    "a11y": {
+      "wantsCount": "{{count}} of {{max}} picked",
+      "genresCount": "{{count}} of {{max}} skipped",
+      "peopleCount": "{{count}} of {{max}} skipped",
+      "outTonight": "{{name}}, out tonight",
+      "skipGenre": "Skip {{name}}",
+      "removePerson": "Remove {{name}}",
+      "removePersonHint": "Their films come back tonight.",
+      "pickMoved": "{{name}} taken off your picks"
+    }
   }
 }

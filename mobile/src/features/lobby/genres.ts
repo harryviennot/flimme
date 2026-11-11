@@ -1,9 +1,20 @@
 // The genre sheet's rules (lobby.md#your-genres-tonight): up to 3 picks, optional, counts only.
 // Nothing here knows who picked what; the server never says. Genre ids stay out of analytics.
-import type { Genre, RoomGenresResult, SetSeatPrefsResult } from '@flimme/contract';
+import type {
+  Genre,
+  RoomGenresResult,
+  SetSeatPrefsResult,
+  SetSeatSkipsResult,
+} from '@flimme/contract';
 
 /** At most 3 genres per player (decisions.md, 6 Nov 2026). */
 export const GENRE_CAP = 3;
+
+/** Not tonight (game-modes.md#not-tonight, Harry, 11 Nov 2026): 3 genres and 3 people per player. */
+export const SKIP_GENRES_MAX = 3;
+export const SKIP_PEOPLE_MAX = 3;
+/** At most 4 genres out tonight for the whole room. */
+export const ROOM_OUT_GENRES_MAX = 4;
 
 export type GenreChip = { id: number; name: string; count: number; selected: boolean };
 
@@ -67,48 +78,188 @@ export function genreSummary(
     .map((chip) => chip.name);
 }
 
-export type SaveGenresOutcome =
-  /** Saved, nothing to save, or the room is over: close the sheet (the layout follows the room). */
+/** Every TMDB genre, sorted by name in the player's language, for the Not tonight genres row. */
+export function allGenreChips(
+  genres: readonly Genre[],
+  language: string,
+): { id: number; name: string }[] {
+  return genres
+    .map((genre) => ({ id: genre.id, name: genreName(genre, language) }))
+    .sort((a, b) => a.name.localeCompare(b.name, language));
+}
+
+/** The genres out tonight on this phone: the room's (never the player's own) plus the draft's skips. */
+export function outTonightSet(out: readonly number[], skips: readonly number[]): number[] {
+  return [...new Set([...out, ...skips])];
+}
+
+export type ToggleSkip = {
+  picks: number[];
+  skips: number[];
+  /** A 4th skip: the player's own cap. */
+  capped: boolean;
+  /** A new skip with the room's 4 already out. */
+  roomLimit: boolean;
+  /** The skipped genre was one of the picks: it left them. */
+  pickMoved: boolean;
+};
+
+/**
+ * A tap on a skip chip. Skipping takes the genre off the picks. A genre already out can always be
+ * skipped; a new one is refused when the room already has 4 out (the room's plus this draft's).
+ * `out` can hold more than 4 (a rejoining seat brings its skips back): it only refuses new ones.
+ */
+export function toggleSkip(
+  state: { picks: readonly number[]; skips: readonly number[] },
+  id: number,
+  out: readonly number[],
+): ToggleSkip {
+  const picks = [...state.picks];
+  const skips = [...state.skips];
+  const refuse = (why: 'capped' | 'roomLimit'): ToggleSkip => ({
+    picks,
+    skips,
+    capped: why === 'capped',
+    roomLimit: why === 'roomLimit',
+    pickMoved: false,
+  });
+  if (skips.includes(id)) {
+    return {
+      picks,
+      skips: skips.filter((x) => x !== id),
+      capped: false,
+      roomLimit: false,
+      pickMoved: false,
+    };
+  }
+  if (skips.length >= SKIP_GENRES_MAX) return refuse('capped');
+  if (!out.includes(id) && outTonightSet(out, skips).length >= ROOM_OUT_GENRES_MAX) {
+    return refuse('roomLimit');
+  }
+  return {
+    picks: picks.filter((x) => x !== id),
+    skips: [...skips, id],
+    capped: false,
+    roomLimit: false,
+    pickMoved: picks.includes(id),
+  };
+}
+
+/**
+ * A fresh read of `room_genres`: a pick in a genre that is out leaves the draft (and is reported
+ * in `removed`, for the `prefs.pickOut` line). With `dropSkips` (after `room_limit`) the draft
+ * also keeps only the skips that are out now, so the player picks again.
+ */
+export function reconcileTonight(
+  draft: { picks: readonly number[]; skips: readonly number[] },
+  out: readonly number[],
+  dropSkips = false,
+): { picks: number[]; skips: number[]; removed: number[] } {
+  const skips = dropSkips ? draft.skips.filter((id) => out.includes(id)) : [...draft.skips];
+  const gone = (id: number) => out.includes(id) || skips.includes(id);
+  return {
+    picks: draft.picks.filter((id) => !gone(id)),
+    skips,
+    removed: draft.picks.filter((id) => out.includes(id) && !draft.skips.includes(id)),
+  };
+}
+
+export type SaveTonightOutcome =
+  /** Saved, nothing to save, or the room is over: close (the layout follows the room). */
   | { kind: 'close' }
-  /** The game started: the picks are fixed. Close with a note. */
+  /** The game started: the choices are fixed. Close with a note. */
   | { kind: 'locked' }
-  /** A pick is no longer offered: stay open and read the offer again. */
+  /** A pick hit a genre that went out: stay, read again, say `prefs.pickOut`. */
+  | { kind: 'pickOut' }
+  /** The room's 4 filled first: refusal feedback, warn toast, read again, stay. */
+  | { kind: 'roomLimit'; max: number }
+  /** A genre is no longer offered or known: stay and read again. */
   | { kind: 'stale' }
-  /** A bug on our side (the sheet stops a 4th pick): generic toast, a report, stays open. */
+  /** A bug on our side: generic toast, a report, stays open. */
   | { kind: 'bug'; reason: string }
-  /** The call failed: the warn toast, the sheet stays open. */
+  /** The call failed: the warn toast, stays open. */
   | { kind: 'failed' };
 
-export type SaveGenresDeps = {
+export type SaveTonightDeps = {
+  setSeatSkips: (args: { room_id: string; genre_ids: number[] }) => Promise<SetSeatSkipsResult>;
   setSeatPrefs: (args: { room_id: string; genre_ids: number[] }) => Promise<SetSeatPrefsResult>;
 };
 
 const sameSet = (a: readonly number[], b: readonly number[]) =>
   a.length === b.length && a.every((id) => b.includes(id));
 
-export async function saveGenres(
-  input: { roomId: string; selection: number[]; start: number[] },
-  deps: SaveGenresDeps,
-): Promise<SaveGenresOutcome> {
-  if (sameSet(input.selection, input.start)) return { kind: 'close' };
+/** Whether the draft differs from what the seat holds. */
+export function tonightChanged(input: {
+  picks: readonly number[];
+  startPicks: readonly number[];
+  skips: readonly number[];
+  startSkips: readonly number[];
+}): boolean {
+  return !sameSet(input.picks, input.startPicks) || !sameSet(input.skips, input.startSkips);
+}
+
+/**
+ * Continue and Done: the skips first (saving the picks first would refuse a pick of a genre the
+ * player has just unskipped), then the picks, each only when it changed. Genre ids only: the
+ * people's list is left out, so it stays as it is. A skip-only change sends no `seat_updated`
+ * (the server's job).
+ */
+export async function saveTonight(
+  input: {
+    roomId: string;
+    picks: number[];
+    startPicks: number[];
+    skips: number[];
+    startSkips: number[];
+  },
+  deps: SaveTonightDeps,
+): Promise<SaveTonightOutcome> {
   try {
-    const answer = await deps.setSeatPrefs({
-      room_id: input.roomId,
-      genre_ids: input.selection,
-    });
-    switch (answer.status) {
-      case 'ok':
-      case 'closed':
-        return { kind: 'close' };
-      case 'locked':
-        return { kind: 'locked' };
-      case 'unknown_genre':
-      case 'out_tonight':
-        return { kind: 'stale' };
-      case 'too_many':
-        return { kind: 'bug', reason: 'set_seat_prefs:too_many' };
+    if (!sameSet(input.skips, input.startSkips)) {
+      const answer = await deps.setSeatSkips({ room_id: input.roomId, genre_ids: input.skips });
+      switch (answer.status) {
+        case 'ok':
+          break;
+        case 'closed':
+          return { kind: 'close' };
+        case 'locked':
+          return { kind: 'locked' };
+        case 'room_limit':
+          return { kind: 'roomLimit', max: answer.max };
+        case 'unknown_genre':
+          return { kind: 'stale' };
+        case 'too_many':
+          return { kind: 'bug', reason: `set_seat_skips:too_many:${answer.field}` };
+        case 'unknown_person':
+          return { kind: 'bug', reason: 'set_seat_skips:unknown_person' };
+      }
     }
+    if (!sameSet(input.picks, input.startPicks)) {
+      const answer = await deps.setSeatPrefs({ room_id: input.roomId, genre_ids: input.picks });
+      switch (answer.status) {
+        case 'ok':
+        case 'closed':
+          return { kind: 'close' };
+        case 'locked':
+          return { kind: 'locked' };
+        case 'unknown_genre':
+          return { kind: 'stale' };
+        case 'out_tonight':
+          return { kind: 'pickOut' };
+        case 'too_many':
+          return { kind: 'bug', reason: 'set_seat_prefs:too_many' };
+      }
+    }
+    return { kind: 'close' };
   } catch {
     return { kind: 'failed' };
   }
+}
+
+/**
+ * The lobby row's skip count: this player's own skips, genres and people (from `skips`). Never
+ * another seat's.
+ */
+export function ownSkipCount(skips: RoomGenresResult['skips'] | undefined): number {
+  return skips ? skips.genre_ids.length + skips.people.length : 0;
 }

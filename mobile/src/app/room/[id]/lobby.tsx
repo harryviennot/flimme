@@ -29,7 +29,7 @@ import { useSeatAnnouncements } from '@/features/lobby/announce';
 import { useCopyRoomCode } from '@/features/lobby/copy-code';
 import { useAskToLeave } from '@/features/lobby/leave-context';
 import { formatList, serviceNames } from '@/features/lobby/names';
-import { genreSummary } from '@/features/lobby/genres';
+import { genreSummary, ownSkipCount } from '@/features/lobby/genres';
 import { useGameModes, useGenres } from '@/features/lobby/queries';
 import { hostSeat, presentSeats, seatedSeats, startGate } from '@/features/lobby/seats';
 import { useRoomLock } from '@/features/lobby/use-room-lock';
@@ -241,19 +241,20 @@ export default function RoomLobbyScreen() {
   const mineGenres = genresLoaded
     ? genreSummary(genreOffer.options, genreNames, language, genreOffer.mine)
     : [];
+  const ownSkips = ownSkipCount(genreOffer?.skips);
+  const genreValue =
+    mineGenres.length > 0 && ownSkips > 0
+      ? t('yourGenres.andSkipped', { picks: list(mineGenres), count: ownSkips })
+      : mineGenres.length > 0
+        ? list(mineGenres)
+        : ownSkips > 0
+          ? t('yourGenres.skippedOnly', { count: ownSkips })
+          : t('yourGenres.optional');
   const genresRow = (
     <ListRow
       icon="film"
       label={t('yourGenres.label')}
-      value={
-        !genresLoaded
-          ? undefined
-          : genreNone
-            ? t('yourGenres.none')
-            : mineGenres.length > 0
-              ? list(mineGenres)
-              : t('yourGenres.optional')
-      }
+      value={!genresLoaded ? undefined : genreNone ? t('yourGenres.none') : genreValue}
       disabled={genreNone || dealing}
       onPress={() => router.push(`/room/${id}/genres`)}
     />

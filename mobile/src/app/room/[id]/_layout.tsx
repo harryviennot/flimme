@@ -1,5 +1,6 @@
 import { router, Stack, useLocalSearchParams, useSegments } from 'expo-router';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { RoomLeaveGuard } from '@/components/screens/room/leave-guard';
@@ -26,7 +27,9 @@ import { useCountGame, useRoomCap } from '@/features/analytics';
 import { useFinalePreload } from '@/features/finale/use-finale-preload';
 import { useRevealOf } from '@/features/finale/reveal-store';
 import { useRevealHold } from '@/features/finale/use-reveal-hold';
+import { showToast } from '@/components/ui/toast';
 import { genreAskAction, takeGenreAsk } from '@/features/genres/step';
+import { takeUnsavedTonight } from '@/features/lobby/tonight-draft';
 import { useMatchOverlay } from '@/features/match/use-match-overlay';
 import { ShortlistProvider, useShortlist, useShortlistHold } from '@/features/shortlist';
 import { useOnline } from '@/features/network';
@@ -122,6 +125,19 @@ export default function RoomLayout() {
     if (action === 'wait') return;
     if (takeGenreAsk(id) && action === 'ask') router.replace(`/room/${id}/genre-step`);
   }, [id, state, current]);
+
+  const { t } = useTranslation('lobby');
+  // Start with Not tonight changes nobody saved: they didn't make it (genre-step.md).
+  useEffect(() => {
+    if (!id || !state || state === 'lobby') return;
+    if (takeUnsavedTonight(id)) {
+      showToast({
+        tone: 'info',
+        title: t('genresLocked.title'),
+        message: t('genresLocked.message'),
+      });
+    }
+  }, [id, state, t]);
 
   useEffect(() => {
     if (match.holdRoute || shortlistHold || soloHold) return;

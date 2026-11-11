@@ -31,18 +31,20 @@ export function groupedCode(code: string | undefined): string {
 export type StepFooter = { primary: 'any' | 'continue'; skip: boolean };
 
 /**
- * The footer: Any genre with no pick (also while loading or after a failed read: skipping never
+ * The footer: Any genre with no pick and no skip (also while loading or after a failed read: skipping never
  * waits), Continue with picks. The ghost Skip shows after a failed save and offline with picks, and
  * never when the read failed (the primary already skips).
  */
 export function stepFooter(input: {
   picks: number;
+  /** Skipped genres and people: "Any genre" next to a skipped Animation would contradict the screen. */
+  skips: number;
   ready: boolean;
   failed: boolean;
   saveFailed: boolean;
   online: boolean;
 }): StepFooter {
-  const primary = input.ready && input.picks > 0 ? 'continue' : 'any';
+  const primary = input.ready && input.picks + input.skips > 0 ? 'continue' : 'any';
   if (input.failed || !input.ready) return { primary, skip: false };
   const skip = input.saveFailed || (!input.online && primary === 'continue');
   return { primary, skip };

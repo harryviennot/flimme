@@ -11,6 +11,13 @@ export type ChipProps = {
   /** What a screen reader says instead of the label, when the count needs words. */
   accessibilityLabel?: string;
   selected?: boolean;
+  /** `accent` (the default) or `nope`: a selected `nope` chip is a skip (red fill, a ban icon). */
+  tone?: 'accent' | 'nope';
+  /**
+   * A short marker ("out tonight"): the chip is shown as not available, dashed, with the marker
+   * after the label. It ignores presses and is announced as disabled, but is not dimmed.
+   */
+  unavailable?: string;
   onPress?: () => void;
   disabled?: boolean;
   /**
@@ -28,11 +35,34 @@ export function Chip({
   count,
   accessibilityLabel,
   selected = false,
+  tone = 'accent',
+  unavailable,
   onPress,
   disabled,
   role = 'checkbox',
   pressDelay,
 }: ChipProps) {
+  const skip = tone === 'nope' && selected;
+  if (unavailable !== undefined) {
+    return (
+      <Pressable
+        accessibilityLabel={accessibilityLabel ?? label}
+        accessibilityRole={role}
+        accessibilityState={role === 'radio' ? { selected: false } : { checked: false }}
+        disabled
+        haptic={false}
+        className="h-9 flex-row items-center gap-1.5 self-start rounded-pill border border-dashed border-border-strong bg-bg-canvas pr-3.5 pl-2.5"
+      >
+        <Icon name="ban" size={16} color="text-muted" />
+        <Text variant="body-m-strong" tone="muted">
+          {label}
+        </Text>
+        <Text variant="mono-data" tone="nope">
+          {unavailable}
+        </Text>
+      </Pressable>
+    );
+  }
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel ?? label}
@@ -43,18 +73,21 @@ export function Chip({
       unstable_pressDelay={pressDelay}
       className={cn(
         'h-9 flex-row items-center gap-1.5 self-start rounded-pill',
-        selected
-          ? 'bg-accent-default pr-3.5 pl-2.5'
-          : 'border border-border-default bg-bg-raised px-3.5',
+        skip
+          ? 'border border-nope-default bg-nope-soft pr-3.5 pl-2.5'
+          : selected
+            ? 'bg-accent-default pr-3.5 pl-2.5'
+            : 'border border-border-default bg-bg-raised px-3.5',
         disabled && 'opacity-disabled',
       )}
     >
-      {selected ? <Icon name="check" size={16} color="text-on-accent" /> : null}
-      <Text variant="body-m-strong" tone={selected ? 'on-accent' : 'primary'}>
+      {skip ? <Icon name="ban" size={16} color="nope-text" /> : null}
+      {selected && !skip ? <Icon name="check" size={16} color="text-on-accent" /> : null}
+      <Text variant="body-m-strong" tone={selected && !skip ? 'on-accent' : 'primary'}>
         {label}
       </Text>
       {count !== undefined ? (
-        <Text variant="mono-data" tone={selected ? 'on-accent' : 'secondary'}>
+        <Text variant="mono-data" tone={selected && !skip ? 'on-accent' : 'secondary'}>
           {count}
         </Text>
       ) : null}

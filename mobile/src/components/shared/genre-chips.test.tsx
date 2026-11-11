@@ -40,4 +40,34 @@ describe('GenreChips', () => {
     );
     expect(screen.queryByText('Action')).toBeNull();
   });
+
+  it('skip mode draws no counts and labels each chip Skip <name>', async () => {
+    const onToggle = jest.fn();
+    await render(
+      <GenreChips mode="skip" options={options} selected={[1]} showCounts onToggle={onToggle} />,
+    );
+    expect(screen.queryByText('2')).toBeNull();
+    expect(screen.getByRole('checkbox', { name: 'Skip Action' })).toBeChecked();
+    await fireEvent.press(screen.getByRole('checkbox', { name: 'Skip Comedy' }));
+    expect(onToggle).toHaveBeenCalledWith(2);
+  });
+
+  it('pick mode draws out tonight chips: disabled, labelled, no count, never pressed', async () => {
+    const onToggle = jest.fn();
+    await render(
+      <GenreChips
+        options={options}
+        selected={[]}
+        outTonight={[1]}
+        showCounts
+        onToggle={onToggle}
+      />,
+    );
+    const chip = screen.getByRole('checkbox', { name: 'Action, out tonight' });
+    expect(chip).toBeDisabled();
+    expect(screen.getByText('out tonight')).toBeTruthy();
+    expect(screen.queryByText('2')).toBeNull();
+    await fireEvent.press(chip);
+    expect(onToggle).not.toHaveBeenCalled();
+  });
 });
