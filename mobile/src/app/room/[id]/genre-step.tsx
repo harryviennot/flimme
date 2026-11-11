@@ -1,33 +1,18 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams, useSegments } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, Platform, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
-import { api } from '@/api';
-import { GenreChips } from '@/components/shared/genre-chips';
+import { TonightPrefs } from '@/components/shared/tonight-prefs';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
-import { showToast } from '@/components/ui/toast';
 import { groupedCode, showsCounts, stepFooter } from '@/features/genres/step';
-import { genreChips, saveGenres, toggleGenre } from '@/features/lobby/genres';
-import { useGenres } from '@/features/lobby/queries';
+import { GENRE_CAP, SKIP_GENRES_MAX } from '@/features/lobby/genres';
 import { presentSeats, seatedSeats } from '@/features/lobby/seats';
-import { useOnline } from '@/features/network';
-import {
-  GENRES_KEY,
-  SEATS_KEY,
-  useRoom,
-  useRoomGenres,
-  useRoomPresence,
-  useRoomSeats,
-} from '@/features/room';
-import { errorFeedback } from '@/lib/feedback';
-import { reportError } from '@/lib/sentry';
-import { layout } from '@/theme/motion';
+import { useTonight } from '@/features/lobby/use-tonight';
+import { useRoom, useRoomPresence, useRoomSeats } from '@/features/room';
 
 /**
  * The genre step (docs/design/screens/genre-step.md): the one question that changes tonight's deck,
@@ -37,12 +22,7 @@ import { layout } from '@/theme/motion';
 export default function GenreStepScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation('lobby');
-  const { t: tc } = useTranslation();
-  const client = useQueryClient();
-  const online = useOnline();
   const room = useRoom(id).data;
-  const read = useRoomGenres(id);
-  const names = useGenres();
   const seats = useRoomSeats(id);
   const { away } = useRoomPresence(id);
   const counts = showsCounts(presentSeats(seatedSeats(seats.data), away).length);
@@ -59,22 +39,13 @@ export default function GenreStepScreen() {
     if (stillOpen.current) router.replace(`/room/${id}/lobby`);
   };
 
-  const offered = new Set(read.data?.options.map((option) => option.genre_id));
-  const start = (read.data?.mine ?? []).filter((genre) => offered.has(genre));
-  const [picked, setPicked] = useState<number[] | null>(null);
-  const selection = picked ?? start;
-  const [capped, setCapped] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const tonight = useTonight(id, i18n.language);
+  const { ready, failed, loading, online } = tonight;
   const [saveFailed, setSaveFailed] = useState(false);
-  const busy = useRef(false);
-
-  const ready = read.isSuccess && names.isSuccess;
-  const failed = !ready && (read.isError || names.isError || !online);
 
   // No offer tonight: straight to the lobby, with no message (its row says so).
   // Loading announces once (genre-step.md#accessibility).
   const loadingAnnounced = useRef(false);
-  const loading = !read.isSuccess && !read.isError;
   useEffect(() => {
     if (loading && !loadingAnnounced.current && Platform.OS === 'ios') {
       loadingAnnounced.current = true;
@@ -82,87 +53,29 @@ export default function GenreStepScreen() {
     }
   }, [loading, t]);
 
-  const noOffer = ready && read.data.options.length === 0;
+  const noOffer = ready && tonight.read.data?.options.length === 0;
   useEffect(() => {
     if (noOffer && stillOpen.current) router.replace(`/room/${id}/lobby`);
   }, [noOffer, id]);
 
-  const chips = ready
-    ? genreChips(read.data.options, names.data, i18n.language, selection, start)
-    : [];
   const footer = stepFooter({
-    picks: selection.length,
+    picks: tonight.picks.length,
+    skips: tonight.skips.length,
     ready,
     failed,
     saveFailed,
     online,
   });
 
-  const toggle = (genre: number) => {
-    const next = toggleGenre(selection, genre);
-    setPicked(next.selection);
-    setCapped(next.capped);
-    if (next.capped && Platform.OS === 'ios') {
-      AccessibilityInfo.announceForAccessibility(t('genresSheet.cap'));
-    }
-  };
-
-  const retry = () => {
-    void read.refetch();
-    void names.refetch();
-  };
-
   const go = async () => {
-    if (busy.current) return;
     // Skipping never waits: nothing loaded, nothing to save.
     if (!ready) {
       toLobby();
       return;
     }
-    const changed =
-      selection.length !== start.length || selection.some((genre) => !start.includes(genre));
-    if (changed && !online) {
-      setSaveFailed(true);
-      showToast({ tone: 'warn', title: t('errors.genres') });
-      return;
-    }
-    busy.current = true;
-    setSaving(true);
-    const outcome = await saveGenres(
-      { roomId: id ?? '', selection, start },
-      { setSeatPrefs: (args) => api.setSeatPrefs(args) },
-    );
-    busy.current = false;
-    setSaving(false);
-    switch (outcome.kind) {
-      case 'close':
-        void client.invalidateQueries({ queryKey: GENRES_KEY(id ?? '') });
-        void client.invalidateQueries({ queryKey: SEATS_KEY(id ?? '') });
-        toLobby();
-        return;
-      case 'locked':
-        showToast({
-          tone: 'info',
-          title: t('genresLocked.title'),
-          message: t('genresLocked.message'),
-        });
-        toLobby();
-        return;
-      case 'stale':
-        setPicked(null);
-        void read.refetch();
-        showToast({ tone: 'warn', title: t('errors.genresStale') });
-        return;
-      case 'bug':
-        reportError(new Error(`genre step: ${outcome.reason}`));
-        errorFeedback();
-        showToast({ tone: 'warn', title: tc('errors.generic.title') });
-        return;
-      case 'failed':
-        setSaveFailed(true);
-        showToast({ tone: 'warn', title: t('errors.genres') });
-        return;
-    }
+    const result = await tonight.save();
+    if (result === 'close' || result === 'locked') toLobby();
+    else if (result === 'failed' || result === 'offline') setSaveFailed(true);
   };
 
   return (
@@ -174,7 +87,7 @@ export default function GenreStepScreen() {
             label={footer.primary === 'any' ? t('genreStep.any') : t('genreStep.continue')}
             size="l"
             block
-            loading={saving}
+            loading={tonight.saving}
             onPress={() => void go()}
           />
           {footer.skip ? (
@@ -193,41 +106,29 @@ export default function GenreStepScreen() {
         <Text variant="body-m" tone="secondary">
           {t('genreStep.helper')}
         </Text>
-        <View
-          className="mt-1 min-h-6 justify-center"
-          accessible
-          accessibilityLabel={
-            capped ? t('genresSheet.cap') : t('genreStep.a11yCount', { count: selection.length })
-          }
-          accessibilityLiveRegion="polite"
-        >
-          {capped ? (
-            <Animated.View entering={layout.fadeIn} exiting={layout.fadeOut}>
-              <Text variant="body-s" tone="secondary">
-                {t('genresSheet.cap')}
-              </Text>
-            </Animated.View>
-          ) : ready ? (
-            <Text variant="mono-data" tone={selection.length > 0 ? 'accent' : 'muted'}>
-              {t('genreStep.count', { count: selection.length })}
-            </Text>
-          ) : null}
-        </View>
         <View className="mt-2">
           {failed ? (
             <EmptyState
               icon={online ? 'alert' : 'wifi-off'}
               error={online}
               title={online ? t('genresSheet.failed') : t('genresSheet.offline')}
-              action={{ label: t('genresSheet.retry'), onPress: retry }}
+              action={{ label: t('genresSheet.retry'), onPress: tonight.retry }}
             />
           ) : (
-            <GenreChips
+            <TonightPrefs
               loading={!ready}
-              options={chips}
-              selected={selection}
+              offered={tonight.offered}
+              allGenres={tonight.allGenres}
+              outTonight={tonight.outTonight}
+              picks={tonight.picks}
+              skipGenres={tonight.skips}
               showCounts={counts}
-              onToggle={toggle}
+              maxPicks={GENRE_CAP}
+              maxSkipGenres={SKIP_GENRES_MAX}
+              wantsNote={tonight.wantsText}
+              genresNote={tonight.genresText}
+              onTogglePick={tonight.togglePick}
+              onToggleSkip={tonight.toggleSkip}
             />
           )}
         </View>

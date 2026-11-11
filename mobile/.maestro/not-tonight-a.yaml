@@ -1,0 +1,31 @@
+# M6.70, Not tonight for genres, part A: a fresh guest joins a room on staging and lands on the
+# genre step. The host is a curl seat (a phone sends the presence that Start needs, a curl seat
+# does not, so the curl seat is the host and calls api.touch_room before api.start_game):
+#   sign up, api.update_profile, api.create_room with provider_ids [8, 337], then
+#   maestro --device <udid> test mobile/.maestro/not-tonight-a.yaml -e METRO_URL=http://localhost:<port> -e CODE=<code>
+# Part B (not-tonight-b.yaml) follows on the same simulator. Needs Metro started with the staging
+# environment (see the expo-app skill).
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started'
+    timeout: 30000
+- tapOn: '(?i)get started'
+- inputText: 'Alice'
+- tapOn: '(?i)continue'
+- extendedWaitUntil:
+    visible: '(?i)got a room code\?'
+    timeout: 15000
+- tapOn: '(?i)join'
+- extendedWaitUntil:
+    visible: '(?i)enter the room code'
+    timeout: 15000
+- inputText: ${CODE}
+- extendedWaitUntil:
+    visible: 'Your genres tonight'
+    timeout: 30000
+- assertVisible: 'Not tonight'
+- assertVisible: 'In the mood for'
+- takeScreenshot: not-tonight-1-step

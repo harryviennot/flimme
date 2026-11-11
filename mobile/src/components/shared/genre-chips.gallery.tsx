@@ -27,13 +27,27 @@ export const gallery: GalleryEntry = {
   name: 'GenreChips',
   tier: 'shared',
   description:
-    "Tonight's genres as chips with optional player counts: loading, none selected, three selected with counts, without counts, and a long name.",
+    "Tonight's genres as chips with optional player counts: loading, none selected, three selected with counts, without counts, and a long name, one genre out tonight, and skip mode with two skipped.",
   render: () => (
     <View className="gap-6">
       <GenreChips options={[]} selected={[]} showCounts={false} onToggle={() => {}} loading />
       <Demo showCounts start={[]} />
       <Demo showCounts start={[1, 2, 4]} />
       <Demo showCounts={false} start={[2]} />
+      <GenreChips
+        options={options}
+        selected={[1]}
+        showCounts
+        onToggle={() => {}}
+        outTonight={[3]}
+      />
+      <GenreChips
+        mode="skip"
+        options={options}
+        selected={[3, 4]}
+        showCounts={false}
+        onToggle={() => {}}
+      />
     </View>
   ),
 };

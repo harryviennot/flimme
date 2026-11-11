@@ -1,0 +1,28 @@
+# M6.70, Not tonight for genres, part B: run after not-tonight-a.yaml on the same simulator, with a
+# curl host (api.set_seat_skips with Comedy, Crime and Action: genre ids 35, 80, 28), so 3 genres
+# are out tonight. The room's offer depends on its services: use genres the step offers.
+#   maestro --device <udid> test mobile/.maestro/not-tonight-b.yaml
+appId: com.harryviennot.flimme.dev
+---
+# The genres sheet (the step is the same screen content). Comedy, Crime and Action are out tonight here, with no count and nobody named.
+- tapOn: 'Your genres tonight.*'
+- extendedWaitUntil:
+    visible: 'Comedy, out tonight'
+    timeout: 20000
+- assertVisible: 'Crime, out tonight'
+- assertVisible: 'Action, out tonight'
+- scrollUntilVisible:
+    element: 'Skip Horror'
+- tapOn: 'Skip Horror'
+- assertVisible: 'Horror, out tonight'
+# The room's 4th. A 5th new genre is refused with the room limit line, and no toast.
+- tapOn: 'Skip Thriller'
+- assertVisible: '4 genres are already out tonight.'
+- assertNotVisible: 'Thriller, out tonight'
+- takeScreenshot: not-tonight-2-room-limit
+# Done saves the skip; the lobby row counts only this player's own.
+- tapOn: 'Done'
+- extendedWaitUntil:
+    visible: 'Your genres tonight.*1 skipped.*'
+    timeout: 20000
+- takeScreenshot: not-tonight-3-lobby

@@ -29,4 +29,20 @@ describe('Chip', () => {
     expect(screen.getByText('3')).toBeTruthy();
     expect(screen.getByRole('checkbox', { name: 'Comedy, 3 players' })).toBeTruthy();
   });
+
+  it('draws the skipped look with tone nope, still a checkbox', async () => {
+    await render(<Chip label="Animation" tone="nope" selected />);
+    expect(screen.getByRole('checkbox', { name: 'Animation' })).toBeChecked();
+  });
+
+  it('an unavailable chip ignores presses, is disabled, shows its marker and is not dimmed', async () => {
+    const onPress = jest.fn();
+    await render(<Chip label="Animation" unavailable="out tonight" onPress={onPress} />);
+    const chip = screen.getByRole('checkbox', { name: 'Animation' });
+    expect(chip).toBeDisabled();
+    expect(screen.getByText('out tonight')).toBeTruthy();
+    await fireEvent.press(chip);
+    expect(onPress).not.toHaveBeenCalled();
+    expect(String(chip.props.className ?? '')).not.toContain('opacity-disabled');
+  });
 });

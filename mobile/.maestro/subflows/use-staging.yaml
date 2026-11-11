@@ -4,6 +4,19 @@
 appId: com.harryviennot.flimme.dev
 ---
 - openLink: flimme-dev:///dev
+- runFlow:
+    when:
+      visible: 'This is the developer menu.*'
+    commands:
+      - tapOn: 'Continue'
+# The tools sheet can open instead of the first-run one: its close button is the circle at the
+# top right of the sheet.
+- runFlow:
+    when:
+      visible: 'Go home'
+    commands:
+      - tapOn:
+          point: 90%,50%
 - extendedWaitUntil:
     visible: 'Staging'
     timeout: 20000

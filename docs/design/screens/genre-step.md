@@ -173,7 +173,7 @@ On a 375 by 667 phone at the default text size, the Not tonight heading peeks ab
 | No offer tonight | As today: the step replaces itself with the lobby. Not tonight isn't reachable that night (question 6) |
 | Every offered genre is out tonight | In the mood for shows only out tonight chips; its line reads `prefs.wants.helper`; Continue still works |
 | `set_seat_skips` `ok` | With the picks' `ok`, the lobby |
-| `set_seat_prefs` `out_tonight` (a pick hit a genre that went out while the step was open) | No toast. The step re-reads `api.room_genres`; the chip turns out tonight, the pick leaves the draft, the wants line shows `prefs.pickOut` (polite). The skips are not sent yet; the step stays and Continue works again |
+| `set_seat_prefs` `out_tonight` (a pick hit a genre that went out while the step was open) | No toast. The step re-reads `api.room_genres`; the chip turns out tonight, the pick leaves the draft, the wants line shows `prefs.pickOut` (polite). The skips were saved first, so they are already kept; the step stays and Continue works again |
 | `set_seat_skips` `room_limit` (another phone filled the room's 4 first) | `errorFeedback()` (a refusal the player can't see coming) and `showToast` warn `prefs.errors.roomLimit`. The step re-reads `api.room_genres`, the draft keeps its skips minus the genres that aren't out (the player picks again); the step stays |
 | `set_seat_skips` `unknown_person` (a person left the catalog) | `showToast` warn `prefs.errors.personGone`; the person's chip goes from the draft; the step stays and Continue sends the rest again |
 | `set_seat_skips` `locked` (Start happened during the save) | As the picks' `locked`: `showToast` info `genresLocked.*`, then the layout's own move to the lobby |

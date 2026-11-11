@@ -32,9 +32,9 @@
   "start": {
     "cta": "Lancer la séance",
     "needPlayers": "Il faut {{count}} joueurs présents pour lancer.",
-    "tooFew_one": "Seulement {{count}} film convient ce soir. Demande à chacun d'ajouter ses plateformes.",
-    "tooFew_other": "Seulement {{count}} films conviennent ce soir. Demande à chacun d'ajouter ses plateformes.",
-    "tooFewNone": "Aucun film ne convient ce soir. Demande à chacun d'ajouter ses plateformes.",
+    "tooFew_one": "Seulement {{count}} film convient ce soir. Demande à chacun d'ajouter ses plateformes ou d'écarter moins de choses.",
+    "tooFew_other": "Seulement {{count}} films conviennent ce soir. Demande à chacun d'ajouter ses plateformes ou d'écarter moins de choses.",
+    "tooFewNone": "Aucun film ne convient ce soir. Demande à chacun d'ajouter ses plateformes ou d'écarter moins de choses.",
     "away_one": "{{names}} n'est pas là. Tu peux lancer sans attendre.",
     "away_other": "{{names}} ne sont pas là. Tu peux lancer sans attendre."
   },
@@ -104,11 +104,14 @@
   "yourGenres": {
     "label": "Tes genres ce soir",
     "optional": "Facultatif",
-    "none": "Rien à choisir ce soir"
+    "none": "Rien à choisir ce soir",
+    "andSkipped_one": "{{picks}}, {{count}} écarté",
+    "andSkipped_other": "{{picks}}, {{count}} écartés",
+    "skippedOnly_one": "{{count}} écarté",
+    "skippedOnly_other": "{{count}} écartés"
   },
   "genresSheet": {
     "title": "Tes genres ce soir",
-    "helper": "Choisis jusqu'à 3 genres. Les autres voient combien de joueurs ont choisi chaque genre, pas qui.",
     "cap": "3 genres au maximum. Retire-en un pour en changer.",
     "none": "Pas assez de films pour proposer des genres ce soir.",
     "failed": "Impossible de charger les genres.",
@@ -125,12 +128,43 @@
   "genreStep": {
     "eyebrow": "Salle {{code}}",
     "title": "Tes genres ce soir",
-    "helper": "Choisis jusqu'à 3 genres qui te tentent, on s'en sert pour choisir les films. Les autres voient combien de joueurs ont pris chaque genre, pas qui.",
-    "count": "{{count}}/3",
+    "helper": "Dis-nous ce qui te tente et ce que tu ne veux pas voir ce soir. Tout est facultatif.",
     "any": "Tous les genres",
     "continue": "Continuer",
     "skip": "Passer pour l'instant",
-    "a11yCount": "{{count}} sur 3 choisis",
     "a11yLoading": "Chargement des genres de ce soir"
+  },
+  "prefs": {
+    "wants": {
+      "title": "Tes envies",
+      "helper": "Jusqu'à {{max}} genres. Les autres voient combien les ont choisis, jamais qui."
+    },
+    "notTonight": {
+      "title": "Pas ce soir",
+      "helper": "Ce que tu écartes sort du jeu pour tout le monde. Personne ne sait que ça vient de toi.",
+      "genres": "Genres",
+      "people": "Personnes",
+      "addPerson": "Ajouter une personne",
+      "genreCap": "{{max}} genres au maximum. Retires-en un pour en changer.",
+      "roomLimit": "{{max}} genres sont déjà hors jeu ce soir.",
+      "peopleCap": "{{max}} personnes au maximum. Retires-en une pour en changer."
+    },
+    "count": "{{count}}/{{max}}",
+    "outTonight": "hors jeu",
+    "pickOut": "Le genre {{name}} est écarté ce soir, on l'a retiré de tes envies.",
+    "errors": {
+      "roomLimit": "{{max}} genres sont déjà hors jeu ce soir. Choisis à nouveau.",
+      "personGone": "Une des personnes écartées n'est plus dans nos films, on l'a retirée."
+    },
+    "a11y": {
+      "wantsCount": "{{count}} sur {{max}} choisis",
+      "genresCount": "{{count}} sur {{max}} écartés",
+      "peopleCount": "{{count}} sur {{max}} écartées",
+      "outTonight": "{{name}}, hors jeu ce soir",
+      "skipGenre": "Écarter {{name}}",
+      "removePerson": "Retirer {{name}}",
+      "removePersonHint": "Ses films reviennent ce soir.",
+      "pickMoved": "{{name}} retiré de tes envies"
+    }
   }
 }
