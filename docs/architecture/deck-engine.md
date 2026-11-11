@@ -368,7 +368,7 @@ Then the Final Cut starts at the mode's card count or time limit, as in the [dat
 
 - **The room's live taste** (`room_models.embedding`) starts as the average of the seated players' profiles. It moves toward the films liked tonight (super likes count double) and away from noped ones, more as votes come in, at full weight after 20 votes.
 - **Each seat's tonight leanings** and the room's, in `room_models.feature_weights`. A seat's leanings feed its fit.
-- **Dropped genres.** A main genre is dropped for the rest of the game once every present player has noped at least 2 films of it and nobody has liked one, unless a picked mood requires it.
+- **Dropped genres.** A main genre is dropped for the rest of the game once every present player has noped at least 2 films of it and nobody has liked one, unless a picked mood requires it. `room_models.dropped_genre_ids` already holds the players' [Not tonight](../product/game-modes.md#not-tonight) genres from Start (M6.68), and `internal.eligible_titles` leaves them out, with the Not tonight people in `dropped_person_ids`. Live learning adds to that list and never removes a Not tonight genre. `api.room_genres` shows only the Not tonight genres as out tonight, so this step must keep its own drops apart (for example in a column of its own) when it's built.
 - **Like propagation** stays in the database, inside the vote: the first like on a film moves it into everyone else's next few cards.
 
 An optional fun beat: after the warm-up, a short "Reading the room: cozy, 90s, under 2 hours" banner built from the room's top leanings, so players can see the deck learning.
@@ -443,6 +443,7 @@ Players can pick up to 3 genres in the lobby ([the rules](../product/game-modes.
 - **The shared opening** comes out of the same walk: at Start every seat walks the same lists, so the first 10 cards are the same for everyone.
 - **No picks, today's deck.** With no picks the share is 0, every slot is open, and the deal is exactly the one before M6.53.
 - **The 30-film rule.** `internal.offered_genres` counts tonight's eligible films (`internal.eligible_titles`, the same filters as the deal) per genre. `api.set_seat_prefs` refuses a genre under 30 (`unknown_genre`), and `api.room_genres` lists only the others. After Start the films already dealt still count, so the offer doesn't shrink as the game runs.
+- **Not tonight first.** `api.start_game` copies the players' [Not tonight](../product/game-modes.md#not-tonight) skips into `room_models.dropped_genre_ids` and `dropped_person_ids` before it locks the picks. So at Start the 30-film rule and the starvation guard count the films left after the skips: a Family pick on a night where Animation is out may stop counting, or get a smaller share. In the lobby the offer is counted before the skips.
 - **Propensity.** A card logs its odds in the list it came from (the open list's or the pick list's).
 - **The server deck (M17)** will need the same mix; until then the SQL deal is the only one.
 

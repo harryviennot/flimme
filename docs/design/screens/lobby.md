@@ -69,7 +69,7 @@ Rooms and seats hold service ids. The names come from `api.countryProviders({ co
 Fewer than 20 films fit the room's filters, so nothing was dealt (M5.5, [how a game ends](../../product/game-modes.md#how-a-game-ends)).
 
 - **Where:** the host's helper line under Start, as for `not_enough_players`. Not a toast (it would leave before the host has acted) and not a `Banner` (that one is for the connection). Start stays enabled.
-- **What:** `lobby:start.tooFew_one` or `_other` with the count from `eligible`, or `lobby:start.tooFewNone` when `eligible` is 0 (French puts 0 in the singular form). It points at services, the only filter the lobby can change (the time budget and the age cap are set before the room opens). The host has no services row here, so it asks everyone, whose rows open the services sheet.
+- **What:** `lobby:start.tooFew_one` or `_other` with the count from `eligible`, or `lobby:start.tooFewNone` when `eligible` is 0 (French puts 0 in the singular form). It points at services and, since M6.70, at Not tonight: the filters the lobby can change (the time budget and the age cap are set before the room opens). The host has no services row here, so it asks everyone, whose rows open the services sheet.
 - **Also from the deck worker:** when Start answered `dealing` and the worker found too few, the host learns it from `state_changed` with `reason: 'too_few_films'`. The same line shows, with that event's `eligible`. The layout still routes on the room re-read; the payload only fills the line.
 - **Until:** the host's next Start tap (Start shows `loading`, the line clears, the new answer decides). A services change doesn't clear it; the next Start counts again. It is this phone's state only: a new host doesn't inherit it.
 
@@ -105,9 +105,12 @@ Each player can pick up to 3 TMDB movie genres for tonight's deck. It is optiona
 | Loading | none | yes (the sheet shows its own loading) |
 | No picks | `yourGenres.optional` | yes |
 | Picks | their names, sorted | yes |
+| Skips (M6.70) | the picks' names, then `yourGenres.andSkipped_*` with this player's own skip count (genres and people); with no picks, `yourGenres.skippedOnly_*` | yes |
 | No genre offered tonight | `yourGenres.none` | no (dimmed) |
 | Dealing (after Start) | as above | no (dimmed, picks are locked) |
 | Offline or the read failed | the last value, or none | yes (the sheet explains) |
+
+**Not tonight (M6.70, M6.71).** The sheet draws the same two sections as the genre step, through `TonightPrefs`: In the mood for (the picks below), then Not tonight (genres and people to skip). The sheet's helper becomes `genreStep.helper` (and `genresSheet.helper` is removed once unused); Add a person opens the [people search sheet](skip-people.md) over this one; Done saves picks and skips as the step's Continue does, with the same answers (`out_tonight`, `room_limit`, `unknown_person`, `locked`). A pick of a genre someone skips turns out tonight here too. Everything else in this section stays. The rules, looks, states and copy are in [the genre step's Not tonight](genre-step.md#not-tonight-m670-and-m671).
 
 **The sheet.** `Screen` with a `footer` and, inside, Gesture Handler's `ScrollView` under a `GestureHandlerRootView` (a plain `ScrollView` paints nothing in a form sheet on iOS, found on the simulator for this sheet). Title `display-s` `genresSheet.title`, helper `body-s` muted `genresSheet.helper`, the chips in a wrapping row (`gap-2`), `Button` primary L `genresSheet.done` in the footer. A chip is the `Chip` with `count`: the name, then the count in `mono-data`; selected shows the check and the accent fill. Its screen reader label is `genresSheet.chip` ("Comedy, 3 players"), role checkbox. A count of 0 is not drawn (a bare "0" on every chip is noise); the label still says it. The counts include your own unsaved tap at once (the sheet adds or removes 1 locally), so a tap answers without waiting for the network; the server's number replaces it after Done.
 
@@ -202,6 +205,10 @@ The alert is the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`,
 | `yourGenres.label` | Tes genres ce soir | Your genres tonight |
 | `yourGenres.optional` | Facultatif | Optional |
 | `yourGenres.none` | Rien à choisir ce soir | Nothing to pick tonight |
+| `yourGenres.andSkipped_one` (M6.70) | {{picks}}, {{count}} écarté | {{picks}}, {{count}} skipped |
+| `yourGenres.andSkipped_other` (M6.70) | {{picks}}, {{count}} écartés | {{picks}}, {{count}} skipped |
+| `yourGenres.skippedOnly_one` (M6.70) | {{count}} écarté | {{count}} skipped |
+| `yourGenres.skippedOnly_other` (M6.70) | {{count}} écartés | {{count}} skipped |
 | `genresSheet.title` | Tes genres ce soir | Your genres tonight |
 | `genresSheet.helper` | Choisis jusqu'à 3 genres. Les autres voient combien de joueurs ont choisi chaque genre, pas qui. | Pick up to 3 genres. Others see how many players picked each genre, not who. |
 | `genresSheet.cap` | 3 genres au maximum. Retire-en un pour en changer. | 3 genres at most. Drop one to swap. |
@@ -220,9 +227,11 @@ The alert is the system alert `lobby:leave.title`, with `lobby:leave.bodyGuest`,
 | `servicesSheet.done` | C'est bon | Done |
 | `start.cta` | Lancer la séance | Start swiping |
 | `start.needPlayers` | Il faut {{count}} joueurs présents pour lancer. | You need {{count}} players here to start. |
-| `start.tooFew_one` | Seulement {{count}} film convient ce soir. Demande à chacun d'ajouter ses plateformes. | Only {{count}} film fits tonight. Ask everyone to add their services. |
-| `start.tooFew_other` | Seulement {{count}} films conviennent ce soir. Demande à chacun d'ajouter ses plateformes. | Only {{count}} films fit tonight. Ask everyone to add their services. |
-| `start.tooFewNone` | Aucun film ne convient ce soir. Demande à chacun d'ajouter ses plateformes. | No film fits tonight. Ask everyone to add their services. |
+| `start.tooFew_one` | Seulement {{count}} film convient ce soir. Demande à chacun d'ajouter ses plateformes ou d'écarter moins de choses. | Only {{count}} film fits tonight. Ask everyone to add their services or skip less. |
+| `start.tooFew_other` | Seulement {{count}} films conviennent ce soir. Demande à chacun d'ajouter ses plateformes ou d'écarter moins de choses. | Only {{count}} films fit tonight. Ask everyone to add their services or skip less. |
+| `start.tooFewNone` | Aucun film ne convient ce soir. Demande à chacun d'ajouter ses plateformes ou d'écarter moins de choses. | No film fits tonight. Ask everyone to add their services or skip less. |
+
+M6.70 adds "or skip less" to the three `start.tooFew*` lines: skips can now empty a deck, and the line never says whose skips did.
 | `start.away_one` | {{names}} n'est pas là. Tu peux lancer sans attendre. | {{names}} is away. You can start without them. |
 | `start.away_other` | {{names}} ne sont pas là. Tu peux lancer sans attendre. | {{names}} are away. You can start without them. |
 | `waiting` | On attend que {{name}} lance la séance… | Waiting for {{name}} to start… |

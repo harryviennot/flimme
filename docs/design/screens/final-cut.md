@@ -29,12 +29,13 @@ Swiping is over without a pick, so the room votes in 60 seconds: on its 3 matche
   - **ranked:** `bg-accent-default`, tone `on-accent`;
   - **faint** (not tapped): `bg-bg-raised`, tone `muted`. Its number is the place the film gets if the player taps nothing more: the tapped films in tap order, then the rest in seed order, minus the veto (Q15.5);
   - **vetoed:** no badge.
+- **The info button** (M6.67), top right of the poster, mirroring the card's (i) badge: see [Reading a finalist's synopsis](#reading-a-finalists-synopsis).
 - **The veto stamp:** `Icon` `ban`, 44, `nope-default`, centred on the poster; the poster under it at `opacity-disabled`.
 - **The title** in `body-s`, tone `primary`, at most 2 lines with an ellipsis (the full title is in the label), then **the year** in `mono-data`, tone `muted` (left out when unknown).
 
 The whole finalist (poster and text) is one `Pressable` with `haptic={false}`: the screen fires `haptics.press()` itself on a tap that ranks or unranks, so a long press never buzzes twice.
 
-**Components:** `Screen`, `TopBar`, `RoomBanner`, `Text`, `Countdown`, `Poster`, `Icon`, `Pressable`, `Avatar`, `Button`, `Skeleton`. Screen pieces in `components/screens/final-cut/`: `FinalCutScreen` (`final-cut-screen.tsx`), `Finalist` (`finalist.tsx`), `LockInRow` (`lock-in-row.tsx`), `LockInFooter` (`lock-in-footer.tsx`), and `Reveal` (`reveal.tsx`, the slot M6.31 fills: [The reveal](#the-reveal)). No new `ui/` or `shared/` component; the reveal adds duration tokens. One small change to `Countdown` ([Design-system changes](#design-system-changes)).
+**Components:** `Screen`, `TopBar`, `RoomBanner`, `Text`, `Countdown`, `Poster`, `Icon`, `Pressable`, `Avatar`, `Button`, `Skeleton`. Screen pieces in `components/screens/final-cut/`: `FinalCutScreen` (`final-cut-screen.tsx`), `Finalist` (`finalist.tsx`), `LockInRow` (`lock-in-row.tsx`), `LockInFooter` (`lock-in-footer.tsx`), and `Reveal` (`reveal.tsx`, the slot M6.31 fills: [The reveal](#the-reveal)). M6.67 reuses `SynopsisSheet` (`components/screens/swipe/synopsis-sheet.tsx`) and its route. No new `ui/` or `shared/` component; the reveal adds duration tokens. One small change to `Countdown` ([Design-system changes](#design-system-changes)).
 
 **Where the data comes from.** `api.rounds` (the open round: `id`, `kind`, `stage_closes_at`), `api.round_candidates` (`title_id`, `seed`), the cards through `api.title_cards` (one call for every finalist, the stack's held cards first, as `useMatchCard` does), `api.room_seats` (the seats for the row, `vetoes_left` on the phone's own seat) and `api.roundProgress` (`locked`, `of`, `me_locked`) on open. Then `round_progress` events. `finale_started` may prefetch the cards and posters while the swipe screen is still up; only `state_changed` moves the phone here.
 
@@ -99,6 +100,35 @@ The footer's button area has four looks. Each keeps the same height (56 plus the
 - **Zero** (`onEnd`): a phone that hasn't locked in stops taking taps and sends nothing (Q15.3). The countdown leaves (`layout.fadeOut`), the footer shows Counting the votes (`layout.fadeIn`), the posters dim to `opacity-stack-near` (`timing.base`). A ballot already in flight keeps going quietly.
 - **Zero plus 2 seconds:** `api.closeRoundStage({round_id})` (Q5.1). `not_yet`: again each second. A failed call: again each second. `ok` or `closed`: stop, and wait for `state_changed {state: 'done'}`. Several phones calling is harmless.
 
+## Reading a finalist's synopsis
+
+M6.67, from the 11 November 2026 family playtest (a player asked to reread what a finalist is about). It reverses the 4 November decision of no details sheet for a finalist, as [moments.md](../moments.md#the-final-cut) question 10 foresaw. It reuses the swipe screen's [synopsis sheet](swipe.md#the-synopsis-sheet) as it is.
+
+**The button.**
+
+- **Where:** `absolute top-1.5 right-1.5` on the poster frame, the opposite corner from the number badge (`top-1.5 left-1.5`). It is a sibling of the finalist's `Pressable`, not a child, so a press on it never reaches the tile (no rank, no veto, no sink of its own), and a screen reader reaches it as its own element. It moves with the poster (the same `sink` and `fall` transform), so it never drifts off the frame while a finger holds the poster.
+- **Look:** a `size-7` disc, `rounded-pill bg-bg-sunken` (the card's `FlipBadge`, smaller), with `Icon` `info`, 16, `text-primary`. It sits above the poster's dim layer, so a vetoed or dimmed poster keeps a readable button.
+- **Target:** 44 by 44 through `hitSlop` `{ top: 8, bottom: 8, left: 4, right: 12 }`. The short left slop keeps clear of the badge; at 4 finalists (76 wide) the disc spans 42 to 70, the badge 6 to 36, and the target never covers the badge. The right slop stays inside the 10-point gap between tiles. Everything else on the poster still picks or ranks.
+- **When it shows:** while the round runs and after lock-in (reading while others vote is harmless), whenever the finalist's card is loaded. It is hidden when the card can't be read (no title, no overview), from Counting the votes on, and through the reveal (`layout.fadeOut`).
+- **Press:** `Pressable` with its default `haptics.press()` and button tick. A long press on it does nothing (it never vetoes). It hands the finalist's card to the synopsis store (`features/swipe/synopsis.ts`, widened from `NextCard` to `Card`) and pushes `room/[id]/synopsis/[title]`. `isAllowed` gains `synopsis` in the `finale` state.
+
+**The sheet.** The same `SynopsisSheet` at detent 0.6: the title (`title-m`), `CardMetaLine` with the score, the label and the whole overview. No services, no trailer, no answers, and nothing about whose film it is ([Never shown](#never-shown)). It reads the card from the store, so it opens offline.
+
+**The clock keeps running.** The sheet shows no countdown of its own. At 0.6 the screen's heading row and its `Countdown` stay visible above the sheet (under the system dim) on every iPhone from 375 by 667, it still turns red for the last 10 seconds, and its last-5-second ticks (haptic and sound, before lock-in only) keep coming. Nothing auto-closes the sheet before zero: a player reading at 8 seconds feels the ticks and can close it.
+
+**When the round closes while it's open.** As soon as the screen enters Counting the votes (zero, everyone locked in, or no open round), it dismisses the sheet with the system slide, so the player is back on the posters before the reveal starts. A phone that hasn't locked in at zero sends nothing, as always. The room's own rule also closes it if the room leaves `finale` first (abandoned, removed seat).
+
+**Closing.** Close, a swipe down or the screen reader's escape gesture. The ballot is as it was: the sheet never changes a rank or a veto. Focus goes back to the info button.
+
+**Feel check (for M6.67).**
+
+- With 4 finalists, tap the (i) on each poster: the sheet opens every time, and no poster gets ranked.
+- Tap a poster next to its (i), and long-press it: it ranks, then vetoes, as before. A long press on the (i) does nothing.
+- Open a synopsis with 15 seconds left: the countdown stays visible above the sheet and turns red; the last 5 ticks buzz and click.
+- Leave it open until zero: the sheet slides down and Counting the votes is already showing.
+- Lock in, then open a synopsis while others vote: it works; everyone locking in closes it.
+- VoiceOver: each finalist, then "Synopsis of ..., button"; closing the sheet lands back on that button.
+
 ## States
 
 | State | What shows |
@@ -112,10 +142,11 @@ The footer's button area has four looks. Each keeps the same height (56 plus the
 | **No veto left** (`vetoes_left` 0) | `finale:intro.noVeto`; long presses do nothing |
 | **Ranked vote** (`kind` `ranked_vote`, 3 or 4 films) | `finale:title.ranked`, `finale:heading.ranked`, `finale:intro.rank`; no veto anywhere |
 | **Two films** (`kind` `ranked_vote`, 2 candidates) | `finale:title.ranked`, `finale:heading.pickOne`, `finale:intro.pickOne`; two 144-wide posters, centred; faint 1 and 2 until a pick, then solid 1 on the pick and faint 2 on the other ([Ranking](#ranking)); no veto anywhere. The lock-in row, the countdown and Lock in as in any round |
+| **Reading a synopsis** (M6.67) | The [synopsis sheet](#reading-a-finalists-synopsis) at 0.6 over the screen; the countdown visible above it; the ballot unchanged |
 | **Sending** | As in [Locking in](#locking-in) |
 | **Locked in** | The Locked in look; badges and stamp kept; no taps |
 | **The last 10 seconds** | The countdown is red; ticks for the last 5 only if not locked in |
-| **Zero, counting** | Counting the votes; posters dimmed; no taps; the close call at plus 2 seconds |
+| **Zero, counting** | Counting the votes; posters dimmed; no taps; the info buttons fade out and an open synopsis sheet closes; the close call at plus 2 seconds |
 | **Everyone locked in early** (own `ok` with `locked` covering `of`, the `round_progress` event, or `state_changed`) | The countdown leaves at once and Counting the votes shows, whatever the time left |
 | **Restart mid-round, not locked in** (`me_locked` false) | A fresh ballot, unless the phone still has one in memory (a trip to the background keeps it; a cold start doesn't). The countdown starts at the time left, with no animation and no catch-up ticks. The posters show at once, no stagger |
 | **Restart mid-round, locked in** (`me_locked` true) | The Locked in look. Badges and stamp if the phone still has them; otherwise none, not even faint numbers (the server never sends a ballot back) |
@@ -204,6 +235,10 @@ A new file pair, `i18n/locales/fr/finale.json` and `en/finale.json`, registered 
 | `a11y.lockedRow` | Ont validé : {{names}}. {{count}} | Locked in: {{names}}. {{count}} |
 | `a11y.lockedRowNone` | Personne n'a encore validé. {{count}} | Nobody has locked in yet. {{count}} |
 | `a11y.lockInHint` | Envoie ton classement. Impossible de le changer ensuite. | Sends your order. You can't change it afterwards. |
+| `a11y.synopsis` | Résumé de {{title}} | Synopsis of {{title}} |
+| `a11y.synopsisHint` | S'ouvre par-dessus le vote. Le chrono continue. | Opens over the vote. The clock keeps running. |
+
+M6.67 adds `a11y.synopsis` and `a11y.synopsisHint` (the button has no visible text; the sheet's own strings are `common:card.synopsis`, `common:actions.close` and `swipe:card.noSynopsis`, as on the swipe screen).
 
 M6.38 adds `heading.pickOne`, `intro.pickOne`, `intro.source`, `a11y.heading.pickOne`, `a11y.state.picked`, `a11y.state.notPicked`, `a11y.actions.pick` and `a11y.actions.unpick` to both files. `intro.source` is the decided line (5 November 2026, question 8), word for word in both languages.
 
@@ -223,6 +258,7 @@ From the beat; every duration is a token from `@/theme/motion`.
 | Veto lands | Stamp `layout.popIn`; poster to `opacity-disabled`, `duration.fast` | `haptics.veto()`, once, with the stamp's sound |
 | Veto lifted or moved | Old stamp `layout.fadeOut`; a moved one pops on the new poster | None |
 | Lock in | Button press; Sending; Locked in look crossfades (`duration.fast`), check `spring.snappy` | The button's `press` and the latch on press-in, no `commit` |
+| Info button (M6.67) | The system sheet's slide up; at Counting the votes the buttons `layout.fadeOut` and an open sheet slides down | `haptics.press()` and the button tick, through `Pressable`. No other sound |
 | Someone locks in | Avatar opacity `duration.fast`, check `spring.snappy` | None |
 | Last 10 seconds | `Countdown` turns red | None |
 | Last 5 seconds | None | `haptics.countdown()` each second, only before lock-in |
@@ -236,7 +272,8 @@ From the beat; every duration is a token from `@/theme/motion`.
 ## Accessibility
 
 - **On arrival, focus goes to the heading** (role `header`), read as `finale:a11y.heading.finalCut`, `.ranked` or `.pickOne`, then the countdown.
-- **Focus order:** the leave button, the heading, the countdown, the intro, the line on where the films came from (`intro.source`, read as it is), the finalists in seed order, the lock-in row, the button, the status line.
+- **Focus order:** the leave button, the heading, the countdown, the intro, the line on where the films came from (`intro.source`, read as it is), the finalists in seed order (each finalist, then its info button), the lock-in row, the button, the status line.
+- **The info button** (M6.67) is its own element, role `button`, label `a11y.synopsis` with the title, hint `a11y.synopsisHint`. It is not one of the finalist's custom actions: a separate element is easier to find. In the sheet, focus goes to the title; on close it returns to the info button.
 - **Each finalist is one element** (role `button`): `a11y.film`, then its state (`a11y.state.ranked`, `.unranked` with the faint number, or `.vetoed`). A double tap does what a tap does. **Custom actions**, only the ones that apply: `rankNext` (untapped), `removeRank` (ranked), `veto` (veto allowed, not vetoed; on another poster it moves the veto), `liftVeto` (vetoed). After an action the new state is announced politely (`a11y.state.*`, `a11y.vetoLifted`) and focus stays on the poster. **With 2 films** the state is `a11y.state.picked` or `a11y.state.notPicked` (with the faint number), and the actions are `pick` (not picked) and `unpick` (picked). Ranking and the veto need no gesture. Once locked or counting, no actions; the state is still read.
 - **The countdown** (`accessibilityRole="timer"`) reads `common:countdown.a11y_*`. It is not announced every second: the screen announces `finale:a11y.timeLeft_*` at 30 and 10 seconds, and `finale:counting.title` at zero or when everyone has locked in.
 - **The lock-in row is one element:** `a11y.lockedRow` with the locked seats' names in seat order, or `a11y.lockedRowNone`. A change is announced politely with the count only (`locked.count`), never a name.
@@ -252,7 +289,7 @@ From the beat; every duration is a token from `@/theme/motion`.
 - "Waiting for Sam", "deciding", or any line naming who hasn't locked in. No nudge, no buzz on another player's phone, no extra time.
 - "Your vote didn't count" for a player who didn't lock in. Everyone sees Counting the votes.
 - Another seat's `vetoes_left` (null for seats the phone doesn't control).
-- A details sheet or a card back for a finalist.
+- A card back for a finalist, or anything in its synopsis sheet beyond the title, the meta line and the overview (no services, no answers, no reason tag).
 - Whose film a finalist is: no mark, star or avatar on a film this player (or anyone) liked, super liked or matched, and no line that changes with the room. On a couch a neighbour sees your screen, and the films you didn't mark would be the ones you noped (decided on 5 November 2026, question 8). The shortlist's matches are no different from the other finalists here.
 
 ## The reveal
@@ -456,3 +493,7 @@ On 4 November 2026:
 On 5 November 2026:
 
 3. **Knock-outs with a single ballot.** They show, the same rule in every room size, even though the lock-in row showed who locked in. Harry took the default ([decisions.md](../../decisions.md)); the alternative was the winner alone, with no stamps.
+
+On 11 November 2026:
+
+4. **A finalist's synopsis** (M6.67). The family playtest asked to reread what a film is about during the vote. Each finalist gets an info button that opens the swipe screen's synopsis sheet; the clock keeps running and the sheet closes at Counting the votes. This reverses question 10 of the beat ([moments.md](../moments.md#the-final-cut)); Harry approved it in the playtest plan.
