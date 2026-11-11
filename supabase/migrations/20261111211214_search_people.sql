@@ -16,6 +16,9 @@ as $$
   select lower(extensions.unaccent('extensions.unaccent'::regdictionary, p_text))
 $$;
 revoke execute on function internal.search_key(text) from public, anon, authenticated;
+-- Postgres checks execute on an index expression as the role that writes the row, so the roles that
+-- write people (the pipeline login and the service role) need it. Phones never do.
+grant execute on function internal.search_key(text) to app_server, service_role;
 
 -- Migrations run in a transaction, which a concurrent build can't; only the ingest writes people.
 -- squawk-ignore require-concurrent-index-creation

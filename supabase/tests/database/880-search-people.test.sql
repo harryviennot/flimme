@@ -2,7 +2,7 @@
 -- (game-modes.md#apisearch_peoplequery). Made-up people and credits, as 550 does.
 
 begin;
-select plan(47);
+select plan(50);
 
 select tests.create_player('s1');
 select tests.create_player('s2');
@@ -179,6 +179,15 @@ select ok(not has_function_privilege('anon', 'api.search_people(text, text)', 'e
 select ok(has_function_privilege('authenticated', 'api.search_people(text, text)', 'execute'), '11 authenticated can');
 select ok(not has_function_privilege('authenticated', 'internal.search_key(text)', 'execute'), '11 the key function is not open to phones');
 select ok(not has_table_privilege('authenticated', 'public.people', 'select'), '11 phones still cannot read people');
+
+-- 12: the ingest keeps writing people (the index calls search_key as the writing role)
+select tests.act_as_server();
+select lives_ok($q$insert into public.people (id, name, popularity) values (7500, 'Ingest Person', 1)
+  on conflict (id) do update set name = excluded.name$q$, '12 the server role can insert a person');
+select lives_ok($q$update public.people set name = 'Ingest Renamed' where id = 7500$q$, '12 and update one');
+select tests.clear_authentication();
+select is(pg_temp.search('s2', 'kfperson one', '')->'people'->0->'known_for'->>'title', 'Le Meilleur',
+  '6 an empty language falls back to the profile language');
 
 select * from finish();
 rollback;
