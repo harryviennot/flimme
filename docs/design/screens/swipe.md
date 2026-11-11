@@ -247,6 +247,7 @@ Top to bottom, on a 345-point card (393-point phone):
 - **Closing.** Close, a swipe down, or the screen reader's escape gesture. The card is still on top and still flipped, as it was.
 - **The room moves on while it's open** (the finale starts, the room closes, this seat is removed): it closes with the screen under it, as the room's other sheets do. A near miss or a shortlisted beat plays on the swipe screen under it; nothing is replayed.
 - **Solo:** the same sheet.
+- **The Final Cut** opens the same sheet from a finalist's info button (M6.67, [the Final Cut](final-cut.md#reading-a-finalists-synopsis)). The store then holds a `Card`, not only a `NextCard`.
 - **Motion:** the system sheet's slide; Reduce Motion is the system's. `haptics.press()` from the link. No sound beyond the tap.
 - **Accessibility:** on open, focus goes to the title; then the meta, the label, the synopsis, Close.
 

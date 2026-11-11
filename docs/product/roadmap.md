@@ -100,7 +100,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M3](#m3-app-foundation) | App foundation | A development build on iOS and Android signs in as a guest and reads the API | 16 | In progress |
 | [M4](#m4-first-launch-rooms-and-lobby) | First launch, rooms and lobby | Three phones join one room by code, link and QR code, and the host can start | 23 | Done |
 | [M5](#m5-basic-deck) | Basic deck | A room is dealt in under a second, only with films its players can watch, different each game | 10 | Done |
-| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 66 | In progress |
+| [M6](#m6-the-game) | The game | 2, 4 and 8 players each reach a pick, by match and by the Final Cut, within the time limits | 71 | In progress |
 | [M7](#m7-safety-and-moderation) | Safety and moderation | The security checklist for the beta is ticked | 4 | In progress |
 | [M8](#m8-privacy-legal-and-settings) | Privacy, legal and settings | Policy and terms are online, and players can download and delete their data | 14 | In progress |
 | [M9](#m9-observability-and-analytics) | Observability and analytics | Headline metrics, alerts and backups work, and the load test passes | 9 | In progress |
@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 6 | In progress |
 
-Progress: 177 of 304 tasks done.
+Progress: 177 of 309 tasks done.
 
 ```mermaid
 flowchart LR
@@ -456,6 +456,10 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: tested: a save writes a solo like that no room reads, `api.my_films` has no `later` segment, and the export carries the save as a solo like.
 - [x] **M6.65** The card carries the caller's own seen and saved flags: `api.my_next_cards` and `api.title_cards` add `seen` and `saved` from the caller's own rows, never another seat's · backend · S · needs M6.57, M6.41 · [my films](solo-and-my-films.md#6-my-films-grouping-and-tiles), [bookmark](../design/screens/swipe.md#the-bookmark)
   Done when: tested: a card shows the caller's own seen and saved flags, a film with no row shows both as false, and no field names another player.
+- [ ] **M6.68** Not tonight on the server: each player skips up to 3 genres and up to 3 people in the lobby (`api.set_seat_skips`), at most 4 genres out tonight per room (`room_limit`); a genre out tonight can't be picked (`out_tonight`) and leaves every seat's picks; `api.room_genres` lists the genres out tonight, never who; Start copies the skips of every seat still in the room into `dropped_genre_ids` and `dropped_person_ids`, so a film in a skipped genre, or with a skipped person as director or top 8 cast, leaves every deck · backend · M · needs M6.53 · [game-modes](game-modes.md#not-tonight), [set_seat_skips](game-modes.md#apiset_seat_skipsroom-genre_ids-person_ids), [deck-engine](../architecture/deck-engine.md#per-player-genres)
+  Done when: pgTAP tests cover the caps, the room limit of 4, lobby only, a skip taking the genre off every seat's picks, a skipped genre and a skipped person leaving the deck, the copy at Start, a start with too few films going back to the lobby with the room's copy cleared, and that no answer or event says who skipped what.
+- [ ] **M6.69** `api.search_people`: up to 8 directors and cast members of the catalog for a query of 2 to 60 characters, accents and case ignored, ranked by closeness then popularity, each with its name and one film they're known for, no photo; search terms never logged · backend · S · needs M2.7 · [search_people](game-modes.md#apisearch_peoplequery), [skip people](../design/screens/skip-people.md)
+  Done when: pgTAP tests cover accents and case, the ranking, the cap of 8, the query limits, the rate limit, that only directors and cast of active films are found, and that no photo is returned.
 
 **App**
 
@@ -533,6 +537,12 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on the simulator shows a guest the full-screen genre step after joining and the host the step after the services choice, both skippable, and the lobby's sheet still changes picks.
 - [x] **M6.66** Seen it disabled with a tick, and the bookmark ticked, for films already seen or saved · app · S · needs M6.65, M6.58 · [seen it](../design/screens/swipe.md#seen-it-the-rewatch-question), [bookmark](../design/screens/swipe.md#the-bookmark)
   Done when: a touch run on the simulator shows Seen it disabled with a tick on a film already seen, and the bookmark ticked and disabled on a film already in My films likes, while the card still takes a like or a nope, in French and English.
+- [ ] **M6.67** The synopsis during the final vote: an info button on each finalist opens the synopsis sheet, while a tap still picks, a long press still vetoes and the clock keeps running; the sheet closes when the votes are counted · app · M · needs M6.15, M6.61 · [final cut](../design/screens/final-cut.md#reading-a-finalists-synopsis), [moments](../design/moments.md#the-final-cut)
+  Done when: a touch run on the simulator against staging opens a finalist's synopsis during the vote while the clock runs, closes it with the ranking and the veto unchanged, sees it close by itself at Counting the votes, and ranks and vetoes as before, in French and English.
+- [ ] **M6.70** Not tonight for genres: the In the mood for and Not tonight sections in the genre step and the lobby's genres sheet, out tonight on every phone with no count and no name, the room limit of 4, and the lobby row's skip count · app · M · needs M6.68, M6.64 · [genre step](../design/screens/genre-step.md#not-tonight-m670-and-m671), [game-modes](game-modes.md#not-tonight)
+  Done when: a touch run with two phones against staging skips Animation on one, sees it out tonight on the other with no count or name and the other's Animation pick removed, meets the room limit on a fifth genre, starts, and deals no animated film, in French and English.
+- [ ] **M6.71** Not tonight for people: the people search sheet (a name and one known film, no photo), up to 3 people per player as removable chips in the genre step and the lobby's genres sheet, private to the player · app · M · needs M6.69, M6.70 · [skip people](../design/screens/skip-people.md), [genre step](../design/screens/genre-step.md#not-tonight-m670-and-m671)
+  Done when: a touch run on the simulator against staging finds a French name typed without its accents, skips that person, removes and adds them again, starts, and deals none of their films; the other phone shows nothing; no search term reaches PostHog; in French and English.
 
 **Tests**
 

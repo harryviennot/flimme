@@ -15,16 +15,18 @@ Every number is a starting value to tune in playtests; they are all in [Starting
 3. [The answers](#the-answers)
 4. [When it's a match](#when-its-a-match)
 5. [Who counts: presence, joining and leaving](#who-counts-presence-joining-and-leaving)
-6. [What players see: Party and Blind](#what-players-see-party-and-blind)
-7. [The finale](#the-finale)
-8. [How a game ends](#how-a-game-ends)
-9. [After the pick](#after-the-pick)
-10. [Later modes](#later-modes)
-11. [Time to a pick](#time-to-a-pick)
-12. [Functions still to write](#functions-still-to-write)
-13. [Changes to the data model](#changes-to-the-data-model)
-14. [Starting values](#starting-values)
-15. [Defaults chosen in this doc](#defaults-chosen-in-this-doc)
+6. [Genres tonight](#genres-tonight)
+7. [Not tonight](#not-tonight)
+8. [What players see: Party and Blind](#what-players-see-party-and-blind)
+9. [The finale](#the-finale)
+10. [How a game ends](#how-a-game-ends)
+11. [After the pick](#after-the-pick)
+12. [Later modes](#later-modes)
+13. [Time to a pick](#time-to-a-pick)
+14. [Functions still to write](#functions-still-to-write)
+15. [Changes to the data model](#changes-to-the-data-model)
+16. [Starting values](#starting-values)
+17. [Defaults chosen in this doc](#defaults-chosen-in-this-doc)
 
 ## A game at a glance
 
@@ -166,6 +168,73 @@ Each player can pick genres for tonight in the lobby (decisions.md, 6 November 2
 - **Who counts:** the present players who picked. A player who picks nothing doesn't count in the weight, and with no picks at all the deck is exactly today's.
 - **Locked at Start.** From Start, a change is refused (`locked`), and the picks of the players present at Start drive the whole game, refills included. A late joiner plays the deck as it is, and can't pick.
 - **What the deck does with them:** about 3 cards in 4 come from films matching at least one pick, films matching more players' picks first; 1 in 4 stays open. The shared opening of 10 follows the same mix (8 from the picks), so everyone sees the same start. The details are in [deck-engine.md](../architecture/deck-engine.md#per-player-genres).
+- **A genre out tonight** (see [Not tonight](#not-tonight)) can't be picked, and its count isn't shown.
+
+## Not tonight
+
+Each player can rule out genres and people for tonight, before the game. It comes from the family playtest of 11 November 2026: a parent found "loads of animated movies" and asked to take things off, "no animated movies, nothing with Brad Pitt". Harry chose to build it in M6, for genres and people (tasks M6.68 to M6.71 in the [roadmap](roadmap.md#m6-the-game)). Harry decided these rules on 11 November 2026: a room can have at most 4 genres out tonight, every seat still in the room at Start counts, and a skipped genre's picks are removed for good. The starting values are in [Starting values](#starting-values).
+
+**The rules**
+
+- **A skip is a veto for tonight.** A film leaves every player's deck when one of its genres is skipped, or when a skipped person is among its directors or its top 8 billed cast (the credits the catalog keeps, [tmdb.md](../integrations/tmdb.md)). Writers don't count: players skip faces they know, and a writer's credit would take out films nobody expected to lose. The match rule doesn't change.
+- **Optional, never blocking Start.** Up to 3 genres and 3 people per player. More is refused whole (`too_many`), not cut, as for picks.
+- **Which genres and people.** Any TMDB movie genre, not only tonight's offer: a parent who wants no horror can say so even on a night with 12 horror films. Any person with a director or cast credit in the catalog, found with a search ([skip-people.md](../design/screens/skip-people.md)).
+- **The room's limit: 4 genres out tonight.** Skipping a genre that's already out always works. A new genre past the fourth is refused (`room_limit`), and the phone says the room has already ruled out 4. People have no room limit: they take out few films (see the estimate below), and a room count of people would tell others that someone skipped someone.
+- **Where and when.** In the genre step and in the lobby's genres sheet ([genre-step.md](../design/screens/genre-step.md#not-tonight-m670-and-m671)). Lobby only: from Start a change is refused (`locked`).
+- **Who counts.** Every seat still in the room at Start, present or not. This differs from picks on purpose: a skip protects someone on the couch (a child scared of horror), and a phone put down in the lobby for 2 minutes shouldn't undo it. A seat that leaves, or is removed, takes its skips with it; a seat that rejoins before Start brings them back. A late joiner plays the deck as it is and can't skip.
+- **Picks and skips.**
+  - A genre out tonight can't be picked (`out_tonight`), so nobody picks and skips the same genre.
+  - A skip takes the genre off every seat's picks, the skipper's own included, in the same call. It frees a place in their 3, and their phone says so ([genre-step.md](../design/screens/genre-step.md#not-tonight-m670-and-m671)). Lifting the skip doesn't bring the picks back. This is simpler than a saved pick that silently stops counting: each player sees exactly what counts.
+- **What everyone sees.**
+  - A skipped genre shows "out tonight" on every phone, with no count and no name.
+  - Your own skips show as yours, so you can lift them.
+  - Skipped people are seen only by the player who skipped them. The other phones get nothing: no event, no count, no "out tonight". A call that changes only people broadcasts nothing; a change of genres sends `genres_changed` (no seat), as picks do.
+- **Privacy in small rooms.** In a 2-player room, "out tonight" on a genre you didn't skip tells you the other player did. That's the same as a pick count of 1 in a 2-player room, which is already accepted, and on a couch it's usually said out loud anyway. In any room, lifting your own skip and seeing the genre stay out tells you that at least one other player skipped it, never who. Rule 6 holds: nobody ever learns who skipped what from the app.
+- **Offered genres.** The lobby's offer (30 eligible films or more) is counted before the skips, so chips don't vanish while people skip. At Start the skips go first: a pick whose genre is left with under 30 films after the skips doesn't count, and the starvation guard shrinks the pick share when the pick pool is under 100 films ([deck-engine.md](../architecture/deck-engine.md#per-player-genres)). For example, many TMDB Family films are also Animation, so skipping Animation thins a Family pick.
+- **Too few films.** If the skips leave fewer than 20 eligible films, Start gives the existing answer (`too_few_films`) and the room goes back to the lobby. The skips stay on the seats, and the room's copy of them is cleared, so the lobby looks as it did before Start. The phone says that skips count among tonight's filters. With the room's limit of 4 genres the bots never hit it (below).
+- **After the game.** Skips stay on the seat, like picks, and are never copied to the player's profile. Play again doesn't carry them over, as for picks. Analytics count how many genres and people a seat skipped, never which people. Search terms never reach logs or analytics.
+- **Play alone:** later. Group rooms first.
+
+**Why this isn't the super nope, or per-player moods.** The super nope was dropped (see [The answers](#the-answers)) because a fifth gesture costs every new player something to learn, because the misery rule already keeps out films anyone is predicted to hate, and because one person shouldn't block a film most of a big group wants. Not tonight is different on each count:
+
+- It isn't a gesture during the game. It sits in the genre step every player already sees.
+- It is explicit, where the misery rule is a prediction. The misery rule needs a taste profile (new players have none) and can't know tonight's company: a parent can like animated films and still not want them tonight.
+- It is decided before the game and in the open. Every phone shows what's out before Start, so the room can talk about it. The room's limit of 4 genres bounds it in a big group. The super nope blocked one film, hidden, after players had liked it.
+
+Per-player moods stay dropped (29 October 2026): a skip is a hard filter on genres and people, not a mood.
+
+**The estimate: how often skips starve the deck.** Done on 11 November 2026 with the genre simulation's synthetic catalog (`makeCatalog` in [tools/sim/genres.mjs](../../tools/sim/genres.mjs)), 1,000 rooms a cell.
+
+> **Bots with made-up tastes, on a made-up catalog.** Every number here comes from bots. In the worst case shown, every player uses all 3 genre skips on the genres they like least, and any genre is as likely to be skipped as any other (Drama as often as Western). Real players probably skip smaller genres (Horror, Animation) more than Drama; with that lean, made up too, the risk falls a lot. A typical night has 1,500 eligible films, a narrow one 400, as in [simulations.md](simulations.md#per-player-genres). A 40-card game can run out of cards under about 50 films.
+
+**Films left, median, and rooms under 50 films / under 20 (the Start refusal): every player skips 3 genres**
+
+| Players | 1,500 films, no room limit | 400 films, no room limit | 1,500 films, room limit 4 | 400 films, room limit 4 | 400 films, room limit 5 |
+| --- | --- | --- | --- | --- | --- |
+| 2 | 637; 0% / 0% | 143; 0% / 0% | 817; 0% / 0% | 187; 0% / 0% | 156; 0% / 0% |
+| 3 | 445; 0% / 0% | 95; 6% / 0% | 817; 0% / 0% | 182; 0% / 0% | 150; 0% / 0% |
+| 4 | 316; 0% / 0% | 65; 30% / 1% | 822; 0% / 0% | 183; 0% / 0% | 149; 0% / 0% |
+| 6 | 188; 1% / 0% | 39; 67% / 13% | 826; 0% / 0% | 186; 0% / 0% | 150; 0% / 0% |
+| 8 | 114; 12% / 2% | 23; 89% / 38% | 811; 0% / 0% | 182; 0% / 0% | 146; 0% / 0% |
+| 10 | 70; 34% / 9% | 17; 95% / 58% | 818; 0% / 0% | 185; 0% / 0% | 149; 0% / 0% |
+
+- **Without a room limit, 3 genres each is fine up to 6 players on a typical night, and breaks big rooms on narrow ones.** Skips add up: 8 players skip 11 to 13 different genres between them, and a film carries 2.5 genres on average.
+- **A lower cap per player doesn't fix it.** With 2 genres each and no room limit, 8 players on a narrow night keep 48 films at the median, and 66% of games end without a match (46% without skips).
+- **A room limit of 4 does.** It keeps about half a night at the median (820 of 1,500, 185 of 400), whatever the room's size, and no room falls under 50 films. With 5, a narrow night keeps 150 and about 1 room in 10 drops under 100 films (the guard), still none under 50.
+- **When skips lean to small genres** (made up), even with no room limit 10 players keep 500 films of a typical night at the median (330 at the 10th percentile); a narrow night with 10 players then falls under 50 films in 23% of rooms. Half the players skipping instead of all: 8 players on a narrow night fall under 50 in 31% of rooms. The room limit covers both.
+- **People.** Not measured: the synthetic catalog has no credits, and production is never queried. A reasoned guess: a well-known actor or director has 30 to 80 films as a director or in the top 8 cast, and a typical night holds about 1 in 9 of France's 14,043 watchable films, so a skipped person takes out 2 to 10 films (under 1% of a night). Even 10 players skipping 3 people each would take out 5 to 20%, and few players will skip 3. People alone can't starve the deck, so they get no room limit. Check it once M6.68 ships, on a staging night, before the playtest.
+
+**Time to a pick.** The genre simulation's games, with the skipped films taken out first and the picks made among the genres left (1,000 games a cell, picks as in the genre model, everyone different tastes; split camps behave the same):
+
+| Players | Night | No skips | 3 each, no room limit | 3 each, room limit 4 |
+| --- | --- | --- | --- | --- |
+| 2 | 1,500 | 1:59; 7% no match | 1:41; 3% | 1:44; 4% |
+| 4 | 1,500 | 3:31; 50% | 3:28; 46% | 3:31; 48% |
+| 8 | 1,500 | 3:24; 37% | 3:25; 50% | 3:22; 34% |
+| 8 | 400 | 3:26; 46% | 2:48; 79% | 3:28; 52% |
+| 10 | 400 | 3:34; 42% | 2:31; 84% | 3:37; 51% |
+
+With the room limit, the median time to a pick is never more than 3 seconds slower than without skips, in any cell, and 2-player rooms get about 15 seconds faster: the skipped films are ones a player would have noped. Without a limit, big rooms on narrow nights look faster only because the decks run dry: most games end without a match, and the share of players who like the pick falls from 70% to 53% (8 players, narrow night). Bots only partly dislike films in the genres they skip (genres explain 30% of their taste), so the real gain for small rooms is probably larger.
 
 ## What players see: Party and Blind
 
@@ -416,6 +485,29 @@ Runs every minute. Each room is handled in its own short transaction, skipping r
 | Finale, round past its deadline | No phone closed it | `internal.close_round_stage` | `match` |
 | Swiping, solo | 30 minutes since the latest swipe, else since the start | `done`, no pick (`ended`) | `state_changed` |
 
+### `api.set_seat_skips(room, genre_ids, person_ids)`
+
+[Not tonight](#not-tonight) for one seat (M6.68). It mirrors `api.set_seat_prefs`: an optional `member_id` for a seat the caller controls, and the room lock, so a skip and a pick can't race.
+
+| | |
+| --- | --- |
+| Input | The room; the seat's full list of skipped genres and of skipped people. A null list is left as it is, an empty one clears it |
+| Refused | More than 3 genres or 3 people (`too_many` with `field` and `max`, nothing saved); the room isn't in the lobby (`locked`), or is gone (`closed`); a genre that isn't a TMDB movie genre (`unknown_genre`); a person with no director or cast credit on an active film (`unknown_person`); a new genre that would put more than 4 genres out tonight in the room (`room_limit` with `max`). Not a seat the caller controls raises 42501 |
+| Writes | `room_members.skip_genre_ids` and `skip_person_ids`, a repeat kept once, in the order sent. Each newly skipped genre leaves every seat's `genre_ids` in the room |
+| Broadcasts | `genres_changed` (empty, no seat) when the room's out list or anyone's picks changed. Nothing when only people changed, and never `seat_updated` |
+
+The room's limit counts the genres skipped by the seats still in the room (not left, not removed), with the caller's new list in place of its old one. A genre already out never counts as new. Answers `ok`.
+
+### `api.search_people(query)`
+
+The people search for Not tonight (M6.69). Signed-in callers only; it needs no room.
+
+| | |
+| --- | --- |
+| Input | A query of 2 to 60 characters once trimmed; otherwise `invalid` |
+| Answers | `ok` with up to 8 people who have a director or cast credit on an active film: `id`, `name` and one film they're known for, with no photo. Ranked by how close the name is, then by popularity. Accents and letter case don't matter (`unaccent`, and a trigram index on an immutable `unaccent(lower(name))` wrapper; `pg_trgm` is already on) |
+| Privacy | Search terms and results never reach logs or analytics. Phones still never read `public.people` directly |
+
 ### Changes to functions already written
 
 | Function | Change |
@@ -431,6 +523,11 @@ Runs every minute. Each room is handled in its own short transaction, skipping r
 | `internal.begin_swiping` | Sets `expires_at` to 1 hour after the start |
 | `internal.deal_cards`, `internal.deal_baseline` | Fewer than 20 eligible films at the start: back to the lobby with the reason, instead of dealing |
 | `internal.maybe_start_finale`, `api.join_room`, `api.room_preview`, `api.leave_room`, `internal.deck_candidates` | The solo mode (M6.40): no finale; invisible to join and preview; leaving ends the room; the deal skips films answered in earlier solo rooms |
+| `api.set_seat_prefs` | Refuses a genre that is out tonight (`out_tonight`), the caller's own skip included ([Not tonight](#not-tonight), M6.68) |
+| `api.room_genres` | Adds `out`: the genre ids out tonight (skipped by a seat still in the room; after Start, the genres copied at Start), with no count and no seat. An out genre in `options` carries `out` and no count. Adds `skips`, the caller's own only: its genre ids, and its people with `id` and `name`, never a photo. Never another seat's people (M6.68) |
+| `api.start_game` | Before it locks the picks, copies the skips of every seat still in the room into the room: genres into `room_models.dropped_genre_ids`, people into `dropped_person_ids`, replacing what was there. So `internal.lock_genre_picks` counts the 30-film offer after the skips (M6.68) |
+| `internal.eligible_titles` | Also leaves out a film when a dropped person has a `director` or `cast` row for it in `public.title_credits` (a `not exists` on the index on person and role; the stored cast is already the top 8; writers don't count). It already leaves out the dropped genres (M6.68) |
+| `internal.deal_cards` | A start sent back to the lobby (`too_few_films`) clears `dropped_genre_ids` and `dropped_person_ids`, so the lobby's offer is the same as before Start (M6.68) |
 
 ## Changes to the data model
 
@@ -449,6 +546,10 @@ Not yet in [data-model.md](../architecture/data-model.md) or [schema.sql](../arc
 | Card payload | A `super_liked` flag in Party mode |
 | Who sees what | In Party mode, the winner screen may show who liked each runner-up, after the pick. Swipes still never reach phones while the game runs. Done in M6.48: `api.room_runners_up` names only the likers, in Party; Blind gets counts |
 | `rooms.expires_at` | Moved to 1 hour after the start when swiping begins |
+| `room_members` | Adds `skip_genre_ids` and `skip_person_ids` (integer arrays, empty by default): the seat's [Not tonight](#not-tonight), at most 3 each, set through `api.set_seat_skips`. Never sent to other phones (M6.68) |
+| `room_models.dropped_genre_ids` | Now written by `api.start_game` with the Not tonight genres. It was reserved for the live learning's dropped genres (M17.5), which will add to it later ([deck-engine.md](../architecture/deck-engine.md#how-a-game-unfolds)) |
+| `room_models.dropped_person_ids` | New (integer array): the Not tonight people, copied at Start (M6.68) |
+| More new functions | `api.set_seat_skips` (M6.68) and `api.search_people` (M6.69), with the `unaccent` extension and a trigram index on people's names |
 
 ## Starting values
 
@@ -473,6 +574,10 @@ All placeholders until playtests.
 | Too few films to start | Fewer than 20 eligible |
 | Genres per player | At most 3, optional; TV Movie never offered |
 | A genre is offered | With 30 eligible films or more tonight |
+| Genres a player can skip (Not tonight) | At most 3, optional; any TMDB movie genre |
+| People a player can skip (Not tonight) | At most 3, optional; directors and the top 8 cast count, writers don't |
+| Genres out tonight in a room | At most 4 |
+| People search | 2 to 60 characters; up to 8 results |
 | Everyone out of cards, nothing liked | 5 minutes for the host to change filters |
 | Fewer than 2 players present | 5 minutes, then abandoned (not in a solo room) |
 | Solo room without a vote | 30 minutes, then done |
