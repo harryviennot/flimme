@@ -121,7 +121,7 @@ The ID, a short title, the type of work, the size once the planner has sized it 
 | [M23](#m23-family) | Family | Family profiles and family modes are live | 9 | Not started |
 | [M24](#m24-more-countries-and-content) | More countries and content | Belgium, Switzerland, then English-speaking countries; crews; series | 6 | In progress |
 
-Progress: 181 of 309 tasks done.
+Progress: 182 of 309 tasks done.
 
 ```mermaid
 flowchart LR
@@ -541,7 +541,7 @@ Done when: 2, 4 and 8 players each reach a pick, by a single match, by a vote be
   Done when: a touch run on the simulator against staging opens a finalist's synopsis during the vote while the clock runs, closes it with the ranking and the veto unchanged, sees it close by itself at Counting the votes, and ranks and vetoes as before, in French and English.
 - [x] **M6.70** Not tonight for genres: the In the mood for and Not tonight sections in the genre step and the lobby's genres sheet, out tonight on every phone with no count and no name, the room limit of 4, and the lobby row's skip count · app · M · needs M6.68, M6.64 · [genre step](../design/screens/genre-step.md#not-tonight-m670-and-m671), [game-modes](game-modes.md#not-tonight)
   Done when: a touch run with two phones against staging skips Animation on one, sees it out tonight on the other with no count or name and the other's Animation pick removed, meets the room limit on a fifth genre, starts, and deals no animated film, in French and English.
-- [ ] **M6.71** Not tonight for people: the people search sheet (a name and one known film, no photo), up to 3 people per player as removable chips in the genre step and the lobby's genres sheet, private to the player · app · M · needs M6.69, M6.70 · [skip people](../design/screens/skip-people.md), [genre step](../design/screens/genre-step.md#not-tonight-m670-and-m671)
+- [x] **M6.71** Not tonight for people: the people search sheet (a name and one known film, no photo), up to 3 people per player as removable chips in the genre step and the lobby's genres sheet, private to the player · app · M · needs M6.69, M6.70 · [skip people](../design/screens/skip-people.md), [genre step](../design/screens/genre-step.md#not-tonight-m670-and-m671)
   Done when: a touch run on the simulator against staging finds a French name typed without its accents, skips that person, removes and adds them again, starts, and deals none of their films; the other phone shows nothing; no search term reaches PostHog; in French and English.
 
 **Tests**
