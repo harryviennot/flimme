@@ -7,6 +7,17 @@ import { supabase } from '@/lib/supabase';
 
 type AsyncFn = (...args: never[]) => Promise<unknown>;
 
+// Calls whose arguments are text a player typed: their reports carry the kind, the function and
+// the database code, never the database's message or its cause (those can quote the arguments).
+const TYPED_TEXT_CALLS = new Set(['search_people']);
+
+function scrubbed(error: ApiError): ApiError {
+  if (!TYPED_TEXT_CALLS.has(error.fn)) return error;
+  return new ApiError(error.kind, error.fn, 'failed (details left out: typed text)', {
+    code: error.code,
+  });
+}
+
 /**
  * Sends the errors that mean a bug or an attack to Sentry (`denied`, `unexpected`) and rejects
  * as before. `network` is not reported: being offline is not a bug.
@@ -18,7 +29,7 @@ export function reportingApi<T extends Record<string, AsyncFn>>(raw: T): T {
       try {
         return await fn(...args);
       } catch (error) {
-        if (error instanceof ApiError && error.kind !== 'network') reportError(error);
+        if (error instanceof ApiError && error.kind !== 'network') reportError(scrubbed(error));
         throw error;
       }
     };

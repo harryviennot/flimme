@@ -26,18 +26,22 @@ const base: TonightPrefsProps = {
   outTonight: [],
   picks: [],
   skipGenres: [],
+  skipPeople: [],
   showCounts: true,
   maxPicks: 3,
   maxSkipGenres: 3,
+  maxSkipPeople: 3,
   onTogglePick: () => {},
   onToggleSkip: () => {},
+  onRemovePerson: () => {},
+  onAddPerson: () => {},
 };
 
 export const gallery: GalleryEntry = {
   name: 'TonightPrefs',
   tier: 'shared',
   description:
-    'The genre step and the genres sheet: In the mood for (picks, with counts) and Not tonight (skips). Loading, nothing chosen, 2 picks and 1 skip with a genre out tonight, a genre out that this player did not skip, the room limit note, the cap note, no counts (a lone player).',
+    'The genre step and the genres sheet: In the mood for (picks, with counts) and Not tonight (skips). Loading, nothing chosen, 2 picks and 1 skip with a genre out tonight, a genre out that this player did not skip, the room limit note, the cap note, no counts (a lone player), the People row with one person and at the cap of 3 (the add button disabled, its note, a long name).',
   render: () => (
     <View className="gap-8">
       <TonightPrefs {...base} loading />
@@ -65,6 +69,15 @@ export const gallery: GalleryEntry = {
         picks={[28, 35, 18]}
       />
       <TonightPrefs {...base} showCounts={false} picks={[35]} />
+      <TonightPrefs {...base} skipGenres={[16]} skipPeople={[{ id: 287, name: 'Brad Pitt' }]} />
+      <TonightPrefs
+        {...base}
+        skipPeople={[
+          { id: 287, name: 'Brad Pitt' },
+          { id: 955, name: 'Pénélope Cruz' },
+          { id: 1, name: 'Joaquin Rafael Phoenix-Bottom of the Long Name' },
+        ]}
+      />
     </View>
   ),
 };

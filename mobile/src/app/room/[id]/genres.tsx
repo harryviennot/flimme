@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
-import { GENRE_CAP, SKIP_GENRES_MAX } from '@/features/lobby/genres';
+import { GENRE_CAP, SKIP_GENRES_MAX, SKIP_PEOPLE_MAX } from '@/features/lobby/genres';
 import { useTonight } from '@/features/lobby/use-tonight';
 
 /**
@@ -85,13 +85,18 @@ export default function RoomGenresScreen() {
                 outTonight={tonight.outTonight}
                 picks={tonight.picks}
                 skipGenres={tonight.skips}
+                skipPeople={tonight.people}
                 showCounts
                 maxPicks={GENRE_CAP}
                 maxSkipGenres={SKIP_GENRES_MAX}
+                maxSkipPeople={SKIP_PEOPLE_MAX}
                 wantsNote={tonight.wantsText}
                 genresNote={tonight.genresText}
                 onTogglePick={tonight.togglePick}
                 onToggleSkip={tonight.toggleSkip}
+                onRemovePerson={tonight.removePerson}
+                onAddPerson={() => router.push(`/room/${id}/skip-people`)}
+                addPersonRef={tonight.addPersonRef}
               />
             )}
           </View>

@@ -7,7 +7,8 @@
     "retry": "Réessayer",
     "close": "Fermer",
     "back": "Retour",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "clear": "Effacer"
   },
   "states": {
     "loading": "Chargement",

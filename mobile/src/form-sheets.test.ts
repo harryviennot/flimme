@@ -11,6 +11,7 @@ const read = (path: string) => readFileSync(join(src, path), 'utf8');
 /** Every file that renders inside a form sheet: the route, or the component it hands over to. */
 const SHEET_FILES = [
   'app/room/[id]/services.tsx',
+  'app/room/[id]/skip-people.tsx',
   'app/room/[id]/invite.tsx',
   'app/room/[id]/seat/[memberId].tsx',
   'app/room/[id]/report/[memberId].tsx',

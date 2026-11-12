@@ -8,6 +8,7 @@ export type RoomSheet =
   | 'invite'
   | 'services'
   | 'genres'
+  | 'skip-people'
   | 'seat'
   | 'report'
   | 'players'
@@ -39,8 +40,8 @@ export function roomScreenFor(state: RoomState, mode?: string): RoomScreen {
 }
 
 const SHEETS: Record<RoomState, readonly RoomSheet[]> = {
-  // The genre sheet is lobby only: picks lock at Start (lobby.md#your-genres-tonight).
-  lobby: ['invite', 'services', 'genres', 'seat', 'report'],
+  // The genre and people sheets are lobby only: picks and skips lock at Start (lobby.md#your-genres-tonight).
+  lobby: ['invite', 'services', 'genres', 'skip-people', 'seat', 'report'],
   dealing: ['invite', 'services', 'seat', 'report'],
   swiping: ['players', 'seat', 'report', 'synopsis'],
   finale: ['synopsis'],
@@ -65,6 +66,7 @@ export function isSheet(screen: string): screen is RoomSheet {
     screen === 'invite' ||
     screen === 'services' ||
     screen === 'genres' ||
+    screen === 'skip-people' ||
     screen === 'seat' ||
     screen === 'report' ||
     screen === 'players' ||

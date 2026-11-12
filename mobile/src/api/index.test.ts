@@ -33,4 +33,27 @@ describe('the app api', () => {
     await expect(api.joinRoom({ code: '000000' })).rejects.toMatchObject({ kind: 'network' });
     expect(reportError).not.toHaveBeenCalled();
   });
+
+  it('reports a failed people search without its text, its database message or its cause', async () => {
+    (reportError as jest.Mock).mockClear();
+    rpc.mockResolvedValue({
+      data: null,
+      error: { message: 'bad input "penelope cruz"', code: 'XX000', details: 'penelope cruz' },
+      status: 500,
+    });
+    await expect(api.searchPeople({ query: 'penelope cruz' })).rejects.toBeInstanceOf(ApiError);
+    expect(reportError).toHaveBeenCalledTimes(1);
+    const reported = (reportError as jest.Mock).mock.calls[0][0] as ApiError;
+    expect(reported).toBeInstanceOf(ApiError);
+    expect(reported.kind).toBe('unexpected');
+    expect(reported.code).toBe('XX000');
+    expect(reported.cause).toBeUndefined();
+    expect(JSON.stringify([reported.message, reported.stack])).not.toMatch(/penelope/i);
+  });
+
+  it('posts the search term through the call, never in a URL', async () => {
+    rpc.mockResolvedValue({ data: { status: 'ok', people: [] }, error: null, status: 200 });
+    await api.searchPeople({ query: 'pitt', language: 'fr' });
+    expect(rpc).toHaveBeenLastCalledWith('search_people', { p_query: 'pitt', p_language: 'fr' });
+  });
 });

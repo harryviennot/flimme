@@ -227,6 +227,17 @@ export default function RoomLayout() {
                 }}
               />
               <Stack.Screen
+                name="skip-people"
+                options={{
+                  presentation: 'formSheet',
+                  // The stack turns gestures off for the room; a sheet still swipes down.
+                  gestureEnabled: true,
+                  sheetGrabberVisible: true,
+                  // Full height: the keyboard takes the lower half and the results need the rest.
+                  sheetAllowedDetents: [1],
+                }}
+              />
+              <Stack.Screen
                 name="seat/[memberId]"
                 options={{
                   presentation: 'formSheet',

@@ -218,7 +218,16 @@ describe('saveTonight: skips first, only what changed, every answer an outcome',
       }),
     };
     const outcome = await saveTonight(
-      { roomId: 'r1', picks: [35], startPicks: [], skips: [16], startSkips: [], ...input },
+      {
+        roomId: 'r1',
+        picks: [35],
+        startPicks: [],
+        skips: [16],
+        startSkips: [],
+        people: [],
+        startPeople: [],
+        ...input,
+      },
       deps,
     );
     return { outcome, calls, deps };
@@ -288,8 +297,57 @@ describe('saveTonight: skips first, only what changed, every answer an outcome',
   });
 
   it('tonightChanged compares sets', () => {
-    const same = { picks: [1, 2], startPicks: [2, 1], skips: [3], startSkips: [3] };
+    const same = {
+      picks: [1, 2],
+      startPicks: [2, 1],
+      skips: [3],
+      startSkips: [3],
+      people: [7, 8],
+      startPeople: [8, 7],
+    };
     expect(tonightChanged(same)).toBe(false);
     expect(tonightChanged({ ...same, skips: [] })).toBe(true);
+    expect(tonightChanged({ ...same, people: [7] })).toBe(true);
+  });
+
+  it('sends the person ids with the genre ids in one skips call, before the picks', async () => {
+    const { calls, deps } = await run(ok, ok, { people: [287, 955] });
+    expect(calls).toEqual(['skips', 'prefs']);
+    expect(deps.setSeatSkips).toHaveBeenCalledWith({
+      room_id: 'r1',
+      genre_ids: [16],
+      person_ids: [287, 955],
+    });
+  });
+
+  it('a people-only change sends the people and leaves the genres alone', async () => {
+    const { calls, deps } = await run(ok, ok, {
+      skips: [16],
+      startSkips: [16],
+      picks: [],
+      startPicks: [],
+      people: [287],
+      startPeople: [],
+    });
+    expect(calls).toEqual(['skips']);
+    expect(deps.setSeatSkips).toHaveBeenCalledWith({ room_id: 'r1', person_ids: [287] });
+  });
+
+  it('can clear every person', async () => {
+    const { deps } = await run(ok, ok, {
+      skips: [],
+      startSkips: [],
+      picks: [],
+      startPicks: [],
+      people: [],
+      startPeople: [287],
+    });
+    expect(deps.setSeatSkips).toHaveBeenCalledWith({ room_id: 'r1', person_ids: [] });
+  });
+
+  it('unknown_person: a person left the catalog, not a bug', async () => {
+    const { outcome, calls } = await run({ status: 'unknown_person' }, ok, { people: [287] });
+    expect(outcome).toEqual({ kind: 'personGone' });
+    expect(calls).toEqual(['skips']);
   });
 });

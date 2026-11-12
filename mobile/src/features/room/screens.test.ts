@@ -25,6 +25,16 @@ describe('the genres sheet', () => {
   });
 });
 
+describe('the people search sheet', () => {
+  it('sits over the lobby only: skips lock at Start', () => {
+    expect(isAllowed('lobby', 'skip-people')).toBe(true);
+    expect(isSheet('skip-people')).toBe(true);
+    for (const state of ['dealing', 'swiping', 'finale', 'done', 'abandoned'] as const) {
+      expect(isAllowed(state, 'skip-people')).toBe(false);
+    }
+  });
+});
+
 describe('the genre step', () => {
   it('stays in the lobby only and is a screen, not a sheet', () => {
     expect(isAllowed('lobby', 'genre-step')).toBe(true);

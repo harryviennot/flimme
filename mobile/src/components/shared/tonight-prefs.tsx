@@ -1,8 +1,12 @@
+import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import { Button } from '@/components/ui/button';
+import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
+import type { PressableNode } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { layout } from '@/theme/motion';
 
@@ -17,9 +21,12 @@ export type TonightPrefsProps = {
   outTonight: readonly number[];
   picks: readonly number[];
   skipGenres: readonly number[];
+  /** The people this player skips, in the order added. */
+  skipPeople: readonly { id: number; name: string }[];
   showCounts: boolean;
   maxPicks: number;
   maxSkipGenres: number;
+  maxSkipPeople: number;
   /** The line shown in place of the wants helper (the cap note, or a pick that left), or none. */
   wantsNote?: string | null;
   /** The line shown under the genres count (the genre cap, or the room limit), or none. */
@@ -27,6 +34,11 @@ export type TonightPrefsProps = {
   loading?: boolean;
   onTogglePick: (id: number) => void;
   onToggleSkip: (id: number) => void;
+  onRemovePerson: (id: number) => void;
+  /** Opens the people search sheet. */
+  onAddPerson: () => void;
+  /** Lets the screen move a screen reader's focus back to Add a person after the search sheet. */
+  addPersonRef?: Ref<PressableNode>;
 };
 
 /**
@@ -40,16 +52,22 @@ export function TonightPrefs({
   outTonight,
   picks,
   skipGenres,
+  skipPeople,
   showCounts,
   maxPicks,
   maxSkipGenres,
+  maxSkipPeople,
   wantsNote,
   genresNote,
   loading,
   onTogglePick,
   onToggleSkip,
+  onRemovePerson,
+  onAddPerson,
+  addPersonRef,
 }: TonightPrefsProps) {
   const { t } = useTranslation('lobby');
+  const atPeopleCap = skipPeople.length >= maxSkipPeople;
   return (
     <View>
       <View className="flex-row items-baseline justify-between">
@@ -138,6 +156,55 @@ export function TonightPrefs({
           showCounts={false}
           onToggle={onToggleSkip}
         />
+      </View>
+
+      <View className="mt-4 flex-row items-baseline justify-between">
+        <Text variant="mono-eyebrow" tone="secondary">
+          {t('prefs.notTonight.people')}
+        </Text>
+        <View
+          accessible
+          accessibilityLabel={t('prefs.a11y.peopleCount', {
+            count: skipPeople.length,
+            max: maxSkipPeople,
+          })}
+        >
+          <Text variant="mono-data" tone={skipPeople.length > 0 ? 'nope' : 'muted'}>
+            {t('prefs.count', { count: skipPeople.length, max: maxSkipPeople })}
+          </Text>
+        </View>
+      </View>
+      <View className="mt-2 flex-row flex-wrap items-center gap-2">
+        {skipPeople.map((person) => (
+          <Animated.View key={person.id} entering={layout.popIn} exiting={layout.fadeOut}>
+            <Chip
+              label={person.name}
+              tone="nope"
+              selected
+              accessibilityLabel={t('prefs.a11y.removePerson', { name: person.name })}
+              accessibilityHint={t('prefs.a11y.removePersonHint')}
+              onRemove={() => onRemovePerson(person.id)}
+            />
+          </Animated.View>
+        ))}
+        <Button
+          variant="secondary"
+          size="s"
+          icon="plus"
+          label={t('prefs.notTonight.addPerson')}
+          disabled={atPeopleCap}
+          onPress={onAddPerson}
+          focusRef={addPersonRef}
+        />
+      </View>
+      <View accessibilityLiveRegion="polite">
+        {atPeopleCap ? (
+          <Animated.View entering={layout.fadeIn} exiting={layout.fadeOut}>
+            <Text variant="body-s" tone="secondary" className="mt-2">
+              {t('prefs.notTonight.peopleCap', { max: maxSkipPeople })}
+            </Text>
+          </Animated.View>
+        ) : null}
       </View>
     </View>
   );

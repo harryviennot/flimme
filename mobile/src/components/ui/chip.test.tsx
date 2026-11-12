@@ -45,4 +45,24 @@ describe('Chip', () => {
     expect(onPress).not.toHaveBeenCalled();
     expect(String(chip.props.className ?? '')).not.toContain('opacity-disabled');
   });
+
+  it('onRemove makes it a button with a trailing x, and a press removes', async () => {
+    const onRemove = jest.fn();
+    const onPress = jest.fn();
+    await render(
+      <Chip
+        label="Brad Pitt"
+        tone="nope"
+        selected
+        onRemove={onRemove}
+        onPress={onPress}
+        accessibilityLabel="Remove Brad Pitt"
+      />,
+    );
+    const chip = screen.getByRole('button', { name: 'Remove Brad Pitt' });
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    await fireEvent.press(chip);
+    expect(onRemove).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
+  });
 });

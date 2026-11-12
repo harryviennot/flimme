@@ -10,6 +10,8 @@ export type ChipProps = {
   count?: number;
   /** What a screen reader says instead of the label, when the count needs words. */
   accessibilityLabel?: string;
+  /** What a screen reader adds, e.g. what a press on a removable chip does. */
+  accessibilityHint?: string;
   selected?: boolean;
   /** `accent` (the default) or `nope`: a selected `nope` chip is a skip (red fill, a ban icon). */
   tone?: 'accent' | 'nope';
@@ -19,6 +21,11 @@ export type ChipProps = {
    */
   unavailable?: string;
   onPress?: () => void;
+  /**
+   * Draws a trailing `x` and makes the chip a button whose press calls this (a skipped person
+   * that a tap takes off the list). `selected` still sets the look; `role` is ignored.
+   */
+  onRemove?: () => void;
   disabled?: boolean;
   /**
    * How a screen reader announces it: `checkbox` for filters that combine (the default), `radio`
@@ -34,10 +41,12 @@ export function Chip({
   label,
   count,
   accessibilityLabel,
+  accessibilityHint,
   selected = false,
   tone = 'accent',
   unavailable,
   onPress,
+  onRemove,
   disabled,
   role = 'checkbox',
   pressDelay,
@@ -63,12 +72,16 @@ export function Chip({
       </Pressable>
     );
   }
+  const removable = onRemove !== undefined;
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityRole={role}
-      accessibilityState={role === 'radio' ? { selected } : { checked: selected }}
-      onPress={onPress}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole={removable ? 'button' : role}
+      accessibilityState={
+        removable ? undefined : role === 'radio' ? { selected } : { checked: selected }
+      }
+      onPress={removable ? onRemove : onPress}
       disabled={disabled}
       unstable_pressDelay={pressDelay}
       className={cn(
@@ -91,6 +104,7 @@ export function Chip({
           {count}
         </Text>
       ) : null}
+      {removable ? <Icon name="x" size={16} color="text-secondary" /> : null}
     </Pressable>
   );
 }

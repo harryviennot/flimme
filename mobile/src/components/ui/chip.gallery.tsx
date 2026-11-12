@@ -24,6 +24,8 @@ function Demo() {
       <Chip label="Animation" tone="nope" selected />
       <Chip label="Western" tone="nope" />
       <Chip label="Science-Fiction" unavailable="out tonight" />
+      <Chip label="Brad Pitt" tone="nope" selected onRemove={() => undefined} />
+      <Chip label="Joaquin Rafael Phoenix-Bottom" tone="nope" selected onRemove={() => undefined} />
     </View>
   );
 }

@@ -175,13 +175,19 @@ export type SaveTonightOutcome =
   | { kind: 'roomLimit'; max: number }
   /** A genre is no longer offered or known: stay and read again. */
   | { kind: 'stale' }
+  /** A skipped person is no longer in the catalog: the warn toast, the draft drops the people. */
+  | { kind: 'personGone' }
   /** A bug on our side: generic toast, a report, stays open. */
   | { kind: 'bug'; reason: string }
   /** The call failed: the warn toast, stays open. */
   | { kind: 'failed' };
 
 export type SaveTonightDeps = {
-  setSeatSkips: (args: { room_id: string; genre_ids: number[] }) => Promise<SetSeatSkipsResult>;
+  setSeatSkips: (args: {
+    room_id: string;
+    genre_ids?: number[];
+    person_ids?: number[];
+  }) => Promise<SetSeatSkipsResult>;
   setSeatPrefs: (args: { room_id: string; genre_ids: number[] }) => Promise<SetSeatPrefsResult>;
 };
 
@@ -194,15 +200,21 @@ export function tonightChanged(input: {
   startPicks: readonly number[];
   skips: readonly number[];
   startSkips: readonly number[];
+  people: readonly number[];
+  startPeople: readonly number[];
 }): boolean {
-  return !sameSet(input.picks, input.startPicks) || !sameSet(input.skips, input.startSkips);
+  return (
+    !sameSet(input.picks, input.startPicks) ||
+    !sameSet(input.skips, input.startSkips) ||
+    !sameSet(input.people, input.startPeople)
+  );
 }
 
 /**
  * Continue and Done: the skips first (saving the picks first would refuse a pick of a genre the
- * player has just unskipped), then the picks, each only when it changed. Genre ids only: the
- * people's list is left out, so it stays as it is. A skip-only change sends no `seat_updated`
- * (the server's job).
+ * player has just unskipped), then the picks, each only when it changed. One skips call carries
+ * the genre ids and the person ids that changed; a list left out stays as the seat holds it. A
+ * skip-only change sends no `seat_updated` (the server's job).
  */
 export async function saveTonight(
   input: {
@@ -211,12 +223,21 @@ export async function saveTonight(
     startPicks: number[];
     skips: number[];
     startSkips: number[];
+    /** The skipped people's ids, in the order added. */
+    people: number[];
+    startPeople: number[];
   },
   deps: SaveTonightDeps,
 ): Promise<SaveTonightOutcome> {
   try {
-    if (!sameSet(input.skips, input.startSkips)) {
-      const answer = await deps.setSeatSkips({ room_id: input.roomId, genre_ids: input.skips });
+    const genresChanged = !sameSet(input.skips, input.startSkips);
+    const peopleChanged = !sameSet(input.people, input.startPeople);
+    if (genresChanged || peopleChanged) {
+      const answer = await deps.setSeatSkips({
+        room_id: input.roomId,
+        ...(genresChanged ? { genre_ids: input.skips } : {}),
+        ...(peopleChanged ? { person_ids: input.people } : {}),
+      });
       switch (answer.status) {
         case 'ok':
           break;
@@ -231,7 +252,7 @@ export async function saveTonight(
         case 'too_many':
           return { kind: 'bug', reason: `set_seat_skips:too_many:${answer.field}` };
         case 'unknown_person':
-          return { kind: 'bug', reason: 'set_seat_skips:unknown_person' };
+          return { kind: 'personGone' };
       }
     }
     if (!sameSet(input.picks, input.startPicks)) {
