@@ -79,6 +79,7 @@ export function SearchField({
           onChangeText={onChangeText}
           accessibilityLabel={accessibilityLabel}
           accessibilityState={{ busy }}
+          maxFontSizeMultiplier={1.5}
           onFocus={(event) => {
             setFocused(true);
             onFocus?.(event);

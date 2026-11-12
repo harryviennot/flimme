@@ -148,6 +148,7 @@ export default function SkipPeopleScreen() {
                     description={description}
                     value={listed ? t('skipPeople.already') : undefined}
                     checked={listed}
+                    chevron={false}
                     accessibilityLabel={listed ? `${base}, ${t('skipPeople.already')}` : base}
                     accessibilityHint={t('skipPeople.a11y.rowHint')}
                     onPress={() => pick(person)}

@@ -143,7 +143,7 @@ Specified in the screen specs (`docs/design/screens/`) from 30 October 2026 on, 
 | `GenreChips` | shared | Gains `mode` (`pick` or `skip`) and `outTonight` (genres drawn unavailable) (M6.70) | [The genre step](screens/genre-step.md#design-system-changes) |
 | `TonightPrefs` | shared | New: the genre step's and the genres sheet's two sections, In the mood for and Not tonight (genres and people) (M6.70, M6.71) | [The genre step](screens/genre-step.md#new-component-tonightprefs-sharedtonight-prefs) |
 | `SearchField` | ui | New: a one-line search box with a search icon, a busy spinner and a clear button (M6.71) | [The people search sheet](screens/skip-people.md#new-component-searchfield-uisearch-field) |
-| `ListRow` | ui | Gains `description` (a second line) (M6.71) | [The people search sheet](screens/skip-people.md#design-system-changes) |
+| `ListRow` | ui | Gains `description` (a second line), `checked` (a check after the value, the row reads as selected), `chevron` (off for a row whose tap adds) and `accessibilityLabel` (M6.71) | [The people search sheet](screens/skip-people.md#design-system-changes) |
 | `Icon` | ui | Gains `search` (24 points, 2-point stroke) for `SearchField` (M6.71) | [The people search sheet](screens/skip-people.md#design-system-changes) |
 
 Single-use pieces, in `components/screens/`: `splash/splash-view`, `welcome/hero`, `home/host-card`, `home/join-card`, `home/solo-card`, `swipe/status-cards` (the checkpoint, out of films and cap cards), `solo/pick-sheet`, `my-films/films-grid`, `join/code-field`, `lobby/shuffling-overlay`, `invite/qr-panel`. The QR panel adds the `react-native-qrcode-svg` dependency named in [app structure](../architecture/app-structure.md#invites-and-deep-links).

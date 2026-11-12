@@ -1383,6 +1383,29 @@ describe('the genre step', () => {
     expect(mockApi.setSeatPrefs).not.toHaveBeenCalled();
   });
 
+  it('a skipped person turns Any genre into Continue, and Continue sends the person ids', async () => {
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [{ genre_id: 35, count: 3 }],
+      mine: [],
+      out: [],
+      skips: {
+        genre_ids: [],
+        people: [
+          { id: 287, name: 'Brad Pitt' },
+          { id: 955, name: 'Penélope Cruz' },
+        ],
+      },
+    });
+    await open();
+    expect(screen.queryByRole('button', { name: 'Any genre' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Remove Brad Pitt' })).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove Brad Pitt' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/room/r1/lobby'));
+    expect(mockApi.setSeatSkips).toHaveBeenCalledWith({ room_id: 'r1', person_ids: [955] });
+  });
+
   it('draws no count while the host is alone', async () => {
     mockSeats = [lea];
     await open();

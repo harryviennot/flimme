@@ -1,0 +1,109 @@
+# M6.71, Not tonight for people: the host finds a name typed without its accents, skips the person,
+# removes and adds them again, hits the cap of 3, and the search sheet's states. Needs Metro started
+# with the staging environment (see the expo-app skill) and M6.68 and M6.69 on staging.
+#   maestro test mobile/.maestro/not-tonight-people.yaml -e METRO_URL=http://localhost:<port>
+# The language is the simulator's (French or English: every text matches both). A second player is a curl seat on staging: read
+# `api.room_genres` from it and check that nothing there names the skipped people.
+appId: com.harryviennot.flimme.dev
+---
+- runFlow: subflows/open-app-fresh.yaml
+- runFlow: subflows/use-staging.yaml
+- extendedWaitUntil:
+    visible: '(?i)get started|c.est parti'
+    timeout: 30000
+- tapOn: '(?i)get started|c.est parti'
+- inputText: 'Alice'
+- tapOn: '(?i)continue|continuer'
+- extendedWaitUntil:
+    visible: '(?i)open a room|ouvrir une salle'
+    timeout: 15000
+- tapOn: '(?i)open a room|ouvrir une salle'
+- extendedWaitUntil:
+    visible: 'Netflix'
+    timeout: 15000
+- tapOn: 'Netflix'
+- tapOn: 'Amazon Prime Video'
+- tapOn: 'Disney Plus'
+- tapOn: 'Canal\+'
+- tapOn: '(?i)open the room|ouvrir la salle'
+
+# The genre step, with the People row under Not tonight.
+- extendedWaitUntil:
+    visible: 'Add a person|Ajouter une personne'
+    timeout: 20000
+- scroll
+- scroll
+- takeScreenshot: not-tonight-people-1-row
+
+# Under 2 characters: nothing happens.
+- tapOn: 'Add a person|Ajouter une personne'
+- extendedWaitUntil:
+    visible: 'Skip someone|Écarter quelqu.un'
+    timeout: 10000
+- inputText: 'p'
+- assertNotVisible: 'Searching|Recherche en cours'
+- takeScreenshot: not-tonight-people-2-short
+
+# A name without its accents, then one tap.
+- inputText: 'enelope'
+- extendedWaitUntil:
+    visible: 'Pen.lope Cruz.*'
+    timeout: 15000
+- takeScreenshot: not-tonight-people-3-results
+- tapOn: 'Pen.lope Cruz.*'
+- extendedWaitUntil:
+    visible: '(Remove|Retirer) Pen.lope Cruz'
+    timeout: 10000
+- takeScreenshot: not-tonight-people-4-chip
+
+# Remove, add again.
+- tapOn: '(Remove|Retirer) Pen.lope Cruz'
+- assertNotVisible: '(Remove|Retirer) Pen.lope Cruz'
+- scroll
+- tapOn: 'Add a person|Ajouter une personne'
+- inputText: 'penelope'
+- extendedWaitUntil:
+    visible: 'Pen.lope Cruz.*'
+    timeout: 15000
+- tapOn: 'Pen.lope Cruz.*'
+- extendedWaitUntil:
+    visible: '(Remove|Retirer) Pen.lope Cruz'
+    timeout: 10000
+
+# No result.
+- scroll
+- tapOn: 'Add a person|Ajouter une personne'
+- inputText: 'zzzzqq'
+- extendedWaitUntil:
+    visible: '(Nobody by that name|Personne à ce nom).*'
+    timeout: 15000
+- takeScreenshot: not-tonight-people-5-empty
+- tapOn: 'Close|Fermer'
+
+# Two more people: the cap of 3 turns the button off and shows its note.
+- scroll
+- tapOn: 'Add a person|Ajouter une personne'
+- inputText: 'brad pitt'
+- extendedWaitUntil:
+    visible: 'Brad Pitt,.*'
+    timeout: 15000
+- tapOn: 'Brad Pitt,.*'
+- scroll
+- tapOn: 'Add a person|Ajouter une personne'
+- inputText: 'tom hanks'
+- extendedWaitUntil:
+    visible: 'Tom Hanks,.*'
+    timeout: 15000
+- tapOn: 'Tom Hanks,.*'
+- scroll
+- extendedWaitUntil:
+    visible: '(3 people at most|3 personnes au maximum).*'
+    timeout: 5000
+- takeScreenshot: not-tonight-people-6-cap
+
+# Save with Continue: the lobby.
+- tapOn: '(?i)continue|continuer'
+- extendedWaitUntil:
+    visible: '(?i)in the room|dans la salle'
+    timeout: 15000
+- takeScreenshot: not-tonight-people-7-lobby

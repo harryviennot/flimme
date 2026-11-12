@@ -19,8 +19,10 @@ export type ListRowProps = {
   checked?: boolean;
   /** Something on the right instead of the value and chevron (a Toggle). */
   trailing?: ReactNode;
-  /** Makes the row tappable and shows a chevron. */
+  /** Makes the row tappable and shows a chevron (unless `chevron` is off). */
   onPress?: () => void;
+  /** Off for a row whose tap adds or picks instead of opening something. */
+  chevron?: boolean;
   /** `danger` is for the one destructive row: red icon and label, no chevron. */
   tone?: 'default' | 'danger';
   /** A spinner replaces the value and chevron, and presses are ignored. */
@@ -42,6 +44,7 @@ export function ListRow({
   checked = false,
   trailing,
   onPress,
+  chevron = true,
   tone = 'default',
   loading = false,
   disabled = false,
@@ -87,7 +90,7 @@ export function ListRow({
               </Text>
             ) : null}
             {checked ? <Icon name="check" size={18} color="accent-text" /> : null}
-            {onPress && !danger && !checked ? (
+            {onPress && chevron && !danger && !checked ? (
               <Icon name="chevron-right" size={18} color="text-muted" />
             ) : null}
           </>

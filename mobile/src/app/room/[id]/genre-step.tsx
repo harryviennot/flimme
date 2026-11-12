@@ -60,7 +60,7 @@ export default function GenreStepScreen() {
 
   const footer = stepFooter({
     picks: tonight.picks.length,
-    skips: tonight.skips.length,
+    skips: tonight.skips.length + tonight.people.length,
     ready,
     failed,
     saveFailed,
