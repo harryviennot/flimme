@@ -96,6 +96,7 @@ export default function RoomGenresScreen() {
                 onToggleSkip={tonight.toggleSkip}
                 onRemovePerson={tonight.removePerson}
                 onAddPerson={() => router.push(`/room/${id}/skip-people`)}
+                addPersonRef={tonight.addPersonRef}
               />
             )}
           </View>

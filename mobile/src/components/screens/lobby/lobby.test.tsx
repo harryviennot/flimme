@@ -18,6 +18,7 @@ import RoomServicesScreen from '@/app/room/[id]/services';
 import RoomGenresScreen from '@/app/room/[id]/genres';
 import GenreStepScreen from '@/app/room/[id]/genre-step';
 import { showToast } from '@/components/ui/toast';
+import { tonightDraftStore } from '@/features/lobby/tonight-draft';
 import { leaveRoom } from '@/features/room/leave';
 import { reportError } from '@/lib/sentry';
 import { haptics } from '@/lib/haptics';
@@ -1404,6 +1405,37 @@ describe('the genre step', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
     await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/room/r1/lobby'));
     expect(mockApi.setSeatSkips).toHaveBeenCalledWith({ room_id: 'r1', person_ids: [955] });
+  });
+
+  it('unknown_person: the warn toast, the newly added chip goes, the saved one stays, the step stays', async () => {
+    mockApi.roomGenres.mockResolvedValue({
+      status: 'ok',
+      options: [{ genre_id: 35, count: 3 }],
+      mine: [],
+      out: [],
+      skips: { genre_ids: [], people: [{ id: 287, name: 'Brad Pitt' }] },
+    });
+    mockApi.setSeatSkips.mockResolvedValue({ status: 'unknown_person' });
+    tonightDraftStore.getState().set('r1', {
+      people: [
+        { id: 287, name: 'Brad Pitt' },
+        { id: 999, name: 'Gone Person' },
+      ],
+    });
+    await open();
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tone: 'warn',
+          title: 'One person you skipped is no longer in our films, so we took them off.',
+        }),
+      ),
+    );
+    expect(screen.queryByRole('button', { name: 'Remove Gone Person' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Remove Brad Pitt' })).toBeTruthy();
+    expect(mockRouter.replace).not.toHaveBeenCalled();
+    tonightDraftStore.getState().reset();
   });
 
   it('draws no count while the host is alone', async () => {

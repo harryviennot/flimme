@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -5,6 +6,7 @@ import Animated from 'react-native-reanimated';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
+import type { PressableNode } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { layout } from '@/theme/motion';
 
@@ -35,6 +37,8 @@ export type TonightPrefsProps = {
   onRemovePerson: (id: number) => void;
   /** Opens the people search sheet. */
   onAddPerson: () => void;
+  /** Lets the screen move a screen reader's focus back to Add a person after the search sheet. */
+  addPersonRef?: Ref<PressableNode>;
 };
 
 /**
@@ -60,6 +64,7 @@ export function TonightPrefs({
   onToggleSkip,
   onRemovePerson,
   onAddPerson,
+  addPersonRef,
 }: TonightPrefsProps) {
   const { t } = useTranslation('lobby');
   const atPeopleCap = skipPeople.length >= maxSkipPeople;
@@ -189,6 +194,7 @@ export function TonightPrefs({
           label={t('prefs.notTonight.addPerson')}
           disabled={atPeopleCap}
           onPress={onAddPerson}
+          focusRef={addPersonRef}
         />
       </View>
       <View accessibilityLiveRegion="polite">

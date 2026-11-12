@@ -3,10 +3,11 @@ import { createStore } from 'zustand/vanilla';
 
 import type { SkippedPerson } from './people';
 
-// The player's unsaved Not tonight choices (genre-step.md#not-tonight-m670-and-m671): the picks and
-// the skipped genres and the skipped people. Memory only, one room at a time. The genre step and the lobby's genres sheet
-// share it. A list that is `null` has not been touched: it follows what the seat holds, so a
-// re-read of `api.room_genres` shows through until the first tap.
+// The player's unsaved Not tonight choices (genre-step.md#not-tonight-m670-and-m671): the picks,
+// the skipped genres and the skipped people. Memory only, one room at a time. The genre step, the
+// lobby's genres sheet and the people search sheet share it. A list that is `null` has not been
+// touched: it follows what the seat holds, so a re-read of `api.room_genres` shows through until
+// the first tap.
 
 export type TonightChange = { picks?: number[]; skips?: number[]; people?: SkippedPerson[] };
 

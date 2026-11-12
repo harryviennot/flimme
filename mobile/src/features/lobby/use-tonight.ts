@@ -1,9 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, Platform } from 'react-native';
+import { AccessibilityInfo, findNodeHandle, Platform } from 'react-native';
 
 import { api } from '@/api';
+import type { PressableNode } from '@/components/ui/pressable';
 import { showToast } from '@/components/ui/toast';
 import { useOnline } from '@/features/network';
 import { GENRES_KEY, SEATS_KEY, useRoomGenres } from '@/features/room';
@@ -160,6 +161,20 @@ export function useTonight(roomId: string | undefined, language: string) {
     if (next.pickMoved) announce(t('prefs.a11y.pickMoved', { name: nameOf(id) }));
   };
 
+  // The search sheet adds a person and closes: focus returns to Add a person (skip-people.md).
+  const addPersonRef = useRef<PressableNode>(null);
+  const lastPeople = useRef(people.length);
+  useEffect(() => {
+    const grew = people.length > lastPeople.current;
+    lastPeople.current = people.length;
+    if (!grew) return;
+    const timer = setTimeout(() => {
+      const node = addPersonRef.current ? findNodeHandle(addPersonRef.current) : null;
+      if (node) AccessibilityInfo.setAccessibilityFocus(node);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [people.length]);
+
   const removePerson = (id: number) => {
     draft.set({ people: people.filter((p) => p.id !== id) });
   };
@@ -286,6 +301,7 @@ export function useTonight(roomId: string | undefined, language: string) {
     togglePick,
     toggleSkip: toggleSkipGenre,
     removePerson,
+    addPersonRef,
     retry,
     save,
     saving,

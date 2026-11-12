@@ -133,6 +133,7 @@ export default function GenreStepScreen() {
               onToggleSkip={tonight.toggleSkip}
               onRemovePerson={tonight.removePerson}
               onAddPerson={() => router.push(`/room/${id}/skip-people`)}
+              addPersonRef={tonight.addPersonRef}
             />
           )}
         </View>
